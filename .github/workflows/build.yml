@@ -2,6 +2,9 @@ name: Build APK GOYANA
 on:
   push:
   workflow_dispatch:
+concurrency:
+  group: goyana-apk-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,12 +25,16 @@ jobs:
         run: |
           mkdir app && cd app
           npm init -y
-          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/geolocation@6 @capacitor/local-notifications@6 @zxing/library@0.21.3
           mkdir www
           cp ../index.html www/index.html
+          cp node_modules/@zxing/library/umd/index.min.js www/zxing.min.js
+          cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
           npx cap init GOYANA id.goyana.app --web-dir www
           npx cap add android
           npx cap sync android
+          cd ..
+          python native/prepare.py
       - name: Build APK
         run: |
           cd app/android
