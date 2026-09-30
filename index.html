@@ -6150,7 +6150,7 @@ select.gs107-i{appearance:auto;background:#fff}
   var STAFF='Koko';
   var SVC=[];
   var PERF=['Akasia','Junjung Buih','Lavender','Ocean','Sakura','Vanilla','Tanpa Parfum'];
-  var D={}, cur=null, curCard=null, edit=null;
+  var D={}, cur=null, curCard=null, edit=null; window.orderData177=D;
   function card2id(c){var b=c.querySelector('.g62-order-top b');return b?b.textContent.trim():''}
   function num(t){return parseInt(String(t||'').replace(/\D/g,''),10)||0}
   function txtNode(el){if(!el)return null;for(var i=0;i<el.childNodes.length;i++){var n=el.childNodes[i];if(n.nodeType===3&&n.textContent.trim())return n}return null}
@@ -10313,6 +10313,7 @@ body nav.bottom#gy156-nav:before{content:'';position:absolute;left:0;right:0;top
    {id:'x-peg',c:'exp',n:'Export Pegawai',ic:'📄',d:'Kinerja, presensi & komisi',exp:function(r){var o=ords(r);return [['Pegawai','Order','Berat (kg)','Omzet','Komisi','Hari Hadir']].concat(STAFF.map(function(s){var x=o.filter(function(y){return y.staff===s}),kg=Math.round(sum(x,'kg'));return [s,x.length,kg,sum(x,'total'),kg*300,ATT.filter(function(a){return a.s===s&&inR(a.d,r)}).length]}))}}
   ];
   window.REP170=REP;window.ORD170=ORD;
+  window.setReportOrders177=function(records){ORD.splice.apply(ORD,[0,ORD.length].concat(records));FIRST={};records.forEach(function(o){if(!FIRST[o.c]||FIRST[o.c]>o.t)FIRST[o.c]=o.t});};
 
   /* ================= HUB ================= */
   var sec=$('reports'),box=sec&&sec.querySelector('.content'),CAT='all',Q='';
@@ -11047,6 +11048,47 @@ document.querySelectorAll('#datacenter .mini-stats-v33 b,#branchmonitor58 .bm58-
 var backup=document.getElementById('bk107');if(backup)backup.textContent='Belum ada backup';
 if(window.KAS137){KAS137.kasir='';KAS137.outlet='';}
 document.querySelectorAll('.outlet-option-v56').forEach(function(e){e.remove()});
+})();
+</script>
+
+<script id="goyana-local-transactions177">
+(function(){
+ 'use strict';
+ var KEY='goyana-business177',list=document.querySelector('#orders .g62-orderlist'),db=document.getElementById('cust59-db');
+ var fields=['.g62-order-top span','.g62-order-top b','.g62-order-body div b','.g62-order-body small','.v87-order-meta span','.v87-service-count'];
+ var initializing=true,pending=false,details=window.orderData177||{};
+ function cards(){return Array.from(list.querySelectorAll('.g62-ordercard'))}
+ function digits(v){return Number(String(v||'').replace(/[^\d]/g,''))||0}
+ function id(c){return c.querySelector('.g62-order-top b').textContent.trim()}
+ function amount(c){var e=c.querySelector('strong');return digits(Array.from(e.childNodes).filter(function(n){return n.nodeType===3}).map(function(n){return n.textContent}).join(''))}
+ function revive(o){if(!o||typeof o!=='object')return;['masuk','due'].forEach(function(k){if(o[k])o[k]=new Date(o[k])});if(o.hist)o.hist.forEach(function(h){if(h.t)h.t=new Date(h.t)})}
+ function reports(){var rows=cards().map(function(c){var key=id(c),o=details[key],total=o?window.api115.calc(o).total:amount(c),created=c.dataset.created177||new Date().toISOString();if(!c.dataset.created177)c.dataset.created177=created;
+  var items=o?o.items:[];if(!items.length){try{items=JSON.parse(c.dataset.items||'[]')}catch(e){}}
+  var em=c.querySelector('strong em'),paid=o?Number(o.paid)||0:em&&em.classList.contains('paid')?total:Number(c.dataset.paid177)||0;
+  var method=c.dataset.method177||'Tunai',st=c.dataset.st||'antrian';
+  return {id:key,t:new Date(created),c:c.querySelector('.g62-order-body div b').textContent.trim(),f:c.dataset.g126==='female',items:items.map(function(it){return {n:it.n||it.name,u:it.unit,q:Number(it.qty)||0,p:Number(it.price)||0,t:Math.round((Number(it.qty)||0)*(Number(it.price)||0))}}),kg:items.reduce(function(t,it){return t+(it.unit==='kg'?Number(it.qty)||0:0)},0),sub:total+(Number(c.dataset.disc)||0),disc:Number(c.dataset.disc)||0,ong:o?Number(o.ongkir)||0:0,rd:0,total:total,paid:Math.min(total,paid),m:st==='batal'?'Batal':paid>0?method:'Belum',st:/^(cuci|kering|setrika|packing)$/.test(st)?'proses':st,staff:'',antar:c.dataset.antar==='1',dur:c.querySelector('.g62-order-top span').textContent,due:o?o.due:new Date(new Date(created).getTime()+72*3600e3),done:o?o.due:new Date(created),pts:Math.floor(paid/10000)};
+ });if(window.setReportOrders177)setReportOrders177(rows);return rows}
+ function snapshot(){return {orders:cards().map(function(c){var em=c.querySelector('strong em');return {dataset:Object.assign({},c.dataset),fields:fields.map(function(sel){return Array.from(c.querySelectorAll(sel),function(e){return e.textContent})}),total:amount(c),payment:em?em.textContent:'',paid:!!(em&&em.classList.contains('paid')),chips:Array.from(c.querySelectorAll('.chip91'),function(e){return {text:e.textContent,hidden:e.style.display==='none'}})}}),details:details,kas:window.KAS137,customers:Array.from(db.querySelectorAll('.cust59-row'),function(r){return {name:(r.querySelector('b')||{}).textContent||'',phone:r.dataset.phone||(r.querySelector('small')||{}).textContent||'',address:r.dataset.address||'',gender:r.dataset.gender||'male',maps:r.dataset.maps||''}})}}
+ function save(){pending=false;reports();try{localStorage.setItem(KEY,JSON.stringify(snapshot()));return true}catch(e){toast90('Penyimpanan perangkat penuh. Transaksi belum tersimpan permanen.');return false}}
+ function queue(){if(initializing||pending)return;pending=true;queueMicrotask(save)}
+ function restoreCustomer(r){if(!r.name)return;var row=document.createElement('div');row.className='cust59-row';row.dataset.name=(r.name+' '+r.phone).toLowerCase();row.dataset.phone=r.phone;row.dataset.address=r.address;row.dataset.gender=r.gender;row.dataset.maps=r.maps;
+ var box=document.createElement('div'),av=document.createElement('span'),text=document.createElement('div'),b=document.createElement('b'),sm=document.createElement('small'),n=document.createElement('strong'),time=document.createElement('time');av.textContent=r.name.slice(0,2).toUpperCase();b.textContent=r.name;sm.textContent=r.phone;text.append(b,sm);box.append(av,text);n.textContent='0';time.textContent='—';row.append(box,n,time);db.appendChild(row);
+ var tpl=window.customerTemplate176;if(tpl){var picker=tpl.cloneNode(true);picker.querySelector('div b').textContent=r.name;var smalls=picker.querySelectorAll('div small');if(smalls[0])smalls[0].textContent='☎ '+r.phone;if(smalls[1])smalls[1].textContent='⌖ '+(r.address||'—');picker.dataset.g=r.gender;document.getElementById('f61-customer').appendChild(picker)}if(window.PHONE138)PHONE138[r.name.toLowerCase()]=r.phone;
+ }
+ var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+ if(saved){
+  (saved.orders||[]).forEach(function(r){if(!window.goyanaOrderTemplate176)return;var c=goyanaOrderTemplate176.cloneNode(true);Array.from(c.attributes).forEach(function(a){if(a.name.startsWith('data-'))c.removeAttribute(a.name)});Object.keys(r.dataset||{}).forEach(function(k){c.dataset[k]=r.dataset[k]});c.classList.add('new107');fields.forEach(function(sel,i){c.querySelectorAll(sel).forEach(function(e,j){if(r.fields[i]&&r.fields[i][j]!==undefined)e.textContent=r.fields[i][j]})});var strong=c.querySelector('strong'),em=document.createElement('em');strong.replaceChildren(document.createTextNode('Rp'+Number(r.total||0).toLocaleString('id-ID')));em.textContent=r.payment;em.className=r.paid?'paid':'';strong.appendChild(em);c.querySelectorAll('.chip91').forEach(function(e,i){var x=r.chips&&r.chips[i];e.textContent=x?x.text:'';e.style.display=x&&!x.hidden?'':'none'});list.appendChild(c);if(window.paint108)paint108(c)});
+  Object.keys(saved.details||{}).forEach(function(k){details[k]=saved.details[k];revive(details[k])});
+  if(saved.kas&&window.KAS137){Object.keys(saved.kas).forEach(function(k){KAS137[k]=saved.kas[k]});['sales','ins','outs','hist','voided','outsVoid'].forEach(function(k){(KAS137[k]||[]).forEach(function(x){['at','voidAt'].forEach(function(f){if(x[f])x[f]=new Date(x[f])})})});}
+  (saved.customers||[]).forEach(restoreCustomer);
+ }
+ initializing=false;reports();if(window.counts108)counts108();if(window.apply108)apply108();
+ var finish=window.f61Finish;window.f61Finish=function(method){var before=new Set(cards()),sales=window.KAS137?KAS137.sales.length:0;var result=finish.apply(this,arguments),c=cards().find(function(x){return !before.has(x)});if(c){c.dataset.created177=new Date().toISOString();c.dataset.method177=/QRIS/i.test(method)?'QRIS':/Transfer/i.test(method)?'Transfer':'Tunai';c.dataset.paid177=/Bayar Nanti/i.test(method)?'0':String(f61.total||0);if(window.KAS137)KAS137.sales.slice(sales).forEach(function(s){s.id=id(c);s.at=new Date()});save();var tab=document.querySelector('#orders .tabs108 button[data-k="'+(c.dataset.st||'antrian')+'"]');if(tab&&window.tab108)tab108(tab)}return result};
+ var op=window.openPage;window.openPage=function(page){reports();var result=op.apply(this,arguments);if(page==='home'){var inCount=cards().filter(function(c){return c.dataset.st!=='batal'&&new Date(c.dataset.created177).toDateString()===new Date().toDateString()}).length;var e=document.getElementById('gy155-in');if(e)e.textContent=inCount}return result};
+ new MutationObserver(function(ms){if(ms.some(function(m){var el=m.target.nodeType===1?m.target:m.target.parentElement;return el.closest&&el.closest('.g62-ordercard')||Array.from(m.addedNodes).concat(Array.from(m.removedNodes)).some(function(n){return n.nodeType===1&&n.matches('.g62-ordercard')})}))queue()}).observe(list,{childList:true,subtree:true,attributes:true,characterData:true});
+ new MutationObserver(function(ms){if(ms.some(function(m){var e=m.target.nodeType===1?m.target:m.target.parentElement;return e.closest&&e.closest('.cust59-row')||Array.from(m.addedNodes).concat(Array.from(m.removedNodes)).some(function(n){return n.nodeType===1&&n.matches('.cust59-row')})}))queue()}).observe(db,{childList:true,subtree:true,attributes:true,characterData:true});
+ ['savePay115','saveEdit115','saveExpense107','kcClose137','saveCustomerV88'].forEach(function(key){var fn=window[key];if(fn)window[key]=function(){var r=fn.apply(this,arguments);save();return r}});
+ window.addEventListener('pagehide',save);window.flushTransactions177=save;
 })();
 </script>
 </body>
