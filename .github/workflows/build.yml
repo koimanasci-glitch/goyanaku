@@ -1,0 +1,36 @@
+name: Build APK GOYANA
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Buat proyek Android (Capacitor)
+        run: |
+          mkdir app && cd app
+          npm init -y
+          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          mkdir www
+          cp ../index.html www/index.html
+          npx cap init GOYANA id.goyana.app --web-dir www
+          npx cap add android
+          npx cap sync android
+      - name: Build APK
+        run: |
+          cd app/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GOYANA-demo-apk
+          path: app/android/app/build/outputs/apk/debug/*.apk
