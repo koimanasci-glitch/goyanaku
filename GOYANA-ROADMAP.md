@@ -1127,3 +1127,14 @@ Prioritas diskusi berikutnya:
 ---
 
 **Dokumen ini harus terus diperbarui bersama perkembangan GOYANA.**
+
+
+## 30. Audit akun dan panduan awal — 1 Oktober 2026
+
+- Navigasi terbaru: enam pintasan Tambah Transaksi, Cari Transaksi, Kurir, Pelanggan, Hari Ini, Chatbot. Footer: Beranda, Pesanan, Laporan, Pengaturan.
+- Mode coba meminta nama outlet sekali, lalu membuat outlet awal dengan ID stabil. Alamat dan WA dapat dilengkapi kemudian. Tidak menghapus data lama dan tidak membuat outlet duplikat saat dibuka ulang.
+- Panduan lima langkah dapat dilewati, diselesaikan, dan dibuka ulang dari Pengaturan. Tombol pengaturan dalam panduan membuka halaman asli.
+- Akun online belum tersedia: login lama menerima sembarang password tanpa server. Perilaku itu kini diblokir; pengguna dapat melanjutkan mode coba dengan keterangan bahwa data tersimpan di perangkat.
+- Tombol Google menunjukkan belum tersedia. Pendaftaran, reset password, verifikasi email dan Google OAuth memerlukan backend serta konfigurasi penyedia identitas. Jangan menyatakan mode coba sebagai akun terverifikasi.
+- Prioritas: backend auth/multi-tenant dan sinkronisasi; penegakan hak akses pegawai/kurir; backup dan pemulihan teruji. Setelah itu hubungkan Google Play Billing, webhook pembayaran dan CHATKU yang sebenarnya.
+- Validasi: 16 skenario browser, dua tes pengemasan script. Akun acak tidak dapat masuk; outlet awal dan status Lewati bertahan setelah reload.
