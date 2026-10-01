@@ -38,7 +38,8 @@ jobs:
           mkdir www
           cp ../index.html www/index.html
           cp ../goyana-v181-system-fixes.js www/goyana-v181-system-fixes.js
-          python -c "from pathlib import Path; p=Path('www/index.html'); s=p.read_text(encoding='utf-8'); tag='<script src=\"goyana-v181-system-fixes.js\"></script>'; p.write_text(s if tag in s else s.replace('</body>',tag+'\\n</body>',1),encoding='utf-8')"
+          cp ../goyana-v182-finance-hpp.js www/goyana-v182-finance-hpp.js
+          python -c "from pathlib import Path; p=Path('www/index.html'); s=p.read_text(encoding='utf-8'); tags='<script src=\"goyana-v181-system-fixes.js\"></script>\\n<script src=\"goyana-v182-finance-hpp.js\"></script>'; p.write_text(s if 'goyana-v182-finance-hpp.js' in s else s.replace('</body>',tags+'\\n</body>',1),encoding='utf-8')"
           cp node_modules/@zxing/library/umd/index.min.js www/zxing.min.js
           cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
           npx cap init GOYANA id.goyana.app --web-dir www
