@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="id">
-<head><script id="goyana-reset-storage176">try{if(localStorage.getItem('goyana-empty-version')!=='176'){Object.keys(localStorage).filter(function(k){return /^(goyana|gy154-|gy-st171|gy175)/.test(k)}).forEach(function(k){localStorage.removeItem(k)});localStorage.setItem('goyana-empty-version','176')}}catch(e){}</script>
+<head><script>document.documentElement.classList.add('boot180');</script><style id="boot180-style">html.boot180 body>:not(#boot180){visibility:hidden!important}#boot180{position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#e8493f;font-family:system-ui,sans-serif}#boot180 strong{font-size:28px;letter-spacing:2px}#boot180 svg{width:70px;height:70px;animation:boot180pulse 1.3s ease-in-out infinite}#boot180 small{color:#8a91a3;font-size:13px}@keyframes boot180pulse{50%{transform:scale(.93);opacity:.6}}@media(prefers-reduced-motion:reduce){#boot180 svg{animation:none}}</style><script id="goyana-reset-storage176">try{if(localStorage.getItem('goyana-empty-version')!=='176'){Object.keys(localStorage).filter(function(k){return /^(goyana|gy154-|gy-st171|gy175)/.test(k)}).forEach(function(k){localStorage.removeItem(k)});localStorage.setItem('goyana-empty-version','176')}}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="theme-color" content="#F4583E">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -2374,7 +2374,7 @@ function saveCustomerV88(){
 </script>
 
 </head>
-<body>
+<body><div id="boot180" role="status" aria-live="polite"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="18" fill="#fff0ec"/><path d="M32 12 38 26 52 32 38 38 32 52 26 38 12 32 26 26Z" fill="#e8493f"/></svg><strong>GOYANA</strong><small>Menyiapkan aplikasi…</small></div>
 <main class="app">
 
 <section id="home" class="page active">
@@ -11280,6 +11280,77 @@ const settingIcons178=["<path d=\"M7 40V28l10-5h14l10 5v12\" fill=\"#3e5967\"/><
 (function(){
  var icons=['<path d="M4 5h16v14H4zM4 12h5l1 3h4l1-3h5"/><path d="M12 3v6m-3-3 3 3 3-3"/>','<path d="M5 4h14v16H5zM9 3h6v3H9zM8 13l3 3 5-6"/>','<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>'];
  document.querySelectorAll('#home .gy155-stats>div').forEach(function(card,i){var value=card.querySelector('b'),top=document.createElement('div');top.className='gy179-status-top';var icon=document.createElement('i');icon.className='gy179-status-icon';icon.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+icons[i]+'</svg>';top.append(icon,value);card.prepend(top)});
+})();
+</script>
+
+<style id="goyana-fixes180">
+#settings #st178 .setting178>button:not(#z1#z2#z3#z4#z5#z6#z7#z8#z9#z10#z11#z12){padding:10px 0!important;min-height:64px!important;height:auto!important;margin:0!important;gap:13px!important;line-height:1.3!important}
+#settings #st178 .setting178 .icon178{width:38px!important;min-width:38px!important;height:38px!important}
+#settings #st178 .setting178 .icon178 svg{width:38px!important;height:38px!important}
+#settings #st178 .setting178 b{font-size:15px!important;line-height:1.3!important}
+#settings #st178 .setting178 small{font-size:11px!important;line-height:1.35!important;margin-top:3px!important}
+#settings #st178{padding-top:4px!important}
+body #dp178,body #depositpay178,body #deposits178{z-index:10150!important}
+body #f61-payment .f61-sheet{max-height:calc(100dvh - 40px)!important;overflow-y:auto!important}
+body #f61-payment .f61-paygrid>.pm178{display:flex!important;min-height:76px!important;flex-direction:column!important;justify-content:center!important;gap:5px!important;padding:10px!important}
+#cust59-db .balance180{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:8px;color:#477060;font-size:11px}
+.balance180 button,.depositshortcut180,.outlet180-actions button{border:1px solid #f0d6d1;border-radius:10px;padding:9px 12px;background:#fff6f3;color:#d34d41;font:inherit;font-size:12px}
+#customers .depositshortcut180{display:block;width:100%;margin:10px 0;text-align:left;padding:13px 15px}
+#outlets .outlet180{padding:16px;border:1px solid #e8ebef;border-radius:15px;background:#fff;margin:12px 0}
+.outlet180 b{font-size:16px}.outlet180 small{display:block;color:#8a91a3;margin-top:4px;font-size:12px}
+.outlet180-actions{display:flex;gap:8px;margin-top:12px}.outlet180-actions button{flex:1}
+.outlet180-logo{float:right;width:42px;height:42px;border-radius:12px;object-fit:cover}
+#branchmonitor58 .branch180-row{padding:13px 0;border-bottom:1px solid #eceef3}.branch180-row small{display:block;color:#8a91a3;margin-top:4px}
+</style>
+<script id="goyana-fixes180-script">
+(function(){'use strict';
+const $=id=>document.getElementById(id), money=n=>'Rp'+Math.round(n||0).toLocaleString('id-ID');
+function read(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
+function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast90('Penyimpanan penuh. Perubahan belum tersimpan.');return false}}
+const norm=p=>String(p||'').replace(/\D/g,'').replace(/^0/,'62');
+// Make customer deposit available where the customer is managed.
+const db=$('cust59-db'),pager=$('pg138');
+function balanceFor(row){const phone=norm(row.dataset.phone),name=row.querySelector('b').textContent.trim().toLowerCase();return (deposits178[phone?'phone:'+phone:'name:'+name]||{}).balance||0}
+window.customerDeposit180=function(row){openDeposits178();const options=Array.from($('deposits178-customer').options),rows=Array.from(db.querySelectorAll('.cust59-row'));const i=rows.indexOf(row);if(options[i]){$('deposits178-customer').value=String(i);$('deposits178-customer').dispatchEvent(new Event('change'))}};
+function customers(){
+ if(pager&&db.lastElementChild!==pager)db.appendChild(pager);
+ if(pager)pager.hidden=!db.querySelector('.cust59-row');
+ db.querySelectorAll('.cust59-row').forEach(row=>{let line=row.querySelector('.balance180');if(!line){line=document.createElement('div');line.className='balance180';const label=document.createElement('span'),button=document.createElement('button');button.type='button';button.textContent='Top Up Saldo';button.onclick=e=>{e.stopPropagation();customerDeposit180(row)};line.append(label,button);row.appendChild(line)}const text='Saldo '+money(balanceFor(row));if(line.firstChild.textContent!==text)line.firstChild.textContent=text});
+}
+const shortcut=document.createElement('button');shortcut.className='depositshortcut180';shortcut.type='button';shortcut.textContent='Saldo Pelanggan · Top Up & Riwayat';shortcut.onclick=()=>openDeposits178();const add=document.querySelector('#customers .cust59-add');(add||db).before(shortcut);
+new MutationObserver(customers).observe(db,{childList:true});customers();
+const topup=$('deposits178-save'),topupOld=topup.onclick;topup.onclick=function(){topupOld.apply(this,arguments);customers()};
+// Payment UI uses the atomic ledger in v178.
+new MutationObserver(customers).observe($('deposits178-balance'),{childList:true});
+// One persistent collection for add/edit, with stable identities and safe legacy deduplication.
+let outlets=read('goyana-outlets180',null);
+if(!Array.isArray(outlets)){const seen=new Set();outlets=read('goyana-new-outlets176',[]).filter(o=>{const k=[o.name,o.address,norm(o.phone)].map(x=>String(x||'').trim().toLowerCase()).join('|');if(seen.has(k))return false;seen.add(k);return true}).map((o,i)=>({...o,id:'legacy180-'+i,logo:''}));write('goyana-outlets180',outlets)}
+let active=read('goyana-active-outlet180',''),edit=null,logo='';if(!outlets.some(o=>o.id===active)){active=outlets[0]?.id||'';write('goyana-active-outlet180',active)}
+const cards=()=>Array.from(document.querySelectorAll('#orders .g62-ordercard'));
+function stamp(){let changed=false;cards().forEach(c=>{if(!c.dataset.outlet180&&active){c.dataset.outlet180=active;changed=true}});if(changed)flushTransactions177()}
+function fields(){const f=document.querySelector('#outletedit .outlet-edit-v25');return {name:f.querySelector('input.profile-input'),address:f.querySelector('textarea.profile-input'),phone:f.querySelector('input[inputmode=tel]')}}
+function preview(){const box=$('outlet-logo-preview');box.replaceChildren();if(logo){const img=document.createElement('img');img.src=logo;img.alt='Logo Outlet';box.appendChild(img)}else box.textContent='▦'}
+window.previewOutletLogo=function(e){const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)||f.size>2*1024*1024){toast90('Gunakan PNG/JPG/WebP maksimal 2 MB');e.target.value='';return}const r=new FileReader();r.onload=()=>{logo=String(r.result);preview()};r.readAsDataURL(f)};
+window.removeOutletLogo=function(){logo='';$('outlet-logo-file').value='';preview()};
+function editor(id){edit=id||null;const o=outlets.find(x=>x.id===id),f=fields();openPage('outletedit');f.name.value=o?.name||'';f.address.value=o?.address||'';f.phone.value=o?.phone||'';logo=o?.logo||'';preview();document.querySelector('#outletedit .subhead b').textContent=o?'EDIT OUTLET':'TAMBAH OUTLET'}
+window.addBranch96=()=>editor(null);window.editOutlet158=index=>editor(outlets[index]?.id);
+window.saveOutlet158=function(){const f=fields(),name=f.name.value.trim(),address=f.address.value.trim(),phone=f.phone.value.replace(/[^0-9+]/g,'');if(!name||!address||!/^\+?\d{10,15}$/.test(phone))return toast90('Lengkapi nama, alamat, dan nomor WA outlet');if(outlets.some(o=>o.id!==edit&&o.name.trim().toLowerCase()===name.toLowerCase()&&o.address.trim().toLowerCase()===address.toLowerCase()))return toast90('Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');const id=edit||'outlet180-'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2)),o={id,name,address,phone,logo},next=outlets.slice(),i=next.findIndex(x=>x.id===id);if(i<0)next.push(o);else next[i]=o;if(!write('goyana-outlets180',next))return;outlets=next;if(!active){active=id;write('goyana-active-outlet180',active);stamp()}edit=id;renderOutlets();toast90('Outlet tersimpan');openPage('outlets')};
+function metrics(id){const list=cards().filter(c=>c.dataset.outlet180===id&&c.dataset.st!=='batal'),today=new Date().toDateString();let omzet=0,paid=0;list.forEach(c=>{const oid=c.querySelector('.g62-order-top b').textContent.trim(),o=orderData177[oid],total=o?api115.calc(o).total:Number(c.querySelector('strong').textContent.replace(/[^0-9]/g,''));paid+=Number(c.dataset.paid177)||0;if(new Date(c.dataset.created177).toDateString()===today)omzet+=total});return {list,omzet,paid}}
+let monitored='';
+window.monitorOutlet180=function(id){const o=outlets.find(x=>x.id===id);if(!o)return;monitored=id;openPage('branchmonitor58');paintMonitor()};
+function paintMonitor(){const o=outlets.find(x=>x.id===monitored);if(!o)return;const m=metrics(o.id);$('bm58-title').textContent='MONITOR CABANG';$('bm58-name').textContent=o.name;$('bm58-omzet').textContent=money(m.omzet);$('bm58-process').textContent=m.list.filter(c=>!['antrian','siap','selesai','diambil'].includes(c.dataset.st)).length;$('bm58-ready').textContent=m.list.filter(c=>c.dataset.st==='siap').length;$('bm58-late').textContent=m.list.filter(c=>c.dataset.st==='telat').length;const cash=$('bm58-cash');cash.previousElementSibling.textContent='Pembayaran diterima';cash.textContent=money(m.paid);const metricsBoxes=document.querySelectorAll('#branchmonitor58 .bm58-grid>div');metricsBoxes[4].querySelector('b').textContent=m.list.filter(c=>{const oid=c.querySelector('.g62-order-top b').textContent.trim(),o=orderData177[oid];return o&&o.paid<api115.calc(o).total}).length;metricsBoxes[5].hidden=true;const host=document.querySelector('#branchmonitor58 .bm58-menu');host.replaceChildren();const title=document.createElement('h3');title.textContent='Pesanan Cabang';host.appendChild(title);if(!m.list.length){const p=document.createElement('p');p.textContent='Belum ada pesanan tercatat untuk outlet ini di perangkat ini.';host.appendChild(p)}m.list.forEach(c=>{const row=document.createElement('div');row.className='branch180-row';const b=document.createElement('b'),sm=document.createElement('small');b.textContent=c.querySelector('.g62-order-body div b').textContent;sm.textContent=c.querySelector('.g62-order-top b').textContent+' · '+c.dataset.st;row.append(b,sm);host.appendChild(row)});const note=document.createElement('p');note.className='note99';note.textContent='Monitoring data perangkat ini. Sinkron antar-HP memerlukan server GOYANA.';host.appendChild(note)}
+function renderOutlets(){const page=$('outlets'),host=page.querySelector('.content');host.querySelectorAll('.or99,.outlet180').forEach(e=>e.remove());host.querySelectorAll('.empty176').forEach(e=>e.hidden=!!outlets.length);const quota=host.querySelector('.quota96');if(quota)quota.hidden=true;host.querySelectorAll('.quota99,.quota96,.outlet-cap96').forEach(e=>e.style.setProperty('display','none','important'));host.querySelector('.card99')?.style.setProperty('display','none','important');const summary=document.createElement('p');summary.id='outlet180-count';summary.className='note99';summary.textContent=outlets.length+' outlet tersimpan';$('outlet180-count')?.remove();host.prepend(summary);outlets.forEach(o=>{const row=document.createElement('article');row.className='outlet180';if(o.logo){const img=document.createElement('img');img.src=o.logo;img.alt='Logo '+o.name;img.className='outlet180-logo';row.appendChild(img)}const b=document.createElement('b'),address=document.createElement('small'),phone=document.createElement('small'),actions=document.createElement('div');b.textContent=o.name;address.textContent=o.address;phone.textContent='WA '+o.phone;actions.className='outlet180-actions';[['Monitoring',()=>monitorOutlet180(o.id)],['Edit',()=>editor(o.id)]].forEach(([label,fn])=>{const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.onclick=fn;actions.appendChild(btn)});row.append(b,address,phone,actions);host.appendChild(row)});const list=document.querySelector('#superbilling .branch58-list');list.replaceChildren();outlets.forEach(o=>{const b=document.createElement('button');b.className='primary';b.textContent='Monitor '+o.name;b.onclick=()=>monitorOutlet180(o.id);list.appendChild(b)});if(!outlets.length)list.textContent='Tambahkan outlet untuk mulai monitoring.';const current=outlets.find(o=>o.id===active);if(window.KAS137)KAS137.outlet=current?.name||'';const label=document.querySelector('#superbilling .branch58-lock b');if(label)label.textContent=current?.name||'Belum ada outlet';const cap=document.querySelector('#superbilling .branch58-capacity');if(cap){cap.querySelector('small').textContent='Outlet tersimpan';cap.querySelector('strong').textContent=outlets.length;cap.querySelector('span').textContent='Tambahkan dan kelola outlet usaha';}const sums=document.querySelectorAll('#superbilling .branch58-summary span');const all=outlets.flatMap(o=>metrics(o.id).list);if(sums[0])sums[0].textContent=money(outlets.reduce((n,o)=>n+metrics(o.id).omzet,0));if(sums[1])sums[1].textContent=all.filter(c=>!['selesai','diambil'].includes(c.dataset.st)).length;if(sums[2])sums[2].textContent=all.filter(c=>c.dataset.st==='telat').length;}
+window.openOutletSelectorV56=function(){const modal=$('outlet-selector-v56');if(!modal)return;const box=modal.querySelector('.outlet-selector-list-v56')||modal.querySelector('.outlet-selector-body-v56')||modal.querySelector('.outlet-options-v56');if(!box){openPage('outlets');return}box.replaceChildren();outlets.forEach(o=>{const b=document.createElement('button');b.type='button';b.textContent=o.name;b.onclick=()=>{modal.classList.remove('show');monitorOutlet180(o.id)};box.appendChild(b)});modal.classList.add('show')};
+stamp();new MutationObserver(()=>{stamp();if($('branchmonitor58').classList.contains('active'))paintMonitor()}).observe(document.querySelector('#orders .g62-orderlist'),{childList:true});renderOutlets();
+// Make the operational outlet explicit when starting an order; monitoring never changes it.
+const pay=window.f61Payment;window.f61Payment=function(){if(!active){toast90('Tambahkan outlet sebelum membuat transaksi');editor(null);return}return pay.apply(this,arguments)};
+const finish=window.f61Finish;window.f61Finish=function(){const before=new Set(cards()),r=finish.apply(this,arguments);cards().filter(c=>!before.has(c)).forEach(c=>{if(active)c.dataset.outlet180=active});flushTransactions177();return r};
+const op=window.openPage;window.openPage=function(id){if(['checkout111','invoice111'].includes(id)){toast90('Pembelian belum tersedia. Google Play Billing dan server akun perlu dihubungkan.');return}const r=op.apply(this,arguments);if(id==='outlets'||id==='superbilling')renderOutlets();if(id==='customers')customers();if(id==='branchmonitor58')paintMonitor();return r};
+// App purchases require actual billing integration; legacy demo confirmations must not activate subscriptions.
+window.confirmUpgradePaid=()=>toast90('Pembelian belum tersedia. Google Play Billing dan server akun perlu dihubungkan.');
+window.selectUpgradePayment=window.placeOrder111=window.checkPay111=()=>toast90('Pembelian belum tersedia. Google Play Billing dan server akun perlu dihubungkan.');
+async function ready(){await Promise.all([new Promise(r=>setTimeout(r,950)),Promise.race([document.fonts?.ready||Promise.resolve(),new Promise(r=>setTimeout(r,2500))]),Promise.race([window.device178?device178.insets().then(r=>document.documentElement.style.setProperty('--goyana-safe-top',r.top+'px')).catch(()=>{}):Promise.resolve(),new Promise(r=>setTimeout(r,2500))])]);requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.classList.remove('boot180');$('boot180')?.remove()}))}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 </script>
 
