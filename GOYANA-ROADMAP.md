@@ -1213,3 +1213,28 @@ Bagian ini menggantikan catatan paket yang bertentangan pada bagian sebelumnya. 
 - [ ] Setelah pembayaran terverifikasi di server, hak akses/kuota tambahan tersinkron otomatis ke aplikasi; retry pembayaran tidak boleh menambah kuota dua kali.
 - [ ] Pembelian Tambah Cabang membuka kuota untuk membuat cabang, bukan otomatis membuat cabang kosong tanpa nama dan konfigurasi.
 - Status saat review: aktivasi paket masih berupa prototype; verifikasi pembayaran dan server hak akses produksi belum tersedia. Catatan ini belum mengubah kode atau billing.
+
+## 36. Implementasi Review v190 — 1 Oktober 2026
+
+### Diterapkan pada prototype
+- [x] Pusat Data menjadi menu langsung pada halaman Pengaturan; isi Pusat Data tetap tersedia.
+- [x] Pembatalan pesanan setelah produksi tidak mengembalikan bahan terpakai secara otomatis.
+- [x] Transfer stok mencatat barang dalam perjalanan; stok tujuan bertambah setelah konfirmasi penerimaan lengkap dari cabang tujuan.
+- [x] Konfirmasi penerimaan ulang tidak membuat mutasi masuk dua kali.
+- [x] Katalog menampilkan Pro, Super Pro, Super Pro Chatbot, dan Platinum; Super Pro menggunakan patokan sementara Rp75.000/bulan.
+- [x] Ekspor Data dan Stock Opname mulai Super Pro; Balasan Cepat mulai Super Pro Chatbot; AI hanya Platinum.
+- [x] Pesan transaksi otomatis dibedakan dari Balasan Cepat dan AI dalam aturan hak akses.
+- [x] Add-on Balasan Cepat Rp25.000 dan Chatbot AI Rp100.000 ditampilkan terpisah dari Tambah Cabang.
+- [x] Trial prototype menggunakan tanggal mulai lokal dan batas dua bulan; hak akses diuji terhadap akhir masa aktif.
+- [x] Perapian teks dan lebar komponen mobile; Pusat Data diperiksa pada lebar 320, 360, 390, dan 430 piksel.
+- [x] Tes regresi transaksi dan tes baru paket/stok berjalan tanpa error JavaScript; tes browser ditambahkan ke workflow APK.
+
+### Batas implementasi yang masih terbuka
+- [ ] Google Play Billing, produk Play Console, backend verifikasi pembayaran, dan entitlement server belum terhubung. Tombol pembayaran tidak mengklaim pembayaran berhasil.
+- [ ] Aktivasi paket/add-on otomatis setelah pembayaran dan sinkronisasi antar-perangkat perlu backend. Aturan lokal hanya prototype, bukan keamanan produksi.
+- [ ] Finalisasi periode/satuan add-on, kuota bawaan, harga paket selain Super Pro, dan kebijakan pembelian AI di luar Platinum.
+- [ ] Transfer sebagian, selisih/rusak/hilang, pembatalan kiriman, identitas petugas dan kontrol role server belum diimplementasikan; konfirmasi yang tersedia hanya penerimaan lengkap.
+- [ ] Pengembalian fisik bahan dan migrasi koreksi stok historis memerlukan alur terpisah; tidak ada koreksi histori otomatis.
+- [ ] Uji semua halaman dan perangkat Android fisik, terutama printer, kamera dan integrasi WhatsApp sungguhan.
+- Harga Pro Rp30.000, Super Pro Chatbot Rp100.000 dan Platinum Rp350.000 mengikuti tampilan kode yang sudah ada sebagai acuan sementara, bukan keputusan harga baru.
+- Pembayaran Google Play resmi di Indonesia menyediakan QRIS untuk pembelian yang didukung; bantuan Google menyatakan QRIS tidak dapat membayar langganan. Sumber: https://support.google.com/googleplay/answer/2651410?co=GENIE.CountryCode%3DID&hl=id

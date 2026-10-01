@@ -23,6 +23,13 @@ jobs:
         with:
           node-version: 20
 
+      - name: Uji alur transaksi, paket dan stok
+        run: |
+          npm install --prefix tests --ignore-scripts --no-audit --no-fund
+          cd tests
+          npx playwright install --with-deps chromium
+          npm test
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -82,3 +89,4 @@ jobs:
             gh release create android-latest --title "GOYANA Android Terbaru" --notes "APK Android GOYANA terbaru. Dibangun otomatis dari branch main. Commit: $GITHUB_SHA" --latest
           fi
           gh release upload android-latest GOYANA-Android-Terbaru.apk --clobber
+

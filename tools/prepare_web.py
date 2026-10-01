@@ -8,7 +8,7 @@ PATCHES = [f'goyana-v{v}-{name}.js' for v, name in [
     (181, 'system-fixes'), (182, 'finance-hpp'),
     (183, 'delivery-transport'), (184, 'owner-transport-settings'),
     (185, 'qris-stability'), (187, 'home-navigation'), (188, 'mobile-polish'),
-    (189, 'getting-started')]]
+    (189, 'getting-started'), (190, 'subscription-layout')]]
 
 def prepare(source, target):
     source, target = Path(source), Path(target)
@@ -36,3 +36,4 @@ def prepare(source, target):
 if __name__ == '__main__':
     import sys
     prepare(sys.argv[1] if len(sys.argv) > 1 else '.', sys.argv[2] if len(sys.argv) > 2 else 'app/www')
+
