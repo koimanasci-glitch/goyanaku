@@ -7,7 +7,7 @@ import shutil
 PATCHES = [f'goyana-v{v}-{name}.js' for v, name in [
     (181, 'system-fixes'), (182, 'finance-hpp'),
     (183, 'delivery-transport'), (184, 'owner-transport-settings'),
-    (185, 'qris-stability'), (187, 'home-navigation')]]
+    (185, 'qris-stability'), (187, 'home-navigation'), (188, 'mobile-polish')]]
 
 def prepare(source, target):
     source, target = Path(source), Path(target)

@@ -42,7 +42,7 @@ jobs:
           python ../tools/prepare_web.py .. www
           cp node_modules/@zxing/library/umd/index.min.js www/zxing.min.js
           cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
-          npx cap init GOYANA id.goyana.app --web-dir www
+          npx cap init Goyana id.goyana.app --web-dir www
           npx cap add android
           npx cap sync android
           cd ..
