@@ -1200,3 +1200,16 @@ Bagian ini menggantikan catatan paket yang bertentangan pada bagian sebelumnya. 
 - Harga Platinum, kuota AI, biaya pemakaian tambahan, dan pewarisan lengkap fitur Platinum belum ditetapkan ulang dalam keputusan ini; jangan menambahkan ketentuan berdasarkan asumsi.
 - [ ] Terapkan pembatasan AI berdasarkan hak akses Platinum pada aplikasi dan backend saat tersedia.
 - Status: catatan diperbarui; kode dan billing belum diubah.
+
+## 35. Koreksi Add-on Balasan Cepat dan Chatbot AI — 1 Oktober 2026
+
+- **Tambah Balasan Cepat: Rp25.000.**
+- **Tambah Chatbot AI: Rp100.000.**
+- Jangan menamai add-on Rp25.000 sebagai Chatbot AI; harga tersebut untuk Balasan Cepat.
+- Kuota/fasilitas yang sudah termasuk dalam paket tetap tersedia; add-on dibeli untuk tambahan di luar fasilitas bawaan paket.
+- Tambah Cabang tetap merupakan jenis add-on tersendiri, terpisah dari Balasan Cepat dan Chatbot AI.
+- Satuan penagihan (per nomor/akun dan periode), jumlah fasilitas bawaan setiap paket, kuota AI, dan kelayakan membeli add-on AI di luar Platinum belum dipastikan; jangan mengisi berdasarkan asumsi. Ketentuan AI bawaan Platinum tetap berlaku sampai ada keputusan tambahan.
+- [ ] Pisahkan SKU, nama, harga, kuota bawaan, kuota tambahan, tanggal aktif/berakhir, dan hak akses masing-masing add-on.
+- [ ] Setelah pembayaran terverifikasi di server, hak akses/kuota tambahan tersinkron otomatis ke aplikasi; retry pembayaran tidak boleh menambah kuota dua kali.
+- [ ] Pembelian Tambah Cabang membuka kuota untuk membuat cabang, bukan otomatis membuat cabang kosong tanpa nama dan konfigurasi.
+- Status saat review: aktivasi paket masih berupa prototype; verifikasi pembayaran dan server hak akses produksi belum tersedia. Catatan ini belum mengubah kode atau billing.
