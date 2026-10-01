@@ -4,7 +4,7 @@ Permintaan 1 Oktober 2026: halaman terpisah untuk pengaturan trigger balasan cep
 
 ## Yang diterapkan
 
-- Halaman Chatbot lama tetap ada. Tautan baru di Chatbot dan Pengaturan membuka Balasan Cepat & Trigger, Pengaturan Chatbot AI, dan WhatsApp Blast.
+- Halaman Chatbot lama tetap ada. Tautan baru di Chatbot dan tiga baris menu mandiri di daftar Pengaturan membuka Balasan Cepat & Trigger, Pengaturan Chatbot AI, dan WhatsApp Blast.
 - Balasan cepat: tambah/edit/hapus, aktif/nonaktif, pemicu dipisahkan koma, pencocokan kata/frasa atau pesan sama persis, teks dan gambar PNG/JPG/WebP maksimal 1 MB.
 - Gambar default pada halaman Chatbot. Balasan dengan gambar khusus menggunakan gambarnya sendiri; aturan tanpa gambar menggunakan gambar default.
 - Pengaturan AI: aktivasi, nama asisten, instruksi, pengetahuan tambahan, gambar dan pilihan membaca harga/status dari aplikasi.
@@ -27,3 +27,8 @@ Permintaan 1 Oktober 2026: halaman terpisah untuk pengaturan trigger balasan cep
 - Tes browser: persistensi/edit trigger, pencocokan kata/pesan persis, upload gambar, aktivasi, isolasi outlet, harga terbaru, isolasi status berdasarkan nomor dan outlet, pembatasan paket, draft promo/persetujuan.
 - Layout pada lebar 320, 360, 390 dan 430 piksel; tanpa error JavaScript.
 - Tes regresi transaksi, stok/paket, dan penyisipan script build tetap dijalankan.
+
+## Koreksi posisi menu
+
+- Ketiga menu berada di daftar utama Pengaturan setelah Pelanggan dan sebelum Keuangan, dengan ikon, judul, keterangan, dan panah seperti baris lainnya.
+- Kartu WhatsApp terpisah di bawah Keluar Akun dihapus. Setiap menu langsung membuka halamannya tanpa dropdown.
