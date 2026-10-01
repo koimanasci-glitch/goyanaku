@@ -4992,32 +4992,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function pad(n){return (n<10?'0':'')+n}
   function fmt(d){return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes())}
   function collect(mode){
-    var now=new Date(), items=[], total=0;
-    if(mode==='detail' && window.cur115 && window.cur115.items.length){
-      window.cur115.items.forEach(function(it){items.push([it.n,fq(it.qty)+' '+it.unit,it.price,Math.round(it.qty*it.price)])});total=window.cur115.total;
-    }else if(mode!=='detail' && typeof f61!=='undefined' && f61.cart && f61.cart.length){
-      f61.cart.forEach(function(it){items.push([it.name,fq(it.qty)+' '+it.unit,it.price,Math.round(it.qty*it.price)])});total=f61.total;
-    }else if(mode!=='detail' && typeof f61!=='undefined' && f61.total>0){
-      if(f61.kg)items.push(['Cuci Kering Lipat',fq(f61.kg)+' kg',7000,Math.round(f61.kg*7000)]);
-      if(f61.pcs)items.push(['Bed Cover Double',f61.pcs+' pcs',20000,f61.pcs*20000]);
-      if(f61.m)items.push(['Karpet',fq(f61.m)+' m',12000,Math.round(f61.m*12000)]);
-      total=f61.total;
-    }else{items=[['Cuci Kering Lipat','2 kg',7000,14000],['Parfum premium','1x',6000,6000]];total=20000}
-    var dur=(document.getElementById('f61-duration-label')||{}).textContent||'Reguler · 72 Jam';
-    var hrs=/6 Jam/.test(dur)?6:/24/.test(dur)?24:72;
-    var sel=document.querySelectorAll('#f61-options select');
-    var parfum=sel[0]?sel[0].value:'Akasia', hand=(document.getElementById('f61-handover')||{}).value||'Datang Langsung';
-    var note=(document.querySelector('#f61-options textarea')||{}).value||'';
-    var prio=(document.getElementById('f61-priority')||{}).checked;
-    var ps=(document.getElementById('f61-paystatus')||{}).textContent||'';
-    var status=/Belum Lunas/.test(ps)?'BELUM LUNAS':/DP/.test(ps)?'DP · SISA TAGIHAN':/Pembayaran|saldo/i.test(ps)?'LUNAS':'BELUM LUNAS';
-    var method=(ps.match(/Pembayaran (\S+)/)||[])[1]||(/saldo/i.test(ps)?'Saldo Deposit':(/DP/.test(ps)?'DP':'-'));
-    if(mode==='detail'){status='BELUM LUNAS';method='-';parfum='Akasia'}
-    var dsel=sel[2]?sel[2].value:'Tidak', dp=parseInt(dsel,10)||0; if(mode==='detail')dp=0;
-    var sub=total, disc=Math.round(sub*dp/100); if(mode!=='detail'&&window.disc127){disc=window.disc127.amt;dp=window.disc127.pct||0}
-    var outlet=(document.querySelector('#home .ol93-txt b')||{}).textContent||'Outlet Gramapuri';
-    return {outlet:outlet,addr:'Perum GCC Cluster Sakura F36/39',wa:'0852-8021-8626',id:(mode==='detail'&&window.cur115?cur115.id:(window.nextCode136?nextCode136():'GY-260927-0132')),cust:(mode==='detail'&&window.cur115&&cur115.name?cur115.name:(window.custName136?custName136():'Koiman')),hp:'0852 •••• 8626',
-      tin:fmt(now),tout:fmt(new Date(now.getTime()+hrs*3600e3)),dur:dur,items:items,sub:sub,disc:disc,dp:dp,total:sub-disc,status:status,method:method,parfum:parfum,hand:hand,note:note,prio:prio,kasir:'Rina'};
+    var api=window.api115,all=[].slice.call(document.querySelectorAll('#orders .g62-ordercard')),o=mode==='detail'&&api&&api.cur?api.cur():null;
+    var card=o?all.find(function(c){return c.querySelector('.g62-order-top b').textContent.trim()===o.id}):all.slice().sort(function(a,b){return new Date(b.dataset.created177||0)-new Date(a.dataset.created177||0)})[0];
+    if(!o&&card)o=(window.orderData177||{})[card.querySelector('.g62-order-top b').textContent.trim()];
+    if(!o||!api)return null;
+    var calc=api.calc(o),paid=+o.paid||0,remaining=Math.max(0,calc.total-paid),items=o.items.map(function(it){return[it.n||it.name||'Layanan',fq(it.qty)+' '+(it.unit||''),+it.price||0,Math.round(it.qty*it.price)]});
+    if(o.ongkir)items.push(['Transportasi','1 layanan',+o.ongkir,+o.ongkir]);
+    var outlets=[];try{outlets=JSON.parse(localStorage.getItem('goyana-outlets180')||'[]')}catch(e){}
+    var branch=outlets.find(function(x){return x.id===card?.dataset.outlet180})||{},phone=card?.dataset.phone||o.phone||(window.gy154PhoneFor?gy154PhoneFor(o.name):'');
+    function date(value){var d=new Date(value);return isNaN(d)?'-':fmt(d)}
+    return{outlet:branch.name||'GOYANA',addr:branch.address||'',wa:branch.phone||'',id:o.id,cust:o.name,hp:phone||'-',tin:date(o.masuk),tout:date(o.due),dur:o.dur||'Reguler',items:items,sub:calc.sub+(+o.ongkir||0),disc:calc.disc,dp:0,total:calc.total,status:remaining===0?'LUNAS':paid>0?'DP '+rp(paid)+' · SISA '+rp(remaining):'BELUM LUNAS',method:card?.dataset.method177||'-',parfum:o.perfume||'Tanpa Parfum',hand:o.handover||'Datang Langsung',note:o.note||'',prio:card?.dataset.priority==='1',kasir:o.kasir||'-'};
   }
   function draw(d){
     var W=576, P=28, c=document.createElement('canvas'), x=c.getContext('2d');
@@ -5057,7 +5041,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var out=document.createElement('canvas'); out.width=W; out.height=y; out.getContext('2d').drawImage(c,0,0); return out;
   }
   window.openReceipt106=function(mode){
-    lastData=collect(mode); window.rcData106=lastData; lastCanvas=draw(lastData);
+    lastData=collect(mode); if(!lastData){toast90('Buka pesanan yang akan dibuatkan nota terlebih dahulu');return}window.rcData106=lastData; lastCanvas=draw(lastData);
     document.getElementById('rc106-img').src=lastCanvas.toDataURL('image/png');
     document.getElementById('rc106-sub').textContent=lastData.id+' · '+lastData.cust+' · '+rp(lastData.total);
     openSheet91('rc106');
@@ -7314,7 +7298,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
     return out.map(function(x){x=x.trim();return x&&x[0]!=='-'?'- '+x:x}).filter(Boolean)}
   /* susun teks nota WA (format WhatsApp: *tebal*, ```rata kolom```) */
   window.waNota131=function(d){d=d||window.rcData106||{};
-    var name=d.cust&&d.cust!=='Koiman'?d.cust:custName(); if(name==='Pelanggan'&&d.cust)name=d.cust;
+    var name=d.cust||custName();
     var info=[['No Nota',d.id],['Pelanggan',name],['Masuk',d.tin],['Selesai',d.tout],['Layanan',d.dur],['Kasir',d.kasir]];
     var items=(d.items||[]).map(function(it,i){return (i+1)+'. '+it[0]+'\n   '+it[1].replace(' x ',' × ')+' × '+rp(it[2]).replace('Rp','')+' = '+rp(it[3])});
     var paidLine=/DP/.test(d.status||'')?'':'';
@@ -9960,7 +9944,7 @@ saveCode(text);var dyn=$('qr118-dyn'),uniq=$('qr118-uniq');dyn.checked=true;dyn.
     if(botAuto()){toast90('Nota terkirim otomatis dari WA Bot ke '+o.name);return}
     try{openReceipt106('detail');closeSheet91('rc106');sendReceiptWA106()}catch(e){toast90('Nota belum bisa disiapkan')}};
   /* kirim dari pratinjau: ke nomor pelanggan yang benar (bukan nomor contoh) */
-  window.waSend131=function(){var api=window.api115,o=(api&&api.cur&&api.cur())||{name:(window.rcData106||{}).cust||'Pelanggan'},text=($('wa131-pre')||{}).textContent||'';
+  window.waSend131=function(){var api=window.api115,o=window.rcData106?{name:rcData106.cust,phone:rcData106.hp}:(api&&api.cur&&api.cur()),text=($('wa131-pre')||{}).textContent||'';
     if(botAuto()){closeSheet91('wa131');toast90('Nota terkirim otomatis dari WA Bot');return}
     var ph=phoneOf(o);
     if(!ph){closeSheet91('wa131');askPhone(o,function(n){openWA(n,text)});return}
