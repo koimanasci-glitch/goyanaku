@@ -1138,3 +1138,27 @@ Prioritas diskusi berikutnya:
 - Tombol Google menunjukkan belum tersedia. Pendaftaran, reset password, verifikasi email dan Google OAuth memerlukan backend serta konfigurasi penyedia identitas. Jangan menyatakan mode coba sebagai akun terverifikasi.
 - Prioritas: backend auth/multi-tenant dan sinkronisasi; penegakan hak akses pegawai/kurir; backup dan pemulihan teruji. Setelah itu hubungkan Google Play Billing, webhook pembayaran dan CHATKU yang sebenarnya.
 - Validasi: 16 skenario browser, dua tes pengemasan script. Akun acak tidak dapat masuk; outlet awal dan status Lewati bertahan setelah reload.
+
+
+## 31. Catatan Perbaikan Hasil Review — 1 Oktober 2026
+
+Status kedua temuan: **tercatat untuk diperbaiki; kode belum diubah dalam review ini.**
+
+### P1 — Pembatalan setelah produksi tidak boleh mengembalikan bahan terpakai
+
+- [ ] Perbaiki `reverse()` / `reconcileHpp()` di `goyana-v182-finance-hpp.js`.
+- Temuan: pembatalan order yang sudah memiliki pemakaian otomatis membuat mutasi positif `Pembatalan HPP` sebesar seluruh bahan yang dicatat terpakai. Perilaku pengembalian ini sudah direproduksi lewat pengujian fungsi secara terisolasi.
+- Contoh: stok awal 10 L, pemakaian produksi 2 L, sisa 8 L. Pembatalan sekarang menambahkan kembali 2 L; stok menjadi 10 L meskipun bahan sudah habis dipakai.
+- Aturan perbaikan: pembatalan order tidak otomatis mengembalikan bahan yang benar-benar terpakai. Biaya pemakaian tetap tercatat; dampak biaya order batal perlu ditampilkan jelas dalam laporan.
+- Pengembalian bahan hanya untuk bahan yang benar-benar belum terpakai dan kembali secara fisik, melalui mutasi terpisah dengan jumlah, alasan, petugas, outlet, waktu, dan referensi order.
+- [ ] Uji batal sebelum produksi, batal setelah produksi, pembatalan berulang, serta pengembalian fisik sebagian; pastikan stok dan biaya tidak berubah dua kali.
+- [ ] Revisi tes regresi yang saat ini mengharapkan seluruh bahan kembali setelah order berstatus produksi dibatalkan.
+
+### P1 — Transfer stok memerlukan konfirmasi penerimaan cabang tujuan
+
+- [ ] Perbaiki alur transfer di `stockTool('tr')` pada `goyana-v181-system-fixes.js`.
+- Temuan dari pembacaan kode: transfer langsung mencatat `Transfer Keluar` di cabang asal dan `Transfer Masuk` di cabang tujuan dalam satu aksi, tanpa tahap penerimaan.
+- Aturan perbaikan: gunakan status Dibuat → Dikirim / Dalam Perjalanan → Diterima. Stok tersedia cabang asal berkurang saat dikirim; stok tersedia cabang tujuan bertambah hanya setelah penerimaan dikonfirmasi.
+- Simpan ID transfer, cabang asal/tujuan, bahan, jumlah dikirim, jumlah diterima, petugas, dan waktu. Barang dalam perjalanan harus dapat dilacak.
+- [ ] Tangani penerimaan sebagian, selisih/rusak/hilang, serta pembatalan sebelum dan setelah pengiriman dengan mutasi yang dapat diaudit.
+- [ ] Uji bahwa konfirmasi penerimaan berulang tidak menambah stok dua kali dan bahwa cabang lain tidak dapat mengonfirmasi transfer yang bukan hak aksesnya.
