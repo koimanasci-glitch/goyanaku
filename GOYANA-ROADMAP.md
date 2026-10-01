@@ -1190,3 +1190,13 @@ Bagian ini menggantikan catatan paket yang bertentangan pada bagian sebelumnya. 
 - Akses Trigger dan detail mekanisme balasan berbasis kata kunci belum dipastikan ulang; jangan mengubah berdasarkan asumsi.
 - [ ] Selaraskan label, aturan paket, dan hak akses terpusat dengan acuan ini setelah rincian yang belum final ditetapkan.
 - [ ] Uji pewarisan Pro → Super Pro → Super Pro Chatbot dan pembatasan Ekspor Data, Stock Opname, serta Balasan Cepat.
+
+## 34. AI Khusus Platinum — 1 Oktober 2026
+
+- **Fitur AI baru tersedia pada paket PLATINUM**, sesuai penegasan pengguna.
+- Paket PRO, SUPER PRO, dan SUPER PRO CHATBOT tidak mencakup AI.
+- Balasan Cepat pada SUPER PRO CHATBOT berbeda dari respons AI pada Platinum.
+- Pesan otomatis berdasarkan kejadian operasional tetap mengikuti hak akses paket yang telah disepakati; tidak boleh dianggap sebagai fitur AI.
+- Harga Platinum, kuota AI, biaya pemakaian tambahan, dan pewarisan lengkap fitur Platinum belum ditetapkan ulang dalam keputusan ini; jangan menambahkan ketentuan berdasarkan asumsi.
+- [ ] Terapkan pembatasan AI berdasarkan hak akses Platinum pada aplikasi dan backend saat tersedia.
+- Status: catatan diperbarui; kode dan billing belum diubah.
