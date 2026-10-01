@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {"test": "node regression.cjs"},
+  "devDependencies": {
+    "playwright": "1.51.1",
+    "@zxing/library": "0.21.3",
+    "@capacitor/core": "6.2.1"
+  }
+}
