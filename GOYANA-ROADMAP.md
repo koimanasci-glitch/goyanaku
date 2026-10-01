@@ -1172,20 +1172,23 @@ Status: **keputusan/catatan implementasi; belum diterapkan ke kode.**
 - [ ] Pilihan Ekspor Data dan fungsi Pusat Data lainnya tetap tersedia di halaman Pusat Data; jangan menghapus fungsi yang sudah ada.
 - [ ] Periksa dan rapikan teks yang melewati batas tombol, kolom input, dan kartu pada tampilan HP; seragamkan ukuran komponen sejenis sambil menjaga teks terbaca.
 - [ ] **Ekspor Data merupakan fitur paket SUPER PRO; tidak termasuk paket PRO.** Terapkan pemeriksaan hak akses paket pada aksi ekspor dan, ketika backend tersedia, pada API server. Menu boleh terlihat sesuai aturan tampilan paket yang berlaku, tetapi akses ekspor harus dibatasi.
-- **Harga SUPER PRO final: Rp100.000/bulan**, sesuai instruksi pengguna pada 1 Oktober 2026; menggantikan harga sebelumnya Rp80.000/bulan.
+- Harga Rp100.000/bulan telah disetujui; lihat koreksi pemisahan Super Pro dan Super Pro Chatbot di bagian 33 sebelum mengubah pemetaan harga atau billing.
 - [ ] **Stock Opname juga khusus SUPER PRO; tidak termasuk PRO**, sesuai tambahan pengguna. Pembatasan ini berlaku untuk tindakan Stock Opname; akses fitur stok lainnya tidak diubah tanpa instruksi lebih lanjut.
 - [ ] Sesuaikan tampilan harga, konfigurasi paket, dan billing ke Rp100.000/bulan saat implementasi. Catatan ini belum berarti kode atau penagihan telah diubah.
 - Penambahan fitur besar ditunda sementara; fokus perubahan pada permintaan yang telah disepakati dan pertahankan bagian lain yang sudah fix.
 
 
-## 33. Pewarisan Fitur Paket Super Pro — 1 Oktober 2026
+## 33. Pewarisan Fitur dan Pemisahan Chatbot — 1 Oktober 2026
 
-Keputusan pengguna: **SUPER PRO Rp100.000/bulan mencakup seluruh fitur PRO**, ditambah fitur khusus Super Pro.
+**Koreksi terbaru pengguna menggantikan penggabungan Chatbot ke Super Pro pada catatan sebelumnya.**
 
-- [ ] Pengguna Super Pro otomatis mendapat semua hak akses fitur Pro; tidak perlu membeli atau mengaktifkan paket Pro terpisah.
-- Tambahan Super Pro yang telah disepakati: WhatsApp Chatbot, Balas Cepat & Trigger, Ekspor Data, dan Stock Opname.
-- [ ] Selaraskan label paket Rp100.000 yang masih disebut `PRO CHATBOT` di kode dengan nama Super Pro; migrasikan ID lama bila perlu tanpa menghilangkan hak akses pelanggan.
-- [ ] Gunakan aturan hak akses terpusat agar pemeriksaan `PRO` tidak menolak pengguna `SUPER PRO` / ID lama `PRO CHATBOT`.
-- [ ] Uji pengguna Pro tetap dapat memakai fitur Pro, tidak dapat memakai fitur khusus Super Pro, dan pengguna Super Pro dapat memakai keduanya.
-- Ketentuan paket lain dan batas cabang tidak diubah oleh keputusan ini.
-- Status: catatan diperbarui; perubahan label dan pembatasan akses pada kode belum diterapkan.
+- **PRO**: paket dasar berbayar; fitur yang sudah disepakati tetap dipertahankan.
+- **SUPER PRO**: seluruh fitur Pro, ditambah Ekspor Data, Stock Opname, integrasi pesan, dan Balasan Cepat. **Belum termasuk Chatbot.**
+- **SUPER PRO CHATBOT**: seluruh fitur Pro dan Super Pro otomatis tersedia, dengan tambahan khusus Chatbot.
+- Akses Trigger belum dipastikan ulang dalam koreksi ini; jangan mengubah hak aksesnya berdasarkan asumsi.
+- Rp100.000/bulan sudah disebut dan disetujui pengguna, tetapi pembagian harga antara Super Pro dan Super Pro Chatbot perlu dipastikan setelah koreksi nama paket. Jangan mengubah billing atau memindahkan harga antar-paket berdasarkan asumsi.
+- [ ] Koreksi tampilan dan aturan paket berdasarkan susunan di atas; pemetaan ID lama `PRO CHATBOT` ke paket baru harus menjaga hak akses pelanggan dan menunggu kepastian pemetaan harga.
+- [ ] Gunakan aturan hak akses terpusat: Super Pro mewarisi fitur Pro; Super Pro Chatbot mewarisi fitur Pro dan Super Pro.
+- [ ] Uji batas akses Ekspor Data, Stock Opname, integrasi pesan, Balasan Cepat, dan Chatbot per paket.
+- Status: catatan diperbarui; kode dan billing belum diubah.
+
