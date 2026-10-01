@@ -1176,3 +1176,16 @@ Status: **keputusan/catatan implementasi; belum diterapkan ke kode.**
 - [ ] **Stock Opname juga khusus SUPER PRO; tidak termasuk PRO**, sesuai tambahan pengguna. Pembatasan ini berlaku untuk tindakan Stock Opname; akses fitur stok lainnya tidak diubah tanpa instruksi lebih lanjut.
 - [ ] Sesuaikan tampilan harga, konfigurasi paket, dan billing ke Rp100.000/bulan saat implementasi. Catatan ini belum berarti kode atau penagihan telah diubah.
 - Penambahan fitur besar ditunda sementara; fokus perubahan pada permintaan yang telah disepakati dan pertahankan bagian lain yang sudah fix.
+
+
+## 33. Pewarisan Fitur Paket Super Pro — 1 Oktober 2026
+
+Keputusan pengguna: **SUPER PRO Rp100.000/bulan mencakup seluruh fitur PRO**, ditambah fitur khusus Super Pro.
+
+- [ ] Pengguna Super Pro otomatis mendapat semua hak akses fitur Pro; tidak perlu membeli atau mengaktifkan paket Pro terpisah.
+- Tambahan Super Pro yang telah disepakati: WhatsApp Chatbot, Balas Cepat & Trigger, Ekspor Data, dan Stock Opname.
+- [ ] Selaraskan label paket Rp100.000 yang masih disebut `PRO CHATBOT` di kode dengan nama Super Pro; migrasikan ID lama bila perlu tanpa menghilangkan hak akses pelanggan.
+- [ ] Gunakan aturan hak akses terpusat agar pemeriksaan `PRO` tidak menolak pengguna `SUPER PRO` / ID lama `PRO CHATBOT`.
+- [ ] Uji pengguna Pro tetap dapat memakai fitur Pro, tidak dapat memakai fitur khusus Super Pro, dan pengguna Super Pro dapat memakai keduanya.
+- Ketentuan paket lain dan batas cabang tidak diubah oleh keputusan ini.
+- Status: catatan diperbarui; perubahan label dan pembatasan akses pada kode belum diterapkan.
