@@ -1162,3 +1162,15 @@ Status kedua temuan: **tercatat untuk diperbaiki; kode belum diubah dalam review
 - Simpan ID transfer, cabang asal/tujuan, bahan, jumlah dikirim, jumlah diterima, petugas, dan waktu. Barang dalam perjalanan harus dapat dilacak.
 - [ ] Tangani penerimaan sebagian, selisih/rusak/hilang, serta pembatalan sebelum dan setelah pengiriman dengan mutasi yang dapat diaudit.
 - [ ] Uji bahwa konfirmasi penerimaan berulang tidak menambah stok dua kali dan bahwa cabang lain tidak dapat mengonfirmasi transfer yang bukan hak aksesnya.
+
+
+## 32. Keputusan Pusat Data, Tampilan Mobile, dan Akses Ekspor — 1 Oktober 2026
+
+Status: **keputusan/catatan implementasi; belum diterapkan ke kode.**
+
+- [ ] Pusat Data tetap berada di halaman Pengaturan, sebagai menu tersendiri yang langsung terlihat dan dapat diketuk tanpa membuka dropdown kategori lain.
+- [ ] Pilihan Ekspor Data dan fungsi Pusat Data lainnya tetap tersedia di halaman Pusat Data; jangan menghapus fungsi yang sudah ada.
+- [ ] Periksa dan rapikan teks yang melewati batas tombol, kolom input, dan kartu pada tampilan HP; seragamkan ukuran komponen sejenis sambil menjaga teks terbaca.
+- [ ] **Ekspor Data merupakan fitur paket SUPER PRO; tidak termasuk paket PRO.** Terapkan pemeriksaan hak akses paket pada aksi ekspor dan, ketika backend tersedia, pada API server. Menu boleh terlihat sesuai aturan tampilan paket yang berlaku, tetapi akses ekspor harus dibatasi.
+- Harga SUPER PRO belum diubah: keputusan sebelumnya Rp80.000/bulan; pengguna menyebut Rp100.000 sambil menanyakan nama paket. **Konfirmasi harga diperlukan sebelum mengganti harga paket atau billing.**
+- Penambahan fitur besar ditunda sementara; fokus perubahan pada permintaan yang telah disepakati dan pertahankan bagian lain yang sudah fix.
