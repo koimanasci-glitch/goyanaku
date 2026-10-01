@@ -1178,17 +1178,15 @@ Status: **keputusan/catatan implementasi; belum diterapkan ke kode.**
 - Penambahan fitur besar ditunda sementara; fokus perubahan pada permintaan yang telah disepakati dan pertahankan bagian lain yang sudah fix.
 
 
-## 33. Pewarisan Fitur dan Pemisahan Chatbot — 1 Oktober 2026
+## 33. Acuan Paket dan Jenis Pesan — Koreksi 1 Oktober 2026
 
-**Koreksi terbaru pengguna menggantikan penggabungan Chatbot ke Super Pro pada catatan sebelumnya.**
+Bagian ini menggantikan catatan paket yang bertentangan pada bagian sebelumnya. Status: keputusan/catatan; kode dan billing belum diubah.
 
-- **PRO**: paket dasar berbayar; fitur yang sudah disepakati tetap dipertahankan.
-- **SUPER PRO**: seluruh fitur Pro, ditambah Ekspor Data, Stock Opname, integrasi pesan, dan Balasan Cepat. **Belum termasuk Chatbot.**
-- **SUPER PRO CHATBOT**: seluruh fitur Pro dan Super Pro otomatis tersedia, dengan tambahan khusus Chatbot.
-- Akses Trigger belum dipastikan ulang dalam koreksi ini; jangan mengubah hak aksesnya berdasarkan asumsi.
-- Rp100.000/bulan sudah disebut dan disetujui pengguna, tetapi pembagian harga antara Super Pro dan Super Pro Chatbot perlu dipastikan setelah koreksi nama paket. Jangan mengubah billing atau memindahkan harga antar-paket berdasarkan asumsi.
-- [ ] Koreksi tampilan dan aturan paket berdasarkan susunan di atas; pemetaan ID lama `PRO CHATBOT` ke paket baru harus menjaga hak akses pelanggan dan menunggu kepastian pemetaan harga.
-- [ ] Gunakan aturan hak akses terpusat: Super Pro mewarisi fitur Pro; Super Pro Chatbot mewarisi fitur Pro dan Super Pro.
-- [ ] Uji batas akses Ekspor Data, Stock Opname, integrasi pesan, Balasan Cepat, dan Chatbot per paket.
-- Status: catatan diperbarui; kode dan billing belum diubah.
-
+- **PRO**: fitur Pro yang telah disepakati, termasuk pesan WhatsApp otomatis berdasarkan kejadian operasional, misalnya pesanan sudah diambil. Fitur pesan otomatis tidak boleh terkunci hanya karena tidak berlangganan paket Chatbot.
+- **SUPER PRO**: seluruh fitur Pro, ditambah Ekspor Data dan Stock Opname; tanpa Balasan Cepat dan Chatbot. Pengiriman nota otomatis tetap tersedia untuk Super Pro sesuai penjelasan pengguna.
+- **SUPER PRO CHATBOT**: seluruh fitur Pro dan Super Pro, ditambah Balasan Cepat. Nama Chatbot dalam pembahasan ini tidak otomatis berarti AI berbayar; jangan menambahkan AI atau biaya AI tanpa keputusan tersendiri.
+- **Super Pro Rp75.000/bulan sebagai patokan sementara**, sesuai persetujuan pengguna. Harga Super Pro Chatbot belum ditetapkan dalam koreksi ini; jangan menganggap harga Rp100.000 terdahulu otomatis berlaku untuk paket tertentu.
+- Pesan otomatis berdasarkan status/kejadian dan pengiriman nota harus dibedakan dari Balasan Cepat untuk merespons pesan pelanggan.
+- Akses Trigger dan detail mekanisme balasan berbasis kata kunci belum dipastikan ulang; jangan mengubah berdasarkan asumsi.
+- [ ] Selaraskan label, aturan paket, dan hak akses terpusat dengan acuan ini setelah rincian yang belum final ditetapkan.
+- [ ] Uji pewarisan Pro → Super Pro → Super Pro Chatbot dan pembatasan Ekspor Data, Stock Opname, serta Balasan Cepat.
