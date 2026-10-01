@@ -37,6 +37,8 @@ jobs:
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/geolocation@6 @capacitor/local-notifications@6 @zxing/library@0.21.3
           mkdir www
           cp ../index.html www/index.html
+          cp ../goyana-v181-system-fixes.js www/goyana-v181-system-fixes.js
+          python -c "from pathlib import Path; p=Path('www/index.html'); s=p.read_text(encoding='utf-8'); tag='<script src=\"goyana-v181-system-fixes.js\"></script>'; p.write_text(s if tag in s else s.replace('</body>',tag+'\\n</body>',1),encoding='utf-8')"
           cp node_modules/@zxing/library/umd/index.min.js www/zxing.min.js
           cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
           npx cap init GOYANA id.goyana.app --web-dir www
