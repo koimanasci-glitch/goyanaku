@@ -51,3 +51,38 @@ Domain, VPS, layanan email, produk Play, merchant gateway, WA dan API key produk
 - SQLite di HP menggantikan localStorage WebView (data lama dipindah otomatis).
 - Beranda digambar native Flutter (lib/native/home_page.dart), identik dengan HTML; logika & aksi masih dari HTML (aman, fallback otomatis). Font Poppins ditanam di APK.
 - Urutan berikutnya: Pesanan → Tambah Transaksi/Pembayaran → Pelanggan → Laporan/Kas → sisanya.
+
+## Panel administrator & otomasi — Claude, 3 Oktober 2026 (branch flutter/native)
+Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend sekarang juga jalan di branch flutter/**.
+- **/admin (Usaha)**:
+  - Ringkasan: total, berbayar, beta, trial, baca saja, daftar 7 hari, pemasukan bulan ini, HP tersambung, konflik.
+  - Daftar yang berakhir dalam 7 hari.
+  - Cari (nama/email/ID) dan filter status.
+- **Detail usaha**:
+  - Tim, outlet & HP kasir (admin bisa **cabut HP hilang** dengan alasan, tercatat di audit), statistik sinkron & konflik.
+  - Saldo AI + top-up manual, pesan otomatis terkirim, aktivitas terakhir.
+- **Tiket CS** (`/support` untuk klien, `/admin/tickets` untuk admin):
+  - Balasan, catatan internal, prioritas, status. Tiket privat per usaha (staf hanya melihat tiket miliknya).
+- **Pengaturan platform** (`/admin/settings`):
+  - Untung AI %, minimal top-up, cadangan kurs, batas biaya AI CS/hari.
+  - Model AI utama/cadangan, nomor WA CS, menit bot diam, on/off pesan otomatis. Ada riwayat perubahan.
+- **Audit** (`/admin/audit`): filter jenis, usaha, hanya admin.
+- **Kesehatan sistem** (`/admin/system`): database, migrasi, debug, HTTPS, mailer, OTP, disk, storage, sinkron, penjadwal.
+- **Otomatis** (butuh cron `* * * * * php artisan schedule:run`):
+
+  | Perintah | Jadwal | Fungsi |
+  |---|---|---|
+  | `goyana:health` | tiap 5 menit | Email admin saat ada gangguan baru atau sudah pulih (tidak spam) |
+  | `goyana:prune` | harian | Bersihkan data teknis lama |
+  | `goyana:weekly-report` | Senin 07.00 | Laporan mingguan |
+  | `goyana:fx-update` | 2x sehari | Kurs USD→IDR. Kalau gagal pakai kurs terakhir; di hari yang sama dipakai yang lebih tinggi |
+  | `goyana:ai-prices` | harian | Harga model OpenRouter; email admin bila model dipakai naik harga atau hilang |
+  | `goyana:lifecycle` | tiap jam 08–20 WIB | Pesan hemat sekali saja: selamat datang, H-3 paket habis, baca saja, bukti bayar/top-up (sekarang email; WA setelah CHATKU) |
+
+- **Saldo AI** (`App\Support\AiBilling`):
+  - Saldo dalam Rupiah. Potongan = biaya USD × kurs × (1 + cadangan) × (1 + untung), dibulatkan ke atas.
+  - Idempoten per request, tidak bisa minus. `canAfford()` dipakai sebelum memanggil AI.
+- **Belum**:
+  - Pemanggilan AI sungguhan (CS/Chatbot) dan WA lewat CHATKU.
+  - Gateway pembayaran (top-up/paket masih dicatat manual).
+  - FAQ otomatis, remote bantuan (§46), balas ulasan Play (§42C).

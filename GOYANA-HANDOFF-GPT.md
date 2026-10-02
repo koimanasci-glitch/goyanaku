@@ -155,6 +155,7 @@ cd mobile && flutter analyze && flutter test --exclude-tags screens
    - Tautkan dari dashboard Laravel owner: tombol **"Buka aplikasi GOYANA (web)"**.
    - Di laptop/PC tampilannya kolom selebar HP di tengah: boleh, perapian tampilan lebar adalah tahap berikutnya.
    - Dashboard **admin pusat** tetap Laravel (`/admin`), lengkapi sesuai `GOYANA-SISTEM-PUSAT.md` §9, §12–§16, §25–§26, §32.
+   - Sudah ada (3 Okt): ringkasan/filter usaha, detail tim/HP/sinkron/saldo AI, tiket CS, pengaturan platform, audit, kesehatan sistem, perintah terjadwal. Detail di GOYANA-PROGRESS.md "Panel administrator & otomasi". **Pasang cron `schedule:run` saat deploy.**
    - Uji: login di browser sebagai owner, pastikan data dari HP (sync) muncul; jangan pakai akun platform admin (API menolaknya).
 
 Aturan bisnis kunci (sudah diputuskan pengguna):
