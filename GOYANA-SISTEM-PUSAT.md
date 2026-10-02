@@ -425,3 +425,20 @@ Penegasan pengguna: form AI pusat mencakup budget bulanan; monitoring/maintenanc
 - Backup dan arsip perubahan tetap mengikuti target pemulihan, tidak dipindah seluruhnya ke sekali malam jika itu meningkatkan risiko kehilangan data di luar target.
 - Monitoring eksternal tetap dapat memberi peringatan ketika VPS utama mati. Uji beban, ukur baseline dan sesuaikan worker/jadwal sebelum produksi.
 - Jadwal ini modul scheduler backend Goyana yang direncanakan, bukan automation aktif di ChatGPT atau server.
+
+
+## 27. Offline dan Sinkronisasi Otomatis Wajib Diimplementasikan
+
+Penegasan pengguna: cantumkan kemampuan offline dan sinkronisasi otomatis agar tidak terlupakan saat pembangunan. Prioritas pengalaman: cepat dan stabil; bukan klaim bahwa implementasi telah selesai.
+
+- Simpan transaksi operasional yang didukung secara lokal terlebih dahulu dengan penyimpanan persisten yang sesuai platform. Tampilkan status/jumlah transaksi belum tersinkron dan waktu sinkronisasi terakhir.
+- Saat internet dan backend kembali tersedia, kirim antrean secara otomatis dalam kondisi aplikasi/platform mengizinkan, tanpa wajib input ulang. Sediakan tombol coba sinkronisasi dan pesan kegagalan yang jelas; tidak menjamin pengiriman saat aplikasi ditutup paksa atau dibatasi OS.
+- Gunakan ID operasi unik, outbox, acknowledgment server, retry terbatas/backoff dan deduplikasi agar koneksi terputus/retry tidak menggandakan transaksi/pembayaran/stok. Data pending jangan dihapus sebelum penerimaan server terkonfirmasi.
+- Pisahkan server tidak tersedia dari internet tidak tersedia; UI tidak terus menunggu timeout jaringan untuk menyimpan transaksi lokal.
+- Sinkronisasi hanya untuk tenant/outlet/perangkat yang berizin; perubahan bersamaan antarperangkat memerlukan aturan konflik/audit, bukan overwrite diam-diam.
+- Fitur membutuhkan server (billing/verifikasi pembayaran, WA otomatis, AI, dan data lintas perangkat terbaru) tidak dianggap tersedia penuh saat offline. Tetapkan daftar fitur offline yang diuji; saldo/deposit bersama tidak boleh dibelanjakan ganda antarperangkat.
+- Logout/pergantian akun/reset/update aplikasi tidak boleh diam-diam menghapus transaksi pending; beri peringatan dan jalur pemulihan/ekspor sesuai izin.
+- Setelah purge operasional, data lokal lama tidak otomatis menghidupkan kembali data yang telah dihapus. Izin/paket expired dan pending sync mengikuti aturan rekonsiliasi yang disepakati.
+- Backup server tetap wajib. Penyimpanan HP bukan backup semua outlet dan tidak menjamin keselamatan data jika HP rusak/penyimpanan dihapus.
+- Uji perangkat nyata: mode pesawat, server down, koneksi putus saat acknowledgment, restart aplikasi dengan pending data, retry duplikat, dua perangkat mengubah data sama, perubahan izin dan update aplikasi. Ukur kecepatan simpan lokal serta kestabilan sync.
+- Versi prototype saat diperiksa memakai localStorage; itu tidak membuktikan engine sinkronisasi produksi telah selesai. Implementasi harus dicatat terpisah dari status dokumentasi ini.
