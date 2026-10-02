@@ -208,3 +208,46 @@ Sumber tambahan resmi:
 - Endpoint reply: https://developers.google.com/android-publisher/api-ref/rest/v3/reviews/reply
 - OpenRouter API: https://openrouter.ai/docs/quickstart
 - Claude API (opsi bila penyedia ini dipilih): https://platform.claude.com/docs/en/api/overview
+
+
+## 14. Monitoring VPS, Kapasitas, dan Pemulihan Server
+
+Kebutuhan pengguna: pantau kestabilan, sisa RAM/kapasitas, sarankan upgrade/tambah VPS saat beban meningkat, dan lindungi data pelanggan saat server rusak.
+
+- Pantau CPU/load, RAM tersedia/swap/OOM, disk ruang/inode/I/O, jaringan, waktu respons/error API, database, antrean pekerjaan, koneksi WA, dan umur backup terakhir.
+- Gunakan pemantau eksternal juga; proses yang berada hanya pada VPS utama tidak bisa melaporkan dengan andal ketika VPS tersebut mati.
+- Tentukan ambang/periode peringatan setelah baseline beban nyata; jangan membeli VPS hanya karena satu lonjakan RAM.
+- Panel menampilkan kapasitas, tren pertumbuhan, hambatan yang ditemukan, dan rekomendasi/estimasi biaya. AI dipakai untuk analisis yang perlu, bukan setiap pengukuran.
+- **Upgrade VPS** menambah kapasitas mesin yang sama. **Tambah VPS** menambah mesin yang perlu deployment dan pembagian beban. Menghidupkan mesin kedua saja tidak membuat sistem otomatis lebih cepat.
+- Usulan perkembangan: optimasi dan upgrade awal bila tepat; pisahkan gateway/worker WA dari aplikasi bila beban memang di sana; tambah server aplikasi dengan load balancer/shared session/storage ketika perlu. Bottleneck database memerlukan optimasi/kapasitas database tersendiri.
+- Provider/API, downtime saat resize, ukuran mesin, dan biaya belum ditentukan. Jangan menjanjikan zero downtime atau failover tanpa arsitektur/uji.
+- Pembelian/upgrade berbayar memerlukan persetujuan spesifik atau kebijakan anggaran otomatis yang disetujui sebelumnya (batas biaya, jumlah, cooldown, dan tindakan yang diizinkan). Permintaan merancang otomasi belum menjadi izin pengeluaran tanpa batas.
+
+### Backup dan disaster recovery
+- Server mati sementara biasanya berarti data tidak dapat diakses, bukan otomatis hilang; kegagalan disk, penghapusan, atau kompromi tetap dapat menyebabkan kehilangan.
+- Simpan backup database serta file penting di luar VPS utama, dengan akun/akses terpisah, enkripsi, dan retention/versioning yang melindungi dari penghapusan/overwrite.
+- Usulan awal: full backup harian dan arsip perubahan database/PITR bila mesin database serta anggaran mendukung. Frekuensi, retensi, toleransi kehilangan data (RPO), serta target waktu pulih (RTO) belum disepakati; ukur melalui restore test.
+- Backup harian saja dapat kehilangan perubahan sejak backup sukses terakhir; jangan menjanjikan nol kehilangan data.
+- Pantau keberhasilan dan umur backup, integritas, serta uji restore berkala di lingkungan terpisah. Status “backup ada” bukan bukti backup dapat dipulihkan.
+- Siapkan runbook VPS pengganti, pemulihan database/files, secret server, DNS/routing, verifikasi transaksi dan rekonsiliasi event. AI membantu analisis, pelaksanaan mengikuti izin/konfirmasi sesuai dampak.
+- Replica/server cadangan membantu ketersediaan tetapi bukan pengganti backup; penghapusan/kesalahan dapat ikut tereplikasi.
+- Android offline menjaga operasional lokal terbatas; transaksi belum sync tetap berisiko hilang bila perangkat rusak/uninstall. Tidak menggantikan backup server.
+
+Sumber referensi teknis (bukan keputusan memilih provider/database):
+- Resize/vertical scaling: https://docs.digitalocean.com/products/droplets/how-to/resize/
+- Metrik monitoring: https://docs.digitalocean.com/products/monitoring/concepts/metrics/
+- PostgreSQL PITR: https://www.postgresql.org/docs/17/continuous-archiving.html
+
+## 15. Bantuan Jarak Jauh kepada Pelanggan
+
+Kebutuhan pengguna: pelanggan yang membutuhkan bantuan dapat dibantu AI/pusat secara jarak jauh; jangan menganggap kebutuhan ini sebagai izin akses ke semua HP/data.
+
+- Tahap utama: pelanggan membuka/meminta sesi bantuan; sistem memverifikasi identitas dan membuat tiket/sesi terbatas. AI membaca status akun, outlet/device, error, sinkronisasi, dan konfigurasi yang diperlukan melalui API.
+- Sertakan fungsi “Kirim Diagnostik” pada aplikasi bila dibangun: pelanggan memahami data yang dikirim; batasi/redaksi data sensitif. Screenshot/log hanya jika perlu dan diizinkan.
+- Perbaikan melalui backend dapat berupa diagnosis, petunjuk, dan tindakan terbatas yang telah diotorisasi. Jangan menjanjikan bot dapat menekan seluruh tombol atau memperbaiki APK di HP dengan sendirinya.
+- **Remote layar/kendali HP merupakan integrasi terpisah** dengan kemampuan Android yang sesuai. Memerlukan persetujuan eksplisit per sesi; pelanggan dapat menghentikan sesi. Melihat layar dan mengendalikan perangkat adalah izin berbeda.
+- Masking/pengecualian untuk password, OTP, pembayaran, dan data sensitif; jangan meminta pelanggan menyerahkan password/OTP kepada AI.
+- Catat waktu, petugas/AI, tindakan, izin, hasil dan durasi; sesi kedaluwarsa, bukan akses permanen.
+- Jika server utama mati, layanan monitoring/CS yang dihosting terpisah dapat melaporkan kondisi dan membantu pemulihan menggunakan sumber eksternal. Namun tidak dapat membaca data terbaru yang hanya ada di server mati; tampilkan keterbatasan dan jangan menebak.
+- Data yang dipulihkan dan transaksi lokal pending sync harus direkonsiliasi tanpa duplikasi sebelum dianggap normal kembali.
+- Prioritas pertama diagnosis lewat backend dan bantuan terpandu; kendali layar penuh menyusul setelah kelayakan teknis, provider, biaya, serta izin sesi ditetapkan.
