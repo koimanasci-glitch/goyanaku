@@ -234,23 +234,73 @@
     }
     return null;
   }
-  var homeTimer = 0, lastHome = '';
-  function reportHome() {
-    homeTimer = 0;
-    var page = document.querySelector('.page.active');
-    var visibleHome = !!page && page.id === 'home' && !coveringOverlay();
-    var msg = JSON.stringify({ event: 'home', visible: visibleHome, model: visibleHome ? homeModel() : null });
-    if (msg === lastHome) return;
-    lastHome = msg;
+  function colors(el) {
+    if (!el) return null;
+    var s = getComputedStyle(el);
+    return { t: (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim(), bg: s.backgroundColor, c: s.color };
+  }
+  function shown(el) { return !!el && visible(el) && getComputedStyle(el).display !== 'none'; }
+  function ordersModel() {
+    var search = document.getElementById('g62-order-search'), auto = document.getElementById('au133btn');
+    var cards = document.querySelectorAll('#orders .g62-ordercard'), list = [];
+    for (var i = 0; i < cards.length && list.length < 300; i++) {
+      var c = cards[i];
+      if (getComputedStyle(c).display === 'none') continue;
+      var top = c.querySelector('.g62-order-top'), body = c.querySelector('.g62-order-body');
+      var strong = body && body.querySelector('strong'), em = strong && strong.querySelector('em');
+      var amount = strong ? Array.prototype.filter.call(strong.childNodes, function (n) { return n.nodeType === 3; }).map(function (n) { return n.textContent; }).join('').trim() : '';
+      var row = c.querySelector('.oa91'), next = row && row.querySelector('.next91');
+      var gender = body && body.querySelector('.female,.v82-female') ? 'female' : 'male';
+      list.push({
+        i: i, id: (((top && top.querySelector('b')) || {}).textContent || '').trim(),
+        dur: shown(top && top.querySelector('span')) ? colors(top.querySelector('span')) : null,
+        status: shown(top && top.querySelector('i')) ? colors(top.querySelector('i')) : null,
+        name: ((body && body.querySelector('div b')) || {}).textContent || '',
+        lines: Array.prototype.filter.call(body ? body.querySelectorAll('div small') : [], shown).map(function (e) { return e.textContent.trim(); }),
+        amount: amount, pay: shown(em) ? colors(em) : null, gender: gender,
+        auto: shown(row && row.querySelector('.auto133')) ? colors(row.querySelector('.auto133')) : null,
+        chips: Array.prototype.filter.call(row ? row.querySelectorAll('.chip91') : [], shown).map(colors),
+        action: shown(next) ? colors(next) : null
+      });
+    }
+    var empty = document.querySelector('#orders .g62-orderlist .empty176, #orders .empty108, #orders .g62-empty');
+    return {
+      title: txt('#orders .g62-top b'), auto: auto ? { t: txt('#au133btn span'), on: auto.classList.contains('on') } : null,
+      search: search ? search.value : '', placeholder: search ? search.placeholder : '',
+      tabs: Array.prototype.map.call(document.querySelectorAll('#orders .g62-tabs button'), function (b) {
+        return { t: (b.childNodes[0] && b.childNodes[0].textContent || '').trim(), n: ((b.querySelector('i') || {}).textContent || '').trim(), on: b.classList.contains('on') };
+      }),
+      cards: list, empty: shown(empty) ? empty.textContent.trim() : ''
+    };
+  }
+  window.__goyanaCovering = coveringOverlay;
+  var NATIVE = { home: homeModel, orders: ordersModel };
+  var pageTimer = 0, lastPage = '';
+  function reportPage() {
+    pageTimer = 0;
+    var page = document.querySelector('.page.active'), id = page && page.id;
+    var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay();
+    var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: native ? NATIVE[id]() : null });
+    if (msg === lastPage) return;
+    lastPage = msg;
     try { window.GoyanaNative.postMessage(msg); } catch (e) {}
   }
-  function scheduleHome() { if (!homeTimer) homeTimer = setTimeout(reportHome, 80); }
-  window.__goyanaHomeRefresh = function () { lastHome = ''; scheduleHome(); };
-  window.__goyanaTap = function (sel, index) {
+  function scheduleHome() { if (!pageTimer) pageTimer = setTimeout(reportPage, 80); }
+  window.__goyanaHomeRefresh = function () { lastPage = ''; scheduleHome(); };
+  window.__goyanaTap = function (sel, index, child) {
     var list = document.querySelectorAll(sel), el = list[index || 0];
+    if (el && child) el = el.querySelector(child);
     if (el) el.click();
     scheduleHome();
     return !!el;
+  };
+  window.__goyanaSearch = function (sel, value) {
+    var el = document.querySelector(sel);
+    if (!el) return false;
+    el.value = value;
+    ['input', 'keyup', 'change'].forEach(function (type) { el.dispatchEvent(new Event(type, { bubbles: true })); });
+    scheduleHome();
+    return true;
   };
   function watchHome() {
     new MutationObserver(scheduleHome).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'], characterData: true });

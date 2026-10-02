@@ -20,16 +20,35 @@ try{
   assert.equal(await p.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--goyana-safe-top').trim()),'31px');
   console.log('PASS app boots on the Flutter bridge and receives the status bar inset');
 
-  // Native Beranda: HTML reports what Flutter should draw and when.
+  // Native pages: HTML reports what Flutter should draw and when.
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
-  const homes=()=>p.evaluate(()=>{const raw=window.GoyanaNative.__events||[];return raw.map(m=>JSON.parse(m)).filter(m=>m.event==='home')});
-  let last=(await homes()).at(-1);assert.equal(last.visible,true);assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
-  await p.evaluate(()=>openPage('orders'));await p.waitForTimeout(300);assert.equal((await homes()).at(-1).visible,false);
-  await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await homes()).at(-1).visible,true);
+  const natives=()=>p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native'));
+  let last=(await natives()).at(-1);assert.equal(last.page,'home');assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
+  await p.evaluate(()=>openPage('settings'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
+  await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
-  assert.equal((await homes()).at(-1).visible,false,'a sheet opened from Beranda hides the native page');
-  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});
-  console.log('PASS Beranda data and visibility are reported to Flutter; native taps run the HTML actions');
+  assert.equal((await natives()).at(-1).page,null,'a sheet opened from Beranda hides the native page');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});
+    addBranch96();const f=document.querySelector('#outletedit');f.querySelector('input.profile-input').value='Uji';f.querySelector('textarea').value='Jakarta';f.querySelector('input[inputmode=tel]').value='081234567890';saveOutlet158();
+    for(const [n,ph] of [['Budi Native','081200000001'],['Sari Native','081200000002']]){document.getElementById('v88-name').value=n;document.getElementById('v88-phone').value=ph;document.getElementById('v88-address').value='Jakarta';saveCustomerV88();
+      document.querySelector('#f61-services .f61-customerbar div b').textContent=n;window.pickedName136=n;f61.cart=[{id:'t',n:'Cuci Baju',name:'Cuci Baju',ic:'Kiloan',unit:'kg',price:7000,qty:2}];f61.total=14000;f61.dur='Reguler';f61Payment();f61Finish('Bayar Nanti')}
+    document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('orders')});
+  await p.waitForTimeout(700);
+  // After saving, the app opens the new order's detail: the native page must stay hidden until it closes.
+  assert.equal((await natives()).at(-1).page,null);
+  await p.evaluate(()=>{if(window.g62CloseDetail)g62CloseDetail();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});
+  await p.waitForTimeout(400);last=(await natives()).at(-1);
+  assert.equal(last.page,'orders');assert.equal(last.model.cards.length,2);assert.equal(last.model.cards[0].amount,'Rp14.000');
+  assert.equal(last.model.cards[0].action.t,'Proses');assert.ok(last.model.tabs.find(t=>t.on).t==='Antrian');
+  await p.evaluate(()=>__goyanaSearch('#g62-order-search','Sari'));await p.waitForTimeout(400);
+  last=(await natives()).at(-1);assert.deepEqual(last.model.cards.map(c=>c.name),['Sari Native'],'search filters through the HTML logic');
+  await p.evaluate(()=>__goyanaSearch('#g62-order-search',''));await p.waitForTimeout(300);
+  const before=(await natives()).at(-1).model.cards[0];
+  await p.evaluate(i=>__goyanaTap('#orders .g62-ordercard',i,'.next91'),before.i);await p.waitForTimeout(500);
+  await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')}));await p.waitForTimeout(300);
+  last=(await natives()).at(-1);assert.equal(last.model.tabs.find(t=>t.t==='Proses').n,'1','status button moved the order to Proses');
+  await p.evaluate(()=>openPage('home'));
+  console.log('PASS Beranda & Pesanan data and visibility reach Flutter; search, tabs and status buttons run the HTML logic');
 
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));

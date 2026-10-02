@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../native/home_page.dart';
+import '../native/orders_page.dart';
 import 'bridge.dart';
 
 const _brand = Color(0xffe8493f);
@@ -38,13 +39,14 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
   bool _loading = true;
-  bool _homeVisible = false;
+  String? _nativePage; // 'home' | 'orders' while a native page covers the WebView
   HomeModel _home = const HomeModel();
+  OrdersModel _orders = const OrdersModel();
   bool _loginBar = false;
   String? _loadError;
   DateTime? _lastBack;
@@ -153,22 +155,26 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void _onEvent(String message) {
     try {
       final data = jsonDecode(message) as Map<String, dynamic>;
-      if (data['event'] == 'home') {
-        final visible = data['visible'] == true;
-        final model = data['model'] is Map ? HomeModel.fromJson(Map<String, dynamic>.from(data['model'] as Map)) : _home;
-        if (mounted) setState(() { _homeVisible = visible; _home = model; });
-      }
+      if (data['event'] != 'native') return;
+      final page = data['page'] as String?;
+      final model = data['model'] is Map ? Map<String, dynamic>.from(data['model'] as Map) : null;
+      if (!mounted) return;
+      setState(() {
+        _nativePage = page;
+        if (page == 'home' && model != null) _home = HomeModel.fromJson(model);
+        if (page == 'orders' && model != null) _orders = OrdersModel.fromJson(model);
+      });
     } catch (_) {/* ignore malformed events */}
   }
 
   /// Runs the same HTML element's action, then shows the HTML app while it opens.
-  void _tap(String selector, [int index = 0]) {
-    setState(() => _homeVisible = false);
-    _web.runJavaScript('window.__goyanaTap&&__goyanaTap(${jsonEncode(selector)},$index)');
+  void _tap(String selector, [int index = 0, String? child, bool reveal = true]) {
+    if (reveal) setState(() => _nativePage = null);
+    _web.runJavaScript('window.__goyanaTap&&__goyanaTap(${jsonEncode(selector)},$index,${jsonEncode(child)})');
   }
 
   @override
-  void scan() => _tap('#home .gy167-scan');
+  void scan() => _tap(_nativePage == 'orders' ? '#orders .gy167-scan' : '#home .gy167-scan');
   @override
   void slide(int index) => _tap('#home .gy155-slide', index);
   @override
@@ -183,9 +189,24 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void helpChat() => _tap('#home .help100 button');
   @override
   void nav(String pageId) {
-    if (pageId == 'home') return;
+    if (pageId == _nativePage) return;
     _tap('#nav-$pageId');
   }
+
+  // Pesanan
+  @override
+  void autoSettings() => _tap('#au133btn');
+  @override
+  void addOrder() => _tap('#orders .g62-searchrow > button');
+  @override
+  void search(String text) =>
+      _web.runJavaScript('window.__goyanaSearch&&__goyanaSearch("#g62-order-search",${jsonEncode(text)})');
+  @override
+  void tab(int index) => _tap('#orders .g62-tabs button', index, null, false);
+  @override
+  void openCard(int index) => _tap('#orders .g62-ordercard', index);
+  @override
+  void cardAction(int index) => _tap('#orders .g62-ordercard', index, '.next91', false);
 
   Future<NavigationDecision> _onNavigation(NavigationRequest request) async {
     final uri = Uri.tryParse(request.url);
@@ -334,7 +355,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
             // Android WebView forces two layers per frame and makes scrolling heavy.
             Positioned.fill(
               child: Offstage(
-                offstage: _homeVisible && !_loading,
+                offstage: _nativePage != null && !_loading,
                 child: WebViewWidget.fromPlatformCreationParams(
                 params: AndroidWebViewWidgetCreationParams(
                   controller: _web.platform,
@@ -344,8 +365,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               ),
             ),
             // Native Flutter Beranda over the HTML app (kept alive underneath).
-            if (_homeVisible && !_loading)
+            if (_nativePage == 'home' && !_loading)
               Positioned.fill(child: NativeHome(model: _home, actions: this)),
+            if (_nativePage == 'orders' && !_loading)
+              Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
             if (_loading && _loadError == null)
               const Positioned.fill(
                 child: ColoredBox(

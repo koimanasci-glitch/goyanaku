@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import 'common.dart';
 import 'home_icons.dart';
 
 /// Values shown on Beranda. They come from the same app logic as the HTML
@@ -64,17 +62,6 @@ abstract class HomeActions {
   void nav(String pageId);
 }
 
-const _ink = Color(0xff27323e);
-const _brand = Color(0xffe8493f);
-const _font = 'Poppins';
-
-TextStyle _t(double size, {FontWeight w = FontWeight.w400, Color c = const Color(0xff17191d), double? h, double ls = 0}) =>
-    TextStyle(fontFamily: _font, fontSize: size, fontWeight: w, color: c, height: h == null ? null : h / size, letterSpacing: ls);
-
-BoxShadow _shadow(Color c, double y, double blur) => BoxShadow(color: c, offset: Offset(0, y), blurRadius: blur);
-
-Widget _svg(String s, double size, {double? h}) => SvgPicture.string(s, width: size, height: h ?? size);
-
 /// Native Flutter Beranda, drawn to match the HTML design (#home) exactly.
 class NativeHome extends StatelessWidget {
   const NativeHome({super.key, required this.model, required this.actions, this.topInset});
@@ -97,7 +84,7 @@ class NativeHome extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 110),
             addRepaintBoundaries: true,
             children: [
-              RepaintBoundary(child: _TopBar(top: top, onScan: actions.scan)),
+              RepaintBoundary(child: GTopBar(top: top, onScan: actions.scan)),
               RepaintBoundary(child: _Slider(slides: model.slides, onTap: actions.slide)),
               _Grid(model: model, onTap: actions.tile),
               _Manage(onTap: actions.manageOutlet),
@@ -108,7 +95,7 @@ class NativeHome extends StatelessWidget {
             ],
           ),
         ),
-        Positioned(left: 0, right: 0, bottom: 0, child: _BottomNav(onTap: actions.nav)),
+        Positioned(left: 0, right: 0, bottom: 0, child: GBottomNav(onTap: actions.nav)),
       ]),
       ),
     );
@@ -135,98 +122,6 @@ class _PageBackground extends StatelessWidget {
             colors: [Color(0xc7f4f7fa), Color(0xc7f4f7fa), Color(0x00f4f7fa)], stops: [0, .35, 1])))),
         ]),
       );
-}
-
-class _WhiteSquare extends StatelessWidget {
-  const _WhiteSquare({required this.child, required this.onTap});
-  final Widget child;
-  final VoidCallback? onTap;
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 34, height: 34, alignment: Alignment.center,
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10),
-              boxShadow: [_shadow(const Color(0x1f781823), 2, 6)]),
-          child: child,
-        ),
-      );
-}
-
-class _TopBar extends StatelessWidget {
-  const _TopBar({required this.top, required this.onScan});
-  final double top;
-  final VoidCallback onScan;
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 64 + top,
-        child: Stack(children: [
-          const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
-            begin: Alignment(-.98, -.17), end: Alignment(.98, .17), colors: [Color(0xffff6b48), Color(0xfff0472f)])))),
-          const Positioned.fill(child: RepaintBoundary(child: _TopbarPattern())),
-          Positioned(
-            left: 16, right: 16, top: top, height: 64,
-            child: Row(children: [
-              _WhiteSquare(onTap: null, child: _svg(svgLogo, 24)),
-              const SizedBox(width: 9),
-              Text('GOYANA', style: _t(31, w: FontWeight.w500, c: Colors.white, h: 34, ls: .2)),
-              const Spacer(),
-              _WhiteSquare(onTap: onScan, child: _svg(svgScan, 22)),
-            ]),
-          ),
-        ]),
-      );
-}
-
-/// Topbar flower pattern: the 30x30 SVG tile is drawn once into an image and
-/// repeated by the GPU, instead of placing dozens of SVG widgets.
-class _TopbarPattern extends StatefulWidget {
-  const _TopbarPattern();
-  @override
-  State<_TopbarPattern> createState() => _TopbarPatternState();
-}
-
-class _TopbarPatternState extends State<_TopbarPattern> {
-  static ui.Image? _tile;
-  @override
-  void initState() {
-    super.initState();
-    if (_tile == null) _load();
-  }
-
-  Future<void> _load() async {
-    final info = await vg.loadPicture(const SvgStringLoader(svgTopbarPattern), null);
-    const scale = 3.0;
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder)..scale(scale);
-    canvas.drawPicture(info.picture);
-    info.picture.dispose();
-    final image = await recorder.endRecording().toImage((30 * scale).toInt(), (30 * scale).toInt());
-    _tile = image;
-    if (mounted) setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tile = _tile;
-    if (tile == null) return const SizedBox.expand();
-    return CustomPaint(painter: _PatternPainter(tile), size: Size.infinite);
-  }
-}
-
-class _PatternPainter extends CustomPainter {
-  _PatternPainter(this.tile);
-  final ui.Image tile;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = 30 / tile.width;
-    final matrix = Float64List.fromList([s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-    canvas.drawRect(Offset.zero & size,
-        Paint()..shader = ImageShader(tile, TileMode.repeated, TileMode.repeated, matrix)..filterQuality = FilterQuality.medium);
-  }
-
-  @override
-  bool shouldRepaint(_PatternPainter old) => old.tile != tile;
 }
 
 class _Slider extends StatefulWidget {
@@ -285,19 +180,19 @@ class _SliderState extends State<_Slider> {
           SizedBox(
             width: 179,
             child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(s.brand, style: _t(10, c: Colors.white, h: 14)),
+              Text(s.brand, style: gText(10, c: Colors.white, h: 14)),
               const SizedBox(height: 7),
-              Text(s.title, style: _t(15, w: FontWeight.w500, c: Colors.white, h: 17.1)),
+              Text(s.title, style: gText(15, w: FontWeight.w500, c: Colors.white, h: 17.1)),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(color: const Color(0x24ffffff), borderRadius: BorderRadius.circular(999)),
-                child: Text(s.sub, style: _t(10, c: Colors.white, h: 14)),
+                child: Text(s.sub, style: gText(10, c: Colors.white, h: 14)),
               ),
             ]),
           ),
           const SizedBox(width: 4),
-          Expanded(child: Center(child: _svg(svgSlides[i], 118, h: 98))),
+          Expanded(child: Center(child: gSvg(svgSlides[i], 118, h: 98))),
         ]),
       ),
     );
@@ -310,7 +205,7 @@ class _SliderState extends State<_Slider> {
           child: Container(
             height: 126,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(16),
-                boxShadow: [_shadow(const Color(0x1a374d60), 10, 20)]),
+                boxShadow: [gShadow(const Color(0x1a374d60), 10, 20)]),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: PageView(
@@ -356,7 +251,7 @@ class _Grid extends StatelessWidget {
               color: const Color(0xf7ffffff),
               borderRadius: BorderRadius.circular(11),
               border: Border.all(color: const Color(0x0f505e6c)),
-              boxShadow: [_shadow(const Color(0x0a3c4c5a), 8, 18)],
+              boxShadow: [gShadow(const Color(0x0a3c4c5a), 8, 18)],
             ),
             child: Stack(clipBehavior: Clip.none, children: [
               Positioned.fill(
@@ -365,7 +260,7 @@ class _Grid extends StatelessWidget {
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     SizedBox(height: 42, child: Center(child: icon)),
                     const SizedBox(height: 3),
-                    Text(label, textAlign: TextAlign.center, style: _t(12, c: const Color(0xff20262c), h: 13.44)),
+                    Text(label, textAlign: TextAlign.center, style: gText(12, c: const Color(0xff20262c), h: 13.44)),
                   ]),
                 ),
               ),
@@ -382,17 +277,17 @@ class _Grid extends StatelessWidget {
     final badge = model.showBadge
         ? Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-            decoration: BoxDecoration(color: _brand, borderRadius: BorderRadius.circular(20)),
-            child: Text(model.badge, style: _t(10, c: Colors.white, h: 11.2)),
+            decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(20)),
+            child: Text(model.badge, style: gText(10, c: Colors.white, h: 11.2)),
           )
         : null;
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 8, 15, 0),
       child: Column(children: [
         Row(children: [
-          _tile(0, _svg(svgTileAdd, 43), 'Tambah\nTransaksi'),
+          _tile(0, gSvg(svgTileAdd, 43), 'Tambah\nTransaksi'),
           const SizedBox(width: 8),
-          _tile(1, _svg(svgTileSearch, 43), 'Cari\nTransaksi'),
+          _tile(1, gSvg(svgTileSearch, 43), 'Cari\nTransaksi'),
           const SizedBox(width: 8),
           _tile(2, _emoji('🚚'), 'Kurir'),
         ]),
@@ -420,7 +315,7 @@ class _Manage extends StatelessWidget {
           child: Container(
             height: 54,
             decoration: BoxDecoration(color: const Color(0xffef4b42), borderRadius: BorderRadius.circular(14),
-                boxShadow: [_shadow(const Color(0x1fef4b42), 6, 14)]),
+                boxShadow: [gShadow(const Color(0x1fef4b42), 6, 14)]),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               SizedBox(
                 width: 20, height: 20,
@@ -431,7 +326,7 @@ class _Manage extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text.rich(TextSpan(style: _t(16, c: Colors.white, h: 22.4), children: const [
+              Text.rich(TextSpan(style: gText(16, c: Colors.white, h: 22.4), children: const [
                 TextSpan(text: 'MANAGE', style: TextStyle(fontWeight: FontWeight.w500)),
                 TextSpan(text: ' OUTLET'),
               ])),
@@ -454,12 +349,12 @@ class _Qr extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xe0ffffff), borderRadius: BorderRadius.circular(13),
               border: Border.all(color: const Color(0x1a6c5a58)),
-              boxShadow: [_shadow(const Color(0x0b403531), 6, 16)],
+              boxShadow: [gShadow(const Color(0x0b403531), 6, 16)],
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _svg(svgQr, 18),
+              gSvg(svgQr, 18),
               const SizedBox(width: 9),
-              Text('QR', style: _t(13, w: FontWeight.w500, c: const Color(0xff28313a), h: 18.2)),
+              Text('QR', style: gText(13, w: FontWeight.w500, c: const Color(0xff28313a), h: 18.2)),
             ]),
           ),
         ),
@@ -468,7 +363,7 @@ class _Qr extends StatelessWidget {
 
 BoxDecoration _card(double radius, {Color border = const Color(0xffe6eaf0)}) => BoxDecoration(
       color: Colors.white, borderRadius: BorderRadius.circular(radius), border: Border.all(color: border),
-      boxShadow: [_shadow(const Color(0x06202d41), 2, 5)],
+      boxShadow: [gShadow(const Color(0x06202d41), 2, 5)],
     );
 
 class _Stats extends StatelessWidget {
@@ -483,12 +378,12 @@ class _Stats extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Container(width: 27, height: 27, alignment: Alignment.center,
-                  decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(9)), child: _svg(svg, 16)),
+                  decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(9)), child: gSvg(svg, 16)),
               const Spacer(),
-              Text(value, style: _t(22, w: FontWeight.w600, c: _ink, h: 22)),
+              Text(value, style: gText(22, w: FontWeight.w600, c: gInk, h: 22)),
             ]),
             const SizedBox(height: 8),
-            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: _t(11, c: const Color(0xff828995), h: 14.3)),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(11, c: const Color(0xff828995), h: 14.3)),
           ]),
         ),
       );
@@ -519,9 +414,9 @@ class _Omset extends StatelessWidget {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(model.todayLabel, style: _t(11, c: const Color(0xff858b95), h: 15.4)),
+                Text(model.todayLabel, style: gText(11, c: const Color(0xff858b95), h: 15.4)),
                 const SizedBox(height: 5),
-                Text(model.today, style: _t(22, w: FontWeight.w600, c: _ink, h: 26.4, ls: -.3)),
+                Text(model.today, style: gText(22, w: FontWeight.w600, c: gInk, h: 26.4, ls: -.3)),
               ]),
             ),
             const SizedBox(width: 12),
@@ -531,7 +426,7 @@ class _Omset extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
                 decoration: BoxDecoration(color: const Color(0xfffff7f4), borderRadius: BorderRadius.circular(11),
                     border: Border.all(color: const Color(0xfff5dcd7))),
-                child: Text('Bulanan ›', style: _t(11, w: FontWeight.w500, c: const Color(0xffdb6555), h: 15.4)),
+                child: Text('Bulanan ›', style: gText(11, w: FontWeight.w500, c: const Color(0xffdb6555), h: 15.4)),
               ),
             ),
           ]),
@@ -550,13 +445,13 @@ class _Help extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: _card(18, border: const Color(0xffd7f0e2)),
           child: Row(children: [
-            _svg(svgHelp, 44),
+            gSvg(svgHelp, 44),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(model.helpTitle, style: _t(14, w: FontWeight.w500, c: const Color(0xff1e1e1e), h: 19.6)),
+                Text(model.helpTitle, style: gText(14, w: FontWeight.w500, c: const Color(0xff1e1e1e), h: 19.6)),
                 const SizedBox(height: 2),
-                Text(model.helpText, style: _t(11.5, c: const Color(0xff6b7486), h: 16.1)),
+                Text(model.helpText, style: gText(11.5, c: const Color(0xff6b7486), h: 16.1)),
               ]),
             ),
             const SizedBox(width: 12),
@@ -565,40 +460,10 @@ class _Help extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(color: const Color(0xff22b35e), borderRadius: BorderRadius.circular(11)),
-                child: Text('Chat WA', style: _t(12.5, w: FontWeight.w500, c: Colors.white, h: 17.5)),
+                child: Text('Chat WA', style: gText(12.5, w: FontWeight.w500, c: Colors.white, h: 17.5)),
               ),
             ),
           ]),
         ),
-      );
-}
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.onTap});
-  final ValueChanged<String> onTap;
-  static const _items = [['home', 'Beranda'], ['orders', 'Pesanan'], ['reports', 'Laporan'], ['settings', 'Pengaturan']];
-  @override
-  Widget build(BuildContext context) => Container(
-        height: 76,
-        decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xffeef0f3)))),
-        child: Row(children: [
-          for (var i = 0; i < _items.length; i++)
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onTap(_items[i][0]),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 5, bottom: 7),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    SizedBox(width: 34, height: 34, child: Center(child: _svg(navIcon(i, i == 0), 28))),
-                    const SizedBox(height: 5),
-                    Text(_items[i][1], style: _t(12,
-                        w: i == 0 ? FontWeight.w600 : FontWeight.w400,
-                        c: i == 0 ? _brand : const Color(0xff9aa0ac), h: 13.2)),
-                  ]),
-                ),
-              ),
-            ),
-        ]),
       );
 }
