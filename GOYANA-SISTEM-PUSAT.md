@@ -493,3 +493,27 @@ Arahan pengguna: gambar dikompres otomatis sebelum dikirim, tetap menjaga tampil
 - Validasi konten/tipe/ukuran server, hak tenant/outlet, ID lampiran dan deduplikasi. Buang metadata lokasi yang tidak diperlukan.
 - Pertahankan keterbacaan gambar nota/barcode/QR bila termasuk unggahan; jangan menggunakan hasil kompresi yang merusak kemampuan scan.
 - Uji pada foto detail pakaian, warna pekat, teks serta perangkat RAM rendah. Fitur ini baru dicatat, belum diimplementasikan.
+
+
+## 32. Lima Pelengkap Dashboard Administrator
+
+Pengguna meminta semua saran dirangkum/ditulis. Ini melengkapi dasar fitur yang sudah dibahas; belum implementasi.
+
+1. Pusat persetujuan: antrean saran AI, permintaan fitur dan tindakan berdampak, approve/reject, alasan, identitas admin, audit serta pemeriksaan ulang izin/kondisi saat eksekusi. Persetujuan tidak mengubah keluhan fitur menjadi janji otomatis.
+2. Kontrol rilis/rollback: uji perubahan pada akun beta, rollout bertahap, status versi, penghentian rollout dan runbook kembali. Rollback kode berbeda dari pemulihan database; migrasi perlu strategi kompatibilitas.
+3. Rekonsiliasi pembayaran: cocokkan invoice/purchase/status provider dengan paket/saldo; tampilkan sudah bayar tetapi entitlement belum masuk, retry verifikasi yang aman serta deduplikasi. Jangan memberi kredit hanya berdasarkan screenshot.
+4. Antrean pekerjaan gagal: tampilkan status WA/upload/sync/event, penyebab redacted, percobaan, retry/cancel berizin. Pending yang hanya ada di HP offline belum terlihat detail di pusat; jangan mengklaim antrean server mencakup semua data lokal.
+5. Ringkasan bisnis Goyana: trial, pelanggan aktif, renewal/expiry, pendapatan terverifikasi, biaya AI dan storage. Pisahkan omzet platform dari omzet laundry, kredit AI belum terpakai dari keuntungan, serta angka estimasi dari rekonsiliasi final.
+
+Prioritas usulan sebelumnya:1,3,4lebih dahulu; semua lima tetap tercatat sebagai rencana.
+
+## 33. Koordinasi Pengerjaan dengan GPT/Codex dan Claude melalui GitHub
+
+Pertanyaan pengguna: dapatkah repo dikerjakan juga dengan “cloud”. Jika maksudnya Claude, dapat menggunakan repo sama melalui Git, dengan akses yang dikonfigurasi pengguna. Tidak ada koneksi Claude atau agent lintas layanan yang dibuat oleh pencatatan ini.
+
+- GitHub dan dokumentasi repo menjadi acuan bersama. Percakapan/memori GPT dan Claude tidak otomatis tersinkron.
+- Bagi tugas dan ownership file/module. Masing-masing memakai branch/checkout terpisah, mengambil sumber terbaru sebelum mulai, dan membawa perubahan lewat PR agar review/integrasi terkontrol.
+- Hindari dua alat mengedit file/main yang sama secara bersamaan. Perubahan lintas modul mengikuti kontrak API/schema dan aturan tenant/role yang sama.
+- Dokumentasikan keputusan, status tugas, implementasi/pengujian dan hal belum selesai di repo; jangan menyatakan rencana sebagai fitur aktif.
+- Sebelum merge, review diff, selesaikan konflik, jalankan pemeriksaan yang relevan lalu integrasikan berurutan. Konflik tidak selesai otomatis hanya karena keduanya memakai GitHub.
+- Model lain tidak otomatis menerima akses repo atau credential produksi. Jangan menaruh secret/API key di handoff/repo.
