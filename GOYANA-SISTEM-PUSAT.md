@@ -747,3 +747,38 @@ Cara hitung (program, tanpa AI):
 - API key OpenRouter hanya di `.env` server.
 
 Status: **rencana**.
+
+## 45. Maintenance Sistem Dibantu AI — 3 Oktober 2026
+
+Melengkapi §9 dan §43. Prinsip hemat AI berlaku: program dulu, AI terakhir.
+
+**Level 1 — program (tanpa AI), setiap menit/jam:**
+- Health check: server hidup, API, database, antrean/queue, scheduler, ruang disk, RAM/CPU, sertifikat SSL, koneksi CHATKU dan OpenRouter, sinkron HP yang macet, lonjakan error.
+- Perbaikan otomatis dari daftar resep yang aman:
+  - Restart queue worker/PHP.
+  - Ulang job gagal (idempotent).
+  - Bersihkan cache dan log lama.
+  - Kompres/rotasi log.
+  - Perpanjang SSL.
+  - Pindah ke model AI cadangan.
+- Backup database harian + uji restore mingguan otomatis ke server terpisah.
+- Update keamanan OS terjadwal (patch keamanan saja). Update besar menunggu persetujuan.
+
+**Level 2 — AI, hanya bila Level 1 gagal atau ada error baru yang belum dikenal:**
+- AI membaca **ringkasan** log/error, metrik, dan perubahan terakhir. Tidak membaca data pribadi klien.
+- AI menulis diagnosis singkat (penyebab, dampak, saran perbaikan) ke WA/email pemilik dan panel admin.
+- Diagnosis yang terbukti benar disimpan sebagai resep baru di Level 1, supaya kejadian serupa berikutnya tanpa AI.
+
+**Level 3 — perbaikan kode (bug):**
+- AI pengembang (Claude/GPT) membuat perbaikan di **branch + PR GitHub**.
+- CI menjalankan semua tes. Pemilik cukup menyetujui atau merge.
+- Deploy otomatis setelah merge.
+- Bila error naik setelah deploy → **rollback otomatis** ke versi sebelumnya.
+
+Batas keamanan:
+- AI **tidak diberi akses shell bebas** ke server produksi. Hanya resep terdaftar yang boleh dijalankan.
+- Hapus data, ubah database manual, dan ubah uang/paket wajib persetujuan pemilik.
+- Semua tindakan otomatis tercatat di audit log.
+
+Laporan: insiden penting langsung ke WA pemilik. Sisanya masuk laporan mingguan (§43).
+Status: **rencana**.
