@@ -1238,3 +1238,67 @@ Bagian ini menggantikan catatan paket yang bertentangan pada bagian sebelumnya. 
 - [ ] Uji semua halaman dan perangkat Android fisik, terutama printer, kamera dan integrasi WhatsApp sungguhan.
 - Harga Pro Rp30.000, Super Pro Chatbot Rp100.000 dan Platinum Rp350.000 mengikuti tampilan kode yang sudah ada sebagai acuan sementara, bukan keputusan harga baru.
 - Pembayaran Google Play resmi di Indonesia menyediakan QRIS untuk pembelian yang didukung; bantuan Google menyatakan QRIS tidak dapat membayar langganan. Sumber: https://support.google.com/googleplay/answer/2651410?co=GENIE.CountryCode%3DID&hl=id
+
+
+## 37. Akun Tim, Batas Perangkat, dan Tampilan Kasir/Kurir — 2 Oktober 2026
+
+Status: **keputusan dan kebutuhan untuk implementasi backend pusat; belum diterapkan sebagai akun atau pembatasan server yang aktif.** Bagian ini menjadi acuan saat membangun layanan pusat agar pembahasan tidak perlu diulang. Ketentuan tampilan kasir di bawah menggantikan usulan sebelumnya tentang beranda kasir yang disederhanakan.
+
+### Akun dan penugasan cabang
+
+- [ ] Gunakan aplikasi Goyana yang sama untuk owner/admin, kasir, pegawai produksi, dan kurir, dengan akun masing-masing; jangan berbagi email/password owner.
+- [ ] Owner/admin yang memiliki izin membuat atau mengundang akun tim, menetapkan peran, hak akses, dan outlet/cabang yang diizinkan.
+- [ ] Lengkapi pembuatan akun nyata untuk kurir dan pegawai: identitas login, pengaturan password melalui server, reset password, status aktif/nonaktif, dan penugasan outlet.
+- Kondisi kode saat pemeriksaan: kurir hanya menyimpan nama, WhatsApp, email, dan akses outlet; belum ada password atau akun login nyata. Form pegawai memiliki password, tetapi penyimpanan hanya metadata dan tidak memproses password menjadi akun.
+- [ ] Password di-hash di server dan tidak disimpan sebagai teks biasa di perangkat.
+- [ ] Kasir bertransaksi hanya untuk outlet yang ditetapkan; perubahan penugasan oleh owner/admin yang berizin harus tercatat.
+- [ ] Pegawai produksi hanya melakukan pekerjaan yang diizinkan; kurir hanya mengakses tugas yang ditugaskan kepadanya serta data pelanggan yang diperlukan.
+- [ ] Nonaktifkan akun pegawai keluar tanpa menghapus histori transaksi/tugas.
+
+### Batas perangkat kasir — disepakati
+
+- **Maksimal dua perangkat kasir yang diizinkan per outlet**, termasuk outlet pusat. Membuat akun kasir tambahan tidak menambah kuota perangkat.
+- [ ] Server mengelola daftar perangkat yang diizinkan per outlet; perangkat tambahan ditolak untuk akses transaksi sampai owner mencabut perangkat lama atau kuota resmi ditambah.
+- [ ] Notifikasi penolakan singkat: **“Maksimal 2 perangkat kasir per outlet.”**
+- [ ] Catat percobaan melewati batas dan beri pemberitahuan kepada owner; jangan otomatis memblokir seluruh akun usaha karena percobaan tersebut bisa terjadi saat ganti HP.
+- [ ] Owner dapat melihat nama perangkat, pengguna, outlet, terakhir aktif, dan status, serta mencabut akses perangkat yang tidak dipakai.
+- [ ] Periksa izin dan kuota di server pada login, operasi transaksi, dan sinkronisasi; pembatasan tampilan saja tidak cukup.
+- [ ] Transaksi mencatat outlet, petugas, perangkat, dan waktu.
+- [ ] Perangkat owner yang digunakan bertransaksi ikut dihitung sebagai perangkat kasir. Akses owner untuk monitoring saja tidak menggunakan slot transaksi.
+- [ ] Perangkat kurir memiliki akses/kuota terpisah, bukan cara memperoleh slot kasir tambahan.
+- [ ] Tentukan izin offline dengan masa berlaku dan pemeriksaan ulang server. Pencabutan izin tidak dapat dijamin segera pada perangkat yang tetap offline; lindungi transaksi lokal yang belum tersinkron agar tidak hilang.
+
+### Usulan yang belum final
+
+- Lima akun kasir/produksi aktif dan dua akun kurir per outlet **hanya usulan awal**, bukan batas paket yang telah disetujui. Angka dua perangkat kasir berbeda dari jumlah orang/akun.
+- Satu sesi/perangkat aktif per akun kasir dan mekanisme penghentian sesi lama saat pindah perangkat masih perlu difinalisasi bersama alur ganti HP dan data offline.
+- Harga/kelayakan tambahan kuota pegawai atau perangkat belum ditentukan; jangan membuat harga atau mengubah paket berdasarkan asumsi.
+- Pemeriksaan lokasi dapat membantu mendeteksi penyalahgunaan, tetapi tidak menjamin semua perangkat berada di satu toko. GPS/geofencing bukan keputusan final dan kurir memang bekerja di luar outlet.
+
+### Tampilan kasir — koreksi final pengguna
+
+- **Pertahankan tampilan aplikasi Goyana yang sekarang untuk kasir; jangan membuat versi beranda sederhana atau mengganti desainnya.**
+- Menu tetap terlihat sesuai susunan aplikasi; fitur di luar hak akses kasir diberi tanda **terkunci**.
+- [ ] Ketukan menu terkunci memberi penjelasan singkat bahwa akses memerlukan izin owner/admin. Isi sensitif tidak boleh tampil atau dikirim ke perangkat tanpa izin.
+- [ ] Penegakan hak akses dilakukan pula di API/server sehingga menu terkunci tidak dapat dilewati dengan request langsung.
+- [ ] Nama outlet dan pengguna harus jelas untuk menghindari salah penempatan transaksi.
+- Hak melihat laporan, omzet/laba, mengubah harga, refund, pembatalan, pengelolaan pegawai, serta pengaturan usaha ditentukan melalui permission; jangan memberikan semuanya secara otomatis kepada kasir.
+- Bedakan kunci karena peran/hak akses dengan kunci karena paket; jangan mengarahkan pengguna membeli paket bila sebenarnya membutuhkan izin owner.
+
+### Tampilan dan alur kurir
+
+- [ ] Buat desain halaman kurir yang rapi dan menarik mengikuti tema, font, dan ikon Goyana; manfaatkan ruang dengan kartu tugas yang lebih lega.
+- [ ] Tampilkan tugas Jemput dan Antar, nama pelanggan, alamat, peta/titik tujuan, status, serta tindakan berikutnya yang relevan.
+- [ ] Beri warna jelas pada tombol: Navigasi biru, WhatsApp hijau, tindakan tugas utama koral mengikuti tema Goyana.
+- [ ] Jika lokasi belum tersedia, tampilkan keadaan yang jelas; jangan menampilkan peta atau lokasi palsu.
+- [ ] Navigasi membuka tujuan pelanggan; akses WhatsApp menuju pelanggan pada tugas terkait.
+- [ ] Pertahankan alur penjemputan/pengantaran yang sudah disepakati; jangan membuat update status atau pencatatan transaksi ganda akibat perubahan desain.
+- [ ] Layanan pusat mengelola penugasan kurir dan sinkronisasi perubahan status agar kasir/owner dapat memantau. Jangan mengklaim pelacakan GPS langsung atau koneksi server sudah aktif sebelum implementasi selesai.
+
+### Pemeriksaan saat backend dibangun
+
+- [ ] Uji isolasi usaha dan outlet, akun tanpa izin, akun nonaktif, serta tugas kurir milik pengguna lain.
+- [ ] Uji perangkat pertama/kedua diizinkan, perangkat ketiga ditolak, pembuatan akun tambahan tidak menambah slot, dan pergantian perangkat melalui pencabutan akses.
+- [ ] Uji menu terkunci beserta penolakan API, monitoring owner, perubahan role, reset password, dan audit aktivitas.
+- [ ] Uji offline, izin kedaluwarsa, pencabutan perangkat, dan sinkronisasi tanpa kehilangan atau menggandakan transaksi.
+- Semua catatan di bagian ini merupakan kebutuhan implementasi; **bukan laporan bahwa fungsi backend telah selesai.**
