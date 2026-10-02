@@ -36,6 +36,7 @@ jobs:
       - name: Uji jembatan Flutter di browser
         run: |
           cd tests
+          set +e
           node flutter-bridge.cjs > test-output.txt 2>&1; code=$?
           cat test-output.txt
           # Failure details as annotations (readable from the API without log access).

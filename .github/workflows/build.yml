@@ -31,6 +31,7 @@ jobs:
       - name: Uji alur transaksi, paket dan stok
         run: |
           cd tests
+          set +e
           npm test > test-output.txt 2>&1; code=$?
           cat test-output.txt
           # Failure details as annotations (readable from the API without log access).
