@@ -68,6 +68,13 @@
 @elseif($grant->ends_at->isPast())Berakhir
 @else<form method="post" action="{{ route('admin.revoke', [$business, $grant]) }}">@csrf<button class="secondary">Cabut</button></form>@endif
 </td></tr>@empty<tr><td colspan="4">Belum ada paket sementara.</td></tr>@endforelse</tbody></table></section>
+<section class="card"><h2>Uji Balasan Cepat WhatsApp</h2><p class="muted">Jawaban otomatis tanpa AI untuk pelanggan laundry ini (cek status, tagihan, nota, harga, jam buka). Aktif di WhatsApp setelah CHATKU tersambung.</p>
+<form method="post" action="{{ route('admin.qr.test', $business) }}">@csrf<div class="grid">
+<div><label for="qr-from">Nomor pengirim</label><input id="qr-from" name="from" value="{{ old('from') }}" required maxlength="30" placeholder="6281234567890"></div>
+<div><label for="qr-text">Pesan</label><input id="qr-text" name="text" value="{{ old('text') }}" required maxlength="500" placeholder="Mas baju saya sudah jadi belum?"></div>
+</div><p><button class="secondary">Coba</button></p></form>
+@if(session('qr'))@php($qr = session('qr'))<div class="msg mine" style="max-width:100%"><small>Maksud: {{ $qr['intent'] ?? 'tidak dikenali' }}{{ $qr['customer'] ? ' · pelanggan: '.$qr['customer'] : ' · nomor tidak dikenal' }}</small><p>{{ $qr['reply'] ?? '(Tidak ada jawaban otomatis — diteruskan ke kasir / Chatbot AI)' }}</p></div>@endif
+</section>
 <section class="card"><h2>Pesan otomatis ke owner</h2><ul class="plain">
 @forelse($messages as $m)<li>{{ $m->subject }} <span @class(['pill', 'good' => $m->status === 'sent', 'bad' => $m->status !== 'sent'])>{{ $m->status === 'sent' ? 'Terkirim' : 'Gagal' }}</span><br><small class="muted">{{ $m->channel }} · {{ $m->recipient }} · {{ \Carbon\Carbon::parse($m->created_at)->timezone('Asia/Jakarta')->format('d M Y H:i') }}@if($m->error) · {{ $m->error }}@endif</small></li>
 @empty<li class="muted">Belum ada.</li>@endforelse</ul></section>

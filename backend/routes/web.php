@@ -64,6 +64,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/businesses/{business}/subscriptions/{subscription}/cancel', [AdminController::class, 'cancelSubscription'])->name('admin.subscription.cancel');
             Route::post('/businesses/{business}/devices/{device}/revoke', [AdminController::class, 'revokeDevice'])->name('admin.device.revoke');
             Route::post('/businesses/{business}/ai-topup', [AdminController::class, 'aiTopUp'])->name('admin.ai.topup');
+            Route::post('/businesses/{business}/quick-reply-test', [AdminController::class, 'quickReplyTest'])->name('admin.qr.test');
             Route::get('/audit', [AdminController::class, 'audit'])->name('admin.audit');
             Route::get('/system', [AdminController::class, 'system'])->name('admin.system');
             Route::get('/tickets', [AdminSupportController::class, 'index'])->name('admin.tickets');

@@ -165,4 +165,11 @@ class AdminController {
         $balance = \App\Support\AiBilling::topUp($business, (int) $data['amount'], $data['reference'], $request->user()->id);
         return back()->with('status', 'Top-up dicatat. Saldo AI sekarang Rp'.number_format($balance, 0, ',', '.').'.');
     }
+
+    /** Simulator Balasan Cepat (§47): lihat jawaban otomatis sebelum WhatsApp/CHATKU tersambung. */
+    public function quickReplyTest(Request $request, Business $business) {
+        $data = $request->validate(['from' => 'required|string|max:30', 'text' => 'required|string|max:500']);
+        $r = \App\Support\QuickReply::answer($business, $data['from'], $data['text']);
+        return back()->withInput()->with('qr', $r);
+    }
 }

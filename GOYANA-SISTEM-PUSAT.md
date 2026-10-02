@@ -843,4 +843,4 @@ Alur (program, tanpa AI):
 
 Hak paket: Balasan Cepat & Trigger saat ini Silver. Katalog §19/v190 menaruh "AI mengecek status laundry pelanggan" di Gold. Karena cek status versi program tidak memakan biaya AI, **tanyakan pemilik**: cek status otomatis masuk Silver atau tetap Gold.
 
-Status: **rencana**. Bergantung pada server, sinkron (§40), dan CHATKU (§41).
+Status: **mesin jawaban sudah dibangun & diuji** (`backend/app/Support/QuickReply.php`: status, tagihan, nota, jam/alamat, harga, antar-jemput; hanya data milik pengirim). Bisa dicoba di detail usaha admin → "Uji Balasan Cepat WhatsApp". Belum: webhook CHATKU, jeda bot 15 menit, dan hak paket (Silver/Gold, tunggu keputusan pemilik).
