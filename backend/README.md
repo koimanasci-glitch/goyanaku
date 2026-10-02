@@ -54,3 +54,9 @@ POST /api/session (email/password) mengeluarkan token Sanctum business:read, ber
 - Admin mencatat pembayaran manual di halaman usaha → paket aktif. Owner mengelola cabang dan akun tim di `/dashboard`.
 - `.env` produksi: `GOYANA_ADMIN_MFA=true`; setelah SMTP siap `GOYANA_REQUIRE_EMAIL_VERIFICATION=true`.
 - Jalankan migrasi baru: `php artisan migrate`.
+
+## Sinkronisasi aplikasi Android
+
+- `GET /api/sync/pull?cursor=N` dan `POST /api/sync/push` (token Sanctum). Aturan per jenis data di `config/goyana.php` → `sync`.
+- Uji end-to-end dengan server sungguhan: `cd tests && npm install && node sync-e2e.cjs` (butuh `composer install` di backend).
+- APK membaca alamat server dari variabel GitHub `GOYANA_API_URL` saat build. API butuh HTTPS di produksi; CORS `api/*` terbuka karena aplikasi memakai token, bukan cookie.

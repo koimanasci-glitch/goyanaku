@@ -2,9 +2,9 @@ name: Backend foundation
 on:
   push:
     branches: [main, "backend/**"]
-    paths: ["backend/**", ".github/workflows/backend.yml"]
+    paths: ["backend/**", ".github/workflows/backend.yml", "goyana-sync-core.js", "goyana-v197-sync.js", "tools/prepare_web.py", "tests/sync-e2e.cjs"]
   pull_request:
-    paths: ["backend/**", ".github/workflows/backend.yml"]
+    paths: ["backend/**", ".github/workflows/backend.yml", "goyana-sync-core.js", "goyana-v197-sync.js", "tools/prepare_web.py", "tests/sync-e2e.cjs"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,6 +33,15 @@ jobs:
       - run: php artisan route:list --except-vendor
       - run: php artisan view:cache
       - run: composer test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Uji sinkronisasi 2 HP dengan server sungguhan
+        working-directory: tests
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          node sync-e2e.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: backend-composer-lock

@@ -8,11 +8,13 @@ PATCHES = [f'goyana-v{v}-{name}.js' for v, name in [
     (181, 'system-fixes'), (182, 'finance-hpp'),
     (183, 'delivery-transport'), (184, 'owner-transport-settings'),
     (185, 'qris-stability'), (187, 'home-navigation'), (188, 'mobile-polish'),
-    (189, 'getting-started'), (190, 'subscription-layout'), (191, 'chatbot-settings'), (193, 'qris-map'), (195, 'wa-devices'), (196, 'small-screen')]]
+    (189, 'getting-started'), (190, 'subscription-layout'), (191, 'chatbot-settings'), (193, 'qris-map'), (195, 'wa-devices'), (196, 'small-screen'), (197, 'sync')]]
 
 TEST_PATCH = 'goyana-v192-test-mode.js'
+SYNC_CORE = 'goyana-sync-core.js'
+SYNC_TAG = f'<script src="{SYNC_CORE}"></script>'
 
-def prepare(source, target, test_mode=False):
+def prepare(source, target, test_mode=False, api_url=None):
     source, target = Path(source), Path(target)
     target.mkdir(parents=True, exist_ok=True)
     text = (source / 'index.html').read_text(encoding='utf-8')
@@ -23,6 +25,21 @@ def prepare(source, target, test_mode=False):
         (target / TEST_PATCH).unlink(missing_ok=True)
     for name in patches:
         shutil.copyfile(source / name, target / name)
+    # Sync core must run in <head>, before the app reads local storage.
+    import os
+    api = (api_url if api_url is not None else os.environ.get('GOYANA_API_URL', '')).strip().rstrip('/')
+    text = text.replace(SYNC_TAG, '')
+    if (source / SYNC_CORE).exists():
+        core = (source / SYNC_CORE).read_text(encoding='utf-8').replace('__GOYANA_API_URL__', api.replace("'", ''), 1)
+        (target / SYNC_CORE).write_text(core, encoding='utf-8')
+        marker = 'id="goyana-reset-storage176"'
+        if marker in text:
+            at = text.find('</script>', text.find(marker)) + len('</script>')
+        elif '<head' in text.lower():
+            at = text.find('>', text.lower().find('<head')) + 1
+        else:
+            at = 0
+        text = text[:at] + SYNC_TAG + text[at:]
     before, closing, after = text.rpartition('</body>')
     if not closing:
         raise ValueError('Missing document closing body tag')
@@ -41,4 +58,5 @@ def prepare(source, target, test_mode=False):
 
 if __name__ == '__main__':
     import sys
-    prepare(sys.argv[1] if len(sys.argv) > 1 else '.', sys.argv[2] if len(sys.argv) > 2 else 'app/www', '--test-mode' in sys.argv[3:])
+    api = next((a.split('=', 1)[1] for a in sys.argv[3:] if a.startswith('--api=')), None)
+    prepare(sys.argv[1] if len(sys.argv) > 1 else '.', sys.argv[2] if len(sys.argv) > 2 else 'app/www', '--test-mode' in sys.argv[3:], api)

@@ -596,3 +596,25 @@ Sudah dibuat dan diuji (30 tes PHPUnit):
 - Verifikasi email owner tersedia; diwajibkan dengan `GOYANA_REQUIRE_EMAIL_VERIFICATION=true` setelah SMTP produksi siap.
 
 Belum: pembayaran otomatis (gateway/Play Billing), pemasangan HP ke slot perangkat, API transaksi & sync (§38), login Google, reset password mandiri via email.
+
+## 40. Sinkronisasi HP ↔ Server Sudah Dibangun — 2 Oktober 2026 (branch backend/akses-paket)
+
+Status §38: lapisan sync versi 1 selesai dan diuji, **tanpa mengubah tampilan**.
+
+- **Cara kerja:** aplikasi tetap menyimpan data di HP (offline-first). `goyana-v197-sync.js` membaca penyimpanan lama, mengirim perubahan ke `POST /api/sync/push`, dan mengambil perubahan HP lain dari `GET /api/sync/pull`. Data masuk diterapkan oleh `goyana-sync-core.js` di awal `<head>` saat halaman dimuat ulang, sebelum aplikasi membaca datanya, sehingga tidak tertimpa.
+- **Yang tersinkron:** pesanan (+detail/pembayaran), pelanggan, deposit, kas per kasir, layanan & harga, kurir, stok (barang, mutasi, supplier, pembelian, resep), profil outlet, setelan transport & QRIS.
+- **Aman diulang:** setiap perubahan punya `op_id`; kirim ulang tidak menggandakan data. Bentrok (dua HP mengubah data yang sama) → versi server dipakai, versi HP disimpan di `sync_conflicts` (tidak hilang).
+- **Hak akses di server:** izin per jenis data mengikuti role; staf hanya membaca/menulis outlet tugasnya; paket berakhir → hanya bisa tarik data.
+- **Batas perangkat:** HP pertama yang menyimpan transaksi mengisi slot kasir (atau slot yang dibuat owner di dashboard). HP ketiga per outlet ditolak: "Maksimal 2 perangkat kasir per outlet." HP owner yang bertransaksi ikut dihitung; kurir tidak memakai slot.
+- **Login:** layar login aplikasi memakai email & password akun server bila alamat server diisi. Outlet lokal lama dipetakan ke outlet server (`srv-<id>`). Tombol Daftar membuka pendaftaran web.
+- **Status:** Pengaturan → kartu "Sinkronisasi server": Online · semua data tersinkron / Offline · N data menunggu / bermasalah.
+- **Alamat server:** variabel GitHub `GOYANA_API_URL` saat build APK, atau diisi manual di kartu sinkronisasi. Kosong = mode offline seperti sebelumnya.
+- **Dashboard owner web:** omzet & jumlah pesanan hari ini/bulan ini per outlet dari data yang tersinkron, status HP terpasang.
+- **Uji:** 42 tes PHPUnit + uji 3 HP dengan server Laravel sungguhan (`tests/sync-e2e.cjs`): unggah, unduh, offline lalu online, tanpa unggah bolak-balik, penolakan HP ketiga.
+
+Batasan versi 1 (dicatat, belum dikerjakan):
+- Data dari HP lain diterapkan dengan memuat ulang halaman saat pengguna tidak sedang mengisi form (±6 detik diam).
+- Unit sinkron adalah satu pesanan/pelanggan utuh; dua HP mengedit pesanan yang sama bersamaan → yang terakhir ditolak sebagai bentrok (tersimpan di server).
+- Kas per kasir hanya dipulihkan ke HP pemiliknya; laci kas lain hanya tersimpan di server.
+- Penyimpanan lokal masih `localStorage` (±5 MB). Pindah ke SQLite/IndexedDB sebelum data besar.
+- Belum ada layar konflik untuk owner dan belum ada pembersihan data sesuai §24.

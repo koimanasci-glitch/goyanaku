@@ -41,6 +41,8 @@ jobs:
           log-accepted-android-sdk-licenses: false
 
       - name: Buat proyek Android (Capacitor)
+        env:
+          GOYANA_API_URL: ${{ vars.GOYANA_API_URL }}
         run: |
           mkdir app && cd app
           npm init -y
