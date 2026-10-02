@@ -59,7 +59,7 @@ class FoundationTest extends TestCase {
     }
     public function test_admin_can_list_businesses_and_grant_then_revoke_temporary_package(): void {
         $owner = $this->owner(); $admin = $this->admin(); $business = $owner->business;
-        $this->actingAs($admin)->get('/admin')->assertOk()->assertSee($business->name);
+        $this->actingAsAdmin($admin)->get('/admin')->assertOk()->assertSee($business->name);
         $this->get('/admin/businesses/'.$business->id)->assertOk();
         $this->post('/admin/businesses/'.$business->id.'/grants', [
             'package' => 'Platinum', 'reason' => 'Beta teman', 'ends_at' => now()->addDay()->timezone('Asia/Jakarta')->format('Y-m-d\TH:i'),
@@ -83,7 +83,7 @@ class FoundationTest extends TestCase {
         $this->assertDatabaseCount('businesses', 1); $this->assertDatabaseCount('users', 2);
     }
     public function test_invalid_or_past_grants_are_rejected(): void {
-        $owner = $this->owner(); $this->actingAs($this->admin());
+        $owner = $this->owner(); $this->actingAsAdmin($this->admin());
         $url = '/admin/businesses/'.$owner->business_id.'/grants';
         $this->post($url, ['package' => 'Unlimited', 'reason' => 'Test', 'ends_at' => now()->addDay()->toIso8601String()])->assertSessionHasErrors('package');
         $this->post($url, ['package' => 'Platinum', 'reason' => 'Test', 'ends_at' => now()->subDay()->toIso8601String()])->assertSessionHasErrors('ends_at');
@@ -92,7 +92,7 @@ class FoundationTest extends TestCase {
     public function test_cross_business_grant_revocation_is_rejected(): void {
         $a = $this->owner(); $b = $this->owner(); $admin = $this->admin();
         $grant = $b->business->grants()->create(['package' => 'Gold', 'reason' => 'Beta', 'starts_at' => now(), 'ends_at' => now()->addDay(), 'granted_by' => $admin->id]);
-        $this->actingAs($admin)->post('/admin/businesses/'.$a->business_id.'/grants/'.$grant->id.'/revoke')->assertNotFound();
+        $this->actingAsAdmin($admin)->post('/admin/businesses/'.$a->business_id.'/grants/'.$grant->id.'/revoke')->assertNotFound();
         $this->assertNull($grant->fresh()->revoked_at);
     }
     public function test_cashier_device_limit_and_slot_reuse_are_enforced(): void {

@@ -874,7 +874,9 @@ Catatan: kebijakan Play Store dapat berubah. Selalu cek kebijakan terbaru saat i
 
 ## 21. Paket GOYANA
 
-Keputusan yang pernah dibahas dan harus dikonfirmasi kembali saat pricing final:
+> **USANG — digantikan GOYANA-SISTEM-PUSAT.md §5 (2 Oktober 2026).** Paket berlaku: Trial 2 bulan (hak Basic) → baca saja; Basic Rp30.000 (1 cabang), Silver Rp65.000 (2), Gold Rp100.000 (3), Platinum Rp350.000 (5). Nama PRO/SUPER PRO di bawah hanya arsip, jangan dipakai.
+
+Arsip keputusan lama:
 
 - Free Trial: 2 bulan
 - seluruh fitur PRO dapat dicoba selama trial

@@ -9,5 +9,5 @@
 @if($register)<small class="muted">Minimal 12 karakter, mengandung huruf dan angka.</small><label for="password_confirmation">Ulangi password</label><input id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password">@endif
 <p><button>{{ $register ? 'Daftar' : 'Masuk' }}</button></p></form>
 <a href="{{ $register ? route('login') : route('register') }}">{{ $register ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar' }}</a>
-<p class="muted"><small>Versi fondasi untuk pengujian. Login Google dan verifikasi email belum tersedia.</small></p></section>
+<p class="muted"><small>Versi fondasi untuk pengujian. Login Google belum tersedia.</small></p></section>
 @endsection

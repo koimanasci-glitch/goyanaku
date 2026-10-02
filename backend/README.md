@@ -46,3 +46,11 @@ Dashboard responsif memakai tema coral/putih/abu yang konsisten. Manifest dan se
 
 ## API owner untuk Flutter
 POST /api/session (email/password) mengeluarkan token Sanctum business:read, berlaku 24 jam. GET /api/me membaca profil/paket/outlet usaha pemilik token, tidak menerima pemilihan tenant dari klien. DELETE /api/session mencabut token aktif. Admin pusat tidak mendapat token laundry. API ini belum menjalankan transaksi atau pairing perangkat kasir. Gunakan HTTPS, token hanya untuk pemakaian yang diizinkan; Google login/MFA/email belum selesai.
+
+## Akses, paket, tim dan OTP admin (2 Oktober 2026)
+
+- Aturan paket, role dan permission ada di `config/goyana.php`. Trial Basic 2 bulan, lalu baca saja sampai paket aktif.
+- Admin pusat: setelah login password, wajib OTP authenticator (`/admin/mfa`). Reset OTP: `php artisan goyana:admin-reset-mfa email@admin`.
+- Admin mencatat pembayaran manual di halaman usaha → paket aktif. Owner mengelola cabang dan akun tim di `/dashboard`.
+- `.env` produksi: `GOYANA_ADMIN_MFA=true`; setelah SMTP siap `GOYANA_REQUIRE_EMAIL_VERIFICATION=true`.
+- Jalankan migrasi baru: `php artisan migrate`.

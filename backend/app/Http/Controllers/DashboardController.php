@@ -6,6 +6,13 @@ class DashboardController {
         if ($request->user()->is_platform_admin) return redirect()->route('admin.index');
         $business = $request->user()->business;
         abort_unless($business, 403);
-        return view('dashboard', ['business' => $business, 'access' => $business->currentAccess(), 'outlets' => $business->outlets()->with('devices')->get()]);
+        $user = $request->user();
+        if (!$user->isOwner()) {
+            return view('staff', ['user' => $user, 'business' => $business, 'outlet' => $user->outlet]);
+        }
+        return view('dashboard', ['business' => $business, 'access' => $business->currentAccess(),
+            'outlets' => $business->outlets()->with('devices')->get(),
+            'team' => $business->users()->where('role', '!=', 'owner')->with('outlet')->orderBy('name')->get(),
+            'roles' => collect(config('goyana.roles'))->except('owner')]);
     }
 }

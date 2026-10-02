@@ -17,3 +17,11 @@ Artisan::command('goyana:admin', function () {
     $this->info('Administrator dibuat. Password tidak dicetak atau disimpan di dokumen.');
     return 0;
 })->purpose('Buat administrator pusat melalui terminal tepercaya, tanpa password bawaan');
+
+Artisan::command('goyana:admin-reset-mfa {email}', function (string $email) {
+    $user = User::where('email', mb_strtolower(trim($email)))->where('is_platform_admin', true)->first();
+    if (!$user) { $this->error('Administrator tidak ditemukan.'); return 1; }
+    $user->mfa_secret = null; $user->mfa_confirmed_at = null; $user->mfa_last_step = null; $user->save();
+    $this->info('OTP direset. Administrator harus memasang ulang authenticator saat login berikutnya.');
+    return 0;
+})->purpose('Reset OTP administrator pusat yang kehilangan HP (jalankan dari terminal server tepercaya)');

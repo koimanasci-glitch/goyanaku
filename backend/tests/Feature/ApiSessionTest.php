@@ -40,6 +40,6 @@ class ApiSessionTest extends TestCase {
     public function test_pwa_manifest_is_only_linked_for_platform_administrator(): void {
         $owner = $this->user('owner');
         $this->actingAs($owner)->get('/dashboard')->assertOk()->assertDontSee('rel="manifest"', false);
-        $this->actingAs($this->user('admin', true))->get('/admin')->assertOk()->assertSee('admin.webmanifest')->assertSee('admin-sw.js');
+        $this->actingAsAdmin($this->user('admin', true))->get('/admin')->assertOk()->assertSee('admin.webmanifest')->assertSee('admin-sw.js');
     }
 }

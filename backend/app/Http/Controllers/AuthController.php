@@ -20,9 +20,11 @@ class AuthController {
             $business->outlets()->create(['name' => $data['business_name'].' — Pusat']);
             $user = new User(collect($data)->only(['name', 'email', 'password'])->all());
             $user->business()->associate($business);
+            $user->role = 'owner';
             $user->save();
             return $user;
         });
+        event(new \Illuminate\Auth\Events\Registered($user));
         Auth::login($user); $request->session()->regenerate();
         return redirect()->route('dashboard');
     }
@@ -30,7 +32,12 @@ class AuthController {
         $data = $request->validate(['email' => 'required|string|max:254', 'password' => 'required|string|max:1024']);
         $data['email'] = mb_strtolower(trim($data['email']));
         if (!Auth::attempt($data)) throw ValidationException::withMessages(['email' => 'Email atau password tidak sesuai.']);
+        if (!$request->user()->isActive()) {
+            Auth::logout();
+            throw ValidationException::withMessages(['email' => 'Akun dinonaktifkan. Hubungi owner usaha.']);
+        }
         $request->session()->regenerate();
+        $request->session()->forget('mfa_passed_for');
         return redirect()->route($request->user()->is_platform_admin ? 'admin.index' : 'dashboard');
     }
     public function logout(Request $request) {

@@ -48,12 +48,14 @@ Administrator platform tidak dimasukkan ke APK pelanggan. Administrator laundry 
 
 ## 5. Katalog terbaru
 
+**Keputusan pengguna 2 Oktober 2026:** tidak ada paket gratis permanen. Setelah trial 2 bulan habis, akun **terkunci baca saja** sampai paket berbayar aktif (lihat §23). Angka di kolom Cabang adalah cabang di luar 1 outlet pusat. Sumber kebenaran di kode: `backend/config/goyana.php`.
+
 Harga dan cabang mengikuti pembahasan 2 Oktober 2026; cabang di luar satu outlet pusat.
 
 | Paket | Harga bulanan | Cabang |
 |---|---:|---:|
-| Free | Gratis, trial Basic 2 bulan | 1 |
-| Basic | Rp30.000 | Usulan sebelumnya 1; belum ditegaskan pengguna |
+| Trial | Gratis 2 bulan dengan hak Basic, lalu **baca saja** | 1 |
+| Basic | Rp30.000 | 1 (ditegaskan pengguna 2 Oktober 2026: 1 pusat + 1 cabang) |
 | Silver | Rp65.000 | 2 |
 | Gold | Rp100.000 | 3 |
 | Platinum | Rp350.000 | 5 |
@@ -571,3 +573,26 @@ Arahan pengguna: web dan aplikasi HP memakai bahasa visual yang sama dari HTML t
 - Target kompatibilitas ditetapkan dan diuji; jangan menjanjikan semua tipe HP tanpa batas atau mengklaim pengujian fisik yang belum dilakukan.
 
 Status: ketentuan disimpan sebagai kriteria penerimaan. Kesetaraan seluruh halaman Flutter/web dan matriks perangkat belum selesai diuji.
+
+## 38. Lapisan Sinkronisasi Aplikasi Hybrid (celah yang ditemukan saat review) — 2 Oktober 2026
+
+Hasil pemeriksaan Claude: rencana lama menulis transaksi Android disimpan di SQLite Flutter, tetapi aplikasi Android sekarang memakai **Flutter hybrid** yang menjalankan 58 halaman HTML final, dan seluruh data operasional disimpan di `localStorage` (±61 titik di kode). Backend belum memiliki tabel transaksi. Karena itu:
+
+- [ ] Buat **lapisan sync di sisi web app** (index.html/goyana-v*.js) yang membaca/menulis data operasional melalui satu modul, menyimpan perubahan ke antrean lokal (outbox) dengan ID unik, lalu mengirimnya ke API Laravel saat online. Tampilan halaman tidak diubah.
+- [ ] Penyimpanan lokal pindah dari `localStorage` ke penyimpanan yang lebih aman dan besar (SQLite native lewat jembatan Flutter atau IndexedDB), dengan migrasi data lama.
+- [ ] API Laravel: pelanggan, layanan/harga, pesanan & status, pembayaran/DP/deposit, kas, stok, kurir. Setiap request membawa `client_id` (idempotent), outlet, petugas, perangkat; server memeriksa role, outlet, perangkat dan paket (baca saja menolak tulis).
+- [ ] Unduh perubahan per outlet sejak cursor terakhir (incremental), bukan data penuh.
+- [ ] Saat halaman dipindah ke Flutter native, modul data yang sama dipakai sehingga tidak ada dua sumber data.
+
+## 39. Implementasi Akses, Paket, Tim dan OTP Admin — 2 Oktober 2026 (branch backend/akses-paket)
+
+Sudah dibuat dan diuji (30 tes PHPUnit):
+- `backend/config/goyana.php`: harga & batas cabang paket, 2 perangkat kasir/outlet, role & permission.
+- Tabel `subscriptions` (paket berbayar, terpisah dari grant beta). Urutan akses: langganan/grant aktif (paket tertinggi) → trial Basic 2 bulan → **baca saja**.
+- Admin pusat mencatat pembayaran manual (transfer/QRIS) dengan referensi unik; perpanjangan lanjut dari akhir langganan berjalan; pembatalan wajib alasan; semua masuk audit.
+- Owner menambah cabang sesuai batas paket (Basic: 1 pusat + 1 cabang).
+- Akun tim: Kasir, Produksi, Kurir, Admin Outlet dengan outlet tugas; ganti peran, nonaktifkan (histori tetap), aktifkan, reset password (sesi HP lama keluar). Token API mengikuti permission role; staf hanya melihat outlet tugasnya.
+- OTP (aplikasi authenticator) wajib untuk admin pusat; kode tidak bisa dipakai ulang; reset lewat `php artisan goyana:admin-reset-mfa email`.
+- Verifikasi email owner tersedia; diwajibkan dengan `GOYANA_REQUIRE_EMAIL_VERIFICATION=true` setelah SMTP produksi siap.
+
+Belum: pembayaran otomatis (gateway/Play Billing), pemasangan HP ke slot perangkat, API transaksi & sync (§38), login Google, reset password mandiri via email.
