@@ -36,6 +36,20 @@ return [
         ]],
     ],
 
+    // Default pengaturan platform; administrator mengubahnya di /admin/settings (GOYANA-SISTEM-PUSAT.md §42–§47).
+    'settings' => [
+        'ai_margin_percent' => 25,        // untung di atas modal AI (§44)
+        'ai_min_topup' => 50000,          // rupiah
+        'fx_cushion_percent' => 2,        // cadangan kurs USD→IDR
+        'ai_daily_budget_usd' => 5,       // batas biaya AI CS pusat per hari
+        'bot_pause_minutes' => 15,        // bot diam setelah kasir membalas manual (§47)
+        'msg_welcome' => true,            // pesan otomatis hemat (§42B)
+        'msg_expiry_reminder' => true,
+        'msg_expired' => true,
+        'msg_payment' => true,
+        'cs_whatsapp' => '',              // nomor WA CS pusat, contoh 62812xxxx
+    ],
+
     // Admin pusat wajib OTP (aplikasi authenticator). Matikan hanya untuk pengembangan lokal.
     'admin_mfa' => env('GOYANA_ADMIN_MFA', true),
 

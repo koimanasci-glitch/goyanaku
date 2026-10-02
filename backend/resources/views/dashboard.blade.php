@@ -1,5 +1,6 @@
 @extends('layout')
 @section('content')
+<p class="row"><span></span><a class="button secondary" href="{{ route('support') }}">Bantuan / Tiket CS</a></p>
 <h1>{{ $business->name }}</h1><p class="muted">Dashboard pemilik · Data usaha Anda</p>
 <div class="grid"><section class="card"><h2>Paket</h2><strong>{{ $access['package'] ?? 'Berakhir' }}</strong> <span class="badge">{{ ['subscription' => 'Berlangganan', 'beta' => 'Beta', 'trial' => 'Trial', 'expired' => 'Berakhir'][$access['source']] ?? $access['source'] }}</span>
 <p>{{ $access['read_only'] ? 'Mode baca saja — data tetap bisa dilihat, transaksi baru terkunci sampai paket aktif.' : 'Akses operasional aktif' }}</p>

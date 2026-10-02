@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{AuthController, AdminController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
+use App\Http\Controllers\{AuthController, AdminController, AdminSupportController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +28,10 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::middleware('verified.required')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/support', [SupportController::class, 'index'])->name('support');
+        Route::post('/support', [SupportController::class, 'store'])->middleware('throttle:20,60')->name('support.store');
+        Route::get('/support/{ticket}', [SupportController::class, 'show'])->name('support.show');
+        Route::post('/support/{ticket}', [SupportController::class, 'reply'])->middleware('throttle:60,60')->name('support.reply');
         Route::middleware('owner')->group(function () {
             Route::post('/outlets', [OutletController::class, 'store'])->name('outlets.store');
             Route::post('/outlets/{outlet}/devices', [DeviceController::class, 'store'])->name('devices.store');
@@ -57,6 +61,12 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/businesses/{business}/devices/{device}/revoke', [AdminController::class, 'revokeDevice'])->name('admin.device.revoke');
             Route::get('/audit', [AdminController::class, 'audit'])->name('admin.audit');
             Route::get('/system', [AdminController::class, 'system'])->name('admin.system');
+            Route::get('/tickets', [AdminSupportController::class, 'index'])->name('admin.tickets');
+            Route::get('/tickets/{ticket}', [AdminSupportController::class, 'show'])->name('admin.ticket');
+            Route::post('/tickets/{ticket}/reply', [AdminSupportController::class, 'reply'])->name('admin.ticket.reply');
+            Route::post('/tickets/{ticket}', [AdminSupportController::class, 'update'])->name('admin.ticket.update');
+            Route::get('/settings', [AdminSupportController::class, 'settings'])->name('admin.settings');
+            Route::post('/settings', [AdminSupportController::class, 'saveSettings'])->name('admin.settings.save');
         });
     });
 });

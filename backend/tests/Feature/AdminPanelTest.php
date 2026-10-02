@@ -9,7 +9,7 @@ use Tests\TestCase;
 class AdminPanelTest extends TestCase {
     use RefreshDatabase;
 
-    private function business(string $name, bool $expired = false, string $email = null): Business {
+    private function business(string $name, bool $expired = false, ?string $email = null): Business {
         $b = Business::create(['name' => $name, 'trial_ends_at' => $expired ? now()->subDay() : now()->addMonthsNoOverflow(2)]);
         $b->outlets()->create(['name' => $name.' Pusat']);
         $u = new User(['name' => 'Pemilik '.$name, 'email' => $email ?? uniqid().'@example.test', 'password' => 'PasswordAman123']);
