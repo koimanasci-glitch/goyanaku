@@ -442,3 +442,16 @@ Penegasan pengguna: cantumkan kemampuan offline dan sinkronisasi otomatis agar t
 - Backup server tetap wajib. Penyimpanan HP bukan backup semua outlet dan tidak menjamin keselamatan data jika HP rusak/penyimpanan dihapus.
 - Uji perangkat nyata: mode pesawat, server down, koneksi putus saat acknowledgment, restart aplikasi dengan pending data, retry duplikat, dua perangkat mengubah data sama, perubahan izin dan update aplikasi. Ukur kecepatan simpan lokal serta kestabilan sync.
 - Versi prototype saat diperiksa memakai localStorage; itu tidak membuktikan engine sinkronisasi produksi telah selesai. Implementasi harus dicatat terpisah dari status dokumentasi ini.
+
+
+## 28. Pengguna Tidak Boleh Tidak Menyadari Offline Berkepanjangan
+
+Kekhawatiran pengguna: kuota internet habis dan pengguna lupa, sehingga transaksi tersimpan di HP terus tanpa disadari.
+
+- Tampilkan indikator tetap di layar operasional: “Offline — data tersimpan di HP”, jumlah transaksi pending dan waktu terakhir sync berhasil. Jangan menyamakan tersimpan lokal dengan tersimpan server.
+- Peringatan berkala berdasarkan durasi offline/jumlah pending yang dapat dikonfigurasi; jangan spam setiap transaksi. Beri arahan cek internet/sambungkan Wi-Fi dan tombol Coba Sinkronisasi.
+- Aplikasi tidak selalu mengetahui penyebab tidak terhubung (kuota habis, jaringan, backend down); jangan menyatakan kuota habis tanpa bukti.
+- Ketika koneksi kembali, jalankan sinkronisasi otomatis sesuai kemampuan platform, tampilkan progres dan konfirmasi jumlah berhasil/gagal. Server tidak dapat mengetahui transaksi terbaru yang hanya berada pada HP offline; monitoring pusat paling jauh mendeteksi last-seen yang tertinggal.
+- Offline tetap mematuhi izin perangkat dengan masa berlaku terbatas yang perlu ditetapkan; tidak memberikan akses operasional tanpa batas saat entitlement tidak dapat diperiksa.
+- Pantau kapasitas penyimpanan lokal. Jangan menghapus/overwrite transaksi pending demi memberi ruang. Jika penyimpanan tidak dapat menjamin penulisan, blok simpan transaksi baru dengan pesan jelas dan jalur sinkronisasi/ekspor/pemulihan.
+- Tidak memilih batas hari/jumlah transaksi sekarang tanpa keputusan kapasitas/izin; ambang warning dan batas izin offline harus diuji dan ditetapkan sebelum produksi.
