@@ -366,3 +366,16 @@ Penegasan pengguna: dashboard administrator menyediakan pengaturan penyedia/mode
 - Versioning aturan/model/tarif, pemakaian dan audit per profil/tenant; pergantian berlaku terkontrol pada request baru. Fallback provider hanya jika telah dikonfigurasi dengan aturan data/biaya yang sesuai, bukan mengirim data diam-diam ke penyedia lain.
 - Uji wajib mencoba akses silang tenant pada API, webhook, queue, cache dan pencarian konteks sebelum produksi. Pembatasan bukan hanya menu dashboard.
 - Ini kebutuhan implementasi, bukan klaim bahwa form API key, engine AI atau isolasi backend telah selesai dibuat.
+
+
+## 23. Paket Berakhir: Mode Baca Saja
+
+Arahan pengguna: pelanggan usaha tetap dapat membaca data saat paket berakhir.
+
+- Jika tidak ada trial, grant beta atau langganan sah yang masih aktif, akun usaha masuk read-only. Login, melihat pesanan/nota lama, pelanggan dan laporan historis tetap tersedia sesuai role/outlet dan aturan retensi.
+- Transaksi baru serta perubahan data/status/pembayaran/stok/penugasan terkunci; konsekuensinya pesanan berjalan juga tidak dapat diubah sampai akses operasional aktif kembali. Jangan menganggap read-only tetap membolehkan edit tertentu tanpa aturan tambahan.
+- Halaman langganan, bantuan dan proses pembayaran untuk mengaktifkan kembali tetap dapat diakses; role/tenant isolation tetap berlaku.
+- Otomasi operasional/WA/chatbot AI berbayar ditangguhkan, termasuk pekerjaan antrean yang harus memeriksa hak saat dijalankan. Saldo AI tersisa disimpan; saldo positif saja tidak mengaktifkan fitur ketika paket tidak berlaku.
+- Data dan saldo tidak otomatis dihapus saat expiry; masa retensi/hapus akun mengikuti ketentuan transparan yang masih perlu ditetapkan. Read-only bukan janji penyimpanan tanpa batas.
+- Setelah pembayaran sah/grant baru tervalidasi server, akses kembali sesuai paket dan kuota. Pending payment belum mengaktifkan akses; jangan menagih otomatis tanpa persetujuan.
+- Server menerapkan izin saat operasi/sync; transaksi offline dibuat ketika hak masih berlaku membutuhkan aturan rekonsiliasi tersendiri agar tidak hilang/duplikat. Kebijakan menerima pending sync belum final.
