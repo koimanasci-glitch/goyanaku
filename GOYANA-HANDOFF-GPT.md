@@ -5,6 +5,12 @@ Dokumen produk: `GOYANA-ROADMAP.md`, `GOYANA-SISTEM-PUSAT.md` (§38–§40 terba
 
 ---
 
+## 0. Pembagian peran (keputusan pengguna)
+
+- **GPT/Codex = pembangun.** Mengerjakan tugas di bagian 5 dan 7 sekarang.
+- **Claude = pemeriksa & perbaikan.** Saat kuotanya tersedia lagi, Claude mengambil alih: memeriksa semua pekerjaan GPT, memperbaiki bug/tampilan, lalu melanjutkan.
+- Supaya pemeriksaan cepat, **setiap selesai satu bagian GPT wajib menulis entri di `GOYANA-PROGRESS.md`** dengan format bagian 10 (apa yang diubah, file, tes, yang belum diuji). Tanpa catatan ini, pekerjaan dianggap belum siap diperiksa.
+
 ## 1. Kondisi sekarang (ringkas)
 
 | Bagian | Status | Lokasi |
@@ -142,6 +148,15 @@ cd mobile && flutter analyze && flutter test --exclude-tags screens
 4. Admin pusat dibuat via `php artisan goyana:admin` (wajib OTP saat login).
 5. Belum ada: gateway pembayaran / Play Billing (sekarang admin mencatat pembayaran manual), login Google, reset password via email, layar konflik sync, retensi data §24.
 
+6. **Dashboard owner web = aplikasi HTML yang sama** (keputusan pengguna, 2 Okt 2026). Jangan membuat ulang laporan dari nol.
+   - Saat deploy, sajikan hasil `python tools/prepare_web.py . <folder> --api=https://<domain>` di server yang sama, mis. `https://app.goyana.id/app/` (folder `backend/public/app/`, atau subdomain sendiri).
+   - Owner login dengan akun server → sinkronisasi menarik semua data → halaman Laporan, Laporan Keuangan, Monitor/Manajemen Cabang, Pusat Data, Audit, CRM, Pesanan, Pelanggan, Kas, Stok langsung terpakai.
+   - Tambahkan `zxing.min.js` (dari `tests/node_modules/@zxing/library/umd/index.min.js`) dan `capacitor.js` kosong ke folder itu.
+   - Tautkan dari dashboard Laravel owner: tombol **"Buka aplikasi GOYANA (web)"**.
+   - Di laptop/PC tampilannya kolom selebar HP di tengah: boleh, perapian tampilan lebar adalah tahap berikutnya.
+   - Dashboard **admin pusat** tetap Laravel (`/admin`), lengkapi sesuai `GOYANA-SISTEM-PUSAT.md` §9, §12–§16, §25–§26, §32.
+   - Uji: login di browser sebagai owner, pastikan data dari HP (sync) muncul; jangan pakai akun platform admin (API menolaknya).
+
 Aturan bisnis kunci (sudah diputuskan pengguna):
 - Trial 2 bulan (hak Basic) → **baca saja** setelah habis. Tidak ada paket gratis permanen.
 - Basic = 1 pusat + 1 cabang; Silver 2; Gold 3; Platinum 5 cabang (`backend/config/goyana.php`).
@@ -167,3 +182,29 @@ Aturan bisnis kunci (sudah diputuskan pengguna):
 - Sebutkan jujur apa yang belum diuji di HP sungguhan.
 - Kirim gambar perbandingan HTML vs Flutter untuk halaman baru.
 - Akhiri dengan satu langkah berikutnya.
+
+---
+
+## 10. Format catatan untuk pemeriksaan Claude (wajib)
+
+Tambahkan di akhir `GOYANA-PROGRESS.md` setiap kali selesai satu bagian:
+
+```markdown
+## [GPT] <nama bagian> — <tanggal> (branch <nama-branch>, commit <hash>)
+- Dikerjakan: <ringkas, per poin>
+- File utama: <daftar path>
+- Tes dijalankan & hasil: <flutter-bridge / npm test / phpunit / CI hijau?>
+- Belum diuji / ragu: <jujur, mis. "belum dicoba di HP", "QRIS dinamis belum dicek">
+- Keputusan yang diambil sendiri (perlu dicek Claude/pengguna): <jika ada>
+- Screenshot pembanding: <nama file di ci-screens>
+```
+
+## 11. Checklist yang akan dipakai Claude saat mengambil alih
+
+1. Baca semua entri `[GPT]` di `GOYANA-PROGRESS.md`; cocokkan dengan `git log` dan diff per branch.
+2. Jalankan seluruh tes bagian 6 + CI; semua harus hijau.
+3. Bandingkan screenshot HTML vs native tiap halaman baru (320/390 px): posisi, warna, tombol rapi.
+4. Uji angka kritis: total, ongkir, diskon, DP, deposit, kas, laporan harus sama dengan versi HTML.
+5. Cek keamanan backend: izin role/outlet di server, tidak ada secret di repo, `APP_DEBUG=false` produksi.
+6. Cek dokumen tetap jujur (tidak menyebut fitur aktif yang belum diuji).
+7. Perbaiki, catat sebagai entri `[Claude]` di `GOYANA-PROGRESS.md`, lalu lanjutkan pekerjaan berikutnya.
