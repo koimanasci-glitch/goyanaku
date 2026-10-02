@@ -682,4 +682,13 @@ Aturan:
 - Balasan klien atas pesan otomatis masuk ke AI CS (bagian A).
 - Dijalankan oleh antrean/jadwal Laravel (scheduler + queue). Pengiriman lewat CHATKU.
 
-Status: **rencana**, belum dibangun. Bergantung pada: server di-deploy, API CHATKU (§41), dan panel admin (tiket, template).
+**C. Balas ulasan Play Store**
+- Pakai Google Play Developer API (Reviews: list/reply) dengan service account yang dihubungkan ke Play Console. Kredensial disimpan di server, bukan di repo.
+- Scheduler mengambil ulasan baru beberapa kali sehari, karena API hanya menampilkan ulasan 7 hari terakhir.
+- AI menyusun balasan singkat (batas sekitar 350 karakter, sopan, tanpa data pribadi).
+  - Bintang 4–5 tanpa keluhan → boleh terkirim otomatis.
+  - Bintang 1–3 atau ada keluhan → masuk antrean persetujuan admin di panel. Admin bisa edit lalu kirim.
+- Jika pengulas cocok dengan klien terdaftar, buat tiket CS dan tawarkan bantuan lewat WA (bagian A).
+- Semua ulasan dan balasan tercatat; statistik rating per versi aplikasi ditampilkan di panel admin.
+
+Status: **rencana**, belum dibangun. Bergantung pada: server di-deploy, API CHATKU (§41), dan panel admin (tiket, template), dan untuk bagian C: aplikasi terbit di Play Store + service account Play Console.
