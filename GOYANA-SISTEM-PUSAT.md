@@ -810,3 +810,37 @@ Pendekatan: **remote pengaturan lewat server**, bukan mengambil alih layar HP. K
 - Hapus data, uang, dan paket tetap lewat persetujuan pemilik platform.
 
 Status: **rencana**. Bergantung pada server dan sinkron aktif.
+
+## 47. Balasan Cepat Pintar untuk Pelanggan Laundry (tanpa AI) — 3 Oktober 2026
+
+Permintaan pengguna: logika Balasan Cepat diintegrasikan dengan data GOYANA. Bila pelanggan laundry bertanya ("baju saya sudah jadi?"), sistem sudah tahu nomor itu milik pelanggan laundry mana dan status pesanannya, sehingga bisa langsung membalas.
+
+Alur (program, tanpa AI):
+1. Pesan masuk ke nomor WA laundry → CHATKU → webhook GOYANA (§41).
+2. Kenali **laundry** dari nomor WA yang tersambung.
+3. Kenali **pelanggan** dari nomor pengirim di data pelanggan laundry itu. Nomor dinormalkan: 08…/62…/+62….
+4. Kenali **maksud** dari kata kunci, lalu balas dengan template + data nyata:
+
+| Maksud (contoh kata kunci) | Balasan berisi |
+|---|---|
+| Status ("sudah jadi", "baju", "cucian", "kapan", "status") | Daftar pesanan aktif: no. nota, layanan, tahap (Antrian/Proses/Siap diambil/Diantar), perkiraan selesai |
+| Tagihan ("berapa", "total", "bayar", "sisa") | Total, DP, sisa bayar, metode bayar/QRIS laundry |
+| Nota ("nota", "struk", "invoice") | Link nota digital |
+| Jam & lokasi ("buka", "jam", "alamat", "lokasi") | Jam operasional, alamat, link Maps outlet |
+| Harga ("harga", "kiloan", "satuan") | Daftar harga layanan dari pengaturan laundry |
+| Antar jemput ("jemput", "antar") | Tarif & cara pesan antar jemput |
+| Balasan Cepat buatan owner (trigger + gambar) | Sesuai yang diatur owner |
+
+- Banyak pesanan aktif → tampilkan semua (maks. 5) + total.
+- Nomor tidak dikenal → menu umum (harga, jam, lokasi, cara order) tanpa data pribadi.
+- **Hanya data milik pengirim sendiri** yang dibalas. Tidak pernah data pelanggan lain.
+- Tidak cocok kata kunci mana pun →
+  - Gold+ dengan saldo AI: Chatbot AI (§44).
+  - Selain itu: diteruskan ke kasir/owner (notifikasi di aplikasi) dengan balasan "Pesan diteruskan ke admin laundry".
+- **Ambil alih manusia**: bila kasir/owner membalas manual, bot berhenti untuk chat itu selama 2 jam.
+- Batas: maksimal beberapa balasan otomatis per menit per pelanggan (anti-loop dengan bot lain). Hormati jam operasional (opsional: di luar jam tetap balas status).
+- Owner dapat menyalakan/mematikan tiap maksud dan mengubah kalimat template di menu Balasan Cepat.
+
+Hak paket: Balasan Cepat & Trigger saat ini Silver. Katalog §19/v190 menaruh "AI mengecek status laundry pelanggan" di Gold. Karena cek status versi program tidak memakan biaya AI, **tanyakan pemilik**: cek status otomatis masuk Silver atau tetap Gold.
+
+Status: **rencana**. Bergantung pada server, sinkron (§40), dan CHATKU (§41).
