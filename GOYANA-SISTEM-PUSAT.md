@@ -379,3 +379,20 @@ Arahan pengguna: pelanggan usaha tetap dapat membaca data saat paket berakhir.
 - Data dan saldo tidak otomatis dihapus saat expiry; masa retensi/hapus akun mengikuti ketentuan transparan yang masih perlu ditetapkan. Read-only bukan janji penyimpanan tanpa batas.
 - Setelah pembayaran sah/grant baru tervalidasi server, akses kembali sesuai paket dan kuota. Pending payment belum mengaktifkan akses; jangan menagih otomatis tanpa persetujuan.
 - Server menerapkan izin saat operasi/sync; transaksi offline dibuat ketika hak masih berlaku membutuhkan aturan rekonsiliasi tersendiri agar tidak hilang/duplikat. Kebijakan menerima pending sync belum final.
+
+
+## 24. Retensi Data Operasional Setelah Paket Berakhir
+
+Keputusan terbaru pengguna: membersihkan data operasional untuk mengurangi database, sambil mempertahankan akun/email login. Ini berbeda dari permintaan hapus akun.
+
+- Free trial berlangsung dua bulan. Jika tidak berlangganan, data operasional tetap read-only selama **satu bulan setelah trial berakhir**, lalu masuk proses penghapusan.
+- Bekas pelanggan berbayar: rancangan retensi **tiga bulan setelah paket berakhir** sebagaimana pembahasan sebelumnya; data read-only sebelum penghapusan.
+- Akun usaha/login dan email pemilik tidak ikut dihapus oleh pembersihan data operasional. Simpan identitas minimal, riwayat hak/trial untuk mencegah trial berulang, serta catatan billing/saldo yang diperlukan secara terpisah. Retensi identitas dan hapus akun mengikuti kebijakan tersendiri, bukan disimpan tanpa batas tanpa tujuan.
+- Saldo AI dan ledger pembayaran tidak disamakan dengan data transaksi laundry yang dibersihkan. Data pelanggan akhir laundry tidak dianggap sebagai email akun pemilik dan tidak dipertahankan otomatis untuk marketing.
+- Sebelum batas penghapusan, tampilkan tanggal pasti, peringatan dan kesempatan ekspor. Aktivasi langganan sah sebelum penghapusan membatalkan jadwal; pembayaran pending belum sah.
+- Setelah data operasional benar-benar dihapus, akun tetap dapat login/berlangganan tetapi data lama tidak otomatis kembali. Jangan menjanjikan pemulihan dari backup sebagai fitur pelanggan.
+- Scope tabel/file/chat/konteks AI operasional yang dihapus harus dipetakan dan diuji per tenant; tidak mengosongkan seluruh database atau menghapus tenant lain. Lindungi kewajiban billing/ledger yang terpisah.
+- Scheduler penghapusan memeriksa ulang paket/grant/hold dan tanggal sebelum eksekusi; cegah race dengan renewal. Catat audit penghapusan tanpa menyalin isi data yang dihapus.
+- Backup mengikuti masa retensi/rotasi yang terdefinisi; restore harus menerapkan ulang daftar penghapusan agar data yang sudah dibersihkan tidak kembali aktif. Data lokal lama tidak boleh tersinkron ulang sebagai pemulihan otomatis setelah purge.
+- Jangka waktu dihitung dari berakhirnya hak aktif terakhir, bukan dari tanggal daftar untuk pelanggan yang sudah upgrade. Ketentuan kalender dan timestamp harus konsisten pada server.
+- Ini pencatatan kebijakan mendatang; tidak menjalankan penghapusan data sekarang.
