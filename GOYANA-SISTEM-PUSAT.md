@@ -396,3 +396,17 @@ Keputusan terbaru pengguna: membersihkan data operasional untuk mengurangi datab
 - Backup mengikuti masa retensi/rotasi yang terdefinisi; restore harus menerapkan ulang daftar penghapusan agar data yang sudah dibersihkan tidak kembali aktif. Data lokal lama tidak boleh tersinkron ulang sebagai pemulihan otomatis setelah purge.
 - Jangka waktu dihitung dari berakhirnya hak aktif terakhir, bukan dari tanggal daftar untuk pelanggan yang sudah upgrade. Ketentuan kalender dan timestamp harus konsisten pada server.
 - Ini pencatatan kebijakan mendatang; tidak menjalankan penghapusan data sekarang.
+
+
+## 25. Anggaran AI Pusat Dapat Diatur Administrator
+
+Penegasan pengguna: batas biaya AI pusat ditentukan sendiri oleh Paduka melalui dashboard administrator, bukan nominal tetap yang ditentukan pengembang.
+
+- Sediakan batas anggaran harian/bulanan, pemakaian periode berjalan, perkiraan sisa, ambang notifikasi dan pilihan model/provider untuk profil AI pusat.
+- Anggaran AI pusat terpisah dari saldo/ledger AI chat laundry. Mengubah anggaran pusat tidak mengambil kredit pelanggan.
+- Tampilkan mata uang dan dasar biaya (biaya provider dan konversi yang dicatat); jangan menyamakan saldo kredit provider dengan jumlah izin belanja pusat.
+- Server menerapkan hard cap dengan reservasi perkiraan biaya maksimum request dan rekonsiliasi biaya aktual, termasuk request paralel, retry dan fallback. Jangan menjanjikan cap akurat hanya dengan laporan biaya yang terlambat.
+- Saat izin biaya tidak cukup atau biaya request tidak dapat dibatasi, hentikan pemanggilan AI berbayar baru dan beri peringatan/tiket; jangan pindah provider berbayar untuk melewati batas.
+- Monitoring berbasis aturan, backup, transaksi utama dan runbook pemulihan non-AI tetap bekerja. Kasus yang membutuhkan AI masuk antrean/escalation.
+- Perubahan batas hanya admin berizin, dicatat audit; kenaikan batas bukan otomatis membeli/top-up kredit provider. Pembelian provider mengikuti otorisasi pembayaran tersendiri.
+- Belum menetapkan nominal anggaran; form dan enforcement merupakan kebutuhan pembangunan, belum fitur aktif.
