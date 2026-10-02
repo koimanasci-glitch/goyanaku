@@ -168,10 +168,11 @@ class NativeForm extends StatelessWidget {
                 GestureDetector(
                   onTap: () => a.fmRadio(_i(o['i'])),
                   child: Container(
-                    height: 38, padding: const EdgeInsets.symmetric(horizontal: 16), alignment: Alignment.center,
+                    height: 38, padding: const EdgeInsets.symmetric(horizontal: 18),
                     decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff0ee) : Colors.white, borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
-                    child: Text(_s(o['t']), style: gText(13, w: FontWeight.w500, c: o['on'] == true ? gBrand : _ink)),
+                    // widthFactor 1: the chip hugs its label instead of filling the row.
+                    child: Center(widthFactor: 1, child: Text(_s(o['t']), style: gText(13, w: FontWeight.w500, c: o['on'] == true ? gBrand : _ink))),
                   ),
                 ),
             ]),
