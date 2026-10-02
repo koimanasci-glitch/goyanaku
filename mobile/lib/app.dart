@@ -48,24 +48,24 @@ class _AccountPageState extends State<AccountPage> {
       _password.clear();
       _api = api;
       final profile = await api.profile();
-      if (mounted) setState(() => _profile = profile);
+      if (mounted) { setState(() => _profile = profile); }
     } on ApiFailure catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) { setState(() => _error = e.message); }
     } catch (_) {
-      if (mounted) setState(() => _error = 'Data server belum dapat ditampilkan.');
+      if (mounted) { setState(() => _error = 'Data server belum dapat ditampilkan.'); }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) { setState(() => _busy = false); }
     }
   }
   Future<void> _refresh() async {
     setState(() { _busy = true; _error = null; });
     try {
       final profile = await _api!.profile();
-      if (mounted) setState(() => _profile = profile);
+      if (mounted) { setState(() => _profile = profile); }
     } on ApiFailure catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) { setState(() => _error = e.message); }
     } catch (_) {
-      if (mounted) setState(() => _error = 'Data belum dapat diperbarui.');
+      if (mounted) { setState(() => _error = 'Data belum dapat diperbarui.'); }
     } finally {
       if (mounted) { setState(() => _busy = false); }
     }
@@ -76,9 +76,11 @@ class _AccountPageState extends State<AccountPage> {
     try { await _api?.logout(); } catch (_) {
       warning = 'Sesi di HP ditutup. Pencabutan di server belum terkonfirmasi; token kedaluwarsa paling lama 24 jam.';
     }
-    if (mounted) setState(() {
-      _api = null; _profile = null; _password.clear(); _busy = false; _error = warning;
-    });
+    if (mounted) {
+      setState(() {
+        _api = null; _profile = null; _password.clear(); _busy = false; _error = warning;
+      });
+    }
   }
   Widget _card(Widget child) => Container(
     width: double.infinity,
