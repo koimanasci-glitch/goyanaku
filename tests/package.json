@@ -1,6 +1,6 @@
 {
   "private": true,
-  "scripts": {"test": "node regression.cjs && node subscription-stock.cjs && node chatbot-settings.cjs && node test-mode.cjs && node pricing-qris-map.cjs && node package-ui.cjs && node wa-devices-qris.cjs"},
+  "scripts": {"test": "node regression.cjs && node subscription-stock.cjs && node chatbot-settings.cjs && node test-mode.cjs && node pricing-qris-map.cjs && node package-ui.cjs && node wa-devices-qris.cjs && node flutter-bridge.cjs"},
   "devDependencies": {
     "playwright": "1.51.1",
     "@zxing/library": "0.21.3",

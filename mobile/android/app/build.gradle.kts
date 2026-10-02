@@ -29,11 +29,21 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // PREVIEW KEY ONLY - lets testers update the test APK without losing
+        // data. It is public in this repo: never use it for the Play Store.
+        create("preview") {
+            storeFile = file("goyana-preview.jks")
+            storePassword = "goyana-preview"
+            keyAlias = "preview"
+            keyPassword = "goyana-preview"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             // Production signing is deliberately not configured for this preview.
+            signingConfig = signingConfigs.getByName("preview")
         }
     }
 }
@@ -46,4 +56,9 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // FileProvider for sharing receipts and exports.
+    implementation("androidx.core:core-ktx:1.13.1")
 }
