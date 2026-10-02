@@ -837,7 +837,7 @@ Alur (program, tanpa AI):
 - Tidak cocok kata kunci mana pun →
   - Gold+ dengan saldo AI: Chatbot AI (§44).
   - Selain itu: diteruskan ke kasir/owner (notifikasi di aplikasi) dengan balasan "Pesan diteruskan ke admin laundry".
-- **Ambil alih manusia**: bila kasir/owner membalas manual, bot berhenti untuk chat itu selama 2 jam.
+- **Ambil alih manusia**: bila kasir/owner membalas manual, bot berhenti untuk chat itu selama **15 menit** (keputusan pemilik; dihitung ulang dari balasan manual terakhir, bisa diubah owner).
 - Batas: maksimal beberapa balasan otomatis per menit per pelanggan (anti-loop dengan bot lain). Hormati jam operasional (opsional: di luar jam tetap balas status).
 - Owner dapat menyalakan/mematikan tiap maksud dan mengubah kalimat template di menu Balasan Cepat.
 
