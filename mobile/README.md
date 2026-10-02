@@ -50,3 +50,7 @@ Workflow **Flutter Android (hybrid)** menguji jembatan di browser (`tests/flutte
 - APK uji ditandatangani `android/app/goyana-preview.jks` (password ada di build.gradle.kts) agar pembaruan bisa dipasang tanpa hapus data. **Kunci ini publik — jangan dipakai untuk Play Store.**
 - Layar login/dashboard native untuk Laravel (`lib/app.dart`, `lib/api.dart`) tetap ada dan diuji; akan disambungkan saat API transaksi & sinkronisasi siap.
 - Belum: SQLite/outbox offline sync, login backend di dalam alur HTML, signing produksi.
+
+## Penyimpanan data di HP: SQLite
+
+`window.localStorage` diganti oleh `web_bridge/goyana-store.js` yang memakai database SQLite di HP (`GoyanaStore.kt`, file `goyana.db`). Kode aplikasi tidak berubah. Data lama dari WebView dipindah otomatis sekali. Nilai besar dipecah per 256 KB sehingga snapshot pesanan tidak terkena batas baris Android (~2 MB). Kapasitas mengikuti sisa memori HP, bukan lagi ±5 MB.

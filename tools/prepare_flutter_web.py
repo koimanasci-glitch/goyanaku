@@ -21,6 +21,15 @@ def build(root='.', zxing=None):
         shutil.rmtree(target)
     prepare(root, target)
     shutil.copyfile(root / 'mobile' / 'web_bridge' / 'capacitor.js', target / 'capacitor.js')
+    # SQLite storage shim must be the very first script so every app read uses it.
+    shutil.copyfile(root / 'mobile' / 'web_bridge' / 'goyana-store.js', target / 'goyana-store.js')
+    index = target / 'index.html'
+    html = index.read_text(encoding='utf-8')
+    tag = '<script src="goyana-store.js"></script>'
+    if tag not in html:
+        at = html.find('>', html.lower().find('<head')) + 1
+        html = html[:at] + tag + html[at:]
+        index.write_text(html, encoding='utf-8')
     if zxing:
         shutil.copyfile(zxing, target / 'zxing.min.js')
     elif not (target / 'zxing.min.js').exists():

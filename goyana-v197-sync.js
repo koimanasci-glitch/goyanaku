@@ -176,7 +176,12 @@
   }
   ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { lastTouch = Date.now(); }, true); });
 
-  // Local writes trigger a quick sync.
+  // Local writes trigger a quick sync (WebView storage via Storage.prototype, SQLite store via event).
+  window.addEventListener('goyana-storage', function (e) {
+    var k = e.detail && e.detail.key;
+    if (k && core.watched.indexOf(k) >= 0) { clearTimeout(timer); timer = setTimeout(cycle, 2500); }
+    if (k === 'goyana-logged-out' && LS.getItem(k) === '1') logout();
+  });
   var setItem = Storage.prototype.setItem;
   Storage.prototype.setItem = function (k, v) {
     setItem.call(this, k, v);

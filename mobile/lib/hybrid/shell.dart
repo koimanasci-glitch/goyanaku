@@ -95,6 +95,12 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost {
         AndroidWebViewInsets.ime,
       ]);
     }
+    if (platform is AndroidWebViewController) {
+      // Local data lives in SQLite on the phone (window.GoyanaStore), not the small WebView storage.
+      try {
+        await _device.invokeMethod('Store.attach', {'id': platform.webViewIdentifier});
+      } catch (_) {/* falls back to WebView storage */}
+    }
     await web.loadFlutterAsset(_startPage);
   }
 

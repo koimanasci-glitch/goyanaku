@@ -38,6 +38,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.webviewflutter.WebViewFlutterAndroidExternalApi
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -58,6 +59,7 @@ class MainActivity : FlutterActivity() {
     private var printer: BluetoothSocket? = null
     private var printerName = ""
     private var printView: WebView? = null
+    private val store by lazy { GoyanaStore(applicationContext) }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -129,6 +131,7 @@ class MainActivity : FlutterActivity() {
 
             "Print.html" -> printHtml(call.argument<String>("html") ?: "", call.argument<String>("title") ?: "GOYANA", result)
             "App.openUrl" -> openUrl(call.argument<String>("url") ?: "", result)
+            "Store.attach" -> attachStore(call, result)
             else -> result.notImplemented()
         }
     }
@@ -508,6 +511,21 @@ class MainActivity : FlutterActivity() {
         }
         view.loadDataWithBaseURL("file:///android_asset/flutter_assets/assets/web/", html, "text/html", "utf-8", null)
         result.success(null)
+    }
+
+    // ---------- SQLite storage for the web app ----------
+    /** Exposes [GoyanaStore] to the app WebView as window.GoyanaStore (must run before the page loads). */
+    @Suppress("DEPRECATION")
+    private fun attachStore(call: MethodCall, result: MethodChannel.Result) {
+        val id = (call.argument<Number>("id"))?.toLong()
+        val engine = flutterEngine
+        val view = if (id != null && engine != null) WebViewFlutterAndroidExternalApi.getWebView(engine, id) else null
+        if (view == null) {
+            result.success(false)
+            return
+        }
+        view.addJavascriptInterface(store, "GoyanaStore")
+        result.success(true)
     }
 
     // ---------- external links ----------
