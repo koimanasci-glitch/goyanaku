@@ -529,3 +529,21 @@ Arahan lanjutan pengguna: desain dashboard konsisten, administrator dapat dipasa
 - Tahap awal Flutter: login owner dan pembacaan profil/paket/outlet, analisis/tes widget dan APK debug. Selanjutnya migrasikan operasional, role, offline, printer/kamera dan billing bertahap.
 - APK preview memiliki application ID tersendiri agar tidak menimpa prototype. APK debug bukan aplikasi final atau rilis Play Store.
 - Semua kode, keputusan dan status pengujian disimpan di repo. Tes CI berjalan di GitHub terpisah dari panggilan; jangan mengklaim agent terus bekerja tanpa batas setelah sesi tugas berhenti.
+
+
+## 35. Login Langsung dan Panduan Awal yang Bisa Dilewati
+
+Keputusan pengguna 2 Oktober 2026:
+- Login biasa langsung membuka beranda outlet yang memang diizinkan. Akun pusat usaha masuk ke outlet pusat; akun yang hanya punya satu outlet tidak ditanya memilih cabang.
+- Bila akun memiliki beberapa outlet yang diizinkan, gunakan outlet bawaan yang valid, tampilkan nama outlet dengan jelas, dan sediakan perpindahan berizin. Jangan mengharuskan pemilihan outlet setiap login atau memberi akses ke outlet lain.
+- Platform administrator tetap masuk ke dashboard administrator, terpisah dari beranda usaha.
+- Owner baru wajib mengisi nama outlet saat pendaftaran. Outlet pusat dibuat satu kali bersama akun/usaha; membuka kembali aplikasi tidak membuat outlet baru atau meminta nama ulang.
+- Akun pegawai/kurir yang diundang mengikuti outlet yang ditetapkan owner; tidak membuat usaha/outlet sendiri.
+- Setelah pendaftaran, sediakan panduan awal bertahap dengan desain coral/putih/abu yang konsisten: profil outlet, layanan dan harga, lalu printer opsional. Tampilkan langkah aktif, Lanjut, Kembali, dan Lewati.
+- Tombol Lewati hanya melewati panduan/pengaturan opsional, bukan identitas outlet wajib, autentikasi atau izin. Lewati membawa pengguna ke beranda.
+- Simpan kemajuan serta status selesai/dilewati per akun dan usaha, jangan menampilkan ulang pada setiap login. Panduan dapat dibuka kembali melalui Bantuan > Panduan awal.
+- Isian opsional yang belum selesai dapat dilengkapi di Pengaturan. Fitur yang bergantung pada isian itu menjelaskan kebutuhan pada saat digunakan.
+- Jangan menampilkan data contoh sebagai data usaha nyata atau menandai tahap selesai sebelum penyimpanan berhasil.
+- Pemeriksaan implementasi: daftar tanpa nama outlet ditolak; outlet dibuat satu kali; login langsung tanpa pemilih untuk satu outlet; akun undangan tidak membuat outlet; Lewati dan lanjut kembali mempertahankan data serta hak akses.
+
+Status: validasi nama usaha/outlet wajib dan pembuatan outlet pusat sudah ada pada registrasi web Laravel. Flutter saat ini baru login/profil; pendaftaran native, role pegawai dan panduan bertahap persisten belum diimplementasikan.
