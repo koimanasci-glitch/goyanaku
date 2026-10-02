@@ -1319,5 +1319,22 @@ Status: **kebutuhan yang diminta pengguna untuk integrasi layanan pusat/WhatsApp
 - [ ] Jadwal yang telah disepakati dicatat pada tugas dan terlihat oleh kasir/kurir; parsing balasan WhatsApp menjadi jadwal otomatis belum menjadi keputusan.
 - [ ] Catat status pengiriman notifikasi, kegagalan, dan retry; cegah pesan ganda akibat retry/sinkronisasi untuk peristiwa penugasan yang sama.
 - [ ] Bila tugas dibatalkan atau dialihkan, kurir lama tidak lagi memiliki akses tugas tersebut; definisikan pemberitahuan pembatalan/perubahan untuk mencegah penjemputan oleh dua kurir.
-- Hak akses paket untuk jenis notifikasi otomatis ke kurir ini perlu diselaraskan secara eksplisit dengan katalog paket terbaru; jangan menganggapnya otomatis tersedia di semua paket atau mengubah paket tanpa keputusan.
+- **Keputusan pengguna: Basic menggunakan koordinasi WhatsApp manual. Pada paket yang memiliki hak WhatsApp otomatis, fitur notifikasi jemput/antar terbuka otomatis setelah paket aktif dan terverifikasi di server.** Tidak perlu membeli/mengaktifkan fitur ini secara terpisah; pengiriman tetap memerlukan device WA outlet yang benar-benar terhubung, nomor penerima valid, dan tugas/peristiwa yang memenuhi syarat.
+- Acuan paket terbaru pada pembahasan 2 Oktober 2026: otomatis mulai Gold dan diwarisi Platinum; Silver memiliki Balasan Cepat yang berbeda dari pesan otomatis berdasarkan kejadian. Jangan menganggap Basic atau Balasan Cepat otomatis mendapat pengiriman notifikasi tugas.
 - Integrasi memerlukan backend dan layanan WhatsApp yang benar-benar terhubung; penyimpanan device WA saja belum berarti pesan dapat dikirim.
+
+
+## 39. Jadwal Antar dan Aktivasi Notifikasi Mengikuti Paket — 2 Oktober 2026
+
+Status: **keputusan implementasi mendatang; backend/integrasi belum aktif.**
+
+- [ ] Sediakan jadwal **jemput** dan **antar** terpisah pada tugas/order; jangan memakai satu jadwal yang saling menimpa.
+- [ ] Saat order siap diantar dan kurir pengantaran ditetapkan, kirim notifikasi otomatis ke kurir tersebut jika paket berhak dan WA outlet terhubung.
+- [ ] Kurir jemput dan kurir antar dapat berbeda; gunakan penerima sesuai penugasan pada masing-masing tugas.
+- [ ] Koordinasi pelanggan untuk pengantaran menggunakan pesan yang relevan, misalnya “Halo Kak, laundry-nya sudah siap. Bisa diantar jam berapa, Kak?”; jadwal dicatat setelah disepakati.
+- [ ] Pada Basic, tombol WhatsApp membuka chat dengan teks yang dapat ditinjau/dikirim manual; jangan menampilkan status terkirim otomatis.
+- [ ] Pada paket berhak WhatsApp otomatis (Gold/Platinum sesuai pembahasan terbaru), hak fitur mengikuti aktivasi paket yang terverifikasi oleh backend. Device WA yang belum terhubung tetap memerlukan penautan; upgrade paket tidak dengan sendirinya menghubungkan WhatsApp.
+- [ ] Otomatisasi mengirim pesan sesuai peristiwa tugas, bukan mengirim seluruh tugas lama saat upgrade. Tugas lama hanya dikirim ulang lewat tindakan eksplisit atau aturan yang disepakati.
+- [ ] Nomor pengirim mengikuti device WA outlet/cabang pada tugas; jika pengaturan pengirim belum lengkap, tampilkan status perlu konfigurasi.
+- [ ] Simpan status notifikasi dan cegah duplikasi per tugas/peristiwa/penerima. Jangan mengklaim terkirim saat gagal atau belum ada koneksi.
+- [ ] Uji Basic manual, Gold/Platinum otomatis dengan WA terhubung, WA belum terhubung, penugasan ulang, perubahan jadwal, dan downgrade/akhir hak paket tanpa menghapus histori.
