@@ -410,3 +410,18 @@ Penegasan pengguna: batas biaya AI pusat ditentukan sendiri oleh Paduka melalui 
 - Monitoring berbasis aturan, backup, transaksi utama dan runbook pemulihan non-AI tetap bekerja. Kasus yang membutuhkan AI masuk antrean/escalation.
 - Perubahan batas hanya admin berizin, dicatat audit; kenaikan batas bukan otomatis membeli/top-up kredit provider. Pembelian provider mengikuti otorisasi pembayaran tersendiri.
 - Belum menetapkan nominal anggaran; form dan enforcement merupakan kebutuhan pembangunan, belum fitur aktif.
+
+
+## 26. Monitoring Ringan dan Jadwal Maintenance
+
+Penegasan pengguna: form AI pusat mencakup budget bulanan; monitoring/maintenance tidak boleh membebani RAM, pekerjaan berat dapat dijadwalkan malam.
+
+- Form profil pusat menampilkan provider/model, credential masked, budget bulanan yang dapat diisi, pemakaian/sisa, ambang peringatan, jadwal analisis/maintenance serta zona waktu Asia/Jakarta. Dashboard tabel bukan memuat file model AI ke VPS.
+- Menggunakan API provider AI yang dipilih, bukan menjalankan model besar lokal pada VPS kecil. Pemakaian aplikasi/worker tetap perlu diukur dan dibatasi; tidak menjanjikan nol beban RAM.
+- Bedakan health check ringan berkala (ketersediaan API, resource dasar, umur backup/queue) dari analisis AI/log/report/backup berat terjadwal. Interval diatur sesuai kapasitas dan kebutuhan; jangan menunggu malam untuk mendeteksi outage.
+- Usulan awal health check external tiap1–5menit, bukan keputusan final. Alarm dipicu setelah pola kegagalan yang cukup untuk menghindari noise; AI hanya untuk kasus yang perlu, bukan setiap sampel metrik.
+- Job berat berjalan queue dengan concurrency/memori/timeout terbatas, cegah jadwal overlap, batch data dan retensi log; atur prioritas agar transaksi tidak terganggu.
+- Analisis rutin/report dan pekerjaan maintenance yang layak dapat dijadwalkan di jam sepi. Jam pasti ditentukan admin setelah melihat pola penggunaan; tidak semua maintenance membutuhkan downtime.
+- Backup dan arsip perubahan tetap mengikuti target pemulihan, tidak dipindah seluruhnya ke sekali malam jika itu meningkatkan risiko kehilangan data di luar target.
+- Monitoring eksternal tetap dapat memberi peringatan ketika VPS utama mati. Uji beban, ukur baseline dan sesuaikan worker/jadwal sebelum produksi.
+- Jadwal ini modul scheduler backend Goyana yang direncanakan, bukan automation aktif di ChatGPT atau server.
