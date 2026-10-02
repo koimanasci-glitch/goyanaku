@@ -743,7 +743,7 @@ Cara hitung (program, tanpa AI):
   - Modal USD, kurs yang dipakai, pendapatan, dan untung per hari/bulan.
   - Pengaturan margin, minimal top-up, cadangan kurs, dan model utama/cadangan.
 - Klien melihat riwayat pemakaian dan sisa saldo dalam Rupiah.
-- Masa berlaku saldo: **belum diputuskan**, tanyakan pemilik sebelum membangun.
+- Masa berlaku saldo: **tidak hangus**. Saldo berlaku sampai habis terpakai (keputusan pemilik, 3 Okt 2026). Paket berakhir tidak menghapus saldo; saldo bisa dipakai lagi saat paket aktif.
 - API key OpenRouter hanya di `.env` server.
 
 Status: **rencana**.
