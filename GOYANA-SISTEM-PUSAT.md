@@ -309,3 +309,24 @@ Penegasan pengguna: link nota membuka halaman web berisi nota, nomor/ID pesanan 
 - Link publik memakai token acak yang tidak dapat ditebak; nomor urut/ID internal saja tidak memberi akses. Batasi informasi pribadi, cegah akses lintas usaha dan sediakan pencabutan token bila perlu.
 - Pemindaian oleh pegawai membuka pesanan sesuai login/hak akses; pelanggan hanya mendapat halaman status/nota terbatas. Membuka link atau memindai kode tidak otomatis melunasi atau menyelesaikan pesanan.
 - Pengiriman link/nota menggunakan template tanpa kebutuhan AI. Jadwal/status diperbarui dari backend; jangan menampilkan data lokal belum sync sebagai status pusat.
+
+
+## 19. Klien Beta dan Pengaturan Paket Manual oleh Administrator Pusat
+
+Penegasan pengguna: administrator pusat dapat menambahkan klien dan memberikan/mengubah paket secara manual, misalnya Platinum sementara untuk teman penguji beta, lalu mengembalikan ke aturan pembayaran biasa.
+
+- Administrator berizin dapat membuat akun usaha/outlet pusat, menetapkan kontak pemilik, dan mengirim undangan aktivasi agar pemilik menetapkan password/login Google sendiri. Jangan memberikan akun bersama atau mencatat password mentah.
+- Pemilik mengakses Android melalui distribusi Google Play yang sesuai tahap beta (internal/closed/open testing sesuai konfigurasi); undangan akun usaha tidak otomatis memberi akses track Play. Tautan/akses instalasi ditampilkan sesuai distribusi nyata, bukan dijanjikan sudah tersedia.
+- Sediakan grant paket manual dengan paket tujuan, waktu mulai/berakhir, alasan beta/promosi/bantuan, administrator pemberi, serta histori. Pisahkan entitlement grant dari invoice/pembelian berbayar; tidak membuat bukti pembayaran palsu.
+- Contoh: grant Platinum sampai besok pada waktu yang ditentukan. Administrator dapat mencabut lebih awal. Setelah berakhir, backend menghitung kembali hak berdasarkan trial/langganan sah yang masih berlaku; bila tidak ada, tampilkan status perlu berlangganan sesuai kebijakan, tanpa menghapus transaksi.
+- Grant sementara tidak membatalkan/mengubah autodebit Google Play/gateway yang sudah aktif. Tampilkan sumber langganan dan renewal agar tidak ada tagihan tak terduga; pembatalan billing mengikuti jalur resminya.
+- Jangan menagih otomatis saat grant selesai tanpa persetujuan/metode pembayaran yang sah. Beri pengingat masa beta dan pilihan berlangganan.
+- Jika downgrade melewati kuota cabang/perangkat, pertahankan data dan beri alur pemilihan/penonaktifan akses berlebih yang jelas; jangan menghapus cabang/pesanan. Aturan read-only/operasional saat expiry harus difinalisasi.
+- Platinum sementara membuka fitur yang sesuai, tetapi tidak otomatis memberikan saldo AI tak terbatas. Kredit bonus AI beta bila diberikan dicatat terpisah dengan nominal/masa berlaku yang jelas.
+- Semua override diperiksa server, tersinkron Android/web, dapat diaudit dan dicabut; staff laundry tidak boleh memberi grant platform.
+- Gunakan role/permission aplikasi yang telah ada sebagai dasar setelah audit, lalu petakan konsisten ke Laravel; jangan menganggap role lokal sudah menjadi otorisasi backend.
+- User menyerahkan pilihan implementasi rutin kepada pengembang dalam lingkup keputusan ini. Nominal/ketentuan yang belum ditentukan tetap diberi status belum final; tidak mengubahnya menjadi keputusan pengguna.
+
+## 20. Batas Penyelesaian Rangkuman
+
+Dokumen ini menjadi acuan pembangunan pusat untuk akun/role, paket/perangkat, pembayaran/top-up, WA/kurir/nota, administrator/CS/AI, monitoring/backup, bantuan jarak jauh dan CRM. Pencatatan kebutuhan telah dibuat; backend, billing, gateway, AI, dan panel produksi belum diimplementasikan oleh perubahan dokumentasi ini. Mulai dari fondasi Laravel dan administrator dasar, kemudian integrasi serta uji terarah sesuai urutan bagian10.
