@@ -54,6 +54,9 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/businesses/{business}/grants/{grant}/revoke', [AdminController::class, 'revoke'])->name('admin.revoke');
             Route::post('/businesses/{business}/subscriptions', [AdminController::class, 'subscribe'])->name('admin.subscribe');
             Route::post('/businesses/{business}/subscriptions/{subscription}/cancel', [AdminController::class, 'cancelSubscription'])->name('admin.subscription.cancel');
+            Route::post('/businesses/{business}/devices/{device}/revoke', [AdminController::class, 'revokeDevice'])->name('admin.device.revoke');
+            Route::get('/audit', [AdminController::class, 'audit'])->name('admin.audit');
+            Route::get('/system', [AdminController::class, 'system'])->name('admin.system');
         });
     });
 });

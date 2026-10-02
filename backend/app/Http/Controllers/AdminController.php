@@ -7,10 +7,135 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 class AdminController {
-    public function index() { return view('admin', ['businesses' => Business::latest('id')->paginate(20)]); }
+    /** Businesses with a paid subscription running right now. */
+    private function paying() {
+        return fn ($q) => $q->whereHas('subscriptions', fn ($s) => $s->whereNull('cancelled_at')->where('starts_at', '<=', now())->where('ends_at', '>', now()));
+    }
+    private function onBeta() {
+        return fn ($q) => $q->whereHas('grants', fn ($g) => $g->whereNull('revoked_at')->where('starts_at', '<=', now())->where('ends_at', '>', now()));
+    }
+    private function filtered(?string $status) {
+        $q = Business::query();
+        $paying = $this->paying(); $beta = $this->onBeta();
+        $none = fn ($q) => $q->whereNot(fn ($x) => $paying($x))->whereNot(fn ($x) => $beta($x));
+        return match ($status) {
+            'paid' => $paying($q),
+            'beta' => $beta($q)->whereNot(fn ($x) => $paying($x)),
+            'trial' => $none($q)->where('trial_ends_at', '>', now()),
+            'expired' => $none($q)->where('trial_ends_at', '<=', now()),
+            default => $q,
+        };
+    }
+
+    public function index(Request $request) {
+        $status = $request->query('status');
+        $status = in_array($status, ['paid', 'beta', 'trial', 'expired'], true) ? $status : null;
+        $term = trim((string) $request->query('q', ''));
+        $list = $this->filtered($status);
+        if ($term !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
+            $list->where(fn ($q) => $q->where('name', 'like', $like)
+                ->orWhereHas('users', fn ($u) => $u->where('email', 'like', $like)->orWhere('name', 'like', $like))
+                ->when(ctype_digit($term), fn ($q) => $q->orWhere('id', (int) $term)));
+        }
+        $monthStart = now('Asia/Jakarta')->startOfMonth()->utc();
+        $stats = [
+            'total' => Business::count(),
+            'paid' => $this->filtered('paid')->count(),
+            'beta' => $this->filtered('beta')->count(),
+            'trial' => $this->filtered('trial')->count(),
+            'expired' => $this->filtered('expired')->count(),
+            'new7' => Business::where('created_at', '>=', now()->subDays(7))->count(),
+            'revenue' => (int) Subscription::whereNull('cancelled_at')->where('created_at', '>=', $monthStart)->sum('amount'),
+            'devices' => \App\Models\CashierDevice::whereNull('revoked_at')->whereNotNull('device_uuid')->count(),
+            'conflicts7' => DB::table('sync_conflicts')->where('created_at', '>=', now()->subDays(7))->count(),
+        ];
+        $endingTrials = $this->filtered('trial')->where('trial_ends_at', '<=', now()->addDays(7))->orderBy('trial_ends_at')->limit(10)->get();
+        $endingPaid = Subscription::with('business')->whereNull('cancelled_at')->where('ends_at', '>', now())->where('ends_at', '<=', now()->addDays(7))->orderBy('ends_at')->limit(10)->get();
+        $lastSync = DB::table('sync_records')->selectRaw('business_id, max(updated_at) as last')->groupBy('business_id')->pluck('last', 'business_id');
+        return view('admin', ['businesses' => $list->with('users')->latest('id')->paginate(20)->withQueryString(), 'stats' => $stats,
+            'status' => $status, 'term' => $term, 'endingTrials' => $endingTrials, 'endingPaid' => $endingPaid, 'lastSync' => $lastSync]);
+    }
+
     public function show(Business $business) {
+        $outlets = $business->outlets()->with(['devices' => fn ($d) => $d->orderByRaw('revoked_at is not null')->orderBy('slot')])->orderBy('id')->get();
+        $sync = [
+            'records' => DB::table('sync_records')->where('business_id', $business->id)->where('deleted', false)
+                ->selectRaw('collection, count(*) as n, max(updated_at) as last')->groupBy('collection')->orderBy('collection')->get(),
+            'last' => DB::table('sync_records')->where('business_id', $business->id)->max('updated_at'),
+            'ops24' => DB::table('sync_ops')->where('business_id', $business->id)->where('created_at', '>=', now()->subDay())->count(),
+            'conflicts' => DB::table('sync_conflicts')->where('business_id', $business->id)->latest('id')->limit(10)->get(['id', 'collection', 'record_key', 'device_uuid', 'created_at']),
+        ];
+        $audit = DB::table('audit_events')->leftJoin('users', 'users.id', '=', 'audit_events.actor_id')->where('audit_events.business_id', $business->id)
+            ->orderByDesc('audit_events.id')->limit(30)->get(['audit_events.*', 'users.name as actor_name', 'users.is_platform_admin as actor_admin']);
         return view('business', ['business' => $business, 'access' => $business->currentAccess(), 'grants' => $business->grants()->latest('id')->get(),
-            'subscriptions' => $business->subscriptions()->latest('id')->get(), 'packages' => config('goyana.packages')]);
+            'subscriptions' => $business->subscriptions()->latest('id')->get(), 'packages' => config('goyana.packages'),
+            'users' => $business->users()->with('outlet')->orderByRaw("role <> 'owner'")->orderBy('id')->get(), 'outlets' => $outlets, 'sync' => $sync, 'audit' => $audit]);
+    }
+
+    /** Support action: free a cashier slot (lost/stolen phone) without the owner. Audited as the admin. */
+    public function revokeDevice(Request $request, Business $business, \App\Models\CashierDevice $device) {
+        abort_unless($device->outlet && $device->outlet->business_id === $business->id, 404);
+        $data = $request->validate(['reason' => 'required|string|max:300']);
+        DB::transaction(function () use ($request, $business, $device, $data) {
+            $locked = \App\Models\CashierDevice::whereKey($device->id)->lockForUpdate()->firstOrFail();
+            if ($locked->revoked_at) return;
+            $locked->revoked_at = now(); $locked->slot = null; $locked->save();
+            DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'business_id' => $business->id, 'action' => 'device.revoked_by_admin',
+                'details' => json_encode(['device_id' => $locked->id, 'reason' => $data['reason']]), 'created_at' => now()]);
+        });
+        return back()->with('status', 'Akses perangkat dicabut oleh administrator.');
+    }
+
+    public function audit(Request $request) {
+        $q = DB::table('audit_events')->leftJoin('users', 'users.id', '=', 'audit_events.actor_id')->leftJoin('businesses', 'businesses.id', '=', 'audit_events.business_id');
+        $action = trim((string) $request->query('action', ''));
+        if ($action !== '') $q->where('audit_events.action', 'like', str_replace(['%', '_'], ['\%', '\_'], $action).'%');
+        if (ctype_digit((string) $request->query('business'))) $q->where('audit_events.business_id', (int) $request->query('business'));
+        if ($request->boolean('admin')) $q->where('users.is_platform_admin', true);
+        $events = $q->orderByDesc('audit_events.id')->select(['audit_events.*', 'users.name as actor_name', 'users.is_platform_admin as actor_admin', 'businesses.name as business_name'])
+            ->paginate(50)->withQueryString();
+        $actions = DB::table('audit_events')->distinct()->orderBy('action')->pluck('action');
+        return view('admin-audit', ['events' => $events, 'actions' => $actions, 'action' => $action]);
+    }
+
+    public function system() {
+        $checks = [];
+        $add = function (string $name, bool $ok, string $detail, bool $warnOnly = false) use (&$checks) {
+            $checks[] = ['name' => $name, 'state' => $ok ? 'ok' : ($warnOnly ? 'warn' : 'fail'), 'detail' => $detail];
+        };
+        try { DB::select('select 1'); $add('Database', true, DB::connection()->getDriverName().' terhubung'); }
+        catch (\Throwable $e) { $add('Database', false, 'Tidak terhubung: '.class_basename($e)); }
+        try {
+            $migrator = app('migrator');
+            $files = array_keys($migrator->getMigrationFiles(database_path('migrations')));
+            $pending = array_diff($files, $migrator->getRepository()->getRan());
+            $add('Migrasi database', !$pending, $pending ? count($pending).' migrasi belum dijalankan (php artisan migrate --force)' : 'Semua migrasi sudah dijalankan');
+        } catch (\Throwable $e) { $add('Migrasi database', false, 'Tidak dapat dibaca'); }
+        $prod = app()->environment('production');
+        $add('Mode debug', !config('app.debug'), config('app.debug') ? 'APP_DEBUG=true — matikan di server produksi' : 'Mati', !$prod);
+        $https = str_starts_with((string) config('app.url'), 'https://');
+        $add('Alamat HTTPS', $https, $https ? config('app.url') : 'APP_URL belum https', !$prod);
+        $mailer = (string) config('mail.default');
+        $add('Email (verifikasi & reset)', !in_array($mailer, ['log', 'array'], true), 'Mailer: '.$mailer, !$prod);
+        $add('OTP administrator', (bool) config('goyana.admin_mfa'), config('goyana.admin_mfa') ? 'Wajib' : 'Tidak wajib — nyalakan di produksi', !$prod);
+        $free = @disk_free_space(base_path()); $total = @disk_total_space(base_path());
+        if ($free && $total) {
+            $pct = (int) round($free / $total * 100);
+            $add('Ruang disk', $pct >= 15, number_format($free / 1073741824, 1, ',', '.').' GB kosong dari '.number_format($total / 1073741824, 1, ',', '.').' GB ('.$pct.'%)', $pct >= 5);
+        }
+        $writable = is_writable(storage_path('logs')) && is_writable(storage_path('framework'));
+        $add('Folder storage', $writable, $writable ? 'Dapat ditulis' : 'storage/ tidak dapat ditulis');
+        $last = DB::table('sync_records')->max('updated_at');
+        $add('Sinkronisasi HP', true, $last ? 'Terakhir: '.\Carbon\Carbon::parse($last)->timezone('Asia/Jakarta')->format('d M Y H:i').' WIB' : 'Belum ada data sinkron');
+        $info = [
+            'PHP' => PHP_VERSION, 'Laravel' => app()->version(), 'Lingkungan' => app()->environment(),
+            'Waktu server' => now('Asia/Jakarta')->format('d M Y H:i:s').' WIB',
+            'Operasi sinkron 24 jam' => DB::table('sync_ops')->where('created_at', '>=', now()->subDay())->count(),
+            'Konflik sinkron 24 jam' => DB::table('sync_conflicts')->where('created_at', '>=', now()->subDay())->count(),
+            'HP aktif 24 jam' => \App\Models\CashierDevice::whereNull('revoked_at')->where('last_seen_at', '>=', now()->subDay())->count(),
+        ];
+        return view('admin-system', ['checks' => $checks, 'info' => $info]);
     }
     public function grant(Request $request, Business $business) {
         $data = $request->validate([

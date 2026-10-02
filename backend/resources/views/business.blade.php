@@ -1,6 +1,38 @@
 @extends('layout')
 @section('content')
-<p><a href="{{ route('admin.index') }}">← Daftar usaha</a></p><h1>{{ $business->name }}</h1><p class="muted">Usaha #{{ $business->id }} · {{ $access['package'] ?? 'Berakhir' }} · {{ $access['source'] }}</p>
+@include('admin-nav')
+<p><a href="{{ route('admin.index') }}">← Daftar usaha</a></p><h1>{{ $business->name }}</h1>
+<p class="muted">Usaha #{{ $business->id }} · daftar {{ $business->created_at?->timezone('Asia/Jakarta')->format('d M Y') }}</p>
+<div class="kpis">
+<div class="kpi"><small>Paket</small><b>{{ $access['package'] ?? '—' }}</b></div>
+<div class="kpi"><small>Status</small><b>{{ $access['read_only'] ? 'Baca saja' : 'Aktif' }}</b></div>
+<div class="kpi"><small>Sumber</small><b>{{ ['subscription' => 'Berbayar', 'beta' => 'Beta', 'trial' => 'Trial', 'expired' => 'Berakhir'][$access['source']] ?? $access['source'] }}</b></div>
+<div class="kpi"><small>Berakhir (WIB)</small><b>{{ $access['ends_at'] ? \Carbon\Carbon::parse($access['ends_at'])->timezone('Asia/Jakarta')->format('d M Y') : '—' }}</b></div>
+<div class="kpi"><small>Outlet / batas</small><b>{{ $outlets->count() }} / {{ $access['outlet_limit'] }}</b></div>
+<div class="kpi"><small>Sinkron terakhir</small><b>{{ $sync['last'] ? \Carbon\Carbon::parse($sync['last'])->timezone('Asia/Jakarta')->format('d M H:i') : 'Belum' }}</b></div>
+</div>
+<section class="card"><h2>Tim</h2><div class="table list"><table><thead><tr><th>Nama</th><th>Peran</th><th>Outlet</th><th>Status</th></tr></thead><tbody>
+@forelse($users as $u)<tr><td data-label="Nama"><b>{{ $u->name }}</b><br><small class="muted">{{ $u->email }}</small></td><td data-label="Peran">{{ ucfirst($u->role) }}</td>
+<td data-label="Outlet">{{ $u->outlet?->name ?? 'Semua' }}</td><td data-label="Status">
+<span @class(['pill', 'good' => $u->isActive() && $u->email_verified_at, 'bad' => !$u->isActive()])>{{ !$u->isActive() ? 'Nonaktif' : ($u->email_verified_at ? 'Aktif' : 'Email belum verifikasi') }}</span></td></tr>
+@empty<tr><td colspan="4">Belum ada pengguna.</td></tr>@endforelse</tbody></table></div></section>
+<section class="card"><h2>Outlet & HP kasir</h2>
+@foreach($outlets as $o)<h3>{{ $o->name }} @if($loop->first)<span class="badge">Pusat</span>@endif</h3>
+<div class="table list"><table><thead><tr><th>Perangkat</th><th>Slot</th><th>Terakhir aktif</th><th></th></tr></thead><tbody>
+@forelse($o->devices as $d)<tr><td data-label="Perangkat">{{ $d->label }}<br><small class="muted">{{ $d->device_uuid ? 'ID '.substr($d->device_uuid, 0, 8) : 'Belum dipasang di HP' }}</small></td>
+<td data-label="Slot">{{ $d->revoked_at ? '—' : $d->slot }}</td>
+<td data-label="Terakhir aktif">{{ $d->last_seen_at ? \Carbon\Carbon::parse($d->last_seen_at)->timezone('Asia/Jakarta')->format('d M Y H:i') : '—' }}</td>
+<td>@if($d->revoked_at)<span class="pill bad">Dicabut</span>@else
+<form method="post" action="{{ route('admin.device.revoke', [$business, $d]) }}">@csrf<input name="reason" required maxlength="300" placeholder="Alasan (mis. HP hilang)" aria-label="Alasan cabut perangkat"><p><button class="secondary">Cabut akses HP</button></p></form>@endif</td></tr>
+@empty<tr><td colspan="4">Belum ada HP kasir.</td></tr>@endforelse</tbody></table></div>@endforeach
+</section>
+<section class="card"><h2>Sinkronisasi</h2><p class="muted">{{ $sync['ops24'] }} operasi dalam 24 jam terakhir.</p>
+<div class="table"><table><thead><tr><th>Data</th><th>Jumlah</th><th>Terakhir berubah</th></tr></thead><tbody>
+@forelse($sync['records'] as $r)<tr><td>{{ $r->collection }}</td><td>{{ number_format($r->n, 0, ',', '.') }}</td><td>{{ \Carbon\Carbon::parse($r->last)->timezone('Asia/Jakarta')->format('d M Y H:i') }}</td></tr>
+@empty<tr><td colspan="3">Belum ada data dari HP.</td></tr>@endforelse</tbody></table></div>
+@if($sync['conflicts']->isNotEmpty())<h3>Konflik terbaru</h3><p class="muted">Data server dipakai; versi HP yang kalah disimpan untuk diperiksa.</p><ul class="plain">
+@foreach($sync['conflicts'] as $c)<li>{{ $c->collection }} · {{ \Illuminate\Support\Str::limit($c->record_key, 40) }} <small class="muted">{{ \Carbon\Carbon::parse($c->created_at)->timezone('Asia/Jakarta')->format('d M H:i') }}</small></li>@endforeach</ul>@endif
+</section>
 <section class="card"><h2>Catat pembayaran paket</h2><p class="muted">Untuk transfer/QRIS yang sudah dicek manual, sampai gateway pembayaran & Google Play Billing aktif. Perpanjangan dimulai dari akhir langganan yang masih berjalan.</p>
 <form method="post" action="{{ route('admin.subscribe', $business) }}">@csrf<div class="grid">
 <div><label for="s-package">Paket</label><select id="s-package" name="package">@foreach($packages as $name => $p)<option value="{{ $name }}" @selected(old('package') === $name)>{{ $name }} · Rp{{ number_format($p['price'], 0, ',', '.') }}/bln · {{ $p['branches'] }} cabang</option>@endforeach</select></div>
@@ -26,4 +58,8 @@
 @elseif($grant->ends_at->isPast())Berakhir
 @else<form method="post" action="{{ route('admin.revoke', [$business, $grant]) }}">@csrf<button class="secondary">Cabut</button></form>@endif
 </td></tr>@empty<tr><td colspan="4">Belum ada paket sementara.</td></tr>@endforelse</tbody></table></section>
+<section class="card"><div class="row"><h2>Aktivitas terakhir</h2><a href="{{ route('admin.audit', ['business' => $business->id]) }}">Lihat semua →</a></div><ul class="plain audit">
+@forelse($audit as $e)<li><span class="badge">{{ $e->action }}</span> {{ $e->actor_name ?? '—' }}@if($e->actor_admin) <small class="pill">admin</small>@endif
+<small class="muted">· {{ \Carbon\Carbon::parse($e->created_at)->timezone('Asia/Jakarta')->format('d M Y H:i') }}</small></li>
+@empty<li>Belum ada aktivitas.</li>@endforelse</ul></section>
 @endsection
