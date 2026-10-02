@@ -1287,7 +1287,9 @@ Status: **keputusan dan kebutuhan untuk implementasi backend pusat; belum ditera
 
 ### Tampilan dan alur kurir
 
-- [ ] Buat desain halaman kurir yang rapi dan menarik mengikuti tema, font, dan ikon Goyana; manfaatkan ruang dengan kartu tugas yang lebih lega.
+- **Koreksi pengguna: saat layanan pusat/server dibuat, pertahankan halaman, struktur, dan alur kurir yang sekarang; tidak perlu membuat tampilan kurir terpisah atau versi sederhana.**
+- [ ] Revisi visual halaman kurir yang ada agar lebih menarik dan memanfaatkan ruang: kartu tugas lebih lega, tata letak peta lebih baik, serta tombol Navigasi/WhatsApp/tindakan tugas berwarna jelas. Tetap mengikuti tema, font, dan ikon Goyana.
+- [ ] Perubahan ini hanya pada penyajian visual yang diminta; pertahankan fungsi tambah/edit/nonaktifkan kurir, pemilihan outlet, penugasan, navigasi, WhatsApp, serta pembaruan status yang sudah ada.
 - [ ] Tampilkan tugas Jemput dan Antar, nama pelanggan, alamat, peta/titik tujuan, status, serta tindakan berikutnya yang relevan.
 - [ ] Beri warna jelas pada tombol: Navigasi biru, WhatsApp hijau, tindakan tugas utama koral mengikuti tema Goyana.
 - [ ] Jika lokasi belum tersedia, tampilkan keadaan yang jelas; jangan menampilkan peta atau lokasi palsu.
