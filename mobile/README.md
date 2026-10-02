@@ -49,7 +49,7 @@ Workflow **Flutter Android (hybrid)** menguji jembatan di browser (`tests/flutte
 - Application ID `id.goyana.preview.goyana_flutter`: terpasang **berdampingan** dengan APK lama. Data uji di APK lama tidak ikut pindah.
 - APK uji ditandatangani `android/app/goyana-preview.jks` (password ada di build.gradle.kts) agar pembaruan bisa dipasang tanpa hapus data. **Kunci ini publik — jangan dipakai untuk Play Store.**
 - Layar login/dashboard native untuk Laravel (`lib/app.dart`, `lib/api.dart`) tetap ada dan diuji; akan disambungkan saat API transaksi & sinkronisasi siap.
-- Belum: SQLite/outbox offline sync, login backend di dalam alur HTML, signing produksi.
+- Sudah: SQLite di HP, sinkronisasi ke server (goyana-v197-sync.js), login server di layar login. Belum: signing produksi.
 
 ## Penyimpanan data di HP: SQLite
 
