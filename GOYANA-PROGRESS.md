@@ -98,3 +98,6 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Toast HTML kini tampil native.
   - Nama pelanggan di bar layanan diperbesar (di HTML hanya 10px/8px).
 - **Perbaikan HTML v198** (`goyana-v198-flow-fixes.js`): kolom "Cari nama / no handphone" di langkah 1 sebelumnya tidak menyaring daftar pelanggan.
+- **Flutter native** (Claude, 3 Okt) juga: **Pelanggan**, **Laporan**, **Pengaturan**. Keempat tab bawah (Beranda, Pesanan, Laporan, Pengaturan) sekarang native.
+  - Semua aksi tetap memanggil elemen HTML yang sama.
+  - Lihat screenshot di branch `ci-screens`.
