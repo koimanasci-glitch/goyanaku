@@ -809,7 +809,11 @@ Pendekatan: **remote pengaturan lewat server**, bukan mengambil alih layar HP. K
 - AI wajib minta konfirmasi klien ("Saya ubah harga Cuci Kiloan jadi Rp7.000, setuju?") sebelum menyimpan.
 - Hapus data, uang, dan paket tetap lewat persetujuan pemilik platform.
 
-Status: **rencana**. Bergantung pada server dan sinkron aktif.
+Status (3 Okt): **bagian server sudah dibangun & diuji**.
+- Owner menekan "Izinkan Bantuan 30 menit" di `/support`.
+- Admin membuka `/admin/businesses/{id}/assist` untuk mengubah harga layanan & profil outlet. Perubahan menjadi data sinkron baru (rev naik), lalu HP menerimanya. Setiap perubahan diaudit + bisa dibatalkan.
+- Pesanan, pelanggan & uang tidak bisa diubah.
+- Belum: tulisan "Sedang dibantu CS" di aplikasi HP, panduan tunjuk tombol, kirim screenshot, dan AI yang memakai resep ini.
 
 ## 47. Balasan Cepat Pintar untuk Pelanggan Laundry (tanpa AI) — 3 Oktober 2026
 

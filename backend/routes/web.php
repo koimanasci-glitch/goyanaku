@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
+use App\Http\Controllers\{AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, AdminAssistController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +35,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/support', [SupportController::class, 'index'])->name('support');
         Route::post('/support', [SupportController::class, 'store'])->middleware('throttle:20,60')->name('support.store');
         Route::get('/support/{ticket}', [SupportController::class, 'show'])->name('support.show');
+        Route::post('/support-assist', [SupportController::class, 'allowAssist'])->name('support.assist');
+        Route::post('/support-assist/stop', [SupportController::class, 'revokeAssist'])->name('support.assist.stop');
         Route::post('/support/{ticket}', [SupportController::class, 'reply'])->middleware('throttle:60,60')->name('support.reply');
         Route::middleware('owner')->group(function () {
             Route::post('/outlets', [OutletController::class, 'store'])->name('outlets.store');
@@ -65,6 +67,10 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/businesses/{business}/devices/{device}/revoke', [AdminController::class, 'revokeDevice'])->name('admin.device.revoke');
             Route::post('/businesses/{business}/ai-topup', [AdminController::class, 'aiTopUp'])->name('admin.ai.topup');
             Route::post('/businesses/{business}/quick-reply-test', [AdminController::class, 'quickReplyTest'])->name('admin.qr.test');
+            Route::get('/businesses/{business}/assist', [AdminAssistController::class, 'show'])->name('admin.assist');
+            Route::post('/businesses/{business}/assist/service', [AdminAssistController::class, 'saveService'])->name('admin.assist.service');
+            Route::post('/businesses/{business}/assist/outlet', [AdminAssistController::class, 'saveOutlet'])->name('admin.assist.outlet');
+            Route::post('/businesses/{business}/assist/revert/{event}', [AdminAssistController::class, 'revert'])->whereNumber('event')->name('admin.assist.revert');
             Route::get('/audit', [AdminController::class, 'audit'])->name('admin.audit');
             Route::get('/system', [AdminController::class, 'system'])->name('admin.system');
             Route::get('/tickets', [AdminSupportController::class, 'index'])->name('admin.tickets');

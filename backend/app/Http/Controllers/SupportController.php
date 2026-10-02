@@ -14,7 +14,7 @@ class SupportController {
     }
     public function index(Request $request) {
         return view('support', ['tickets' => $this->scope($request)->latest('last_activity_at')->paginate(20), 'categories' => Ticket::CATEGORIES,
-            'cs' => \App\Support\Settings::get('cs_whatsapp')]);
+            'cs' => \App\Support\Settings::get('cs_whatsapp'), 'assist' => \App\Support\Assist::active($request->user()->business), 'owner' => $request->user()->isOwner()]);
     }
     public function store(Request $request) {
         abort_unless($request->user()->business_id, 403);
@@ -54,5 +54,25 @@ class SupportController {
             $ticket->status = 'open'; $ticket->closed_at = null; $ticket->last_activity_at = now(); $ticket->save();
         });
         return back()->with('status', 'Balasan terkirim.');
+    }
+
+    /** Mode Bantuan: owner allows CS to change settings from the server for 30 minutes (§46). */
+    public function allowAssist(Request $request) {
+        abort_unless($request->user()->isOwner(), 403);
+        $b = $request->user()->business;
+        DB::transaction(function () use ($request, $b) {
+            DB::table('support_sessions')->where('business_id', $b->id)->whereNull('revoked_at')->update(['revoked_at' => now()]);
+            DB::table('support_sessions')->insert(['business_id' => $b->id, 'granted_by' => $request->user()->id,
+                'expires_at' => now()->addMinutes(\App\Support\Assist::MINUTES), 'created_at' => now()]);
+            DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'business_id' => $b->id, 'action' => 'assist.allowed', 'details' => '{}', 'created_at' => now()]);
+        });
+        return back()->with('status', 'Mode Bantuan aktif 30 menit. CS dapat membantu mengatur harga & profil outlet. Hentikan kapan saja.');
+    }
+    public function revokeAssist(Request $request) {
+        abort_unless($request->user()->isOwner(), 403);
+        $b = $request->user()->business;
+        DB::table('support_sessions')->where('business_id', $b->id)->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'business_id' => $b->id, 'action' => 'assist.revoked', 'details' => '{}', 'created_at' => now()]);
+        return back()->with('status', 'Mode Bantuan dihentikan.');
     }
 }

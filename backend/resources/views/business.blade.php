@@ -68,6 +68,9 @@
 @elseif($grant->ends_at->isPast())Berakhir
 @else<form method="post" action="{{ route('admin.revoke', [$business, $grant]) }}">@csrf<button class="secondary">Cabut</button></form>@endif
 </td></tr>@empty<tr><td colspan="4">Belum ada paket sementara.</td></tr>@endforelse</tbody></table></section>
+@php($assist = \App\Support\Assist::active($business))
+<section class="card"><div class="row"><h2>Mode Bantuan</h2><a class="button small {{ $assist ? '' : 'secondary' }}" href="{{ route('admin.assist', $business) }}">{{ $assist ? 'Buka Mode Bantuan' : 'Lihat' }}</a></div>
+<p class="muted">{{ $assist ? 'Aktif sampai '.\Carbon\Carbon::parse($assist->expires_at)->timezone('Asia/Jakarta')->format('H:i').' WIB (diizinkan owner).' : 'Tidak aktif. Owner menekan "Izinkan Bantuan" di halaman Bantuan untuk memberi akses 30 menit.' }}</p></section>
 <section class="card"><h2>Uji Balasan Cepat WhatsApp</h2><p class="muted">Jawaban otomatis tanpa AI untuk pelanggan laundry ini (cek status, tagihan, nota, harga, jam buka). Aktif di WhatsApp setelah CHATKU tersambung.</p>
 <form method="post" action="{{ route('admin.qr.test', $business) }}">@csrf<div class="grid">
 <div><label for="qr-from">Nomor pengirim</label><input id="qr-from" name="from" value="{{ old('from') }}" required maxlength="30" placeholder="6281234567890"></div>
