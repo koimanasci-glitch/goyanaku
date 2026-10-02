@@ -16,7 +16,7 @@ Perubahan belum digabung ke main atau dideploy ke VPS.
 ## Flutter sedang divalidasi
 - Widget native login dan dashboard akun/paket/outlet, tema coral/putih/abu.
 - HTTP API HTTPS; token hanya di memori. Form tidak mengklaim login sukses tanpa respons backend.
-- Workflow analyze/test/build APK debug. Pemeriksaan pertama menemukan dependency flutter_lints belum dicantumkan; diperbaiki dan CI dijalankan kembali.
+- Flutter analyze lulus, tujuh tes lulus termasuk layout pada 320/600/800/1280 piksel. Build APK pertama gagal karena konflik manifest debug/main untuk cleartext; override debug diperbaiki dan build ulang diperlukan. Belum ada APK Flutter berhasil dibangun.
 - Aplikasi lama tidak dimigrasikan penuh; transaksi/offline/role/printer/kamera belum tersedia.
 
 ## Lanjutan yang belum selesai
