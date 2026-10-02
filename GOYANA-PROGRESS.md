@@ -86,3 +86,15 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Pemanggilan AI sungguhan (CS/Chatbot) dan WA lewat CHATKU.
   - Gateway pembayaran (top-up/paket masih dicatat manual).
   - FAQ otomatis, remote bantuan (§46), balas ulasan Play (§42C).
+
+## Lanjutan 3 Oktober (Claude, branch flutter/native)
+- **Lupa password**: reset lewat email (link 60 menit, semua sesi HP ikut keluar, admin pusat hanya lewat terminal). Tombol "Lupa password?" di aplikasi membuka halaman server.
+- **FAQ otomatis** (`/admin/faqs`): tiket baru dicocokkan dengan kata kunci, dijawab tanpa AI, dan pertanyaan soal paket dilengkapi status akun. Ada 5 FAQ awal.
+- **Deploy**: lihat `deploy/README.md` (VPS & cPanel/Jagoan), `deploy/nginx-goyana.conf`, `deploy/update.sh`.
+  - `deploy/build-web-app.sh` membangun **aplikasi web owner** di `/app/` (HTML yang sama, tersinkron).
+  - Dashboard owner punya tombol "Buka aplikasi GOYANA (web)".
+- **Flutter native Tambah Transaksi** langkah 1–2 (`mobile/lib/native/addorder_page.dart`).
+  - Sheet HTML (durasi, jumlah, opsi, pembayaran) otomatis menutupi halaman native.
+  - Toast HTML kini tampil native.
+  - Nama pelanggan di bar layanan diperbesar (di HTML hanya 10px/8px).
+- **Perbaikan HTML v198** (`goyana-v198-flow-fixes.js`): kolom "Cari nama / no handphone" di langkah 1 sebelumnya tidak menyaring daftar pelanggan.

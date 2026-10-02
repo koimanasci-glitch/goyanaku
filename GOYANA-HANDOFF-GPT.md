@@ -110,7 +110,7 @@ Dengan cara ini logika (harga, DP, stok, dll.) **tetap dari HTML yang sudah teru
 
 | # | Halaman (id HTML) | Catatan |
 |---|---|---|
-| 1 | **Tambah Transaksi** (`addorder`, flow `f61-*`) + **Pembayaran** (`f61-payment`, QRIS `q118`, DP/deposit) | Alur paling kritis kasir. Banyak sheet/overlay: boleh biarkan sheet tetap HTML dulu, yang native cukup layar utamanya. Uji total harga, ongkir, DP, QRIS dinamis. |
+| 1 | **Tambah Transaksi** (`addorder`, flow `f61-*`) + **Pembayaran** (`f61-payment`, QRIS `q118`, DP/deposit) — **langkah 1–2 sudah native (Claude, 3 Okt, `addorder_page.dart`)**; sisa: sheet opsi/pembayaran/QRIS | Alur paling kritis kasir. Banyak sheet/overlay: boleh biarkan sheet tetap HTML dulu, yang native cukup layar utamanya. Uji total harga, ongkir, DP, QRIS dinamis. |
 | 2 | **Pelanggan** (`customers`, `cust59-*`) | |
 | 3 | **Laporan** (`reports`, `rp170`) + **Kas** (`cashier`, `cashclose`, `cashin`, `cashout`) | Angka harus sama persis dengan HTML. |
 | 4 | Kurir (`courier181`), Stok (`inventory`), Pengaturan (`settings`), Outlet, Pegawai, WhatsApp/Chatbot | |

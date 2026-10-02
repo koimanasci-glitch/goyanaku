@@ -67,5 +67,7 @@ Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
 |---|---|
 | Beranda | ✅ native (logika masih dari HTML) |
 | Pesanan | ✅ native (cari, tab status, kartu, tombol status; logika dari HTML) |
-| Tambah Transaksi, Pembayaran, Pelanggan, Laporan, Kas | berikutnya |
+| Tambah Transaksi | ✅ langkah 1–2 native (pilih pelanggan, layanan + total). Durasi, jumlah, opsi, pembayaran & QRIS masih sheet HTML |
+| Toast/notifikasi HTML | ✅ tampil native saat halaman native terbuka |
+| Pembayaran (native), Pelanggan, Laporan, Kas | berikutnya |
 | Pengaturan, stok, kurir, WhatsApp, dll. | bertahap |
