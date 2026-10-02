@@ -251,3 +251,27 @@ Kebutuhan pengguna: pelanggan yang membutuhkan bantuan dapat dibantu AI/pusat se
 - Jika server utama mati, layanan monitoring/CS yang dihosting terpisah dapat melaporkan kondisi dan membantu pemulihan menggunakan sumber eksternal. Namun tidak dapat membaca data terbaru yang hanya ada di server mati; tampilkan keterbatasan dan jangan menebak.
 - Data yang dipulihkan dan transaksi lokal pending sync harus direkonsiliasi tanpa duplikasi sebelum dianggap normal kembali.
 - Prioritas pertama diagnosis lewat backend dan bantuan terpandu; kendali layar penuh menyusul setelah kelayakan teknis, provider, biaya, serta izin sesi ditetapkan.
+
+
+## 16. CRM Pusat dan Database untuk Pengelolaan/Marketing
+
+Kebutuhan pengguna: pusat mengumpulkan/mengelola database klien serta pelanggan lintas outlet untuk dukungan dan kemungkinan marketing. Penyimpanan terpusat bukan otomatis izin menggunakan seluruh kontak untuk promosi.
+
+### Dua kelompok data
+- **Pelanggan usaha Goyana**: pemilik/admin laundry yang mendaftar, kontak usaha, cabang, paket/masa aktif, invoice, riwayat bantuan dan izin komunikasi. Ini dasar CRM pusat Goyana untuk onboarding, bantuan, renewal, serta kampanye yang sesuai.
+- **Pelanggan akhir laundry**: nama/kontak/alamat/pesanan pelanggan setiap laundry. Simpan untuk operasional usaha terkait; tetap terikat tenant/outlet. Jangan menggabungkan kontak menjadi daftar blast lintas laundry secara otomatis.
+- Owner laundry dapat melihat pelanggan outlet milik usahanya sesuai izin; laundry lain tidak dapat mengaksesnya. Akses administrator pusat untuk dukungan harus dibatasi, bertujuan jelas dan diaudit.
+
+### Penggunaan marketing yang dirancang
+- Sediakan persetujuan marketing yang terpisah dari kebutuhan operasional, dengan tujuan, pengirim, channel, waktu/sumber bukti dan mekanisme berhenti.
+- Persetujuan menerima nota/reminder laundry tidak otomatis berarti setuju promosi dari platform Goyana. Izin owner laundry tidak dengan sendirinya menggantikan hak/persetujuan pelanggan akhir.
+- Sebelum kampanye kepada pelanggan akhir untuk tujuan lain/lintas usaha, tetapkan dasar pemrosesan dan pemberitahuan yang sesuai serta consent yang relevan. Jangan mengekspor/menjual atau membagi kontak tanpa dasar dan otorisasi.
+- Respect opt-out/STOP/BERHENTI melalui daftar penghentian promosi; pesan operasional tetap diatur terpisah sesuai tujuan/dasar yang berlaku.
+- Data pusat dapat disegmentasi untuk CRM berdasarkan paket, wilayah usaha, trial/aktif/expired dan kebutuhan bantuan. Preferensikan statistik agregat untuk analisis pelanggan akhir lintas usaha.
+- Atur retention, koreksi/penghapusan yang relevan, akses/ekspor, enkripsi dan audit; peran pengendali/prosesor ditetapkan dalam kebijakan/perjanjian.
+- Sistem tidak menjalankan campaign, mengumpulkan kontak eksternal, atau mengirim pesan dalam pencatatan kebutuhan ini.
+
+Referensi resmi:
+- UU 27/2022 Pelindungan Data Pribadi: https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022
+- WhatsApp opt-in: https://developers.facebook.com/documentation/business-messaging/whatsapp/getting-opt-in
+- WhatsApp Business Messaging Policy: https://whatsappbusiness.com/policy/
