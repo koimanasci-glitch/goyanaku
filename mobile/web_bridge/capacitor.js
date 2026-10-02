@@ -450,13 +450,34 @@
       };
     };
   }
+  function cashcloseModel() {
+    var page = document.getElementById('cashclose');
+    function text(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
+    function input(el) { return el ? { sel: '#' + el.id, v: el.value, ph: el.placeholder || '', multiline: el.tagName === 'TEXTAREA' } : null; }
+    var sections = Array.prototype.map.call(page.querySelectorAll('.kc137 > .card'), function (card) {
+      return {
+        title: text(card.querySelector('h4')), sub: text(card.querySelector('p.s')),
+        methods: Array.prototype.map.call(card.querySelectorAll('.kc137-pm > div'), function (e) { return { t: text(e.querySelector('small')), v: text(e.querySelector('b')), s: text(e.querySelector('i')), c: getComputedStyle(e.querySelector('b')).color }; }),
+        unpaid: text(card.querySelector('.kc137-unpaid')),
+        rows: Array.prototype.map.call(card.querySelectorAll('.kc137-ln'), function (e) { return { t: text(e.querySelector('span')), v: text(e.querySelector('b')), input: input(e.querySelector('input')), c: e.querySelector('b') ? getComputedStyle(e.querySelector('b')).color : '' }; }),
+        denominations: Array.prototype.map.call(card.querySelectorAll('#kc-den label'), function (e, i) { return { i: i, t: text(e.querySelector('span')), v: e.querySelector('input').value }; }),
+        physical: input(card.querySelector('#kc-phys')),
+        diff: colors(card.querySelector('#kc-diff')),
+        reconcile: Array.prototype.map.call(card.querySelectorAll('.kc137-rec'), function (e) { return { t: text(e.querySelector('b')), s: text(e.querySelector('small')), input: input(e.querySelector('input')), badge: colors(e.querySelector('em')) }; }),
+        note: input(card.querySelector('textarea')),
+        history: Array.prototype.map.call(card.querySelectorAll('.kc137-hist'), function (e) { return { date: text(e.querySelector('.d')), t: text(e.querySelector('div b')), s: text(e.querySelector('div small')), badge: colors(e.querySelector('em')) }; }),
+        empty: text(card.querySelector('.lb137-empty'))
+      };
+    });
+    return { title: txt('#cashclose .subhead b'), date: txt('#kc-date'), total: txt('#kc-omset'), label: txt('#cashclose .kc137-hero .r small:last-child'), status: txt('#cashclose .kc137-hero .st'), meta: txt('#kc-meta1') + ' · ' + txt('#kc-meta2'), sections: sections, submit: txt('#cashclose .kc137-go') };
+  }
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashin: cashModel('cashin'), cashout: cashModel('cashout') };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout') };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;

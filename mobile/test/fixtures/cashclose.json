@@ -1,0 +1,254 @@
+{
+  "title": "TUTUP KASIR",
+  "date": "Jumat, 2 Okt 2026",
+  "total": "Rp0",
+  "label": "Omset hari ini (semua metode)",
+  "status": "SHIFT AKTIF",
+  "meta": "👤 · Uji · 🕖 Dibuka",
+  "sections": [
+    {
+      "title": "Penjualan per metode 0 transaksi",
+      "sub": "",
+      "methods": [
+        {
+          "t": "Tunai",
+          "v": "Rp0",
+          "s": "0 trx",
+          "c": "rgb(21, 136, 93)"
+        },
+        {
+          "t": "QRIS",
+          "v": "Rp0",
+          "s": "0 trx",
+          "c": "rgb(232, 73, 63)"
+        },
+        {
+          "t": "Transfer",
+          "v": "Rp0",
+          "s": "0 trx",
+          "c": "rgb(43, 127, 212)"
+        }
+      ],
+      "unpaid": "⏳ 2 pesanan belum dibayarRp28.000",
+      "rows": [],
+      "denominations": [],
+      "physical": null,
+      "diff": null,
+      "reconcile": [],
+      "note": null,
+      "history": [],
+      "empty": ""
+    },
+    {
+      "title": "Uang di laci seharusnya",
+      "sub": "Hanya uang tunai. QRIS & transfer masuk rekening.",
+      "methods": [],
+      "unpaid": "",
+      "rows": [
+        {
+          "t": "Modal awal laci",
+          "v": "",
+          "input": {
+            "sel": "#kc-start",
+            "v": "100.000",
+            "ph": "",
+            "multiline": false
+          },
+          "c": ""
+        },
+        {
+          "t": "+ Penjualan tunai",
+          "v": "Rp0",
+          "input": null,
+          "c": "rgb(21, 136, 93)"
+        },
+        {
+          "t": "+ Kas masuk",
+          "v": "Rp50.000",
+          "input": null,
+          "c": "rgb(21, 136, 93)"
+        },
+        {
+          "t": "− Pengeluaran tunai",
+          "v": "Rp0",
+          "input": null,
+          "c": "rgb(216, 50, 63)"
+        },
+        {
+          "t": "Seharusnya di laci",
+          "v": "Rp150.000",
+          "input": null,
+          "c": "rgb(30, 30, 30)"
+        }
+      ],
+      "denominations": [],
+      "physical": null,
+      "diff": null,
+      "reconcile": [],
+      "note": null,
+      "history": [],
+      "empty": ""
+    },
+    {
+      "title": "Hitung uang fisik ketuk + / −",
+      "sub": "",
+      "methods": [],
+      "unpaid": "",
+      "rows": [],
+      "denominations": [
+        {
+          "i": 0,
+          "t": "100rb",
+          "v": "0"
+        },
+        {
+          "i": 1,
+          "t": "50rb",
+          "v": "0"
+        },
+        {
+          "i": 2,
+          "t": "20rb",
+          "v": "0"
+        },
+        {
+          "i": 3,
+          "t": "10rb",
+          "v": "0"
+        },
+        {
+          "i": 4,
+          "t": "5rb",
+          "v": "0"
+        },
+        {
+          "i": 5,
+          "t": "2rb",
+          "v": "0"
+        },
+        {
+          "i": 6,
+          "t": "1rb",
+          "v": "0"
+        },
+        {
+          "i": 7,
+          "t": "500",
+          "v": "0"
+        }
+      ],
+      "physical": {
+        "sel": "#kc-phys",
+        "v": "160000",
+        "ph": "Total uang di laci",
+        "multiline": false
+      },
+      "diff": {
+        "t": "+ Lebih Rp10.000 Mungkin ada pembayaran yang belum dicatat",
+        "bg": "rgb(255, 247, 236)",
+        "c": "rgb(138, 75, 15)"
+      },
+      "reconcile": [],
+      "note": null,
+      "history": [],
+      "empty": ""
+    },
+    {
+      "title": "Cocokkan non-tunai",
+      "sub": "Isi total dari mutasi DANA / m-banking hari ini. Kosongkan kalau belum dicek.",
+      "methods": [],
+      "unpaid": "",
+      "rows": [],
+      "denominations": [],
+      "physical": null,
+      "diff": null,
+      "reconcile": [
+        {
+          "t": "QRIS",
+          "s": "Sistem Rp0",
+          "input": {
+            "sel": "#kc-qr",
+            "v": "0",
+            "ph": "Mutasi",
+            "multiline": false
+          },
+          "badge": {
+            "t": "✓ Cocok",
+            "bg": "rgb(232, 248, 240)",
+            "c": "rgb(21, 136, 93)"
+          }
+        },
+        {
+          "t": "Transfer",
+          "s": "Sistem Rp0",
+          "input": {
+            "sel": "#kc-fr",
+            "v": "0",
+            "ph": "Mutasi",
+            "multiline": false
+          },
+          "badge": {
+            "t": "✓ Cocok",
+            "bg": "rgb(232, 248, 240)",
+            "c": "rgb(21, 136, 93)"
+          }
+        }
+      ],
+      "note": null,
+      "history": [],
+      "empty": ""
+    },
+    {
+      "title": "Setor ke owner",
+      "sub": "",
+      "methods": [],
+      "unpaid": "",
+      "rows": [
+        {
+          "t": "Uang disetor",
+          "v": "",
+          "input": {
+            "sel": "#kc-setor",
+            "v": "50.000",
+            "ph": "",
+            "multiline": false
+          },
+          "c": ""
+        },
+        {
+          "t": "Sisa modal laci besok",
+          "v": "Rp110.000",
+          "input": null,
+          "c": "rgb(30, 30, 30)"
+        }
+      ],
+      "denominations": [],
+      "physical": null,
+      "diff": null,
+      "reconcile": [],
+      "note": {
+        "sel": "#kc-note",
+        "v": "Selisih uji kas",
+        "ph": "Catatan shift (wajib diisi kalau ada selisih)",
+        "multiline": true
+      },
+      "history": [],
+      "empty": ""
+    },
+    {
+      "title": "Riwayat tutup kas",
+      "sub": "",
+      "methods": [],
+      "unpaid": "",
+      "rows": [],
+      "denominations": [],
+      "physical": null,
+      "diff": null,
+      "reconcile": [],
+      "note": null,
+      "history": [],
+      "empty": "Belum ada riwayat"
+    }
+  ],
+  "submit": "Tutup Kas & Kirim ke Owner"
+}

@@ -146,6 +146,35 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Kas Masuk / Pengeluaran forms reach Flutter and save through the HTML logic');
 
+  fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
+  // Tutup Kasir: all arithmetic and validation must remain in the original HTML.
+  await p.evaluate(()=>openPage('cashclose'));await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'cashclose');assert.equal(last.model.sections[0].methods.length,3);
+  await p.evaluate(()=>__goyanaTap('#cashclose .kc137-go'));await p.waitForTimeout(250);
+  assert.match((await lastAdd()).toast,/Hitung uang/);
+  await p.evaluate(()=>{__goyanaSearch('#kc-start','100000');__goyanaTap('#kc-den label',0,'button:last-of-type')});await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.model.sections[2].denominations[0].v,'1');
+  assert.equal(last.model.sections[2].physical.v,await p.locator('#kc-phys').inputValue());
+  await p.evaluate(()=>{__goyanaSearch('#kc-phys','160000');__goyanaSearch('#kc-qr','0');__goyanaSearch('#kc-fr','0');__goyanaSearch('#kc-setor','50000')});await p.waitForTimeout(300);
+  last=await lastAdd();assert.match(last.model.sections[2].diff.t,/Lebih Rp10.000/);
+  assert.equal(last.model.sections[4].rows[1].v,'Rp110.000');
+  await p.evaluate(()=>__goyanaTap('#cashclose .kc137-go'));await p.waitForTimeout(250);
+  assert.match((await lastAdd()).toast,/isi catatan/);
+  await p.evaluate(()=>__goyanaSearch('#kc-note','Selisih uji kas'));await p.waitForTimeout(2800);
+  last=await lastAdd();
+  if(process.env.UPDATE_NATIVE_FIXTURES){fs.mkdirSync(path.join(root,'mobile/test/fixtures'),{recursive:true});fs.writeFileSync(path.join(root,'mobile/test/fixtures/cashclose.json'),JSON.stringify(last.model,null,2));}
+  await p.evaluate(()=>{document.activeElement.blur();window.scrollTo(0,0);document.querySelectorAll('#cashclose, #cashclose .content').forEach(e=>e.scrollTop=0)});
+  for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.screenshot({path:path.join(root,'mobile/test/screens/cashclose_html_'+width+'.png')});}
+  await p.evaluate(()=>__goyanaTap('#cashclose .kc137-go'));await p.waitForTimeout(350);
+  assert.equal((await lastAdd()).page,null,'confirmation stays visible above native cash close');
+  await p.getByRole('button',{name:'Ya, Tutup Kas',exact:true}).click();await p.waitForTimeout(500);
+  assert.equal((await lastAdd()).page,null,'shift receipt is an HTML sheet');
+  await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')}));await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.page,'cashclose');assert.equal(last.model.sections[4].note.v,'');
+  assert.match(last.model.sections[5].history[0].s,/Selisih uji kas/);
+  await p.evaluate(()=>openPage('home'));await p.waitForTimeout(300);
+  console.log('PASS Tutup Kasir denominations, reconciliation, required discrepancy note and shift history use HTML');
+
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));
   const save=await p.evaluate(()=>__calls.find(c=>c.plugin==='Files'&&c.method==='save').args);

@@ -4,12 +4,14 @@
 library;
 
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/native/addorder_page.dart';
 import 'package:goyana_flutter/native/cash_page.dart';
+import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
@@ -304,6 +306,17 @@ final _cash = CashModel.fromJson({
   'amount': {'v': '50.000', 'ph': 'Jumlah'}, 'note': {'v': '', 'ph': 'Keterangan'}, 'submit': 'Tambah Kas', 'subtract': false,
 });
 
+class _NoCashCloseActions implements CashCloseActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void ccTap(String selector, int index, String? child) {}
+  @override
+  void ccType(String selector, String value) {}
+}
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -456,4 +469,21 @@ void main() {
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/cashin_${width.toInt()}.png'));
     });
   }
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Tutup Kasir native at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 844 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final model = jsonDecode(File('test/fixtures/cashclose.json').readAsStringSync()) as Map<String, dynamic>;
+      await tester.pumpWidget(MaterialApp(home: RepaintBoundary(key: const Key('screen'), child: NativeCashClose(model: model, actions: _NoCashCloseActions(), topInset: 31))));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/cashclose_${width.toInt()}.png'));
+      await tester.drag(find.byType(ListView), const Offset(0, -900));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/cashclose_bottom_${width.toInt()}.png'));
+    });
+  }
+
 }

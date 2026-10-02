@@ -106,3 +106,11 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Tes jembatan (`tests/flutter-bridge.cjs`) mencakup semua halaman native: data, aksi, serah-terima ke sheet HTML, dan toast.
 - **Balasan Cepat pintar (§47)**: mesin jawaban tanpa AI dari data sinkron + simulator di admin. Menunggu CHATKU untuk dipasang ke WhatsApp.
 - **Mode Bantuan (§46)** bagian server: owner mengizinkan 30 menit, admin mengubah harga/profil outlet lewat data sinkron, ada audit + batalkan.
+
+## [GPT] Tutup Kasir native — 3 Oktober 2026 (branch flutter/native-kasir, commit lihat riwayat bagian ini)
+- Dikerjakan: layar #cashclose native, ringkasan per metode, modal awal, pecahan uang +/−/isian, uang fisik, rekonsiliasi QRIS/transfer, setor, catatan dan riwayat. Setiap aksi memakai __goyanaTap / __goyanaSearch; semua angka tetap dibaca dari HTML.
+- File utama: mobile/lib/native/cashclose_page.dart, mobile/lib/hybrid/shell.dart, mobile/web_bridge/capacitor.js, tests/flutter-bridge.cjs, mobile/test/screens_test.dart, mobile/test/fixtures/cashclose.json.
+- Tes dijalankan & hasil: flutter analyze tanpa temuan; 11 tes Flutter lulus; 19 tes screenshot lulus (termasuk Tutup Kasir 320/390, atas/bawah); flutter-bridge lulus termasuk selisih Rp10.000, sisa modal Rp110.000, validasi catatan dan riwayat; 4 tes Python lulus. Regresi npm dan CI sedang berjalan, hasil dicatat setelah selesai.
+- Belum diuji / ragu: belum dicoba di HP fisik; kirim WhatsApp ke owner sungguhan belum diuji; PHP/backend tidak tersedia di mesin lokal dan diperiksa melalui CI.
+- Keputusan yang diambil sendiri (perlu dicek Claude/pengguna): konfirmasi penutupan dan ringkasan setelah tutup tetap sheet HTML. Tombol bawah mengikuti urutan formulir dalam list agar tetap terjangkau di layar kecil. Branch lama diarsipkan dan tidak dipakai ulang.
+- Screenshot pembanding: cashclose_html_320.png, cashclose_html_390.png, cashclose_320.png, cashclose_390.png, cashclose_bottom_320.png, cashclose_bottom_390.png di ci-screens.
