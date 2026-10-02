@@ -722,3 +722,28 @@ Marketing tidak boleh spam: WA hanya ke klien yang sudah daftar (§42B hemat). T
 
 Urutan: inti produk + server + billing → CS & monitoring → laporan mingguan → website SEO/AEO + referral → konten & ulasan otomatis.
 Status: **visi/rencana**.
+
+## 44. Saldo AI Klien: Top-up, Margin 25%, Kurs & Harga Model Otomatis — 3 Oktober 2026
+
+Keputusan pengguna:
+- **Top-up saldo AI minimal Rp50.000.**
+- **Untung 25% di atas modal.**
+- Penyedia AI contohnya **OpenRouter** (harga dalam USD per token).
+- Kurs dan harga AI harus ter-update otomatis supaya tidak rugi.
+
+Cara hitung (program, tanpa AI):
+- Saldo disimpan dalam **Rupiah**. Setiap pemakaian dipotong sesuai biaya nyata:
+  `potong_rp = biaya_usd × kurs_hari_ini × 1,25`
+- `biaya_usd` diambil dari data `usage`/cost yang dikembalikan OpenRouter per permintaan (biaya sebenarnya), bukan tebakan.
+- **Kurs harian**: scheduler mengambil kurs USD→IDR setiap hari dari sumber resmi/API kurs. Pakai **kurs jual + cadangan 2%** supaya aman bila rupiah melemah di hari yang sama. Bila sumber kurs gagal, pakai kurs terakhir yang lebih tinggi (tidak pernah turun karena error).
+- **Harga model**: scheduler membaca daftar harga model OpenRouter setiap hari. Jika harga model naik, potongan otomatis ikut naik. Jika model dihapus atau terlalu mahal, pindah ke model cadangan yang ditetapkan di panel admin.
+- **Biaya payment gateway** ditanggung di luar margin 25% (ditambahkan sebagai biaya admin top-up atau diperhitungkan di harga). Margin bersih tetap 25%.
+- Saldo tidak boleh minus: permintaan AI ditolak sopan bila saldo kurang dari perkiraan biaya. Pengingat **1x** saat saldo menipis (§42B hemat).
+- Panel admin menampilkan:
+  - Modal USD, kurs yang dipakai, pendapatan, dan untung per hari/bulan.
+  - Pengaturan margin, minimal top-up, cadangan kurs, dan model utama/cadangan.
+- Klien melihat riwayat pemakaian dan sisa saldo dalam Rupiah.
+- Masa berlaku saldo: **belum diputuskan**, tanyakan pemilik sebelum membangun.
+- API key OpenRouter hanya di `.env` server.
+
+Status: **rencana**.
