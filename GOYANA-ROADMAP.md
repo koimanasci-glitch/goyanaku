@@ -1338,3 +1338,21 @@ Status: **keputusan implementasi mendatang; backend/integrasi belum aktif.**
 - [ ] Nomor pengirim mengikuti device WA outlet/cabang pada tugas; jika pengaturan pengirim belum lengkap, tampilkan status perlu konfigurasi.
 - [ ] Simpan status notifikasi dan cegah duplikasi per tugas/peristiwa/penerima. Jangan mengklaim terkirim saat gagal atau belum ada koneksi.
 - [ ] Uji Basic manual, Gold/Platinum otomatis dengan WA terhubung, WA belum terhubung, penugasan ulang, perubahan jadwal, dan downgrade/akhir hak paket tanpa menghapus histori.
+
+
+## 40. Jadwal Kurir dari Balasan WhatsApp melalui Webhook — 2 Oktober 2026
+
+Status: **permintaan pengguna untuk backend/integrasi mendatang; penerima webhook dan pemrosesan chat sungguhan belum aktif di prototype.** Bagian ini melanjutkan bagian 38–39 dan menetapkan kebutuhan pembacaan jadwal dari chat; jangan menganggap menu webhook atau chatbot sebagai bukti integrasi telah berjalan.
+
+- [ ] Layanan WhatsApp mengirim event pesan masuk ke endpoint webhook backend Goyana. Hubungkan balasan ke usaha, device WA/outlet, nomor pelanggan, dan tugas jemput/antar yang benar.
+- [ ] Jika pelanggan membalas waktu yang jelas, ekstrak tanggal/jam, kirim konfirmasi singkat, lalu simpan jadwal yang disepakati pada tugas kurir sehingga kasir dan kurir dapat melihatnya.
+- [ ] Contoh alur: pertanyaan jadwal → balasan “besok jam 15.00” → konfirmasi tanggal/jam konkret → pencatatan jadwal jemput/antar pada tugas → pemberitahuan ke kurir yang ditugaskan.
+- [ ] Jawaban ambigu seperti “jam tiga”, “nanti”, atau “setelah pulang” tidak boleh langsung dianggap jam/tanggal tertentu. Minta penjelasan pagi/sore, tanggal, atau rentang waktu; jangan menebak.
+- [ ] Waktu memakai zona waktu outlet yang dikonfigurasi; gunakan Asia/Jakarta sebagai default saat belum ada konfigurasi. Simpan waktu terstruktur beserta pesan asal dan waktu penerimaannya.
+- [ ] Pisahkan jadwal jemput dan antar. Jika nomor pelanggan mempunyai beberapa order/tugas terbuka, pastikan konteks tugas atau minta pelanggan memilih; jangan menempelkan balasan pada order sembarang.
+- [ ] Tampilkan status jadwal Belum Ditentukan / Menunggu Konfirmasi / Disepakati dan beri kasir tindakan koreksi manual beserta jejak audit.
+- [ ] Permintaan perubahan jam memperbarui tugas yang sesuai dan memberitahu kurir; jadwal pelanggan belum menjamin kurir tersedia. Jika berbenturan dengan kapasitas/penugasan, minta persetujuan operasional atau tawarkan jadwal lain.
+- [ ] Backend menerima webhook secara terautentikasi sesuai penyedia, memeriksa sumber/device/tenant, dan memproses event dengan ID unik agar webhook ulang tidak menggandakan jadwal atau pesan.
+- [ ] Pembacaan jam yang terstruktur dapat dibuat dengan aturan/pertanyaan terpandu; AI tidak otomatis diperlukan untuk setiap balasan. Jika memakai AI, ikuti hak akses dan top-up yang disepakati, serta tetap konfirmasi interpretasi yang ambigu.
+- [ ] Alur otomatis mengikuti paket dengan hak otomasi WhatsApp dan device outlet yang terhubung; Basic tetap bisa memasukkan jadwal manual dari chat.
+- [ ] Uji balasan jelas/ambigu, perubahan tanggal/jam, beberapa tugas pelanggan, pesan duplikat, perangkat/cabang berbeda, event terlambat setelah pembatalan, dan notifikasi hanya ke kurir yang benar.
