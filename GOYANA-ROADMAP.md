@@ -1304,3 +1304,20 @@ Status: **keputusan dan kebutuhan untuk implementasi backend pusat; belum ditera
 - [ ] Uji menu terkunci beserta penolakan API, monitoring owner, perubahan role, reset password, dan audit aktivitas.
 - [ ] Uji offline, izin kedaluwarsa, pencabutan perangkat, dan sinkronisasi tanpa kehilangan atau menggandakan transaksi.
 - Semua catatan di bagian ini merupakan kebutuhan implementasi; **bukan laporan bahwa fungsi backend telah selesai.**
+
+
+## 38. WhatsApp untuk Koordinasi Penjemputan — 2 Oktober 2026
+
+Status: **kebutuhan yang diminta pengguna untuk integrasi layanan pusat/WhatsApp; belum diimplementasikan atau mengirim pesan sungguhan.**
+
+- [ ] Saat tugas penjemputan dibuat dan kurir telah ditetapkan, kirim notifikasi WhatsApp otomatis ke **kurir yang ditugaskan**, bukan ke seluruh kurir.
+- [ ] Jika belum ada kurir, tugas tetap menunggu penugasan; jangan mengirim ke nomor acak atau mengklaim notifikasi berhasil.
+- [ ] Notifikasi kurir memuat ID pesanan/tugas, nama pelanggan, alamat/titik Maps, outlet, dan jadwal jemput jika sudah disepakati. Jika jadwal belum ada, nyatakan belum ditentukan.
+- [ ] Pisahkan **notifikasi otomatis ke kurir** dari tombol **WhatsApp Pelanggan** pada kartu tugas. Tombol pelanggan membuka chat ke nomor pelanggan yang terkait dengan tugas.
+- Contoh pesan koordinasi pelanggan sesuai arahan pengguna: **“Halo Kak, saya [nama kurir] dari [nama outlet]. Untuk penjemputan laundry, bisa dijemput jam berapa, Kak?”**
+- [ ] Sediakan pesan pelanggan yang terisi sesuai kurir/outlet agar bisa ditinjau dan dikirim manual melalui WhatsApp. Jangan menjanjikan jam tertentu sebelum pelanggan menyepakati.
+- [ ] Jadwal yang telah disepakati dicatat pada tugas dan terlihat oleh kasir/kurir; parsing balasan WhatsApp menjadi jadwal otomatis belum menjadi keputusan.
+- [ ] Catat status pengiriman notifikasi, kegagalan, dan retry; cegah pesan ganda akibat retry/sinkronisasi untuk peristiwa penugasan yang sama.
+- [ ] Bila tugas dibatalkan atau dialihkan, kurir lama tidak lagi memiliki akses tugas tersebut; definisikan pemberitahuan pembatalan/perubahan untuk mencegah penjemputan oleh dua kurir.
+- Hak akses paket untuk jenis notifikasi otomatis ke kurir ini perlu diselaraskan secara eksplisit dengan katalog paket terbaru; jangan menganggapnya otomatis tersedia di semua paket atau mengubah paket tanpa keputusan.
+- Integrasi memerlukan backend dan layanan WhatsApp yang benar-benar terhubung; penyimpanan device WA saja belum berarti pesan dapat dikirim.
