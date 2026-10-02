@@ -547,3 +547,13 @@ Keputusan pengguna 2 Oktober 2026:
 - Pemeriksaan implementasi: daftar tanpa nama outlet ditolak; outlet dibuat satu kali; login langsung tanpa pemilih untuk satu outlet; akun undangan tidak membuat outlet; Lewati dan lanjut kembali mempertahankan data serta hak akses.
 
 Status: validasi nama usaha/outlet wajib dan pembuatan outlet pusat sudah ada pada registrasi web Laravel. Flutter saat ini baru login/profil; pendaftaran native, role pegawai dan panduan bertahap persisten belum diimplementasikan.
+
+
+## 36. Acuan Visual Terakhir dan Audit Tombol
+
+Koreksi pengguna: gunakan tema/desain HTML TERAKHIR yang disetujui, bukan HTML pertama dan bukan desain baru dari nol. Cocokkan versi sumber sebelum migrasi.
+- Pertahankan header, warna, tipografi, ikon, susunan kartu dan navigasi bawah pada versi terakhir saat dipindah ke Flutter; perubahan hanya untuk bug atau revisi yang diminta.
+- Audit tombol/menu secara menyeluruh: tujuan navigasi, aksi simpan, validasi, batal/kembali, ekspor, QR, printer dan hak akses.
+- Integrasi server yang belum tersedia harus menampilkan status jelas; jangan membuat sukses palsu.
+- Uji tampilan pada ukuran HP, teks panjang, keyboard, state kosong/loading/error dan status offline.
+- Catat setiap temuan serta hasil pengujian. Audit belum boleh disebut selesai hanya karena tombol mempunyai handler.
