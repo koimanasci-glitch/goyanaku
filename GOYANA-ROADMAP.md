@@ -1356,3 +1356,14 @@ Status: **permintaan pengguna untuk backend/integrasi mendatang; penerima webhoo
 - [ ] Pembacaan jam yang terstruktur dapat dibuat dengan aturan/pertanyaan terpandu; AI tidak otomatis diperlukan untuk setiap balasan. Jika memakai AI, ikuti hak akses dan top-up yang disepakati, serta tetap konfirmasi interpretasi yang ambigu.
 - [ ] Alur otomatis mengikuti paket dengan hak otomasi WhatsApp dan device outlet yang terhubung; Basic tetap bisa memasukkan jadwal manual dari chat.
 - [ ] Uji balasan jelas/ambigu, perubahan tanggal/jam, beberapa tugas pelanggan, pesan duplikat, perangkat/cabang berbeda, event terlambat setelah pembatalan, dan notifikasi hanya ke kurir yang benar.
+
+
+### Penegasan pemicu dan tampilan jadwal pelanggan — 2 Oktober 2026
+
+- [ ] **Saat order masuk status Penjemputan**, paket dengan hak WhatsApp otomatis dan device outlet terhubung mengirim pertanyaan jadwal kepada pelanggan, misalnya “Laundry-nya bisa dijemput jam berapa, Kak?”. Tidak perlu menunggu kurir ditugaskan untuk menanyakan jadwal pelanggan.
+- [ ] Balasan pelanggan **“jam lima sore”** dibaca sebagai **17.00** dan tampil pada kartu/halaman tugas jemput terkait, bersama tanggal yang jelas dan status konfirmasinya, sehingga kurir/kasir tidak perlu menyalin jam dari chat.
+- [ ] Pastikan tanggal: bila percakapan telah menyebut hari/tanggal jemput, gunakan konteks tersebut; jika tanggal belum jelas, tanyakan “Untuk hari ini atau tanggal lain, Kak?” sebelum menjadikan jadwal final. Jangan diam-diam mengasumsikan hari ini.
+- [ ] Kirim konfirmasi singkat waktu/tanggal yang dibaca; bedakan waktu permintaan pelanggan dengan jadwal yang telah disepakati agar tidak menjanjikan ketersediaan kurir tanpa pemeriksaan.
+- [ ] Setelah jadwal tersimpan, kurir yang ditugaskan dapat melihatnya dan menerima pemberitahuan; bila belum ada kurir, jadwal tetap tersimpan pada tugas sampai penugasan dilakukan.
+- [ ] Cegah pertanyaan jadwal ganda saat order dimuat ulang/sinkronisasi atau event status yang sama diterima ulang. Pertanyaan ulang hanya untuk perubahan/peristiwa yang relevan.
+- Ini penegasan alur otomatis yang diminta, **belum implementasi aktif pada APK/server**. Basic tetap menjalankan komunikasi/pencatatan manual.
