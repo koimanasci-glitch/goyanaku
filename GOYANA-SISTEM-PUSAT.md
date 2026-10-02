@@ -646,6 +646,17 @@ Keputusan pengguna:
 
 Permintaan pengguna: AI yang menjawab klien bila ada masalah, serta pesan otomatis (panduan, dll.) sejak klien mendaftar atau instal.
 
+**Prinsip hemat AI (keputusan pengguna): kerjakan dengan program dulu, AI hanya bila program tidak bisa.**
+- Pengecekan, jadwal, dan pemicu (ulasan baru, paket habis, status sinkron/WA) = program biasa/scheduler, **tanpa AI**.
+- CS:
+  1. Menu angka dan kata kunci (contoh: "1 cek paket", "2 printer", "3 sinkron", "reset").
+  2. FAQ yang dicocokkan dengan kata kunci.
+  3. Data akun langsung dari database.
+  4. **Baru AI** bila pertanyaan tidak cocok satu pun.
+- Jawaban AI yang sering muncul dijadikan FAQ/template, supaya pertanyaan berikutnya tidak memakai AI lagi.
+- Ulasan Play Store: bintang 4–5 tanpa teks/pujian umum dibalas **template** (acak beberapa variasi). AI hanya untuk ulasan berisi keluhan/pertanyaan, dan tetap menunggu persetujuan admin.
+- Batas biaya AI per hari dapat diatur di panel admin. Bila habis, CS kembali ke menu/FAQ plus tiket ke admin.
+
 **A. AI CS pusat (melengkapi §9)**
 - Nomor WA pusat GOYANA (lewat CHATKU, lihat §41) dijawab AI 24 jam.
 - AI mengenali pengirim dari nomor terdaftar (owner/kasir) dan usahanya. Nomor tak dikenal hanya mendapat info umum.
@@ -676,7 +687,7 @@ Aturan:
 **C. Balas ulasan Play Store**
 - Pakai Google Play Developer API (Reviews: list/reply) dengan service account yang dihubungkan ke Play Console. Kredensial disimpan di server, bukan di repo.
 - Scheduler mengambil ulasan baru beberapa kali sehari, karena API hanya menampilkan ulasan 7 hari terakhir.
-- AI menyusun balasan singkat (batas sekitar 350 karakter, sopan, tanpa data pribadi).
+- Balasan disusun dari template (bintang 4–5) atau AI (keluhan/pertanyaan), batas sekitar 350 karakter, sopan, tanpa data pribadi.
   - Bintang 4–5 tanpa keluhan → boleh terkirim otomatis.
   - Bintang 1–3 atau ada keluhan → masuk antrean persetujuan admin di panel. Admin bisa edit lalu kirim.
 - Jika pengulas cocok dengan klien terdaftar, buat tiket CS dan tawarkan bantuan lewat WA (bagian A).
