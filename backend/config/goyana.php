@@ -42,6 +42,8 @@ return [
         'ai_min_topup' => 50000,          // rupiah
         'fx_cushion_percent' => 2,        // cadangan kurs USD→IDR
         'ai_daily_budget_usd' => 5,       // batas biaya AI CS pusat per hari
+        'ai_model_primary' => '',         // id model OpenRouter, dipilih admin dari daftar harga harian
+        'ai_model_fallback' => '',
         'bot_pause_minutes' => 15,        // bot diam setelah kasir membalas manual (§47)
         'msg_welcome' => true,            // pesan otomatis hemat (§42B)
         'msg_expiry_reminder' => true,
@@ -49,6 +51,10 @@ return [
         'msg_payment' => true,
         'cs_whatsapp' => '',              // nomor WA CS pusat, contoh 62812xxxx
     ],
+
+    // Sumber kurs & harga model harian (§44). Bisa diganti tanpa ubah kode.
+    'fx_url' => env('GOYANA_FX_URL', 'https://open.er-api.com/v6/latest/USD'),
+    'ai_models_url' => env('GOYANA_AI_MODELS_URL', 'https://openrouter.ai/api/v1/models'),
 
     // Admin pusat wajib OTP (aplikasi authenticator). Matikan hanya untuk pengembangan lokal.
     'admin_mfa' => env('GOYANA_ADMIN_MFA', true),

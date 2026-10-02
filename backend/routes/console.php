@@ -85,3 +85,61 @@ Artisan::command('goyana:weekly-report {--print : Tampilkan saja, tanpa email}',
 \Illuminate\Support\Facades\Schedule::command('goyana:health')->everyFiveMinutes()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::command('goyana:prune')->dailyAt('02:30')->timezone('Asia/Jakarta');
 \Illuminate\Support\Facades\Schedule::command('goyana:weekly-report')->weeklyOn(1, '07:00')->timezone('Asia/Jakarta');
+
+// ---------- Saldo AI: kurs & harga model harian (§44) ----------
+
+Artisan::command('goyana:fx-update', function () {
+    try {
+        $rate = (float) \Illuminate\Support\Facades\Http::timeout(15)->retry(2, 2000)->get(config('goyana.fx_url'))->throw()->json('rates.IDR');
+    } catch (\Throwable $e) { $rate = 0; }
+    // Sanity range guards against a broken source; on failure the last stored rate keeps being used.
+    if ($rate < 8000 || $rate > 40000) {
+        $last = \App\Support\AiBilling::fxRate();
+        \App\Support\AdminNotify::send('Kurs gagal diperbarui', 'Sumber kurs tidak memberi angka wajar. Sistem tetap memakai kurs terakhir: '.($last ? 'Rp'.number_format($last, 2, ',', '.') : 'belum ada').'.');
+        $this->error('Kurs tidak valid; memakai kurs terakhir.');
+        return 1;
+    }
+    $today = now('Asia/Jakarta')->toDateString();
+    $existing = \Illuminate\Support\Facades\DB::table('fx_rates')->where(['currency' => 'USD', 'day' => $today])->value('rate');
+    // Same day: keep the higher rate so a mid-day rupiah drop never lowers prices below cost.
+    $store = max($rate, (float) $existing);
+    \Illuminate\Support\Facades\DB::table('fx_rates')->updateOrInsert(['currency' => 'USD', 'day' => $today], ['rate' => $store, 'source' => parse_url(config('goyana.fx_url'), PHP_URL_HOST) ?: 'api', 'created_at' => now()]);
+    $this->info('Kurs USD hari ini: Rp'.number_format($store, 2, ',', '.'));
+    return 0;
+})->purpose('Ambil kurs USD→IDR harian untuk saldo AI');
+
+Artisan::command('goyana:ai-prices', function () {
+    try {
+        $models = \Illuminate\Support\Facades\Http::timeout(30)->retry(2, 3000)->get(config('goyana.ai_models_url'))->throw()->json('data');
+    } catch (\Throwable $e) { $models = null; }
+    if (!is_array($models) || !$models) {
+        \App\Support\AdminNotify::send('Harga model AI gagal diperbarui', 'Daftar harga OpenRouter tidak bisa diambil. Harga terakhir tetap dipakai.');
+        $this->error('Gagal mengambil daftar model.'); return 1;
+    }
+    $db = \Illuminate\Support\Facades\DB::class;
+    $watched = array_filter([\App\Support\Settings::get('ai_model_primary'), \App\Support\Settings::get('ai_model_fallback')]);
+    $old = $db::table('ai_models')->whereIn('id', $watched)->get()->keyBy('id');
+    $seen = [];
+    foreach ($models as $m) {
+        $id = $m['id'] ?? null; $p = $m['pricing'] ?? [];
+        if (!$id || !is_numeric($p['prompt'] ?? null) || !is_numeric($p['completion'] ?? null)) continue;
+        $seen[] = $id;
+        $db::table('ai_models')->updateOrInsert(['id' => $id], ['name' => mb_substr($m['name'] ?? $id, 0, 200),
+            'prompt_usd_per_mtok' => round($p['prompt'] * 1_000_000, 4), 'completion_usd_per_mtok' => round($p['completion'] * 1_000_000, 4),
+            'available' => true, 'updated_at' => now()]);
+    }
+    $db::table('ai_models')->whereNotIn('id', $seen)->update(['available' => false, 'updated_at' => now()]);
+    $notes = [];
+    foreach ($watched as $id) {
+        $new = $db::table('ai_models')->where('id', $id)->first();
+        if (!$new || !$new->available) $notes[] = "- $id tidak tersedia lagi. Pilih model lain di /admin/settings.";
+        elseif (isset($old[$id]) && ($new->prompt_usd_per_mtok > $old[$id]->prompt_usd_per_mtok || $new->completion_usd_per_mtok > $old[$id]->completion_usd_per_mtok))
+            $notes[] = "- $id naik harga. Potongan saldo klien otomatis ikut naik.";
+    }
+    if ($notes) \App\Support\AdminNotify::send('Perubahan model AI', implode("\n", $notes));
+    $this->info(count($seen).' model diperbarui.');
+    return 0;
+})->purpose('Ambil harga model OpenRouter harian; potongan saldo AI mengikuti harga terbaru');
+
+\Illuminate\Support\Facades\Schedule::command('goyana:fx-update')->twiceDaily(6, 18)->timezone('Asia/Jakarta');
+\Illuminate\Support\Facades\Schedule::command('goyana:ai-prices')->dailyAt('05:40')->timezone('Asia/Jakarta');

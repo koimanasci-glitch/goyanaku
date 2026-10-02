@@ -52,6 +52,7 @@ class AdminController {
             ->orderByDesc('audit_events.id')->limit(30)->get(['audit_events.*', 'users.name as actor_name', 'users.is_platform_admin as actor_admin']);
         return view('business', ['business' => $business, 'access' => $business->currentAccess(), 'grants' => $business->grants()->latest('id')->get(),
             'subscriptions' => $business->subscriptions()->latest('id')->get(), 'packages' => config('goyana.packages'),
+            'aiLedger' => DB::table('ai_ledger')->where('business_id', $business->id)->orderByDesc('id')->limit(15)->get(),
             'users' => $business->users()->with('outlet')->orderByRaw("role <> 'owner'")->orderBy('id')->get(), 'outlets' => $outlets, 'sync' => $sync, 'audit' => $audit]);
     }
 
@@ -156,5 +157,11 @@ class AdminController {
                 'details' => json_encode(['subscription_id' => $locked->id, 'reason' => $data['reason']]), 'created_at' => now()]);
         });
         return back()->with('status', 'Catatan langganan dibatalkan.');
+    }
+
+    public function aiTopUp(Request $request, Business $business) {
+        $data = $request->validate(['amount' => 'required|integer|min:1|max:100000000', 'reference' => 'required|string|max:120']);
+        $balance = \App\Support\AiBilling::topUp($business, (int) $data['amount'], $data['reference'], $request->user()->id);
+        return back()->with('status', 'Top-up dicatat. Saldo AI sekarang Rp'.number_format($balance, 0, ',', '.').'.');
     }
 }

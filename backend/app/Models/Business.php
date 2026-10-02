@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Business extends Model {
     protected $fillable = ['name', 'trial_ends_at'];
-    protected function casts(): array { return ['trial_ends_at' => 'immutable_datetime']; }
+    protected function casts(): array { return ['trial_ends_at' => 'immutable_datetime', 'ai_balance' => 'integer']; }
     public function outlets() { return $this->hasMany(Outlet::class); }
     public function grants() { return $this->hasMany(PackageGrant::class); }
     public function subscriptions() { return $this->hasMany(Subscription::class); }

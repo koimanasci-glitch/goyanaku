@@ -33,6 +33,16 @@
 @if($sync['conflicts']->isNotEmpty())<h3>Konflik terbaru</h3><p class="muted">Data server dipakai; versi HP yang kalah disimpan untuk diperiksa.</p><ul class="plain">
 @foreach($sync['conflicts'] as $c)<li>{{ $c->collection }} · {{ \Illuminate\Support\Str::limit($c->record_key, 40) }} <small class="muted">{{ \Carbon\Carbon::parse($c->created_at)->timezone('Asia/Jakarta')->format('d M H:i') }}</small></li>@endforeach</ul>@endif
 </section>
+<section class="card"><h2>Saldo AI · Rp{{ number_format($business->ai_balance, 0, ',', '.') }}</h2>
+<p class="muted">Catat top-up yang sudah dicek manual (transfer/QRIS) sampai pembayaran otomatis aktif. Minimal Rp{{ number_format(\App\Support\Settings::get('ai_min_topup'), 0, ',', '.') }}.</p>
+<form method="post" action="{{ route('admin.ai.topup', $business) }}">@csrf<div class="grid">
+<div><label for="ai-amount">Nominal (Rp)</label><input id="ai-amount" name="amount" type="number" min="1" step="1000" required value="{{ old('amount') }}"></div>
+<div><label for="ai-ref">Referensi pembayaran</label><input id="ai-ref" name="reference" required maxlength="120" value="{{ old('reference') }}" placeholder="No. transfer / ID QRIS"></div>
+</div><p><button>Catat top-up</button></p></form>
+@if($aiLedger->isNotEmpty())<div class="table"><table><thead><tr><th>Waktu (WIB)</th><th>Jenis</th><th>Jumlah</th><th>Saldo</th><th>Rincian</th></tr></thead><tbody>
+@foreach($aiLedger as $l)<tr><td>{{ \Carbon\Carbon::parse($l->created_at)->timezone('Asia/Jakarta')->format('d M H:i') }}</td><td>{{ ['topup' => 'Top-up', 'usage' => 'Pemakaian', 'adjust' => 'Koreksi'][$l->type] ?? $l->type }}</td>
+<td>{{ $l->amount > 0 ? '+' : '−' }}Rp{{ number_format(abs($l->amount), 0, ',', '.') }}</td><td>Rp{{ number_format($l->balance_after, 0, ',', '.') }}</td><td><small class="muted">{{ $l->model ?? $l->reference }}@if($l->cost_usd) · ${{ rtrim(rtrim(number_format($l->cost_usd, 6, '.', ''), '0'), '.') }} × {{ number_format($l->fx_rate, 0, ',', '.') }}@endif</small></td></tr>@endforeach
+</tbody></table></div>@endif</section>
 <section class="card"><h2>Catat pembayaran paket</h2><p class="muted">Untuk transfer/QRIS yang sudah dicek manual, sampai gateway pembayaran & Google Play Billing aktif. Perpanjangan dimulai dari akhir langganan yang masih berjalan.</p>
 <form method="post" action="{{ route('admin.subscribe', $business) }}">@csrf<div class="grid">
 <div><label for="s-package">Paket</label><select id="s-package" name="package">@foreach($packages as $name => $p)<option value="{{ $name }}" @selected(old('package') === $name)>{{ $name }} · Rp{{ number_format($p['price'], 0, ',', '.') }}/bln · {{ $p['branches'] }} cabang</option>@endforeach</select></div>

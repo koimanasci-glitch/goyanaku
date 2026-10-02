@@ -37,7 +37,8 @@ class AdminSupportController {
     }
 
     public function settings() {
-        return view('admin-settings', ['s' => Settings::all(), 'history' => DB::table('platform_audit')->leftJoin('users', 'users.id', '=', 'platform_audit.actor_id')
+        $fx = DB::table('fx_rates')->where('currency', 'USD')->orderByDesc('day')->first();
+        return view('admin-settings', ['s' => Settings::all(), 'fx' => $fx, 'models' => DB::table('ai_models')->where('available', true)->orderBy('id')->get(['id', 'name', 'prompt_usd_per_mtok', 'completion_usd_per_mtok']), 'history' => DB::table('platform_audit')->leftJoin('users', 'users.id', '=', 'platform_audit.actor_id')
             ->where('action', 'settings.updated')->orderByDesc('platform_audit.id')->limit(10)->get(['platform_audit.*', 'users.name as actor_name'])]);
     }
     public function saveSettings(Request $request) {
@@ -48,9 +49,12 @@ class AdminSupportController {
             'ai_daily_budget_usd' => 'required|numeric|min:0|max:1000',
             'bot_pause_minutes' => 'required|integer|min:1|max:1440',
             'cs_whatsapp' => ['nullable', 'regex:/^62\d{8,13}$/'],
+            'ai_model_primary' => ['nullable', 'string', Rule::exists('ai_models', 'id')->where('available', true)],
+            'ai_model_fallback' => ['nullable', 'string', 'different:ai_model_primary', Rule::exists('ai_models', 'id')->where('available', true)],
         ], ['cs_whatsapp.regex' => 'Nomor WA diawali 62, contoh 6281234567890.']);
         foreach (['msg_welcome', 'msg_expiry_reminder', 'msg_expired', 'msg_payment'] as $flag) $data[$flag] = $request->boolean($flag);
         $data['cs_whatsapp'] = (string) ($data['cs_whatsapp'] ?? '');
+        $data['ai_model_primary'] = (string) ($data['ai_model_primary'] ?? ''); $data['ai_model_fallback'] = (string) ($data['ai_model_fallback'] ?? '');
         $data['fx_cushion_percent'] = (float) $data['fx_cushion_percent']; $data['ai_daily_budget_usd'] = (float) $data['ai_daily_budget_usd'];
         $before = Settings::all();
         Settings::put($data, $request->user()->id);
