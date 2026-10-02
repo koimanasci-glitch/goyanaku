@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'addorder_sheet.dart';
 import 'common.dart';
 
 // Tambah Transaksi (HTML #addorder, flow f61). Langkah 1 (pilih pelanggan) dan 2 (layanan) native;
@@ -52,7 +53,7 @@ class AddOrderModel {
   const AddOrderModel({
     this.title = '', this.step = '', this.stage = 'customer', this.search = const AoField(), this.add = '',
     this.people = const [], this.empty = '', this.customerName = '', this.customerSub = '', this.customerAvatar = '',
-    this.durations = const [], this.cats = const [], this.items = const [], this.footer,
+    this.durations = const [], this.cats = const [], this.items = const [], this.footer, this.sheet,
   });
 
   factory AddOrderModel.fromJson(Map<String, dynamic> j) {
@@ -65,6 +66,7 @@ class AddOrderModel {
       durations: _list(j['durations']).map((d) => AoTab(title: _s(d['t']), sub: _s(d['s']), on: d['on'] == true)).toList(),
       cats: _list(j['cats']).map((d) => AoTab(title: _s(d['t']), on: d['on'] == true, svg: _s(d['svg']))).toList(),
       items: _list(j['items']).map(AoItem.fromJson).toList(),
+      sheet: j['sheet'] is Map ? Map<String, dynamic>.from(j['sheet'] as Map) : null,
       footer: f == null ? null : AoFooter(name: _s(f['name']).trim(), sum: _s(f['sum']), label: _s(f['label']), total: _s(f['total']), button: _s(f['btn']).trim()),
     );
   }
@@ -75,6 +77,8 @@ class AddOrderModel {
   final List<AoTab> durations, cats;
   final List<AoItem> items;
   final AoFooter? footer;
+  /// Sheet drawn natively over the page: {kind: 'options'|'payment', ...} from addorderSheet() in capacitor.js.
+  final Map<String, dynamic>? sheet;
 }
 
 abstract class AddOrderActions {
@@ -88,6 +92,13 @@ abstract class AddOrderActions {
   void aoCategory(int index);
   void aoService(int index);
   void aoNext();
+  void aoSheetSelect(int field, int option);
+  void aoSheetSwitch(int field);
+  void aoSheetNote(String text);
+  void aoSheetMain();
+  void aoSheetClose();
+  void aoPay(int index);
+  void aoPayCancel();
 }
 
 const _muted = Color(0xff8a8fa3);
@@ -172,7 +183,7 @@ class _NativeAddOrderState extends State<NativeAddOrder> {
       }
       if (m.people.isEmpty) rows.add(_Empty(m.empty.isNotEmpty ? m.empty : 'Belum ada pelanggan'));
     }
-    return Material(
+    final page = Material(
       color: Colors.white,
       child: Column(children: [
         RepaintBoundary(child: GTopBar(top: top, onScan: a.scan)),
@@ -189,6 +200,12 @@ class _NativeAddOrderState extends State<NativeAddOrder> {
         if (services && m.footer != null) _Footer(footer: m.footer!, onNext: a.aoNext),
       ]),
     );
+    final sheet = m.sheet;
+    if (sheet == null) return page;
+    return Stack(children: [
+      Positioned.fill(child: page),
+      Positioned.fill(child: AoSheet(sheet: sheet, actions: a)),
+    ]);
   }
 }
 

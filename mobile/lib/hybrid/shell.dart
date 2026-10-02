@@ -263,6 +263,24 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   @override
   void aoNext() => _tap('#f61-service-footer > button');
 
+  // Tambah Transaksi: sheet Atur Pesanan & Pembayaran (native)
+  String _optLabel(int k) => '#f61-options .f61-sheet > label:nth-of-type(${k + 1})';
+  @override
+  void aoSheetSelect(int field, int option) =>
+      _web.runJavaScript('window.__goyanaSelect&&__goyanaSelect(${jsonEncode('${_optLabel(field)} select')},$option)');
+  @override
+  void aoSheetSwitch(int field) => _tap('${_optLabel(field)} input', 0, null, false);
+  @override
+  void aoSheetNote(String text) => _type('#f61-options textarea', text);
+  @override
+  void aoSheetMain() => _tap('#f61-options .f61-main', 0, null, false);
+  @override
+  void aoSheetClose() => _tap('#f61-options', 0, null, false);
+  @override
+  void aoPay(int index) => _tap('#f61-payment .f61-paygrid button', index, null, false);
+  @override
+  void aoPayCancel() => _tap('#f61-payment .pay-cancel152', 0, null, false);
+
   // Pelanggan
   @override
   void cuBack() => _tap('#customers .cust59-head .back', 0, null, false);

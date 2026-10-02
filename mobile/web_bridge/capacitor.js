@@ -221,12 +221,14 @@
       helpTitle: txt('#home .help100 b'), helpText: txt('#home .help100 small')
     };
   }
-  function coveringOverlay() {
+  function coveringOverlay(skip) {
     // Overlays are body children or dialog/sheet/modal/overlay elements; checking only those keeps this cheap.
     var list = document.querySelectorAll('body > *, [role="dialog"], [class*="sheet"], [class*="modal"], [class*="overlay"], .show');
     for (var i = 0; i < list.length; i++) {
       var el = list[i];
       if (el.closest('#home') || el.closest('#gy156-nav') || el.classList.contains('page')) continue;
+      // Sheets drawn by Flutter itself (and everything inside them) do not hide the native page.
+      if (skip && skip.some(function (id) { return el.id === id || el.closest('#' + id); })) continue;
       var s = getComputedStyle(el);
       if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') continue;
       var r = el.getBoundingClientRect();
@@ -323,7 +325,35 @@
         label: txt('#f61-service-footer .f61-total small'), total: txt('#f61-total'), btn: ((foot.querySelector(':scope > button')) || {}).textContent || '' } : null;
       if (m.footer) m.footer.sum = m.footer.sum.replace(/\s+/g, ' ').trim();
     } else return null; // unknown stage: leave it to the HTML page
+    m.sheet = addorderSheet();
     return m;
+  }
+  function addorderSheet() {
+    var opt = document.getElementById('f61-options'), pay = document.getElementById('f61-payment');
+    if (pay && pay.classList.contains('show') && shown(pay)) {
+      var all = pay.querySelectorAll('.f61-paygrid button');
+      return { kind: 'payment', title: txt('#f61-payment h3'), label: txt('#f61-payment .f61-paytotal small'), total: txt('#f61-payamount'), id: txt('#f61-payment .f61-paytotal span'),
+        methods: Array.prototype.map.call(all, function (b, i) {
+          if (!shown(b) || !b.offsetParent) return null;
+          var ic = b.querySelector('.ic, :scope > span'), sm = b.querySelector('small');
+          return { i: i, t: ((b.querySelector('b')) || {}).textContent || '', svg: svgOf(ic), icon: ic && !ic.querySelector('svg') ? ic.textContent.trim() : '',
+            ic: ic ? getComputedStyle(ic).color : '', bg: ic ? getComputedStyle(ic).backgroundColor : '', s: sm && shown(sm) ? sm.textContent.trim() : '' };
+        }).filter(Boolean),
+        cancel: shown(pay.querySelector('.pay-cancel152')) ? txt('#f61-payment .pay-cancel152') : '' };
+    }
+    if (opt && opt.classList.contains('show') && shown(opt)) {
+      var labels = opt.querySelectorAll('.f61-sheet > label'), note = opt.querySelector('textarea'), main = opt.querySelector('.f61-main');
+      return { kind: 'options', title: txt('#f61-options h3'),
+        fields: Array.prototype.map.call(labels, function (l, k) {
+          if (!shown(l)) return null;
+          var sel = l.querySelector('select'), cb = l.querySelector('input[type=checkbox]'), sp = l.querySelector(':scope > span');
+          if (sel) return { k: k, type: 'select', label: sp ? sp.textContent.trim() : '', options: Array.prototype.map.call(sel.options, function (o) { return o.textContent.trim(); }), index: sel.selectedIndex };
+          if (cb) { var sm = sp && sp.querySelector('small'); return { k: k, type: 'switch', label: sp ? Array.prototype.filter.call(sp.childNodes, function (n) { return n !== sm; }).map(function (n) { return n.textContent; }).join('').trim() : '', sub: sm ? sm.textContent.trim() : '', on: cb.checked }; }
+          return null;
+        }).filter(Boolean),
+        note: field(note), main: main ? main.textContent.replace(/^[^A-Za-z]+/, '').trim() : '' };
+    }
+    return null;
   }
   // Pelanggan: daftar & database native; ranking (podium) tetap HTML saat dibuka.
   function customersModel() {
@@ -479,11 +509,13 @@
   }
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout') };
+  // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
+  var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;
     var page = document.querySelector('.page.active'), id = page && page.id;
-    var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay();
+    var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay(NATIVE_SHEETS[id]);
     var model = null;
     // A model error must never break the app: fall back to the HTML page.
     if (native) { try { model = NATIVE[id](); } catch (e) { console.warn('GOYANA native model', id, e); model = null; } }
@@ -501,6 +533,14 @@
     if (el) el.click();
     scheduleHome();
     return !!el;
+  };
+  window.__goyanaSelect = function (sel, index) {
+    var el = document.querySelector(sel);
+    if (!el || !el.options || !el.options[index]) return false;
+    el.selectedIndex = index;
+    ['input', 'change'].forEach(function (type) { el.dispatchEvent(new Event(type, { bubbles: true })); });
+    scheduleHome();
+    return true;
   };
   window.__goyanaSearch = function (sel, value) {
     var el = document.querySelector(sel);

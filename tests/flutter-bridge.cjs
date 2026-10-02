@@ -75,6 +75,33 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Tambah Transaksi steps 1-2 reach Flutter; search, duration, quantity sheet, category and toast use the HTML logic');
 
+  // Steps 3-4: Atur Pesanan & Pembayaran sheets are drawn natively; deeper popups (tunai, QRIS, ...) stay HTML.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('addorder')});await p.waitForTimeout(400);
+  last=await lastAdd();await p.evaluate(i=>__goyanaTap('#f61-customer .f61-person',i,'button'),last.model.people[0].i);await p.waitForTimeout(300);
+  await p.evaluate(()=>document.querySelectorAll('#f61-duration button')[0].click());await p.waitForTimeout(300);
+  const sv2=(await lastAdd()).model.items.find(x=>!x.h);
+  await p.evaluate(i=>__goyanaTap('#list116 .sv116',i),sv2.i);await p.waitForTimeout(300);
+  await p.evaluate(()=>{document.getElementById('qty116-in').value='2';saveQty116()});await p.waitForTimeout(300);
+  await p.evaluate(()=>__goyanaTap('#f61-service-footer > button'));await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'addorder','options sheet keeps the native page');assert.equal(last.model.sheet.kind,'options');
+  const perfume=last.model.sheet.fields.find(x=>x.label==='Parfum'),prio=last.model.sheet.fields.find(x=>x.type==='switch');
+  assert.ok(perfume.options.length>1&&prio);
+  await p.evaluate(k=>__goyanaSelect('#f61-options .f61-sheet > label:nth-of-type('+(k+1)+') select',1),perfume.k);
+  await p.evaluate(k=>__goyanaTap('#f61-options .f61-sheet > label:nth-of-type('+(k+1)+') input'),prio.k);
+  await p.evaluate(()=>__goyanaSearch('#f61-options textarea','12 pcs, rak B2'));await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.model.sheet.fields.find(x=>x.k===perfume.k).index,1);assert.equal(last.model.sheet.fields.find(x=>x.k===prio.k).on,true);assert.equal(last.model.sheet.note.v,'12 pcs, rak B2');
+  await p.evaluate(()=>__goyanaTap('#f61-options .f61-main'));await p.waitForTimeout(500);
+  last=await lastAdd();assert.equal(last.page,'addorder');assert.equal(last.model.sheet.kind,'payment');
+  assert.deepEqual(last.model.sheet.methods.map(x=>x.t),['Tunai','QRIS','Transfer','Bayar Nanti','DP / Uang Muka','Saldo Deposit']);
+  assert.match(last.model.sheet.total,/Rp/);assert.match(last.model.sheet.methods[0].svg,/^<svg/);
+  await p.evaluate(i=>__goyanaTap('#f61-payment .f61-paygrid button',i),last.model.sheet.methods[0].i);await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'cash popup stays HTML and hides the native page');
+  if(await p.evaluate(()=>typeof window.cancelPayment154==='function'))await p.evaluate(()=>cancelPayment154());
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(!['lg167','f61-payment'].includes(e.id))e.classList.remove('show')})});await p.waitForTimeout(400);
+  const back=await lastAdd();assert.equal(back.page,'addorder');assert.equal(back.model.sheet&&back.model.sheet.kind,'payment','closing the popup returns to the native payment sheet');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Atur Pesanan & Pembayaran sheets are native; selects, switch, note and payment buttons use the HTML logic');
+
   // Pelanggan: list + database native, ranking stays HTML.
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customers')});await p.waitForTimeout(400);
   last=await lastAdd();assert.equal(last.page,'customers');assert.equal(last.model.db.open,false);assert.match(last.model.add,/Tambah Pelanggan/);

@@ -112,6 +112,20 @@ class _NoAddActions implements AddOrderActions {
   void aoService(int index) {}
   @override
   void aoNext() {}
+  @override
+  void aoSheetSelect(int field, int option) {}
+  @override
+  void aoSheetSwitch(int field) {}
+  @override
+  void aoSheetNote(String text) {}
+  @override
+  void aoSheetMain() {}
+  @override
+  void aoSheetClose() {}
+  @override
+  void aoPay(int index) {}
+  @override
+  void aoPayCancel() {}
 }
 
 const _avatar = '<svg viewBox="0 0 64 64"><path d="M17 54c1.2-8.4 6.1-12.6 15-12.6S45.8 45.6 47 54" fill="#5C97F8"/><circle cx="32" cy="26" r="11" fill="#FFD6B3"/><path d="M21 24.5c0-8.5 4.5-13.5 11-13.5 6.6 0 11 5 11 13.5v2.1H21v-2.1z" fill="#26384D"/><circle cx="28" cy="26" r="1.3" fill="#26384D"/><circle cx="36" cy="26" r="1.3" fill="#26384D"/><path d="M29 31c1.6 1.6 4.4 1.6 6 0" stroke="#D58A78" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>';
@@ -126,7 +140,7 @@ final _addCustomer = AddOrderModel.fromJson({
   ],
 });
 
-final _addServices = AddOrderModel.fromJson({
+final _addServicesJson = <String, dynamic>{
   'title': 'Tambahkan Layanan', 'step': 'Langkah 2 dari 5', 'stage': 'services', 'search': {'v': '', 'ph': 'Cari layanan Express'},
   'customer': {'name': 'Sari Dewi', 'sub': 'Express · 24 Jam', 'avatar': _avatar},
   'durations': [{'t': 'Reguler', 's': '72 Jam', 'on': false}, {'t': 'Express', 's': '24 Jam', 'on': true}, {'t': 'Kilat', 's': '6 Jam', 'on': false}],
@@ -139,7 +153,8 @@ final _addServices = AddOrderModel.fromJson({
     {'i': 2, 'svg': _bed, 't': 'Sprei', 's': 'Rp 22.500 / pcs · 24 Jam', 'btn': 'Pilih', 'on': false},
   ],
   'footer': {'name': 'Sari Dewi', 'sum': '3 kg · 0 pcs · 0 m', 'label': 'Total Layanan', 'total': 'Rp 31.500', 'btn': 'LANJUT ›'},
-});
+};
+final _addServices = AddOrderModel.fromJson(_addServicesJson);
 
 class _NoCustActions implements CustomersActions {
   @override
@@ -317,6 +332,30 @@ class _NoCashCloseActions implements CashCloseActions {
   void ccType(String selector, String value) {}
 }
 
+const _cashIcon = '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="#15a36b" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="#15a36b"/></svg>';
+final _addPayment = AddOrderModel.fromJson({
+  ..._addServicesJson,
+  'sheet': {'kind': 'payment', 'title': 'Pembayaran', 'label': 'Total Tagihan', 'total': 'Rp 31.500', 'id': 'GY-261003-0133', 'cancel': 'Batalkan Pesanan',
+    'methods': [
+      {'i': 0, 't': 'Tunai', 'svg': _cashIcon, 'bg': 'rgb(230, 247, 238)', 'ic': 'rgb(21, 163, 107)', 's': ''},
+      {'i': 1, 't': 'QRIS', 'svg': _cashIcon, 'bg': 'rgb(255, 240, 241)', 'ic': 'rgb(232, 73, 63)', 's': ''},
+      {'i': 2, 't': 'Transfer', 'svg': _cashIcon, 'bg': 'rgb(234, 242, 253)', 'ic': 'rgb(43, 127, 212)', 's': ''},
+      {'i': 3, 't': 'Bayar Nanti', 'svg': _cashIcon, 'bg': 'rgb(255, 245, 220)', 'ic': 'rgb(201, 138, 6)', 's': ''},
+      {'i': 10, 't': 'DP / Uang Muka', 'svg': '', 'icon': '½', 'ic': 'rgb(232, 73, 63)', 's': ''},
+      {'i': 11, 't': 'Saldo Deposit', 'svg': '', 'icon': '◈', 'ic': 'rgb(232, 73, 63)', 's': 'Saldo Rp50.000'},
+    ]},
+});
+final _addOptions = AddOrderModel.fromJson({
+  ..._addServicesJson,
+  'sheet': {'kind': 'options', 'title': 'Atur Pesanan', 'main': 'Buat Pesanan', 'note': {'v': '', 'ph': 'Catatan: jumlah pakaian, no rak, kondisi'},
+    'fields': [
+      {'k': 0, 'type': 'select', 'label': 'Parfum', 'options': ['Tanpa Parfum', 'Lavender'], 'index': 1},
+      {'k': 1, 'type': 'select', 'label': 'Penyerahan', 'options': ['Datang Langsung', 'Antar ke Pelanggan'], 'index': 0},
+      {'k': 2, 'type': 'switch', 'label': 'Jadikan Prioritas', 'sub': 'naik ke atas antrian', 'on': true},
+      {'k': 3, 'type': 'select', 'label': 'Diskon', 'options': ['Tidak', 'Diskon manual (Rp)…'], 'index': 0},
+    ]},
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -364,7 +403,7 @@ void main() {
   }
 
   for (final width in [320.0, 390.0]) {
-    for (final entry in {'addorder_customer': _addCustomer, 'addorder_services': _addServices}.entries) {
+    for (final entry in {'addorder_customer': _addCustomer, 'addorder_services': _addServices, 'addorder_options': _addOptions, 'addorder_payment': _addPayment}.entries) {
       testWidgets('Tambah Transaksi ${entry.key} at $width px', (tester) async {
         tester.view.physicalSize = Size(width * 2, 844 * 2);
         tester.view.devicePixelRatio = 2;
