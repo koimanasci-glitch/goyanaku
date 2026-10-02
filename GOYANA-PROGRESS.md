@@ -46,3 +46,8 @@ Domain, VPS, layanan email, produk Play, merchant gateway, WA dan API key produk
 - API `GET /api/sync/pull`, `POST /api/sync/push` + modul `goyana-sync-core.js` (head) & `goyana-v197-sync.js`. Rincian: GOYANA-SISTEM-PUSAT.md §40.
 - Uji: 42 PHPUnit, `tests/sync-e2e.cjs` (3 HP + server), semua tes browser lama tetap lulus.
 - Untuk mengaktifkan di APK: isi variabel GitHub `GOYANA_API_URL` setelah server dideploy.
+
+## Flutter native bertahap — Claude, 2 Oktober 2026 (branch flutter/native)
+- SQLite di HP menggantikan localStorage WebView (data lama dipindah otomatis).
+- Beranda digambar native Flutter (lib/native/home_page.dart), identik dengan HTML; logika & aksi masih dari HTML (aman, fallback otomatis). Font Poppins ditanam di APK.
+- Urutan berikutnya: Pesanan → Tambah Transaksi/Pembayaran → Pelanggan → Laporan/Kas → sisanya.

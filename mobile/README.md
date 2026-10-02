@@ -54,3 +54,17 @@ Workflow **Flutter Android (hybrid)** menguji jembatan di browser (`tests/flutte
 ## Penyimpanan data di HP: SQLite
 
 `window.localStorage` diganti oleh `web_bridge/goyana-store.js` yang memakai database SQLite di HP (`GoyanaStore.kt`, file `goyana.db`). Kode aplikasi tidak berubah. Data lama dari WebView dipindah otomatis sekali. Nilai besar dipecah per 256 KB sehingga snapshot pesanan tidak terkena batas baris Android (~2 MB). Kapasitas mengikuti sisa memori HP, bukan lagi ±5 MB.
+
+## Migrasi ke halaman Flutter native (bertahap)
+
+Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
+- Aplikasi HTML tetap berjalan di bawah dan menjadi sumber logika & data (SQLite yang sama).
+- `web_bridge/capacitor.js` melaporkan isi halaman (angka, teks) dan kapan halaman itu tampil; Flutter menggambar versi native hanya saat itu.
+- Setiap tombol native menjalankan aksi elemen HTML yang sama (`__goyanaTap`), sehingga alur & hasil identik. Jika ada masalah, versi HTML tetap terlihat di bawahnya.
+- CI merender halaman native (320/390/412 px) dan mengirim PNG ke branch `ci-screens` untuk dibandingkan dengan HTML.
+
+| Halaman | Status |
+|---|---|
+| Beranda | ✅ native (logika masih dari HTML) |
+| Pesanan, Tambah Transaksi, Pembayaran, Pelanggan, Laporan, Kas | berikutnya |
+| Pengaturan, stok, kurir, WhatsApp, dll. | bertahap |

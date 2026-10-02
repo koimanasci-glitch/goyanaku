@@ -84,7 +84,9 @@ class NativeHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = topInset ?? MediaQuery.paddingOf(context).top;
-    return ColoredBox(
+    return Material(
+      type: MaterialType.transparency,
+      child: ColoredBox(
       color: const Color(0xfff4f6f8),
       child: Stack(children: [
         const Positioned.fill(child: _PageBackground()),
@@ -105,6 +107,7 @@ class NativeHome extends StatelessWidget {
         ),
         Positioned(left: 0, right: 0, bottom: 0, child: _BottomNav(onTap: actions.nav)),
       ]),
+      ),
     );
   }
 }
