@@ -187,6 +187,22 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Layanan list, search and switches reach Flutter and use the HTML logic');
 
+  // Generic native form (Printer & Nota): fields, toggles, radios and save use the HTML elements.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('printer')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'printer');
+  const kinds=last.model.items.map(x=>x.type);['card','label','input','toggle','choice','button'].forEach(k=>assert.ok(kinds.includes(k),'form has '+k));
+  const header=last.model.items.find(x=>x.type==='input');
+  await p.evaluate(i=>__goyanaForm('printer','input',i,'Laundry Native'),header.i);
+  const tog=last.model.items.find(x=>x.type==='toggle');await p.evaluate(i=>__goyanaForm('printer','toggle',i),tog.i);
+  const size=last.model.items.find(x=>x.type==='choice').options[1];await p.evaluate(i=>__goyanaForm('printer','radio',i),size.i);
+  await p.waitForTimeout(300);last=await lastAdd();
+  assert.equal(last.model.items.find(x=>x.type==='input'&&x.i===header.i).v,'Laundry Native');
+  assert.equal(last.model.items.find(x=>x.type==='toggle'&&x.i===tog.i).on,!tog.on);
+  assert.ok(last.model.items.find(x=>x.type==='choice').options[1].on);
+  assert.equal(await p.evaluate(()=>document.querySelector('#printer .content input.printer-input').value),'Laundry Native');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS generic native form (Printer & Nota) writes to the HTML fields, toggles and choices');
+
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.
   await p.evaluate(()=>openPage('cashclose'));await p.waitForTimeout(400);
@@ -206,7 +222,9 @@ try{
   if(process.env.UPDATE_NATIVE_FIXTURES){fs.mkdirSync(path.join(root,'mobile/test/fixtures'),{recursive:true});fs.writeFileSync(path.join(root,'mobile/test/fixtures/cashclose.json'),JSON.stringify(last.model,null,2));}
   await p.evaluate(()=>{document.activeElement.blur();window.scrollTo(0,0);document.querySelectorAll('#cashclose, #cashclose .content').forEach(e=>e.scrollTop=0)});
   for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.screenshot({path:path.join(root,'mobile/test/screens/cashclose_html_'+width+'.png')});}
-  await p.evaluate(()=>__goyanaTap('#cashclose .kc137-go'));await p.waitForTimeout(350);
+  await p.evaluate(()=>__goyanaTap('#cashclose .kc137-go'));
+  // The confirmation sheet fades in; wait until Flutter is told to step aside (no fixed delay: CI machines vary).
+  await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native').at(-1);return e&&e.page===null},null,{timeout:4000}).catch(()=>{});
   assert.equal((await lastAdd()).page,null,'confirmation stays visible above native cash close');
   await p.getByRole('button',{name:'Ya, Tutup Kas',exact:true}).click();await p.waitForTimeout(500);
   assert.equal((await lastAdd()).page,null,'shift receipt is an HTML sheet');

@@ -376,6 +376,49 @@
     return { title: txt('#services .subhead b'), search: field(search), add: shown(add) ? add.textContent.trim() : '', cats: list,
       empty: shown(empty) ? empty.textContent.trim() : '', note: note && shown(note) ? note.textContent.replace(/\s+/g, ' ').trim() : '' };
   }
+  // Formulir generik (mis. Printer & Nota): elemen dibaca berurutan dari DOM, setiap isian & tombol memakai elemen HTML aslinya.
+  function formModel(id) {
+    return function () {
+      var page = document.getElementById(id), root = page && page.querySelector('.content');
+      if (!root) return null;
+      var q = function (sel) { return Array.prototype.slice.call(root.querySelectorAll(sel)); };
+      var inputs = q('input:not([type=checkbox]):not([type=radio]), textarea, select'), boxes = q('input[type=checkbox]'), radios = q('input[type=radio]'), buttons = q('button');
+      var items = [], seen = new Set();
+      function clean(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
+      (function walk(el) {
+        Array.prototype.forEach.call(el.children, function (c) {
+          if (seen.has(c) || !shown(c)) return;
+          var tag = c.tagName, cls = c.className || '';
+          var cb = c.querySelector && c.querySelector(':scope > input[type=checkbox]');
+          if (tag === 'LABEL' && cb) { seen.add(c); items.push({ type: 'toggle', t: clean(c.querySelector('span')), on: cb.checked, i: boxes.indexOf(cb) }); return; }
+          if (c.querySelector && c.querySelector(':scope > label > input[type=radio]')) {
+            seen.add(c);
+            items.push({ type: 'choice', t: clean(c.querySelector(':scope > b')), options: Array.prototype.map.call(c.querySelectorAll('input[type=radio]'), function (r) {
+              return { t: clean(r.parentElement.querySelector('span')), on: r.checked, i: radios.indexOf(r) }; }) });
+            return;
+          }
+          if (tag === 'BUTTON') {
+            var sm = c.querySelector('small'), b = c.querySelector('b');
+            items.push(sm ? { type: 'card', t: clean(b), s: clean(sm), svg: svgOf(c), i: buttons.indexOf(c) }
+              : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go/.test(cls), i: buttons.indexOf(c) });
+            return;
+          }
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+            items.push(tag === 'SELECT' ? { type: 'select', options: Array.prototype.map.call(c.options, function (o) { return o.textContent.trim(); }), index: c.selectedIndex, i: inputs.indexOf(c) }
+              : { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), i: inputs.indexOf(c) });
+            return;
+          }
+          if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
+          if (tag === 'P') { items.push({ type: 'hint', t: clean(c) }); return; }
+          var btn = c.querySelector && c.querySelector(':scope > button'), span = c.querySelector && c.querySelector(':scope > span');
+          if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
+          if (!c.children.length && clean(c)) { items.push({ type: 'title', t: clean(c) }); return; }
+          walk(c);
+        });
+      })(root);
+      return { title: txt('#' + id + ' .subhead b'), items: items };
+    };
+  }
   // Pelanggan: daftar & database native; ranking (podium) tetap HTML saat dibuka.
   function customersModel() {
     var rank = document.getElementById('rk138');
@@ -529,7 +572,7 @@
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer') };
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
@@ -561,6 +604,20 @@
     if (el) el.click();
     scheduleHome();
     return !!el;
+  };
+  /** Generic native forms: act on the i-th field of a kind inside #id .content (same order as formModel). */
+  window.__goyanaForm = function (id, kind, i, value) {
+    var root = document.querySelector('#' + id + ' .content');
+    if (!root) return false;
+    var sel = { input: 'input:not([type=checkbox]):not([type=radio]), textarea, select', toggle: 'input[type=checkbox]', radio: 'input[type=radio]', button: 'button' }[kind];
+    var el = sel && root.querySelectorAll(sel)[i];
+    if (!el) return false;
+    if (kind === 'input') {
+      if (el.tagName === 'SELECT') el.selectedIndex = value; else el.value = value;
+      ['input', 'keyup', 'change'].forEach(function (type) { el.dispatchEvent(new Event(type, { bubbles: true })); });
+    } else el.click();
+    scheduleHome();
+    return true;
   };
   window.__goyanaSelect = function (sel, index) {
     var el = document.querySelector(sel);
