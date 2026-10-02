@@ -10,7 +10,7 @@ Permintaan 1 Oktober 2026: halaman terpisah untuk pengaturan trigger balasan cep
 - Pengaturan AI: aktivasi, nama asisten, instruksi, pengetahuan tambahan, gambar dan pilihan membaca harga/status dari aplikasi.
 - Uji jawaban data aplikasi membaca harga layanan aktif saat pertanyaan diajukan. Status pesanan hanya dibaca untuk outlet aktif dan nomor pelanggan yang cocok. Tidak memakai contoh harga/status fiktif.
 - Pengaturan dan draft disimpan per outlet di localStorage, bukan sinkron antarperangkat.
-- Balasan Cepat & Trigger mengikuti akses quick (Super Pro Chatbot); AI mengikuti akses ai (Platinum). Satuan/hak add-on tetap mengikuti batas prototype v190 dan belum terhubung entitlement server.
+- Balasan Cepat & Trigger mulai Silver; AI dan nota otomatis mulai Gold; WA Blast hanya Platinum. AI memerlukan top-up terpisah, harga top-up belum ditentukan. Pembayaran dan entitlement server belum terhubung.
 - WA Blast: pilih nomor pelanggan valid, deduplikasi nomor, konfirmasi persetujuan promo, teks dengan placeholder nama, gambar, simpan/hapus draft. Tidak mengirim pesan dan tidak mencatat sukses palsu.
 
 ## Belum terhubung
