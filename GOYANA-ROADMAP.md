@@ -1378,7 +1378,7 @@ Status: **kebutuhan pengguna dan usulan rancangan backend mendatang; bukan fungs
 - Pengguna menginginkan nomor WhatsApp pusat, marketing, dan customer service yang dikelola pada layanan pusat.
 - [ ] Konfigurasi nomor/device beserta fungsi masing-masing; nomor CS pusat Goyana berbeda dari chatbot setiap laundry yang melayani pelanggan laundry.
 - [ ] Hubungkan nomor CS ke backend agar dapat membantu pelanggan usaha Goyana mengenai akun, perangkat, paket, sinkronisasi, dan koneksi WhatsApp.
-- Chatku merupakan calon sistem gateway yang dapat digunakan kembali. Kelengkapan kode/API/webhook/monitoring/isolasinyanya perlu diperiksa sebelum menetapkan integrasi; jangan menganggap seluruh kemampuan tersedia hanya berdasarkan nama modul.
+- Chatku merupakan calon sistem gateway yang dapat digunakan kembali. Kelengkapan kode/API/webhook/monitoring/isolasinya perlu diperiksa sebelum menetapkan integrasi; jangan menganggap seluruh kemampuan tersedia hanya berdasarkan nama modul.
 - [ ] Monitor status koneksi, error, antrean pesan, kegagalan sinkronisasi, dan layanan terkait dari panel administrator. Penggunaan kembali Chatku tidak berarti backend bisnis Goyana digabung tanpa batas dengan data Chatku.
 
 ### Diagnosis dari laporan pelanggan
@@ -1417,3 +1417,19 @@ Status: **arah sistem yang diminta pengguna; belum dibangun/aktif.** Melanjutkan
 - [ ] Pisahkan AI pusat pendukung layanan Goyana dari AI chatbot masing-masing laundry; data usaha tetap terisolasi. Kuota/top-up pelanggan laundry tidak otomatis menjadi biaya AI pusat.
 - [ ] Uji kasus yang dikenali, identitas tidak cocok, gangguan lintas usaha, diagnosis tidak pasti, retry duplikat, pemulihan gagal, dan keberhasilan yang diverifikasi.
 - Tingkat otomatisasi penuh tidak boleh dijanjikan sebelum integrasi dan uji operasional selesai. Sasaran awal: diagnosis dan penanganan rutin otomatis, dengan manusia untuk kasus yang belum aman atau belum terdefinisi.
+
+
+## 43. Ringkasan Terpadu Sistem Pusat — 2 Oktober 2026
+
+Acuan lengkap pembahasan terdapat di [GOYANA-SISTEM-PUSAT.md](./GOYANA-SISTEM-PUSAT.md).
+
+Dokumen tersebut merangkum:
+- status prototype Capacitor dan target Flutter/Laravel;
+- akun Google/email, pendaftaran, pemulihan akses, role dan perangkat;
+- katalog terbaru, billing Play/web, pemisahan pembayaran paket dan jasa laundry;
+- sync offline, keuangan/stok, WhatsApp/Chatku, jadwal dan tugas kurir;
+- administrator/CS, AI pusat yang dipanggil saat perlu, aturan anti-spam dan balasan ulasan Play;
+- monitoring VPS, scaling, backup luar VPS/restore, bantuan jarak jauh dengan izin;
+- CRM pusat yang memisahkan akun usaha Goyana dari pelanggan akhir laundry, beserta izin marketing.
+
+**Status: spesifikasi/keputusan/usulan yang telah ditandai; belum membangun, men-deploy, atau mengaktifkan server/integrasi dalam pencatatan ini.** Fondasi dapat dibangun sebelum email pengirim, merchant gateway dan kredensial produksi siap. Jangan menganggap konsep otomatisasi sebagai izin membeli VPS, mengakses HP pelanggan, atau mengirim marketing tanpa batas.
