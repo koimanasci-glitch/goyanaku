@@ -72,5 +72,6 @@ Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
 | Pelanggan | ✅ native (daftar & database ditata ulang; ranking/podium masih HTML saat dibuka) |
 | Laporan | ✅ native (ringkasan, KPI, aksi cepat, cari, daftar; angka dari HTML). Detail laporan & tanggal kustom masih HTML |
 | Pengaturan | ✅ native (kartu sinkron, grup akordeon, kartu paket, keluar akun). Halaman tujuan masih HTML |
-| Pembayaran (native), Kas, Kurir, Stok, halaman tujuan Pengaturan | berikutnya |
+| Kas Masuk & Pengeluaran | ✅ native (formulir; simpan lewat logika HTML) |
+| Pembayaran (native), Tutup Kasir, Kurir, Stok, halaman tujuan Pengaturan | berikutnya |
 | Pengaturan, stok, kurir, WhatsApp, dll. | bertahap |
