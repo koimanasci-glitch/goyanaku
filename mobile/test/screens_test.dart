@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/native/addorder_page.dart';
+import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
 
@@ -135,6 +136,54 @@ final _addServices = AddOrderModel.fromJson({
   'footer': {'name': 'Sari Dewi', 'sum': '3 kg · 0 pcs · 0 m', 'label': 'Total Layanan', 'total': 'Rp 31.500', 'btn': 'LANJUT ›'},
 });
 
+class _NoCustActions implements CustomersActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void cuBack() {}
+  @override
+  void cuSearch(String text) {}
+  @override
+  void cuDeposit() {}
+  @override
+  void cuAdd() {}
+  @override
+  void cuToggleDb() {}
+  @override
+  void cuFilter() {}
+  @override
+  void cuTopUp(int index) {}
+  @override
+  void cuEdit(int index) {}
+  @override
+  void cuPage(int delta) {}
+  @override
+  void cuRank() {}
+  @override
+  void cuCrm() {}
+}
+
+Map<String, dynamic> _custRow(int i, String name, String line, String spend, String orders, String last) => {
+      'i': i, 'name': name, 'avatar': _avatar, 'lines': [line], 'spend': spend, 'orders': orders, 'last': last,
+      'balance': 'Saldo Rp0', 'topup': 'Top Up Saldo', 'edit': 'Edit',
+    };
+
+final _customers = CustomersModel.fromJson({
+  'title': 'Pelanggan', 'sub': 'Kelola data pelanggan laundry', 'search': {'v': '', 'ph': 'Cari nama / no handphone'},
+  'deposit': 'Saldo Pelanggan · Top Up & Riwayat', 'add': 'Tambah Pelanggan',
+  'db': {'t': 'Database Pelanggan', 's': '3 pelanggan tersimpan', 'open': true},
+  'rank': {'t': 'Ranking Pelanggan', 's': 'Transaksi terbanyak & belanja terbesar', 'icon': '🏆'},
+  'crm': {'t': 'CRM Pelanggan', 'badge': 'PLATINUM', 's': 'Pengingat cucian · Poin member · Voucher kode unik', 'icon': '💎'},
+  'dbTitle': 'Daftar Pelanggan', 'dbSub': 'Database pelanggan outlet', 'filter': 'Filter ▾',
+  'rows': [
+    _custRow(0, 'Budi Santoso', '081200000001 · Jakarta', 'Belanja Rp245.000', '12', '2 hari lalu'),
+    _custRow(1, 'Sari Dewi Kusumawardhani Pratiwi', '081200000002 · Jl. Raya Bekasi No. 12, Jakarta Timur', 'Belanja Rp0', '0', 'Baru'),
+  ],
+  'pager': {'prev': '‹ Sebelumnya', 'next': 'Berikutnya ›', 'info': 'Hal 1 dari 3', 'canPrev': false, 'canNext': true},
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -202,5 +251,26 @@ void main() {
         await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/${entry.key}_${width.toInt()}.png'));
       });
     }
+  }
+
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Pelanggan native at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 1100 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeCustomers(model: _customers, actions: _NoCustActions(), topInset: 0),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/customers_${width.toInt()}.png'));
+    });
   }
 }
