@@ -431,13 +431,32 @@
       logout: shown(lo) ? lo.textContent.trim() : '', version: txt('#settings .st171-ver'), tutorial: shown(tut) ? tut.textContent.trim() : ''
     };
   }
+  // Kas Masuk / Pengeluaran: formulir native; nilai ditulis ke input HTML yang sama, tombol simpan memakai logika HTML.
+  function cashModel(id) {
+    return function () {
+      var page = document.getElementById(id);
+      var sel = page && page.querySelector('select.cash-input'), amt = page && page.querySelector('.cash-input-group input');
+      var note = page && page.querySelector('.cash-form-wrap > label:nth-child(3) input'), btn = page && page.querySelector('.cash-submit');
+      if (!sel || !amt || !note || !btn) return null;
+      return {
+        title: txt('#' + id + ' .subhead b'), heading: txt('#' + id + ' .report-title-line b'),
+        stats: Array.prototype.filter.call(page.querySelectorAll('.cash-stat-list .report-stat-row'), shown).map(function (r) {
+          var ic = r.querySelector('.report-stat-icon'), left = r.querySelector('.report-stat-left');
+          return { icon: ic ? ic.textContent.trim() : '', kind: ic && ic.classList.contains('noncash') ? 'noncash' : 'cash',
+            t: left ? left.textContent.replace(ic ? ic.textContent : '', '').trim() : '', v: ((r.querySelector('strong')) || {}).textContent || '' };
+        }),
+        type: { v: sel.value, options: Array.prototype.map.call(sel.options, function (o) { return o.textContent.trim(); }), index: sel.selectedIndex },
+        amount: field(amt), note: field(note), submit: btn.textContent.trim(), subtract: btn.classList.contains('subtract')
+      };
+    };
+  }
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashin: cashModel('cashin'), cashout: cashModel('cashout') };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;

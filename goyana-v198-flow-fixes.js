@@ -40,5 +40,16 @@
     }).observe(stage, { childList: true });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+  // Kas Masuk / Pengeluaran: saldo di atas formulir baru berubah setelah halaman dibuka ulang. Segarkan setelah simpan.
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest && e.target.closest('#cashin .cash-submit, #cashout .cash-submit');
+    if (!b) return;
+    var id = b.closest('.page').id;
+    setTimeout(function () {
+      var page = document.getElementById(id), amt = page && page.querySelector('.cash-input-group input');
+      // Saved = the app cleared the amount; then re-render the page so the balances are current.
+      if (page && page.classList.contains('active') && amt && !amt.value.trim() && typeof window.openPage === 'function') window.openPage(id);
+    }, 150);
+  });
   window.GoyanaFlowFix198 = { filterCustomers: filterCustomers };
 })();

@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../native/addorder_page.dart';
+import '../native/cash_page.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/home_page.dart';
@@ -44,7 +45,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -56,6 +57,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   CustomersModel _customers = const CustomersModel();
   ReportsModel _reports = const ReportsModel();
   SettingsModel _settings = const SettingsModel();
+  CashModel _cash = const CashModel();
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -184,6 +186,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
+        if ((page == 'cashin' || page == 'cashout') && model != null) _cash = CashModel.fromJson(model);
         final toast = page == null ? '' : (data['toast'] as String? ?? '');
         if (toast.isNotEmpty && toast != _toast) {
           _toastTimer?.cancel();
@@ -318,6 +321,19 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void stLogout() => _tap('#settings .lo167');
   @override
   void stTutorial() => _tap('#tutorial189-open');
+
+  // Kas Masuk / Pengeluaran
+  String get _cashPage => _nativePage == 'cashout' ? '#cashout' : '#cashin';
+  @override
+  void caBack() => _tap('$_cashPage .subhead .back', 0, null, false);
+  @override
+  void caType(String option) => _type('$_cashPage select.cash-input', option);
+  @override
+  void caAmount(String text) => _type('$_cashPage .cash-input-group input', text);
+  @override
+  void caNote(String text) => _type('$_cashPage .cash-form-wrap > label:nth-child(3) input', text);
+  @override
+  void caSubmit() => _tap('$_cashPage .cash-submit', 0, null, false);
 
   Future<NavigationDecision> _onNavigation(NavigationRequest request) async {
     final uri = Uri.tryParse(request.url);
@@ -480,6 +496,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeHome(model: _home, actions: this)),
             if (_nativePage == 'orders' && !_loading)
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
+            if ((_nativePage == 'cashin' || _nativePage == 'cashout') && !_loading)
+              Positioned.fill(child: NativeCash(key: ValueKey(_nativePage), model: _cash, actions: this)),
             if (_nativePage == 'settings' && !_loading)
               Positioned.fill(child: NativeSettings(model: _settings, actions: this)),
             if (_nativePage == 'reports' && !_loading)

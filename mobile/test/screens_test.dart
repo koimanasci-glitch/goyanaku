@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/native/addorder_page.dart';
+import 'package:goyana_flutter/native/cash_page.dart';
 import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
@@ -279,6 +280,30 @@ final _settings = SettingsModel.fromJson({
   'logout': 'Keluar Akun', 'version': 'GOYANA Laundry · versi 2.7', 'tutorial': 'Panduan awal Goyana',
 });
 
+class _NoCashActions implements CashActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void caBack() {}
+  @override
+  void caType(String option) {}
+  @override
+  void caAmount(String text) {}
+  @override
+  void caNote(String text) {}
+  @override
+  void caSubmit() {}
+}
+
+final _cash = CashModel.fromJson({
+  'title': 'Penambahan Kas', 'heading': 'Saldo Kas',
+  'stats': [{'icon': r'$', 'kind': 'cash', 't': 'Saldo Tunai', 'v': 'Rp1.250.000'}, {'icon': '◌', 'kind': 'noncash', 't': 'Saldo Non-Tunai', 'v': 'Rp3.480.000'}],
+  'type': {'v': 'Tunai', 'options': ['Tipe Kas', 'Tunai', 'Non-Tunai'], 'index': 1},
+  'amount': {'v': '50.000', 'ph': 'Jumlah'}, 'note': {'v': '', 'ph': 'Keterangan'}, 'submit': 'Tambah Kas', 'subtract': false,
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -408,6 +433,27 @@ void main() {
       }
       expect(tester.takeException(), isNull);
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/settings_${width.toInt()}.png'));
+    });
+  }
+
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Kas Masuk native at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 844 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeCash(model: _cash, actions: _NoCashActions(), topInset: 0),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/cashin_${width.toInt()}.png'));
     });
   }
 }

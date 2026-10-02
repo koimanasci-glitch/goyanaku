@@ -133,6 +133,19 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Pengaturan groups, sync card and package card reach Flutter; accordion and items use the HTML logic');
 
+  // Kas Masuk / Pengeluaran: native form writes into the HTML inputs; saving runs the HTML logic.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('cashin')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'cashin');assert.equal(last.model.stats.length,2);assert.deepEqual(last.model.type.options,['Tipe Kas','Tunai','Non-Tunai']);
+  const cashBefore=last.model.stats[0].v;
+  await p.evaluate(()=>{__goyanaSearch('#cashin select.cash-input','Tunai');__goyanaSearch('#cashin .cash-input-group input','50000');__goyanaSearch('#cashin .cash-form-wrap > label:nth-child(3) input','Modal awal')});
+  await p.waitForTimeout(300);last=await lastAdd();assert.equal(last.model.type.index,1);assert.match(last.model.amount.v,/50/);
+  await p.evaluate(()=>__goyanaTap('#cashin .cash-submit'));await p.waitForTimeout(700);
+  last=await lastAdd();assert.equal(last.model.amount.v,'');assert.notEqual(last.model.stats[0].v,cashBefore,'cash balance updated by the HTML logic: '+cashBefore+' -> '+last.model.stats[0].v);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('cashout')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'cashout');assert.equal(last.model.subtract,true);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Kas Masuk / Pengeluaran forms reach Flutter and save through the HTML logic');
+
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));
   const save=await p.evaluate(()=>__calls.find(c=>c.plugin==='Files'&&c.method==='save').args);
