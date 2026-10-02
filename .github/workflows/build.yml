@@ -65,10 +65,23 @@ jobs:
         run: |
           cp app/android/app/build/outputs/apk/debug/app-debug.apk GOYANA-Android-Terbaru.apk
 
+      - name: Build APK Uji terpisah
+        run: |
+          python tools/prepare_web.py . app/www --test-mode
+          python tools/prepare_test_android.py app
+          cd app
+          npx cap copy android
+          cd android
+          ./gradlew assembleDebug
+          cd ../..
+          cp app/android/app/build/outputs/apk/debug/app-debug.apk GOYANA-Mode-Uji.apk
+
       - uses: actions/upload-artifact@v4
         with:
           name: GOYANA-demo-apk
-          path: GOYANA-Android-Terbaru.apk
+          path: |
+            GOYANA-Android-Terbaru.apk
+            GOYANA-Mode-Uji.apk
 
       - name: Perbarui tag Android terbaru
         if: github.ref == 'refs/heads/main'
@@ -88,5 +101,4 @@ jobs:
           else
             gh release create android-latest --title "GOYANA Android Terbaru" --notes "APK Android GOYANA terbaru. Dibangun otomatis dari branch main. Commit: $GITHUB_SHA" --latest
           fi
-          gh release upload android-latest GOYANA-Android-Terbaru.apk --clobber
-
+          gh release upload android-latest GOYANA-Android-Terbaru.apk GOYANA-Mode-Uji.apk --clobber

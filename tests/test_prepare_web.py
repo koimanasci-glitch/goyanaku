@@ -33,5 +33,18 @@ class PrepareWebTests(unittest.TestCase):
             self.assertIn('</body>', tail)
             self.assertTrue(result.strip().endswith('</html>'))
 
+    def test_test_mode_is_excluded_from_standard_and_removed_on_rebuild(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            normal = module.prepare(ROOT, target)
+            self.assertNotIn(module.TEST_PATCH, normal)
+            self.assertFalse((target / module.TEST_PATCH).exists())
+            test = module.prepare(ROOT, target, test_mode=True)
+            self.assertEqual(test.count(f'<script src="{module.TEST_PATCH}"></script>'), 1)
+            self.assertTrue((target / module.TEST_PATCH).exists())
+            normal = module.prepare(ROOT, target)
+            self.assertNotIn(module.TEST_PATCH, normal)
+            self.assertFalse((target / module.TEST_PATCH).exists())
+
 if __name__ == '__main__':
     unittest.main()
