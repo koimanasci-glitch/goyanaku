@@ -174,8 +174,10 @@ try{
   console.log('PASS Kas Masuk / Pengeluaran forms reach Flutter and save through the HTML logic');
 
   // Layanan: list, search and per-duration switches run the HTML logic.
-  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('services')});await p.waitForTimeout(400);
-  last=await lastAdd();assert.equal(last.page,'services');assert.ok(last.model.cats.length>=3);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('services')});
+  // The service list renders asynchronously; poll instead of a fixed delay (slow CI machines).
+  await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native').at(-1);return e&&e.page==='services'&&e.model.cats.length>=3},null,{timeout:6000}).catch(()=>{});
+  last=await lastAdd();assert.equal(last.page,'services');assert.ok(last.model.cats.length>=3,'services listed: '+last.model.cats.length);
   const svc0=last.model.cats[0];assert.equal(svc0.vars.length,3);assert.match(svc0.vars[0].price,/Rp/);assert.ok(svc0.chain.length>=3);
   const wasOn=svc0.vars[2].on;
   await p.evaluate(([i,j])=>__goyanaTapIn('#cat99-list .cat99',i,'.v99 input',j),[svc0.i,2]);await p.waitForTimeout(300);
