@@ -330,3 +330,21 @@ Penegasan pengguna: administrator pusat dapat menambahkan klien dan memberikan/m
 ## 20. Batas Penyelesaian Rangkuman
 
 Dokumen ini menjadi acuan pembangunan pusat untuk akun/role, paket/perangkat, pembayaran/top-up, WA/kurir/nota, administrator/CS/AI, monitoring/backup, bantuan jarak jauh dan CRM. Pencatatan kebutuhan telah dibuat; backend, billing, gateway, AI, dan panel produksi belum diimplementasikan oleh perubahan dokumentasi ini. Mulai dari fondasi Laravel dan administrator dasar, kemudian integrasi serta uji terarah sesuai urutan bagian10.
+
+
+## 21. Penegasan Tarif AI Chat dan Batas Otomasi Pemulihan
+
+### Tarif AI chat
+- Klarifikasi pengguna: pengambilan30% berkaitan dengan pemakaian saldo AI untuk chat, bukan potongan pada harga paket laundry atau seluruh biaya platform.
+- Interpretasi operasional yang dijelaskan: debit saldo pelanggan = biaya AI chat terkonversi rupiah ×1,30. Contoh modal AI Rp1.000, debit saldo Rp1.300, selisih bruto Rp300. Ini markup30% dari modal AI, bukan jaminan margin bersih30% setelah biaya pembayaran/infrastruktur/pajak.
+- Saldo top-up Rp50.000 tidak dipotong30% di muka pada rancangan ini. Debit terjadi saat pemakaian AI; pesan template/nota tanpa AI tidak didebit sebagai AI.
+- Biaya AI dasar meliputi pemakaian model dan konversi/biaya penyedia yang benar-benar terkait sesuai tarif transparan; biaya platform lain tidak dimasukkan diam-diam ke biaya AI. Rumus ini menggantikan usulan formula margin30% pada bagian17 untuk penjelasan harga chat. Jika pengguna menginginkan potongan30% di muka, perlu keputusan tersendiri; belum disepakati.
+- Perubahan harga model/kurs tidak boleh mengubah debit historis; simpan versi tarif dan biaya setiap request.
+
+### Otomasi, keluhan dan persetujuan
+- Penegasan pengguna: sistem memonitor, menanggapi keluhan kerusakan/kinerja, dan melakukan pemulihan rutin secara otomatis. Permintaan tambahan fitur/button dikumpulkan sebagai masukan/peringatan dan menunggu persetujuan Paduka, bukan otomatis diterapkan.
+- Pisahkan insiden operasional (down/lelet/error), masukan fitur/desain, dan tindakan berdampak tinggi. Laporkan anomali dengan bukti dan tingkat urgensi; jangan menyatakan tidak ada anomali tanpa monitoring nyata.
+- Pemulihan otomatis hanya melalui runbook/tindakan terdaftar yang dibatasi: retry idempotent, restart worker/layanan tertentu setelah health check, atau failover yang sudah disiapkan dan diuji. Batasi jumlah percobaan/cooldown, verifikasi pulih, dan eskalasi bila gagal agar tidak terjadi restart loop.
+- Saat VPS utama mati, monitoring/pemulihan eksternal diperlukan; AI yang hanya berada pada VPS mati tidak bisa memulihkan dirinya sendiri. Tidak menjamin seluruh insiden dapat ditangani otomatis.
+- Perubahan fitur/kode, perubahan keamanan penting, penghapusan/reset data, restore database dengan risiko kehilangan perubahan, dan pembelian kapasitas baru memerlukan approval atau kebijakan spesifik yang telah disetujui sesuai dampak.
+- Komplain menerima respons sesuai status nyata; jangan otomatis menjanjikan fitur baru atau menyebut masalah selesai sebelum diverifikasi. Simpan tiket, kategori, dampak, diagnosis, tindakan dan hasil.
