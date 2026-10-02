@@ -24,7 +24,7 @@ try{
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
   const natives=()=>p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native'));
   let last=(await natives()).at(-1);assert.equal(last.page,'home');assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
-  await p.evaluate(()=>openPage('settings'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
+  await p.evaluate(()=>openPage('services'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
   await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
   assert.equal((await natives()).at(-1).page,null,'a sheet opened from Beranda hides the native page');
@@ -115,6 +115,23 @@ try{
   assert.equal((await lastAdd()).page,null,'report detail opens in HTML');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Laporan summary & list reach Flutter with the HTML numbers; period, search and details use the HTML logic');
+
+  // Pengaturan: accordion groups toggle in place; items and links open the HTML pages.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('settings')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'settings');assert.ok(last.model.groups.length>=8);assert.ok(last.model.sync&&/Sinkronisasi/.test(last.model.sync.t));
+  assert.ok(last.model.acct&&/Masa Aktif/.test(last.model.acct.t));assert.match(last.model.logout,/Keluar/);
+  const layanan=last.model.groups.find(g=>g.t==='Layanan');assert.ok(layanan.accordion&&!layanan.open);
+  await p.evaluate(i=>__goyanaTap('#st178 > .setting178',i,':scope > button'),layanan.i);await p.waitForTimeout(400);
+  last=await lastAdd();const open=last.model.groups.find(g=>g.t==='Layanan');assert.ok(open.open);assert.ok(open.items.some(x=>x.t==='Parfum'),open.items.map(x=>x.t).join());
+  const parfum=open.items.find(x=>x.t==='Parfum');
+  await p.evaluate(([g,j])=>__goyanaTap('#st178 > .setting178',g,'.st171-b > button:nth-child('+(j+1)+')'),[open.i,parfum.j]);await p.waitForTimeout(400);
+  assert.equal(await p.evaluate(()=>document.querySelector('.page.active').id),'perfume','item opens its HTML page');
+  await p.evaluate(()=>openPage('settings'));await p.waitForTimeout(300);
+  const pl=(await lastAdd()).model.groups.find(g=>g.t==='Pelanggan');
+  await p.evaluate(i=>__goyanaTap('#st178 > .setting178',i,':scope > button'),pl.i);await p.waitForTimeout(400);
+  const chat=(await lastAdd()).model.groups.find(g=>g.t==='Pelanggan').items.find(x=>/Chatbot/.test(x.t)&&x.badge);assert.ok(chat,'locked items keep their badge separate from the name');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Pengaturan groups, sync card and package card reach Flutter; accordion and items use the HTML logic');
 
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));

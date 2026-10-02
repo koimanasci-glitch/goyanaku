@@ -13,6 +13,7 @@ import '../native/customers_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
 import '../native/reports_page.dart';
+import '../native/settings_page.dart';
 import 'bridge.dart';
 
 const _brand = Color(0xffe8493f);
@@ -43,7 +44,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -54,6 +55,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   AddOrderModel _addOrder = const AddOrderModel();
   CustomersModel _customers = const CustomersModel();
   ReportsModel _reports = const ReportsModel();
+  SettingsModel _settings = const SettingsModel();
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -181,6 +183,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
+        if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
         final toast = page == null ? '' : (data['toast'] as String? ?? '');
         if (toast.isNotEmpty && toast != _toast) {
           _toastTimer?.cancel();
@@ -293,6 +296,28 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void rpCategory(int index) => _tap('#reports .rp170-cat button', index, null, false);
   @override
   void rpOpen(int index) => _tap('#reports .rp170-it', index);
+
+  // Pengaturan
+  @override
+  void stGroup(int index, bool accordion) => _tap('#st178 > .setting178', index, ':scope > button', !accordion);
+  @override
+  void stItem(int group, int item) => _tap('#st178 > .setting178', group, '.st171-b > button:nth-child(${item + 1})');
+  @override
+  void stSyncUrl(String url) => _type('#sync197 .s197-url', url);
+  @override
+  void stSyncSave() => _tap('#sync197 .s197-save', 0, null, false);
+  @override
+  void stSyncNow() => _tap('#sync197 .s197-now', 0, null, false);
+  @override
+  void stAcctGo() => _tap('#settings .acct117-go');
+  @override
+  void stAcctAction(int index) => _tap('#settings .acct92-act button', index);
+  @override
+  void stAcctLink() => _tap('#settings .acct92-link');
+  @override
+  void stLogout() => _tap('#settings .lo167');
+  @override
+  void stTutorial() => _tap('#tutorial189-open');
 
   Future<NavigationDecision> _onNavigation(NavigationRequest request) async {
     final uri = Uri.tryParse(request.url);
@@ -455,6 +480,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeHome(model: _home, actions: this)),
             if (_nativePage == 'orders' && !_loading)
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
+            if (_nativePage == 'settings' && !_loading)
+              Positioned.fill(child: NativeSettings(model: _settings, actions: this)),
             if (_nativePage == 'reports' && !_loading)
               Positioned.fill(child: NativeReports(model: _reports, actions: this)),
             if (_nativePage == 'customers' && !_loading)

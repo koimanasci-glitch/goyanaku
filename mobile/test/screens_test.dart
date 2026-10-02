@@ -13,6 +13,7 @@ import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
 import 'package:goyana_flutter/native/reports_page.dart';
+import 'package:goyana_flutter/native/settings_page.dart';
 
 class _NoActions implements HomeActions {
   @override
@@ -234,6 +235,50 @@ final _reports = ReportsModel.fromJson({
   ],
 });
 
+class _NoSettingsActions implements SettingsActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void stGroup(int index, bool accordion) {}
+  @override
+  void stItem(int group, int item) {}
+  @override
+  void stSyncUrl(String url) {}
+  @override
+  void stSyncSave() {}
+  @override
+  void stSyncNow() {}
+  @override
+  void stAcctGo() {}
+  @override
+  void stAcctAction(int index) {}
+  @override
+  void stAcctLink() {}
+  @override
+  void stLogout() {}
+  @override
+  void stTutorial() {}
+}
+
+final _settings = SettingsModel.fromJson({
+  'title': 'Pengaturan',
+  'sync': {'dot': 'rgb(47, 158, 85)', 't': 'Sinkronisasi server', 'line': 'Tersinkron 1 menit lalu · 0 menunggu', 'who': 'owner@laundry.test', 'url': null, 'save': '', 'now': 'Sinkronkan sekarang'},
+  'groups': [
+    {'i': 0, 'svg': _avatar, 't': 'Profil', 's': 'Konfigurasi Profil', 'accordion': true, 'open': false, 'items': []},
+    {'i': 1, 'svg': _basket, 't': 'Layanan', 's': 'Konfigurasi Layanan', 'accordion': true, 'open': true, 'items': [
+      {'j': 0, 'icon': '🧺', 't': 'Layanan', 'badge': '', 's': 'Jenis layanan, satuan dan harga'},
+      {'j': 1, 'icon': '⏱', 't': 'Durasi Layanan', 'badge': '', 's': 'Reguler, Express, Kilat dan estimasi'},
+      {'j': 2, 'icon': '🤖', 't': 'WhatsApp & Chatbot', 'badge': '🔒 Chatbot', 's': 'Jawaban AI untuk pelanggan'},
+    ]},
+    {'i': 2, 'svg': _bed, 't': 'Hubungkan WhatsApp', 's': 'Tambah perangkat dan pilih cabang WhatsApp', 'accordion': false, 'open': false, 'items': []},
+    {'i': 3, 'svg': '', 'icon': '🗄', 't': 'Pusat Data', 's': 'Import, ekspor, backup dan restore', 'accordion': false, 'open': false, 'items': []},
+  ],
+  'acct': {'badge': 'FREE', 't': 'Masa Aktif Paket', 's': 'Trial Basic sampai 3/12/2026', 'go': 'Perpanjang', 'stats': [], 'acts': ['', ''], 'link': ''},
+  'logout': 'Keluar Akun', 'version': 'GOYANA Laundry · versi 2.7', 'tutorial': 'Panduan awal Goyana',
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -342,6 +387,27 @@ void main() {
       }
       expect(tester.takeException(), isNull);
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/reports_${width.toInt()}.png'));
+    });
+  }
+
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Pengaturan native at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 1100 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeSettings(model: _settings, actions: _NoSettingsActions(), topInset: 0),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/settings_${width.toInt()}.png'));
     });
   }
 }

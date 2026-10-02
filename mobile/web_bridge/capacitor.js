@@ -398,13 +398,46 @@
       empty: shown(empty) ? empty.textContent.trim() : ''
     };
   }
+  // Pengaturan: grup akordeon, kartu sinkron, kartu paket & keluar akun native; halaman tujuan tetap HTML.
+  function settingsModel() {
+    var root = document.querySelector('#settings .g62-settings');
+    if (!root) return null;
+    function t(el, sel) { var e = el && el.querySelector(sel); return e ? e.textContent.replace(/\s+/g, ' ').trim() : ''; }
+    var sync = document.getElementById('sync197'), url = sync && sync.querySelector('.s197-url'), save = sync && sync.querySelector('.s197-save'), now = sync && sync.querySelector('.s197-now');
+    var dot = sync && sync.querySelector('.s197-dot');
+    var acct = root.querySelector('.acct92'), lo = root.querySelector('.lo167'), tut = document.getElementById('tutorial189-open');
+    var groups = Array.prototype.slice.call(document.querySelectorAll('#st178 > .setting178'));
+    return {
+      title: txt('#settings .g62-top b'),
+      sync: shown(sync) ? { dot: dot ? getComputedStyle(dot).backgroundColor : '', t: t(sync, 'b'), line: t(sync, '.s197-line'), who: t(sync, '.s197-who'),
+        url: shown(url) ? field(url) : null, save: shown(save) ? save.textContent.trim() : '', now: shown(now) ? now.textContent.trim() : '' } : null,
+      groups: groups.map(function (g, i) {
+        if (!shown(g)) return null;
+        var btn = g.querySelector(':scope > button'), body = g.querySelector('.st171-b'), ic = g.querySelector('.icon178');
+        var open = !!btn && btn.getAttribute('aria-expanded') === 'true' && shown(body);
+        return { i: i, svg: svgOf(ic), icon: ic && !ic.querySelector('svg') ? ic.textContent.trim() : '', t: t(g, '.text178 b'), s: t(g, '.text178 small'),
+          accordion: !!body, open: open,
+          items: open ? Array.prototype.map.call(body.querySelectorAll(':scope > button'), function (b, j) {
+            if (!shown(b)) return null;
+            var badge = b.querySelector('b em'), name = b.querySelector('b');
+            return { j: j, icon: t(b, ':scope > span'), t: name ? Array.prototype.filter.call(name.childNodes, function (n) { return n !== badge; }).map(function (n) { return n.textContent; }).join('').trim() : '',
+              badge: badge ? badge.textContent.trim() : '', s: t(b, 'small') };
+          }).filter(Boolean) : [] };
+      }).filter(Boolean),
+      acct: shown(acct) ? { badge: t(acct, '.acct92-badge'), t: t(acct, '.acct92-top b'), s: t(acct, '.acct92-top small'), go: shown(acct.querySelector('.acct117-go')) ? t(acct, '.acct117-go') : '',
+        stats: Array.prototype.filter.call(acct.querySelectorAll('.acct92-stats span'), shown).map(function (e) { return e.textContent.replace(/\s+/g, ' ').trim(); }),
+        acts: Array.prototype.map.call(acct.querySelectorAll('.acct92-act button'), function (b) { return shown(b) ? b.textContent.trim() : ''; }),
+        link: shown(acct.querySelector('.acct92-link')) ? t(acct, '.acct92-link') : '' } : null,
+      logout: shown(lo) ? lo.textContent.trim() : '', version: txt('#settings .st171-ver'), tutorial: shown(tut) ? tut.textContent.trim() : ''
+    };
+  }
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;
