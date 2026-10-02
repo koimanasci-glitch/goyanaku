@@ -52,6 +52,7 @@ class AdminController {
             ->orderByDesc('audit_events.id')->limit(30)->get(['audit_events.*', 'users.name as actor_name', 'users.is_platform_admin as actor_admin']);
         return view('business', ['business' => $business, 'access' => $business->currentAccess(), 'grants' => $business->grants()->latest('id')->get(),
             'subscriptions' => $business->subscriptions()->latest('id')->get(), 'packages' => config('goyana.packages'),
+            'messages' => DB::table('outbound_messages')->where('business_id', $business->id)->orderByDesc('id')->limit(10)->get(),
             'aiLedger' => DB::table('ai_ledger')->where('business_id', $business->id)->orderByDesc('id')->limit(15)->get(),
             'users' => $business->users()->with('outlet')->orderByRaw("role <> 'owner'")->orderBy('id')->get(), 'outlets' => $outlets, 'sync' => $sync, 'audit' => $audit]);
     }

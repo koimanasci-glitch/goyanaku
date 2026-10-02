@@ -68,6 +68,9 @@
 @elseif($grant->ends_at->isPast())Berakhir
 @else<form method="post" action="{{ route('admin.revoke', [$business, $grant]) }}">@csrf<button class="secondary">Cabut</button></form>@endif
 </td></tr>@empty<tr><td colspan="4">Belum ada paket sementara.</td></tr>@endforelse</tbody></table></section>
+<section class="card"><h2>Pesan otomatis ke owner</h2><ul class="plain">
+@forelse($messages as $m)<li>{{ $m->subject }} <span @class(['pill', 'good' => $m->status === 'sent', 'bad' => $m->status !== 'sent'])>{{ $m->status === 'sent' ? 'Terkirim' : 'Gagal' }}</span><br><small class="muted">{{ $m->channel }} · {{ $m->recipient }} · {{ \Carbon\Carbon::parse($m->created_at)->timezone('Asia/Jakarta')->format('d M Y H:i') }}@if($m->error) · {{ $m->error }}@endif</small></li>
+@empty<li class="muted">Belum ada.</li>@endforelse</ul></section>
 <section class="card"><div class="row"><h2>Aktivitas terakhir</h2><a href="{{ route('admin.audit', ['business' => $business->id]) }}">Lihat semua →</a></div><ul class="plain audit">
 @forelse($audit as $e)<li><span class="badge">{{ $e->action }}</span> {{ $e->actor_name ?? '—' }}@if($e->actor_admin) <small class="pill">admin</small>@endif
 <small class="muted">· {{ \Carbon\Carbon::parse($e->created_at)->timezone('Asia/Jakarta')->format('d M Y H:i') }}</small></li>

@@ -143,3 +143,10 @@ Artisan::command('goyana:ai-prices', function () {
 
 \Illuminate\Support\Facades\Schedule::command('goyana:fx-update')->twiceDaily(6, 18)->timezone('Asia/Jakarta');
 \Illuminate\Support\Facades\Schedule::command('goyana:ai-prices')->dailyAt('05:40')->timezone('Asia/Jakarta');
+
+Artisan::command('goyana:lifecycle', function () {
+    $sent = \App\Support\Lifecycle::run();
+    $this->info('Terkirim: '.collect($sent)->map(fn ($n, $k) => "$k $n")->implode(', '));
+})->purpose('Pesan otomatis hemat ke owner (selamat datang, pengingat paket, paket habis, bukti bayar) — masing-masing sekali');
+// Hanya jam 08–20 WIB (tidak mengganggu malam).
+\Illuminate\Support\Facades\Schedule::command('goyana:lifecycle')->hourly()->between('8:00', '20:00')->timezone('Asia/Jakarta')->withoutOverlapping();
