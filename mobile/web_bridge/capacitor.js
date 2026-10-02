@@ -456,9 +456,10 @@
     function input(el) { return el ? { sel: '#' + el.id, v: el.value, ph: el.placeholder || '', multiline: el.tagName === 'TEXTAREA' } : null; }
     var sections = Array.prototype.map.call(page.querySelectorAll('.kc137 > .card'), function (card) {
       return {
-        title: text(card.querySelector('h4')), sub: text(card.querySelector('p.s')),
+        title: (function (h) { if (!h) return ''; var sm = h.querySelector('small'); var main = Array.prototype.filter.call(h.childNodes, function (n) { return n !== sm; }).map(function (n) { return n.textContent; }).join('').replace(/\s+/g, ' ').trim(); return sm && text(sm) ? main + ' · ' + text(sm) : main; })(card.querySelector('h4')),
+        sub: text(card.querySelector('p.s')),
         methods: Array.prototype.map.call(card.querySelectorAll('.kc137-pm > div'), function (e) { return { t: text(e.querySelector('small')), v: text(e.querySelector('b')), s: text(e.querySelector('i')), c: e.querySelector('b') ? getComputedStyle(e.querySelector('b')).color : '' }; }),
-        unpaid: text(card.querySelector('.kc137-unpaid')),
+        unpaid: (function (u) { if (!u) return ''; return Array.prototype.map.call(u.children.length ? u.children : [u], text).filter(Boolean).join(' · '); })(card.querySelector('.kc137-unpaid')),
         rows: Array.prototype.map.call(card.querySelectorAll('.kc137-ln'), function (e) { return { t: text(e.querySelector('span')), v: text(e.querySelector('b')), input: input(e.querySelector('input')), c: e.querySelector('b') ? getComputedStyle(e.querySelector('b')).color : '' }; }),
         denominations: Array.prototype.map.call(card.querySelectorAll('#kc-den label'), function (e, i) { var inp = e.querySelector('input'); return { i: i, t: text(e.querySelector('span')), v: inp ? inp.value : '' }; }),
         physical: input(card.querySelector('#kc-phys')),

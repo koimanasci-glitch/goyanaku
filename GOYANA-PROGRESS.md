@@ -114,3 +114,11 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Belum diuji / ragu: belum dicoba di HP fisik; kirim WhatsApp ke owner sungguhan belum diuji; PHP/backend tidak tersedia di mesin lokal dan diperiksa melalui CI.
 - Keputusan yang diambil sendiri (perlu dicek Claude/pengguna): konfirmasi penutupan dan ringkasan setelah tutup tetap sheet HTML. Tombol bawah mengikuti urutan formulir dalam list agar tetap terjangkau di layar kecil. Branch lama diarsipkan dan tidak dipakai ulang.
 - Screenshot pembanding: cashclose_html_320.png, cashclose_html_390.png, cashclose_320.png, cashclose_390.png, cashclose_bottom_320.png, cashclose_bottom_390.png di ci-screens.
+
+## Review Claude atas [GPT] Tutup Kasir — 3 Oktober 2026
+- **Diterima & digabung** ke `flutter/native` (PR #2), bersama perbaikan lokasi & QRIS dari `flutter/fix-lokasi`.
+- **Perbaikan**:
+  - Error di model halaman native sekarang tidak bisa merusak aplikasi (otomatis kembali ke halaman HTML).
+  - Pengaman bila elemen hilang.
+  - Teks "belum dibayar" dan judul jumlah transaksi tidak lagi menempel.
+- **Catatan**: pekerjaan GPT soal sheet pembayaran native belum ter-push saat kuotanya habis. Bila ada di lokal GPT, push dulu ke branch baru dari `flutter/native` terbaru.
