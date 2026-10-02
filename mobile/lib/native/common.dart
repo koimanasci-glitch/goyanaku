@@ -155,3 +155,20 @@ class GBottomNav extends StatelessWidget {
         ]),
       );
 }
+
+/// Dark pill like the HTML #toast90, shown while a native page covers the WebView.
+class NativeToast extends StatelessWidget {
+  const NativeToast({super.key, required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 320),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(color: const Color(0xeb1e1e1e), borderRadius: BorderRadius.circular(14),
+              boxShadow: [gShadow(const Color(0x33000000), 6, 18)]),
+          child: Text(text, textAlign: TextAlign.center, style: gText(13, c: Colors.white, h: 18.2)),
+        ),
+      );
+}

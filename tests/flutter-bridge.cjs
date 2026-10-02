@@ -50,6 +50,31 @@ try{
   await p.evaluate(()=>openPage('home'));
   console.log('PASS Beranda & Pesanan data and visibility reach Flutter; search, tabs and status buttons run the HTML logic');
 
+  // Tambah Transaksi: steps 1-2 native, sheets (durasi, jumlah) stay HTML and hide the native page.
+  const lastAdd=async()=>(await natives()).at(-1);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('addorder')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'addorder');assert.equal(last.model.stage,'customer');
+  assert.ok(last.model.people.length>=2);assert.match(last.model.add,/Tambah Pelanggan/);assert.match(last.model.people[0].avatar,/^<svg/);
+  await p.evaluate(()=>__goyanaSearch('#f61-customer .f61-search input','Sari'));await p.waitForTimeout(300);
+  last=await lastAdd();assert.deepEqual(last.model.people.map(x=>x.name),['Sari Native'],'customer search filters through the HTML logic');
+  await p.evaluate(i=>__goyanaTap('#f61-customer .f61-person',i,'button'),last.model.people[0].i);await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'duration sheet (HTML) hides the native page');
+  await p.evaluate(()=>document.querySelectorAll('#f61-duration button')[1].click());await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'addorder');assert.equal(last.model.stage,'services');assert.equal(last.model.customer.name.trim(),'Sari Native');
+  assert.equal(last.model.durations.find(d=>d.on).t,'Express');assert.ok(last.model.items.some(x=>x.h)&&last.model.items.some(x=>!x.h));assert.equal(last.model.footer.total,'Rp 0');
+  const svc=last.model.items.find(x=>!x.h);
+  await p.evaluate(i=>__goyanaTap('#list116 .sv116',i),svc.i);await p.waitForTimeout(300);
+  assert.equal((await lastAdd()).page,null,'quantity sheet (HTML) hides the native page');
+  await p.evaluate(()=>{document.getElementById('qty116-in').value='3';saveQty116()});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'addorder');assert.ok(last.model.items.find(x=>x.i===svc.i).on);assert.match(last.model.items.find(x=>x.i===svc.i).btn,/3/);
+  assert.notEqual(last.model.footer.total,'Rp 0');assert.match(last.toast,/ditambahkan/,'HTML toast is forwarded to Flutter');
+  await p.evaluate(()=>__goyanaTap('#dur116 button',2));await p.waitForTimeout(300);assert.equal((await lastAdd()).model.durations.find(d=>d.on).t,'Kilat');
+  const cats=(await lastAdd()).model.cats;await p.evaluate(()=>__goyanaTap('#catnav120 button',1));await p.waitForTimeout(300);
+  last=await lastAdd();assert.ok(last.model.cats[1].on);assert.ok(last.model.items.filter(x=>x.h).length<=1,'category filter shows one group');
+  await p.evaluate(()=>__goyanaTap('#addorder .flow61-head .back'));await p.waitForTimeout(300);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Tambah Transaksi steps 1-2 reach Flutter; search, duration, quantity sheet, category and toast use the HTML logic');
+
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));
   const save=await p.evaluate(()=>__calls.find(c=>c.plugin==='Files'&&c.method==='save').args);

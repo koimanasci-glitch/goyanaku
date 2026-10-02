@@ -273,14 +273,73 @@
       cards: list, empty: shown(empty) ? empty.textContent.trim() : ''
     };
   }
+  function svgOf(el) { var g = el && el.querySelector('svg'); return g ? g.outerHTML : ''; }
+  function field(input) { return input ? { v: input.value, ph: input.placeholder || '' } : null; }
+  // Tambah Transaksi: langkah 1 (pilih pelanggan) dan 2 (layanan) native; durasi, jumlah, opsi & pembayaran tetap sheet HTML.
+  function addorderModel() {
+    var stage = document.querySelector('#addorder .f61-stage.active'), id = stage && stage.id;
+    var m = { title: txt('#flow61-title'), step: txt('#flow61-step'), stage: id === 'f61-customer' ? 'customer' : id === 'f61-services' ? 'services' : '' };
+    if (m.stage === 'customer') {
+      var add = stage.querySelector('.f61-addcustomer');
+      m.search = field(stage.querySelector('.f61-search input'));
+      m.add = add && shown(add) ? add.textContent.replace(/^\s*[+＋]\s*/, '').trim() : '';
+      m.people = [];
+      var ps = stage.querySelectorAll('.f61-person');
+      for (var i = 0; i < ps.length && m.people.length < 300; i++) {
+        if (!shown(ps[i])) continue;
+        m.people.push({ i: i, name: ((ps[i].querySelector('div b') || {}).textContent || '').trim(), avatar: svgOf(ps[i].querySelector('span')),
+          lines: Array.prototype.filter.call(ps[i].querySelectorAll('div small'), shown).map(function (e) { return e.textContent.trim(); }),
+          btn: ((ps[i].querySelector('button') || {}).textContent || 'Pilih').trim() });
+      }
+      var none = stage.querySelector('.empty116, .empty108, .f61-empty, .empty');
+      m.empty = shown(none) ? none.textContent.trim() : '';
+    } else if (m.stage === 'services') {
+      var bar = stage.querySelector('.f61-customerbar');
+      m.customer = { name: ((bar && bar.querySelector('b')) || {}).textContent || '', sub: txt('#f61-duration-label'), avatar: svgOf(bar && bar.querySelector('span')) };
+      m.durations = Array.prototype.map.call(document.querySelectorAll('#dur116 button'), function (b) {
+        return { t: ((b.querySelector('b') || {}).textContent || '').trim(), s: ((b.querySelector('small') || {}).textContent || '').trim(), on: b.classList.contains('on') };
+      });
+      m.search = field(document.getElementById('q116'));
+      m.cats = Array.prototype.map.call(document.querySelectorAll('#catnav120 button'), function (b) {
+        return { t: b.textContent.trim(), on: b.classList.contains('on'), svg: svgOf(b) };
+      });
+      m.items = [];
+      var all = document.querySelectorAll('#list116 .sv116'), idx = new Map();
+      for (var k = 0; k < all.length; k++) idx.set(all[k], k);
+      document.querySelectorAll('#list116 .cat116').forEach(function (cat) {
+        if (!shown(cat)) return;
+        var h = cat.querySelector('.cat116-h');
+        if (h) m.items.push({ h: 1, svg: svgOf(h), t: ((h.querySelector('b') || {}).textContent || '').trim(), s: ((h.querySelector('small') || {}).textContent || '').replace(/\s+/g, ' ').trim() });
+        cat.querySelectorAll('.sv116').forEach(function (sv) {
+          if (!shown(sv) || m.items.length > 400) return;
+          m.items.push({ i: idx.get(sv), svg: svgOf(sv), t: ((sv.querySelector('b') || {}).textContent || '').trim(),
+            s: ((sv.querySelector('small') || {}).textContent || '').trim(), btn: ((sv.querySelector('em') || {}).textContent || '').trim(), on: sv.classList.contains('in') });
+        });
+      });
+      var empty = document.querySelector('#list116 .empty116');
+      m.empty = shown(empty) ? empty.textContent.trim() : '';
+      var foot = document.getElementById('f61-service-footer');
+      m.footer = foot ? { name: ((foot.querySelector('div > b')) || {}).textContent || '', sum: ((foot.querySelector('div > small')) || {}).textContent || '',
+        label: txt('#f61-service-footer .f61-total small'), total: txt('#f61-total'), btn: ((foot.querySelector(':scope > button')) || {}).textContent || '' } : null;
+      if (m.footer) m.footer.sum = m.footer.sum.replace(/\s+/g, ' ').trim();
+    } else return null; // unknown stage: leave it to the HTML page
+    return m;
+  }
+  // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
+  function toastText() {
+    var t = document.querySelector('#toast90.show, .toast.show');
+    return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
+  }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;
     var page = document.querySelector('.page.active'), id = page && page.id;
     var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay();
-    var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: native ? NATIVE[id]() : null });
+    var model = native ? NATIVE[id]() : null;
+    if (!model) native = false;
+    var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: model, toast: native ? toastText() : '' });
     if (msg === lastPage) return;
     lastPage = msg;
     try { window.GoyanaNative.postMessage(msg); } catch (e) {}
