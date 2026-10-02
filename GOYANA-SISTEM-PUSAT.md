@@ -557,3 +557,17 @@ Koreksi pengguna: gunakan tema/desain HTML TERAKHIR yang disetujui, bukan HTML p
 - Integrasi server yang belum tersedia harus menampilkan status jelas; jangan membuat sukses palsu.
 - Uji tampilan pada ukuran HP, teks panjang, keyboard, state kosong/loading/error dan status offline.
 - Catat setiap temuan serta hasil pengujian. Audit belum boleh disebut selesai hanya karena tombol mempunyai handler.
+
+
+## 37. Konsistensi Desain Web, Desktop, Tablet dan HP
+
+Arahan pengguna: web dan aplikasi HP memakai bahasa visual yang sama dari HTML terakhir yang disetujui. Jangan membuat identitas visual lain untuk Flutter.
+- Gunakan warna, font, ikon, bentuk tombol/kartu, nama menu dan status yang konsisten. Posisi/layout menyesuaikan ruang layar tanpa mengubah fungsi atau hak akses.
+- Layout desktop memanfaatkan lebar untuk tabel dan panel; tablet menyesuaikan kolom; HP memakai kartu/tabel adaptif tanpa overflow halaman.
+- Uji lebar 320, 360, 390, 412, 600, 768, 1024 dan 1440 piksel, portrait/landscape, pembesaran font, keyboard serta safe area.
+- Tombol mudah disentuh, teks panjang membungkus dengan baik, dialog dapat discroll dan aksi utama tetap terjangkau.
+- Bandingkan web dan Flutter per halaman. Jangan mengganti tema/konten hanya untuk menghindari penyesuaian responsif.
+- Uji navigasi, formulir dan status loading/kosong/error pada Android target serta browser desktop/tablet. Printer/kamera/scan wajib diuji di perangkat fisik yang relevan.
+- Target kompatibilitas ditetapkan dan diuji; jangan menjanjikan semua tipe HP tanpa batas atau mengklaim pengujian fisik yang belum dilakukan.
+
+Status: ketentuan disimpan sebagai kriteria penerimaan. Kesetaraan seluruh halaman Flutter/web dan matriks perangkat belum selesai diuji.
