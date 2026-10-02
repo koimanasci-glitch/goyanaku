@@ -26,7 +26,7 @@ php artisan serve
 
 Buka /register untuk membuat owner, /login untuk masuk dan /admin memakai akun pusat. Command admin menanyakan password secara tersembunyi; tidak ada password bawaan. SQLite hanya untuk pengembangan/tes awal; uji database produksi dan konkurensi perangkat dengan mesin pilihan sebelum produksi.
 
-GitHub Actions backend.yml menjalankan Composer, lint PHP, daftar route, kompilasi Blade dan 16 tes fitur pada SQLite sementara. Status workflow menjadi bukti pengujian, bukan keberhasilan deployment. Workflow APK lama tetap terpisah. Composer lock belum tersedia pada patch awal; hasil resolusi dependency pertama harus direview dan lock disimpan sebelum deployment yang dapat direproduksi.
+GitHub Actions backend.yml menjalankan Composer, lint PHP, daftar route, kompilasi Blade dan 16 tes fitur pada SQLite sementara. Status workflow menjadi bukti pengujian, bukan keberhasilan deployment. Workflow APK lama tetap terpisah. Composer lock hasil resolusi CI disimpan di repo untuk pemasangan dependency yang dapat direproduksi. Uji mesin database produksi dan hardening tetap diperlukan.
 
 ## Belum siap produksi
 

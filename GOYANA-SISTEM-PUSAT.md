@@ -517,3 +517,15 @@ Pertanyaan pengguna: dapatkah repo dikerjakan juga dengan “cloud”. Jika maks
 - Dokumentasikan keputusan, status tugas, implementasi/pengujian dan hal belum selesai di repo; jangan menyatakan rencana sebagai fitur aktif.
 - Sebelum merge, review diff, selesaikan konflik, jalankan pemeriksaan yang relevan lalu integrasikan berurutan. Konflik tidak selesai otomatis hanya karena keduanya memakai GitHub.
 - Model lain tidak otomatis menerima akses repo atau credential produksi. Jangan menaruh secret/API key di handoff/repo.
+
+## 34. Dashboard Admin di HP dan Flutter Dimulai Sekarang
+
+Arahan lanjutan pengguna: desain dashboard konsisten, administrator dapat dipasang di HP, dan Flutter tidak perlu menunggu semua backend selesai.
+
+- Dashboard admin memakai tema coral/putih/abu Goyana, ukuran/tombol konsisten dan layout responsif. Data dan izin admin tetap terpisah dari owner.
+- Sediakan pemasangan PWA melalui browser yang mendukung setelah dashboard dihosting HTTPS. Manifest, ikon dan service worker tidak memberi akses tanpa login.
+- Jangan cache halaman/data pelanggan atau secret admin untuk membuat ilusi offline. Admin tetap memerlukan server untuk membaca kondisi terbaru dan menjalankan perubahan.
+- Flutter dapat dimulai bersama fondasi backend, menggunakan widget native dan API yang sama. Ini berbeda dari membungkus HTML dalam WebView.
+- Tahap awal Flutter: login owner dan pembacaan profil/paket/outlet, analisis/tes widget dan APK debug. Selanjutnya migrasikan operasional, role, offline, printer/kamera dan billing bertahap.
+- APK preview memiliki application ID tersendiri agar tidak menimpa prototype. APK debug bukan aplikasi final atau rilis Play Store.
+- Semua kode, keputusan dan status pengujian disimpan di repo. Tes CI berjalan di GitHub terpisah dari panggilan; jangan mengklaim agent terus bekerja tanpa batas setelah sesi tugas berhenti.
