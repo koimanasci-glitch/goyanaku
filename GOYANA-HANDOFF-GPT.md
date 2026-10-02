@@ -5,6 +5,30 @@ Dokumen produk: `GOYANA-ROADMAP.md`, `GOYANA-SISTEM-PUSAT.md` (§38–§40 terba
 
 ---
 
+## ⚠️ UPDATE 3 Oktober 2026, 03.00 WIB (Claude) — BACA DULU
+
+Claude melanjutkan sendiri saat kuota GPT habis. Branch `flutter/native` **sudah jauh lebih maju** dari branch lokal GPT (`flutter/native-transaksi` dibuat dari commit lama `2b7ee9b`).
+
+1. **Jangan lanjutkan branch lokal lama.** Ambil yang terbaru:
+   ```
+   git fetch origin && git checkout flutter/native && git pull
+   ```
+2. Bandingkan pekerjaan lokal GPT. **Tambah Transaksi langkah 1–2 sudah native** (`mobile/lib/native/addorder_page.dart`), jadi jangan dibuat ulang. Bila ada pemetaan tombol yang lebih baik, pindahkan sebagai perubahan kecil di atas `flutter/native`.
+3. **Sudah selesai** (jangan dikerjakan ulang):
+   - **Halaman native**: Beranda, Pesanan, Tambah Transaksi (1–2), Pelanggan, Laporan, Pengaturan, Kas Masuk/Pengeluaran. Toast HTML juga sudah tampil native.
+   - **Admin**: panel lengkap (usaha, tiket CS, FAQ, pengaturan platform, audit, kesehatan sistem).
+   - **Otomatis**: perintah terjadwal, saldo AI (kurs & harga model), pesan otomatis hemat, lupa password.
+   - **Deploy**: skrip + aplikasi web `/app/`.
+   - Detail: `GOYANA-PROGRESS.md` bagian 3 Oktober.
+4. **Tugas berikut untuk GPT**, sesuai urutan:
+   - a. **Tutup Kasir** native (`#cashclose`, `kc137-*`). Pola sama dengan `cash_page.dart`.
+   - b. **Sheet Atur Pesanan & Pembayaran** native (`#f61-options`, `#f61-payment`, `#f61-qris`). Sheet ini kini menutupi halaman native lewat `coveringOverlay()`. Untuk membuatnya native, laporkan sebagai `stage` baru di `addorderModel()`.
+   - c. Halaman tujuan Pengaturan yang paling sering dipakai: `services`, `printer`, `employees`.
+   - Setiap halaman: tambah tes di `tests/flutter-bridge.cjs` + screenshot di `mobile/test/screens_test.dart`.
+5. CI sekarang menampilkan hasil `flutter analyze` sebagai anotasi, jadi error terlihat di tab Checks.
+
+---
+
 ## 0. Pembagian peran (keputusan pengguna)
 
 - **GPT/Codex = pembangun.** Mengerjakan tugas di bagian 5 dan 7 sekarang.
@@ -20,7 +44,7 @@ Dokumen produk: `GOYANA-ROADMAP.md`, `GOYANA-SISTEM-PUSAT.md` (§38–§40 terba
 | Penyimpanan HP | **SQLite** (menggantikan localStorage, otomatis) | `mobile/web_bridge/goyana-store.js`, `GoyanaStore.kt` |
 | Sinkronisasi HP ↔ server | Selesai & diuji, **aktif setelah server dideploy** | `goyana-sync-core.js`, `goyana-v197-sync.js`, `backend/app/Http/Controllers/SyncController.php` |
 | Backend Laravel | Akun, paket/langganan, role tim, OTP admin, API sync, dashboard owner | `backend/` |
-| Halaman Flutter **native** | **Beranda ✅, Pesanan ✅**. Sisanya masih HTML | `mobile/lib/native/` |
+| Halaman Flutter **native** | Beranda, Pesanan, Tambah Transaksi (1–2), Pelanggan, Laporan, Pengaturan, Kas Masuk/Pengeluaran ✅. Sisanya masih HTML | `mobile/lib/native/` |
 | Deploy server | **BELUM** | — |
 
 ### Branch (penting)
