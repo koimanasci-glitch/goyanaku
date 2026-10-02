@@ -455,3 +455,15 @@ Kekhawatiran pengguna: kuota internet habis dan pengguna lupa, sehingga transaks
 - Offline tetap mematuhi izin perangkat dengan masa berlaku terbatas yang perlu ditetapkan; tidak memberikan akses operasional tanpa batas saat entitlement tidak dapat diperiksa.
 - Pantau kapasitas penyimpanan lokal. Jangan menghapus/overwrite transaksi pending demi memberi ruang. Jika penyimpanan tidak dapat menjamin penulisan, blok simpan transaksi baru dengan pesan jelas dan jalur sinkronisasi/ekspor/pemulihan.
 - Tidak memilih batas hari/jumlah transaksi sekarang tanpa keputusan kapasitas/izin; ambang warning dan batas izin offline harus diuji dan ditetapkan sebelum produksi.
+
+
+## 29. Pengingat Sinkronisasi Tidak Mengganggu
+
+Arahan pembahasan: pengguna mengkhawatirkan notifikasi berulang. Rekomendasi desain ini melengkapi bagian28; implementasi belum aktif.
+
+- Indikator offline/pending tetap terlihat di dalam aplikasi, tanpa popup setiap transaksi atau setiap putus koneksi.
+- Tidak mengirim notifikasi hanya karena offline bila tidak ada data pending. Saat aplikasi dibuka kembali, tampilkan ringkasan pending yang perlu perhatian.
+- Notifikasi HP lokal hanya jika ada transaksi pending melewati ambang yang ditetapkan; deduplicate, cooldown dan jam tenang. Jangan menjadwalkan pengingat berulang tanpa batas.
+- Notifikasi lokal dapat bekerja tanpa pesan server, sesuai izin notifikasi dan batas OS. Tidak menjamin tampil bila izin dimatikan/app force-stop; ini opsi rancangan, bukan kepastian fitur yang sudah terpasang.
+- Sediakan preferensi pengingat; batalkan pengingat setelah pending selesai. Tidak mengirim notifikasi rutin untuk setiap sinkronisasi berhasil.
+- Ambang durasi/cooldown belum diputuskan; pilih melalui pengujian/pola operasional. Kekurangan penyimpanan/gagal menyimpan transaksi tetap memberi peringatan segera di aplikasi.
