@@ -618,3 +618,26 @@ Batasan versi 1 (dicatat, belum dikerjakan):
 - Kas per kasir hanya dipulihkan ke HP pemiliknya; laci kas lain hanya tersimpan di server.
 - Penyimpanan lokal masih `localStorage` (±5 MB). Pindah ke SQLite/IndexedDB sebelum data besar.
 - Belum ada layar konflik untuk owner dan belum ada pembersihan data sesuai §24.
+
+## 41. Keputusan Server & WhatsApp — 3 Oktober 2026
+
+Keputusan pengguna:
+- **Server dipisah.** VPS GOYANA hanya berisi Laravel, database laundry, dan web dashboard. Engine WhatsApp **tidak boleh** dipasang di VPS GOYANA, supaya VPS itu tidak cepat penuh atau lambat karena WA.
+- **WhatsApp lewat CHATKU** (jasa WA gateway milik pengguna, VPS sendiri). GOYANA **tidak membangun engine WA sendiri**.
+- GOYANA terdaftar di CHATKU sebagai **satu klien besar khusus**:
+  - API key sendiri.
+  - Perhitungan atau tagihan terpisah dari pelanggan CHATKU biasa.
+  - Prioritas admin/antrean di CHATKU.
+- Alur:
+  - GOYANA → API CHATKU: QR sambung nomor, status nomor, kirim pesan.
+  - CHATKU → webhook GOYANA: pesan masuk dan status terkirim.
+  - Chatbot AI laundry dijawab oleh GOYANA (data laundry ada di GOYANA), lalu balasannya dikirim lewat CHATKU.
+- Pengiriman WA dari GOYANA wajib lewat **antrean (queue)** dengan retry: kasir tidak menunggu WA terkirim, dan bila CHATKU sedang down, aplikasi laundry tetap jalan dan pesan dikirim ulang otomatis.
+- Data yang disimpan GOYANA hanya catatan ringkas (id pesan, tujuan, status). Sesi WA, media, dan riwayat lengkap tersimpan di CHATKU.
+- Hak paket tetap diatur GOYANA (nota otomatis mulai Gold, Blast hanya Platinum). CHATKU hanya menjalankan.
+- Spek awal VPS GOYANA cukup 2 GB RAM. Pilihan VPS vs Jagoan Hosting untuk GOYANA tetap **tanya pengguna sebelum deploy**.
+- Syarat sebelum integrasi:
+  - Engine CHATKU sudah online di server.
+  - API kirim/QR/status dan webhook pesan masuk sudah tersedia.
+  - API key khusus GOYANA sudah dibuat.
+- Simpan API key CHATKU di `.env` server. Jangan di repo atau APK.

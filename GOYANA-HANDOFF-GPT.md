@@ -164,6 +164,8 @@ Aturan bisnis kunci (sudah diputuskan pengguna):
 
 ---
 
+- **WhatsApp:** jangan bangun engine WA di GOYANA dan jangan pasang di VPS GOYANA. Semua WA lewat API CHATKU (VPS terpisah, GOYANA = klien besar khusus). Detail: GOYANA-SISTEM-PUSAT.md §41.
+
 ## 8. Jebakan yang sudah pernah terjadi
 
 - `v189` mengganti `window.login167` dengan pesan "server belum terhubung" → login server dicegat di tombol (capture listener) di `goyana-v197-sync.js`. Jangan dihapus.
