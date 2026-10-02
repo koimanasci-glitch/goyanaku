@@ -59,7 +59,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   ReportsModel _reports = const ReportsModel();
   SettingsModel _settings = const SettingsModel();
   CashModel _cash = const CashModel();
-  Map<String, dynamic> _cashClose = {}; 
+  Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
   bool _loginBar = false;

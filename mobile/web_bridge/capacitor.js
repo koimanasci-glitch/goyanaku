@@ -457,10 +457,10 @@
     var sections = Array.prototype.map.call(page.querySelectorAll('.kc137 > .card'), function (card) {
       return {
         title: text(card.querySelector('h4')), sub: text(card.querySelector('p.s')),
-        methods: Array.prototype.map.call(card.querySelectorAll('.kc137-pm > div'), function (e) { return { t: text(e.querySelector('small')), v: text(e.querySelector('b')), s: text(e.querySelector('i')), c: getComputedStyle(e.querySelector('b')).color }; }),
+        methods: Array.prototype.map.call(card.querySelectorAll('.kc137-pm > div'), function (e) { return { t: text(e.querySelector('small')), v: text(e.querySelector('b')), s: text(e.querySelector('i')), c: e.querySelector('b') ? getComputedStyle(e.querySelector('b')).color : '' }; }),
         unpaid: text(card.querySelector('.kc137-unpaid')),
         rows: Array.prototype.map.call(card.querySelectorAll('.kc137-ln'), function (e) { return { t: text(e.querySelector('span')), v: text(e.querySelector('b')), input: input(e.querySelector('input')), c: e.querySelector('b') ? getComputedStyle(e.querySelector('b')).color : '' }; }),
-        denominations: Array.prototype.map.call(card.querySelectorAll('#kc-den label'), function (e, i) { return { i: i, t: text(e.querySelector('span')), v: e.querySelector('input').value }; }),
+        denominations: Array.prototype.map.call(card.querySelectorAll('#kc-den label'), function (e, i) { var inp = e.querySelector('input'); return { i: i, t: text(e.querySelector('span')), v: inp ? inp.value : '' }; }),
         physical: input(card.querySelector('#kc-phys')),
         diff: colors(card.querySelector('#kc-diff')),
         reconcile: Array.prototype.map.call(card.querySelectorAll('.kc137-rec'), function (e) { return { t: text(e.querySelector('b')), s: text(e.querySelector('small')), input: input(e.querySelector('input')), badge: colors(e.querySelector('em')) }; }),
@@ -483,7 +483,9 @@
     pageTimer = 0;
     var page = document.querySelector('.page.active'), id = page && page.id;
     var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay();
-    var model = native ? NATIVE[id]() : null;
+    var model = null;
+    // A model error must never break the app: fall back to the HTML page.
+    if (native) { try { model = NATIVE[id](); } catch (e) { console.warn('GOYANA native model', id, e); model = null; } }
     if (!model) native = false;
     var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: model, toast: native ? toastText() : '' });
     if (msg === lastPage) return;
