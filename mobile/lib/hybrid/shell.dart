@@ -329,12 +329,18 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
             right: media.viewPadding.right,
           ),
           child: Stack(children: [
+            // While the native Beranda covers the screen, the WebView is taken out of the
+            // frame (kept alive, scripts keep running). Drawing Flutter on top of a visible
+            // Android WebView forces two layers per frame and makes scrolling heavy.
             Positioned.fill(
-              child: WebViewWidget.fromPlatformCreationParams(
+              child: Offstage(
+                offstage: _homeVisible && !_loading,
+                child: WebViewWidget.fromPlatformCreationParams(
                 params: AndroidWebViewWidgetCreationParams(
                   controller: _web.platform,
                   displayWithHybridComposition: true,
                 ),
+              ),
               ),
             ),
             // Native Flutter Beranda over the HTML app (kept alive underneath).

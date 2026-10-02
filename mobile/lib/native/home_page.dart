@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -89,13 +91,14 @@ class NativeHome extends StatelessWidget {
       child: ColoredBox(
       color: const Color(0xfff4f6f8),
       child: Stack(children: [
-        const Positioned.fill(child: _PageBackground()),
+        const Positioned.fill(child: RepaintBoundary(child: _PageBackground())),
         Positioned.fill(
           child: ListView(
             padding: const EdgeInsets.only(bottom: 110),
+            addRepaintBoundaries: true,
             children: [
-              _TopBar(top: top, onScan: actions.scan),
-              _Slider(slides: model.slides, onTap: actions.slide),
+              RepaintBoundary(child: _TopBar(top: top, onScan: actions.scan)),
+              RepaintBoundary(child: _Slider(slides: model.slides, onTap: actions.slide)),
               _Grid(model: model, onTap: actions.tile),
               _Manage(onTap: actions.manageOutlet),
               _Qr(onTap: actions.qr),
@@ -160,14 +163,7 @@ class _TopBar extends StatelessWidget {
         child: Stack(children: [
           const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
             begin: Alignment(-.98, -.17), end: Alignment(.98, .17), colors: [Color(0xffff6b48), Color(0xfff0472f)])))),
-          Positioned.fill(child: ClipRect(child: LayoutBuilder(builder: (context, c) {
-            final cols = (c.maxWidth / 30).ceil(), rows = (c.maxHeight / 30).ceil();
-            return Stack(children: [
-              for (var r = 0; r < rows; r++)
-                for (var k = 0; k < cols; k++)
-                  Positioned(left: k * 30.0, top: r * 30.0, child: _svg(svgTopbarPattern, 30)),
-            ]);
-          }))),
+          const Positioned.fill(child: RepaintBoundary(child: _TopbarPattern())),
           Positioned(
             left: 16, right: 16, top: top, height: 64,
             child: Row(children: [
@@ -180,6 +176,57 @@ class _TopBar extends StatelessWidget {
           ),
         ]),
       );
+}
+
+/// Topbar flower pattern: the 30x30 SVG tile is drawn once into an image and
+/// repeated by the GPU, instead of placing dozens of SVG widgets.
+class _TopbarPattern extends StatefulWidget {
+  const _TopbarPattern();
+  @override
+  State<_TopbarPattern> createState() => _TopbarPatternState();
+}
+
+class _TopbarPatternState extends State<_TopbarPattern> {
+  static ui.Image? _tile;
+  @override
+  void initState() {
+    super.initState();
+    if (_tile == null) _load();
+  }
+
+  Future<void> _load() async {
+    final info = await vg.loadPicture(const SvgStringLoader(svgTopbarPattern), null);
+    const scale = 3.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder)..scale(scale);
+    canvas.drawPicture(info.picture);
+    info.picture.dispose();
+    final image = await recorder.endRecording().toImage((30 * scale).toInt(), (30 * scale).toInt());
+    _tile = image;
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tile = _tile;
+    if (tile == null) return const SizedBox.expand();
+    return CustomPaint(painter: _PatternPainter(tile), size: Size.infinite);
+  }
+}
+
+class _PatternPainter extends CustomPainter {
+  _PatternPainter(this.tile);
+  final ui.Image tile;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = 30 / tile.width;
+    final matrix = Float64List.fromList([s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    canvas.drawRect(Offset.zero & size,
+        Paint()..shader = ImageShader(tile, TileMode.repeated, TileMode.repeated, matrix)..filterQuality = FilterQuality.medium);
+  }
+
+  @override
+  bool shouldRepaint(_PatternPainter old) => old.tile != tile;
 }
 
 class _Slider extends StatefulWidget {
