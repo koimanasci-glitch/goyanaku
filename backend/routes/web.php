@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{AuthController, AdminController, AdminSupportController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
+use App\Http\Controllers\{AuthController, AdminController, AdminSupportController, AdminFaqController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +66,10 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/tickets/{ticket}', [AdminSupportController::class, 'show'])->name('admin.ticket');
             Route::post('/tickets/{ticket}/reply', [AdminSupportController::class, 'reply'])->name('admin.ticket.reply');
             Route::post('/tickets/{ticket}', [AdminSupportController::class, 'update'])->name('admin.ticket.update');
+            Route::get('/faqs', [AdminFaqController::class, 'index'])->name('admin.faqs');
+            Route::post('/faqs', [AdminFaqController::class, 'store'])->name('admin.faqs.store');
+            Route::post('/faqs/{faq}', [AdminFaqController::class, 'update'])->whereNumber('faq')->name('admin.faqs.update');
+            Route::post('/faqs/{faq}/delete', [AdminFaqController::class, 'destroy'])->whereNumber('faq')->name('admin.faqs.delete');
             Route::get('/settings', [AdminSupportController::class, 'settings'])->name('admin.settings');
             Route::post('/settings', [AdminSupportController::class, 'saveSettings'])->name('admin.settings.save');
         });

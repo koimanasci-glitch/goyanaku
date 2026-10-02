@@ -25,6 +25,18 @@ class SupportController {
             $t = new Ticket(['subject' => $data['subject'], 'category' => $data['category'], 'source' => 'web']);
             $t->business_id = $request->user()->business_id; $t->user_id = $request->user()->id; $t->last_activity_at = now(); $t->save();
             $t->messages()->create(['body' => $data['body'], 'author_type' => 'customer'])->forceFill(['author_id' => $request->user()->id])->save();
+            // Program first: answer from the FAQ (no AI cost). The customer can reply to reach CS.
+            if ($faq = \App\Support\FaqMatcher::match($data['subject'].' '.$data['body'])) {
+                $answer = $faq->answer;
+                if (str_contains($faq->keywords, 'paket')) {
+                    $a = $request->user()->business->currentAccess();
+                    $answer .= "\n\nStatus akun Anda: ".($a['read_only'] ? 'baca saja sejak ' : ($a['package'] ?? '').' aktif sampai ')
+                        .($a['ends_at'] ? \Carbon\Carbon::parse($a['ends_at'])->timezone('Asia/Jakarta')->format('d M Y') : '-').'.';
+                }
+                $t->messages()->create(['body' => "Jawaban otomatis — {$faq->question}:\n\n$answer\n\nBelum selesai? Balas tiket ini, CS akan membantu.", 'author_type' => 'system']);
+                DB::table('faqs')->where('id', $faq->id)->increment('hits');
+                $t->status = 'answered'; $t->save();
+            }
             return $t;
         });
         return redirect()->route('support.show', $ticket)->with('status', 'Tiket terkirim. CS akan membalas di sini.');

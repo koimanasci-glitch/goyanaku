@@ -22,11 +22,11 @@ class SupportTest extends TestCase {
 
     public function test_ticket_flow_between_laundry_and_admin_with_internal_notes(): void {
         $owner = $this->owner(); $admin = $this->admin();
-        $this->actingAs($owner)->post('/support', ['subject' => 'Printer mati', 'category' => 'printer', 'body' => 'Tidak bisa cetak nota'])->assertRedirect();
+        $this->actingAs($owner)->post('/support', ['subject' => 'Grafik omzet kosong', 'category' => 'aplikasi', 'body' => 'Grafik di laporan tidak tampil'])->assertRedirect();
         $ticket = Ticket::firstOrFail();
         $this->assertSame([$owner->business_id, 'open'], [$ticket->business_id, $ticket->status]);
 
-        $this->actingAsAdmin($admin)->get('/admin/tickets')->assertOk()->assertSee('Printer mati')->assertSee('Menunggu CS');
+        $this->actingAsAdmin($admin)->get('/admin/tickets')->assertOk()->assertSee('Grafik omzet kosong')->assertSee('Menunggu CS');
         $this->post('/admin/tickets/'.$ticket->id.'/reply', ['body' => 'Cek kabel dulu (internal)', 'internal' => 1])->assertRedirect();
         $this->assertSame('open', $ticket->fresh()->status, 'internal note does not answer the ticket');
         $this->post('/admin/tickets/'.$ticket->id.'/reply', ['body' => 'Coba nyalakan Bluetooth lalu sambung ulang'])->assertRedirect();
@@ -66,5 +66,26 @@ class SupportTest extends TestCase {
         $owner = $this->owner();
         $this->actingAs($owner)->post('/admin/settings', $base)->assertForbidden();
         $this->get('/support')->assertSee('wa.me/6281234567890');
+    }
+
+    public function test_faq_answers_new_tickets_without_ai_and_admin_manages_faqs(): void {
+        $owner = $this->owner(); $admin = $this->admin();
+        $this->actingAs($owner)->post('/support', ['subject' => 'Struk', 'category' => 'printer', 'body' => 'Printer bluetooth tidak bisa cetak'])->assertRedirect();
+        $t = Ticket::latest('id')->first();
+        $this->assertSame('answered', $t->status);
+        $this->get('/support/'.$t->id)->assertSee('Jawaban otomatis — Printer tidak mau mencetak');
+        $this->post('/support', ['subject' => 'Paket saya', 'category' => 'paket', 'body' => 'kapan masa aktif habis?']);
+        $this->get('/support/'.Ticket::latest('id')->first()->id)->assertSee('Status akun Anda: Basic aktif sampai');
+        $this->post('/support', ['subject' => 'Halo', 'category' => 'lainnya', 'body' => 'mau tanya soal kerja sama']);
+        $this->assertSame('open', Ticket::latest('id')->first()->status, 'no match stays with CS');
+
+        $this->actingAsAdmin($admin)->get('/admin/faqs?test=struk+tidak+keluar')->assertOk()->assertSee('Cocok dengan: <b>Printer tidak mau mencetak</b>', false);
+        $this->post('/admin/faqs', ['question' => 'Kerja sama', 'keywords' => 'kerja sama, reseller', 'answer' => 'Hubungi tim kami.'])->assertRedirect();
+        $id = \Illuminate\Support\Facades\DB::table('faqs')->where('question', 'Kerja sama')->value('id');
+        $this->post('/admin/faqs/'.$id, ['question' => 'Kerja sama', 'keywords' => 'kerja sama', 'answer' => 'Hubungi tim kami.'])->assertRedirect();
+        $this->assertFalse((bool) \Illuminate\Support\Facades\DB::table('faqs')->where('id', $id)->value('active'), 'unchecked = inactive');
+        $this->post('/admin/faqs/'.$id.'/delete')->assertRedirect();
+        $this->assertDatabaseMissing('faqs', ['id' => $id]);
+        $this->actingAs($owner)->get('/admin/faqs')->assertForbidden();
     }
 }
