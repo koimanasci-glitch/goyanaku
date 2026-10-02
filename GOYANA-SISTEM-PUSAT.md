@@ -782,3 +782,31 @@ Batas keamanan:
 
 Laporan: insiden penting langsung ke WA pemilik. Sisanya masuk laporan mingguan (§43).
 Status: **rencana**.
+
+## 46. Remote Bantuan Klien (Admin & AI) — 3 Oktober 2026
+
+Permintaan pengguna: admin dan AI bisa "remote" klien untuk membantu setting dan sejenisnya.
+
+Pendekatan: **remote pengaturan lewat server**, bukan mengambil alih layar HP. Kontrol layar penuh butuh izin Accessibility/MediaProjection, rawan ditolak Google Play, berat, dan berisiko privasi.
+
+**Mode Bantuan (dengan izin klien):**
+- Klien menekan **"Izinkan Bantuan"** di aplikasi (Bantuan) atau membalas "YA" di WA CS.
+- Akses berlaku **30 menit** (bisa dihentikan kapan saja) dan terlihat jelas di aplikasi ("Sedang dibantu CS").
+- Selama aktif, admin/AI bisa melihat:
+  - Profil outlet, layanan & harga, paket, cabang/HP/kasir.
+  - Pengaturan nota/printer, status sinkron & WA, log error aplikasi.
+- **Data pelanggan laundry & uang tidak ditampilkan** kecuali klien mengizinkan khusus.
+- Admin/AI bisa **mengubah pengaturan dari server**: harga/layanan, template nota, jam operasional, paket, perbaikan data sinkron. Perubahan masuk ke HP lewat sinkron biasa (§40) dalam hitungan detik.
+- Setiap perubahan tercatat di audit log (siapa, apa, sebelum/sesudah) dan bisa dibatalkan (undo).
+
+**Panduan tunjuk tombol (tanpa remote layar):**
+- Admin/AI mengirim **link panduan** yang membuka aplikasi di halaman yang tepat dan menyorot tombol yang harus ditekan (overlay langkah demi langkah).
+- Contoh kebutuhan: sambung printer Bluetooth, izin kamera/lokasi. Ini harus dilakukan di HP fisik, jadi tidak bisa dari server.
+- Klien bisa mengirim **tangkapan layar** dari menu Bantuan langsung ke tiket CS.
+
+**Aturan AI (hemat & aman, §42/§45):**
+- AI memakai resep pengaturan yang terdaftar. Program yang mengeksekusi, AI hanya memilih dan menjelaskan.
+- AI wajib minta konfirmasi klien ("Saya ubah harga Cuci Kiloan jadi Rp7.000, setuju?") sebelum menyimpan.
+- Hapus data, uang, dan paket tetap lewat persetujuan pemilik platform.
+
+Status: **rencana**. Bergantung pada server dan sinkron aktif.
