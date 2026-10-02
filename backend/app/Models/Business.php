@@ -11,6 +11,21 @@ class Business extends Model {
     public function subscriptions() { return $this->hasMany(Subscription::class); }
     public function users() { return $this->hasMany(User::class); }
 
+    /** Query by current access state: paid | beta | trial | expired (null = all). Mirrors currentAccess(). */
+    public static function withAccessStatus(?string $status) {
+        $paying = fn ($q) => $q->whereHas('subscriptions', fn ($s) => $s->whereNull('cancelled_at')->where('starts_at', '<=', now())->where('ends_at', '>', now()));
+        $beta = fn ($q) => $q->whereHas('grants', fn ($g) => $g->whereNull('revoked_at')->where('starts_at', '<=', now())->where('ends_at', '>', now()));
+        $none = fn ($q) => $q->whereNot(fn ($x) => $paying($x))->whereNot(fn ($x) => $beta($x));
+        $q = static::query();
+        return match ($status) {
+            'paid' => $paying($q),
+            'beta' => $beta($q)->whereNot(fn ($x) => $paying($x)),
+            'trial' => $none($q)->where('trial_ends_at', '>', now()),
+            'expired' => $none($q)->where('trial_ends_at', '<=', now()),
+            default => $q,
+        };
+    }
+
     /**
      * Server-side entitlement. Paid subscription or beta grant (highest package wins),
      * else the 2-month Basic trial, else read-only (data kept, writes locked).

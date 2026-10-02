@@ -7,25 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 class AdminController {
-    /** Businesses with a paid subscription running right now. */
-    private function paying() {
-        return fn ($q) => $q->whereHas('subscriptions', fn ($s) => $s->whereNull('cancelled_at')->where('starts_at', '<=', now())->where('ends_at', '>', now()));
-    }
-    private function onBeta() {
-        return fn ($q) => $q->whereHas('grants', fn ($g) => $g->whereNull('revoked_at')->where('starts_at', '<=', now())->where('ends_at', '>', now()));
-    }
-    private function filtered(?string $status) {
-        $q = Business::query();
-        $paying = $this->paying(); $beta = $this->onBeta();
-        $none = fn ($q) => $q->whereNot(fn ($x) => $paying($x))->whereNot(fn ($x) => $beta($x));
-        return match ($status) {
-            'paid' => $paying($q),
-            'beta' => $beta($q)->whereNot(fn ($x) => $paying($x)),
-            'trial' => $none($q)->where('trial_ends_at', '>', now()),
-            'expired' => $none($q)->where('trial_ends_at', '<=', now()),
-            default => $q,
-        };
-    }
+    private function filtered(?string $status) { return Business::withAccessStatus($status); }
 
     public function index(Request $request) {
         $status = $request->query('status');
@@ -100,42 +82,7 @@ class AdminController {
     }
 
     public function system() {
-        $checks = [];
-        $add = function (string $name, bool $ok, string $detail, bool $warnOnly = false) use (&$checks) {
-            $checks[] = ['name' => $name, 'state' => $ok ? 'ok' : ($warnOnly ? 'warn' : 'fail'), 'detail' => $detail];
-        };
-        try { DB::select('select 1'); $add('Database', true, DB::connection()->getDriverName().' terhubung'); }
-        catch (\Throwable $e) { $add('Database', false, 'Tidak terhubung: '.class_basename($e)); }
-        try {
-            $migrator = app('migrator');
-            $files = array_keys($migrator->getMigrationFiles(database_path('migrations')));
-            $pending = array_diff($files, $migrator->getRepository()->getRan());
-            $add('Migrasi database', !$pending, $pending ? count($pending).' migrasi belum dijalankan (php artisan migrate --force)' : 'Semua migrasi sudah dijalankan');
-        } catch (\Throwable $e) { $add('Migrasi database', false, 'Tidak dapat dibaca'); }
-        $prod = app()->environment('production');
-        $add('Mode debug', !config('app.debug'), config('app.debug') ? 'APP_DEBUG=true — matikan di server produksi' : 'Mati', !$prod);
-        $https = str_starts_with((string) config('app.url'), 'https://');
-        $add('Alamat HTTPS', $https, $https ? config('app.url') : 'APP_URL belum https', !$prod);
-        $mailer = (string) config('mail.default');
-        $add('Email (verifikasi & reset)', !in_array($mailer, ['log', 'array'], true), 'Mailer: '.$mailer, !$prod);
-        $add('OTP administrator', (bool) config('goyana.admin_mfa'), config('goyana.admin_mfa') ? 'Wajib' : 'Tidak wajib — nyalakan di produksi', !$prod);
-        $free = @disk_free_space(base_path()); $total = @disk_total_space(base_path());
-        if ($free && $total) {
-            $pct = (int) round($free / $total * 100);
-            $add('Ruang disk', $pct >= 15, number_format($free / 1073741824, 1, ',', '.').' GB kosong dari '.number_format($total / 1073741824, 1, ',', '.').' GB ('.$pct.'%)', $pct >= 5);
-        }
-        $writable = is_writable(storage_path('logs')) && is_writable(storage_path('framework'));
-        $add('Folder storage', $writable, $writable ? 'Dapat ditulis' : 'storage/ tidak dapat ditulis');
-        $last = DB::table('sync_records')->max('updated_at');
-        $add('Sinkronisasi HP', true, $last ? 'Terakhir: '.\Carbon\Carbon::parse($last)->timezone('Asia/Jakarta')->format('d M Y H:i').' WIB' : 'Belum ada data sinkron');
-        $info = [
-            'PHP' => PHP_VERSION, 'Laravel' => app()->version(), 'Lingkungan' => app()->environment(),
-            'Waktu server' => now('Asia/Jakarta')->format('d M Y H:i:s').' WIB',
-            'Operasi sinkron 24 jam' => DB::table('sync_ops')->where('created_at', '>=', now()->subDay())->count(),
-            'Konflik sinkron 24 jam' => DB::table('sync_conflicts')->where('created_at', '>=', now()->subDay())->count(),
-            'HP aktif 24 jam' => \App\Models\CashierDevice::whereNull('revoked_at')->where('last_seen_at', '>=', now()->subDay())->count(),
-        ];
-        return view('admin-system', ['checks' => $checks, 'info' => $info]);
+        return view('admin-system', ['checks' => \App\Support\Health::checks(), 'info' => \App\Support\Health::info()]);
     }
     public function grant(Request $request, Business $business) {
         $data = $request->validate([
