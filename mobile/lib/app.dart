@@ -124,20 +124,28 @@ class _AccountPageState extends State<AccountPage> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(business['name'] as String, style: Theme.of(context).textTheme.headlineSmall),
       const SizedBox(height: 16),
-      _card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      LayoutBuilder(builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 720;
+        final panelWidth = wide
+            ? (constraints.maxWidth - 20) / 2
+            : constraints.maxWidth;
+        return Wrap(spacing: 20, children: [
+        SizedBox(width: panelWidth, child: _card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('PAKET USAHA'), const SizedBox(height: 8),
         Text(access['package'] as String? ?? 'Berakhir',
           style: Theme.of(context).textTheme.titleLarge),
         Text(access['read_only'] == true ? 'Mode baca saja' : 'Hak dasar aktif'),
         Text('Sumber: ${access['source']}'),
-      ])),
-      _card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      ]))),
+        SizedBox(width: panelWidth, child: _card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('OUTLET'),
         for (final outlet in outlets) ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.storefront_outlined),
           title: Text(outlet['name'] as String)),
-      ])),
+      ]))),
+        ]);
+      }),
       Wrap(spacing: 12, runSpacing: 12, children: [
         FilledButton.icon(onPressed: _busy ? null : _refresh,
           icon: const Icon(Icons.refresh), label: const Text('Perbarui')),
@@ -150,7 +158,7 @@ class _AccountPageState extends State<AccountPage> {
     appBar: AppBar(title: const Text('Goyana'),
       backgroundColor: Colors.white, surfaceTintColor: Colors.white),
     body: SafeArea(child: Center(child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 640),
+      constraints: BoxConstraints(maxWidth: _profile == null ? 520 : 1120),
       child: ListView(padding: const EdgeInsets.all(20), children: [
         _card(const Text('Versi fondasi Flutter · akun dan paket. Transaksi, offline dan perangkat belum dihubungkan.')),
         if (_busy) const LinearProgressIndicator(),
