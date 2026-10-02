@@ -1,5 +1,9 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Goyana · Sistem Pusat</title>
+@if(auth()->check() && auth()->user()->is_platform_admin)
+<link rel="manifest" href="/admin.webmanifest"><meta name="theme-color" content="#db544b">
+<link rel="apple-touch-icon" href="/icons/admin-192.png">
+@endif
 <style>
 :root{color-scheme:light;--coral:#db544b;--ink:#26313b;--line:#e2e6ea}
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:var(--ink);font:15px/1.6 system-ui,-apple-system,sans-serif}
@@ -15,4 +19,12 @@ small{font-size:13px}.badge{background:#f1f3f5;padding:4px 9px;border-radius:7px
 <header><div class="bar"><a class="brand" href="{{ url('/') }}">Goyana</a>@auth<div><span>{{ auth()->user()->name }}</span> <form class="inline" method="post" action="{{ route('logout') }}">@csrf<button class="secondary">Keluar</button></form></div>@endauth</div></header>
 <main>@if(session('status'))<div class="notice" role="status">{{ session('status') }}</div>@endif
 @if($errors->any())<div class="notice" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-@yield('content')</main></body></html>
+@yield('content')</main>
+@if(auth()->check() && auth()->user()->is_platform_admin)
+<script>
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  navigator.serviceWorker.register('/admin-sw.js').catch(() => {});
+}
+</script>
+@endif
+</body></html>

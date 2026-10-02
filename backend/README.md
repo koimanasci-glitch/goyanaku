@@ -26,7 +26,7 @@ php artisan serve
 
 Buka /register untuk membuat owner, /login untuk masuk dan /admin memakai akun pusat. Command admin menanyakan password secara tersembunyi; tidak ada password bawaan. SQLite hanya untuk pengembangan/tes awal; uji database produksi dan konkurensi perangkat dengan mesin pilihan sebelum produksi.
 
-GitHub Actions backend.yml menjalankan Composer, lint PHP, daftar route, kompilasi Blade dan 12 tes fitur pada SQLite sementara. Status workflow menjadi bukti pengujian, bukan keberhasilan deployment. Workflow APK lama tetap terpisah. Composer lock belum tersedia pada patch awal; hasil resolusi dependency pertama harus direview dan lock disimpan sebelum deployment yang dapat direproduksi.
+GitHub Actions backend.yml menjalankan Composer, lint PHP, daftar route, kompilasi Blade dan 16 tes fitur pada SQLite sementara. Status workflow menjadi bukti pengujian, bukan keberhasilan deployment. Workflow APK lama tetap terpisah. Composer lock belum tersedia pada patch awal; hasil resolusi dependency pertama harus direview dan lock disimpan sebelum deployment yang dapat direproduksi.
 
 ## Belum siap produksi
 
@@ -40,3 +40,9 @@ Jangan deploy publik sebagai produk selesai. Untuk uji, gunakan data buatan. Pro
 
 ## Handoff GPT / Claude
 Fondasi ini adalah langkah pertama, bukan implementasi semua 33 bagian MD. Lanjutkan dari kode/hasil CI terbaru. Prioritas berikutnya: verifikasi/reset akun, role staff dan kontrak API/sync. Keputusan harga/kuota di dokumen induk tidak diubah oleh patch ini.
+
+## Dashboard admin di HP
+Dashboard responsif memakai tema coral/putih/abu yang konsisten. Manifest dan service worker tanpa cache data privat disediakan untuk pemasangan PWA pada browser yang mendukung. Setelah tersedia melalui HTTPS, buka /admin dan pilih Instal/Tambahkan ke layar utama. Tidak perlu memasukkan admin platform ke APK laundry. PWA tetap membutuhkan koneksi untuk data/operasi; instalasi dan izin aktual harus diuji di HP. Belum ada domain/deployment aktif.
+
+## API owner untuk Flutter
+POST /api/session (email/password) mengeluarkan token Sanctum business:read, berlaku 24 jam. GET /api/me membaca profil/paket/outlet usaha pemilik token, tidak menerima pemilihan tenant dari klien. DELETE /api/session mencabut token aktif. Admin pusat tidak mendapat token laundry. API ini belum menjalankan transaksi atau pairing perangkat kasir. Gunakan HTTPS, token hanya untuk pemakaian yang diizinkan; Google login/MFA/email belum selesai.

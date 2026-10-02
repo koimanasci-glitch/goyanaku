@@ -32,3 +32,8 @@ jobs:
       - run: php artisan route:list --except-vendor
       - run: php artisan view:cache
       - run: composer test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-composer-lock
+          path: backend/composer.lock
+          retention-days: 7
