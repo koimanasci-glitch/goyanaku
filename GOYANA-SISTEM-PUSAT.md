@@ -479,3 +479,17 @@ Pengguna menyerahkan keputusan teknis rutin offline/sinkronisasi kepada pengemba
 - Batch terbatas, backoff dan retry otomatis; indikator pending/terakhir sync, deduplikasi serta aturan konflik mengikuti bagian27–29. Jika jaringan ada tetapi backend gagal, pending tetap aman dan tidak dianggap berhasil.
 - Pengembang memilih parameter awal melalui uji perangkat/koneksi dan pengukuran, lalu mencatatnya sebagai konfigurasi yang dapat disesuaikan. Tidak perlu meminta pengguna menentukan setiap interval teknis.
 - Tidak memperluas mandat menjadi izin menghapus data, mengubah harga atau membeli infrastruktur tanpa kebijakan yang sesuai. Implementasi offline/sync tetap belum selesai; dokumen merupakan acuan kerja.
+
+
+## 31. Unggah Gambar: Kompresi Otomatis dan Maksimal 15
+
+Arahan pengguna: gambar dikompres otomatis sebelum dikirim, tetap menjaga tampilan/detail/warna agar tidak burik, dan maksimal15gambar. Penafsiran awal batas: per sekali unggah; bukan kuota total database/akun.
+
+- Resize proporsional dan kompres sesuai jenis gambar; pertahankan orientasi dan konsistensi warna. Gunakan profil warna yang sesuai tampilan web/mobile; tidak menjanjikan kompresi lossy identik dengan sumber.
+- Jangan memperbesar gambar kecil atau mengompres ulang gambar yang sudah memenuhi batas tanpa manfaat. Sesuaikan format/kualitas hasil berdasarkan uji visual, bukan kompres ekstrem demi ukuran.
+- Batasi pemilihan15gambar per sekali unggah pada UI dan validasi server. Batas ukuran per file/total serta dimensi final ditetapkan setelah pengujian; belum merupakan keputusan pengguna.
+- Proses satu per satu atau concurrency kecil, tidak mendecode15gambar penuh bersamaan. Tampilkan preview/progres, ukuran hasil dan retry file gagal.
+- Gambar/lampiran memakai antrean terpisah dari transaksi; kompres dan simpan hasil pending secara persisten saat offline sesuai kapasitas, upload ketika tersedia. Jangan menampilkan “terkirim” sebelum server mengonfirmasi.
+- Validasi konten/tipe/ukuran server, hak tenant/outlet, ID lampiran dan deduplikasi. Buang metadata lokasi yang tidak diperlukan.
+- Pertahankan keterbacaan gambar nota/barcode/QR bila termasuk unggahan; jangan menggunakan hasil kompresi yang merusak kemampuan scan.
+- Uji pada foto detail pakaian, warna pekat, teks serta perangkat RAM rendah. Fitur ini baru dicatat, belum diimplementasikan.
