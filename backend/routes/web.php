@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{AuthController, AdminController, AdminSupportController, AdminFaqController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
+use App\Http\Controllers\{AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +10,10 @@ Route::middleware('guest')->group(function () {
     Route::view('/register', 'auth', ['register' => true])->name('register');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:registration');
+    Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'send'])->middleware('throttle:5,10')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])->middleware('throttle:10,10')->name('password.update');
 });
 
 Route::middleware(['auth', 'active'])->group(function () {

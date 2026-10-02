@@ -15,6 +15,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function phone(b,name){const ctx=await b.newContext({viewport:{width:390,height:844}}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(name+': '+e.message));
   await p.goto(require('url').pathToFileURL(path.join(web,'index.html')).href);await p.waitForTimeout(3300);return {ctx,p,errors}}
 async function login(p,email){if(!globalThis.shot1){globalThis.shot1=1;await p.screenshot({path:path.join(os.tmpdir(),'goyana-sync-login.png')})}assert.ok(await p.evaluate(()=>document.getElementById('lg167').classList.contains('show')),'login screen shown when server is configured');
+  if(!globalThis.forgot1){globalThis.forgot1=1;const pop=p.waitForEvent('popup',{timeout:5000});await p.evaluate(()=>{const b=[...document.querySelectorAll('#lg167 button,#lg167 a')].find(x=>/Lupa password/i.test(x.textContent));b.click()});
+    const w=await pop;assert.match(w.url(),/\/forgot-password$/,'Lupa password opens the server reset page');await w.close()}
   await p.fill('#lg167-u',email);await p.fill('#lg167-p','PasswordAman123');
   await Promise.all([p.waitForEvent('load',{timeout:20000}).catch(()=>null),p.click('#lg167 .go')]);await p.waitForTimeout(3500);
   await p.evaluate(()=>{const o=document.getElementById('ob189');if(o)o.hidden=true})}

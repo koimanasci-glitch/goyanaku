@@ -229,6 +229,11 @@
       e.preventDefault(); e.stopImmediatePropagation();
       window.open(core.api() + '/register', '_blank'); toast('Daftar di halaman web, lalu masuk dengan email tersebut'); return;
     }
+    var forgot = e.type === 'click' && e.target.closest && e.target.closest('#lg167 button, #lg167 a');
+    if (forgot && /Lupa password/i.test(forgot.textContent)) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      window.open(core.api() + '/forgot-password', '_blank'); toast('Buat password baru lewat link yang dikirim ke email'); return;
+    }
     var go = e.type === 'click' && e.target.closest && e.target.closest('#lg167 .go');
     var enter = e.type === 'keydown' && e.key === 'Enter' && e.target.id === 'lg167-p';
     if (!go && !enter) return;
