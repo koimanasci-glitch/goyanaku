@@ -1399,3 +1399,21 @@ Status: **kebutuhan pengguna dan usulan rancangan backend mendatang; bukan fungs
 - [ ] Bila tidak dapat menyelesaikan atau diagnosis tidak pasti, buat tiket/escalation ke CS manusia dengan ringkasan kasus dan hasil pemeriksaan.
 
 Ketentuan tindakan otomatis di atas merupakan **usulan pengamanan dan implementasi**, bukan janji bahwa semua jenis masalah dapat di-reset sendiri.
+
+
+## 42. AI Pusat untuk Monitoring dan Dukungan Operasional Otomatis — 2 Oktober 2026
+
+Status: **arah sistem yang diminta pengguna; belum dibangun/aktif.** Melanjutkan nomor CS terintegrasi pada bagian 41.
+
+- Pengguna menginginkan AI pusat yang membantu mengelola layanan/server, memonitor gangguan, menerima keluhan, membaca data relevan, menjawab, dan menjalankan pemulihan yang diizinkan secara otomatis.
+- [ ] Monitoring proaktif memakai indikator nyata: kesehatan API/database/queue, koneksi WA, kegagalan kirim/webhook, sinkronisasi, dan backup. Jangan menunggu keluhan sebagai satu-satunya sumber gangguan.
+- [ ] Ketika pelanggan menghubungi CS, kaitkan identitas terverifikasi dengan akun usaha dan outlet. Nama/lokasi seperti “Susilo di Cikarang” hanya membantu pencarian, bukan bukti kepemilikan; lakukan verifikasi bila nomor belum dikenal atau permintaannya sensitif.
+- [ ] Ambil konteks lewat API internal yang dibatasi: paket/hak akses, outlet, perangkat, status WA, riwayat error terkait, dan tiket sebelumnya. Hanya data yang diperlukan untuk kasus tersebut.
+- [ ] Bot menyampaikan diagnosis yang didukung status/log nyata; jika bukti tidak cukup, minta informasi tambahan atau eskalasi. Jangan menyebut semua kemungkinan sebagai penyebab yang pasti.
+- [ ] Contoh sasaran perilaku: keluhan nota tidak terkirim → identitas usaha terverifikasi → cek device outlet dan pekerjaan kirim → temukan status putus/gagal jika terbukti → jelaskan tindakan berikutnya atau lakukan retry yang memenuhi aturan → cek hasil → beri jawaban faktual.
+- [ ] Pemulihan otomatis mengikuti tindakan terdaftar, hak akses, batas frekuensi/retry, idempotency, dan pemeriksaan hasil; bukan AI menjalankan perintah server bebas berdasarkan teks chat.
+- [ ] Gangguan luas, kegagalan pemulihan berulang, serta tindakan yang berpotensi menghapus data/mengubah akses atau uang memerlukan eskalasi dan otorisasi sesuai bagian 41.
+- [ ] Panel administrator menampilkan kesehatan layanan, insiden, diagnosis, tindakan otomatis, hasil, dan kasus yang membutuhkan manusia. Notifikasi gangguan/pemulihan dibuat ringkas dan tidak berulang tanpa alasan.
+- [ ] Pisahkan AI pusat pendukung layanan Goyana dari AI chatbot masing-masing laundry; data usaha tetap terisolasi. Kuota/top-up pelanggan laundry tidak otomatis menjadi biaya AI pusat.
+- [ ] Uji kasus yang dikenali, identitas tidak cocok, gangguan lintas usaha, diagnosis tidak pasti, retry duplikat, pemulihan gagal, dan keberhasilan yang diverifikasi.
+- Tingkat otomatisasi penuh tidak boleh dijanjikan sebelum integrasi dan uji operasional selesai. Sasaran awal: diagnosis dan penanganan rutin otomatis, dengan manusia untuk kasus yang belum aman atau belum terdefinisi.
