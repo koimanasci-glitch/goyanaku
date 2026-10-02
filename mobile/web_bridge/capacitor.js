@@ -355,6 +355,27 @@
     }
     return null;
   }
+  // Layanan: daftar layanan, alur proses, harga & saklar per durasi. Edit / tambah kategori tetap sheet HTML.
+  function servicesModel() {
+    var page = document.getElementById('services');
+    var search = page.querySelector('.bar99 input'), add = page.querySelector('.bar99 button');
+    var empty = page.querySelector('#cat99-list .empty176'), note = page.querySelector('.note99');
+    var cats = page.querySelectorAll('#cat99-list .cat99'), list = [];
+    for (var i = 0; i < cats.length && list.length < 200; i++) {
+      var c = cats[i];
+      if (!shown(c)) continue;
+      list.push({ i: i, svg: svgOf(c.querySelector('.gi99')), t: ((c.querySelector('.cat99-t b')) || {}).textContent || '', s: ((c.querySelector('.cat99-t small')) || {}).textContent || '',
+        edit: !!c.querySelector('.cat99-h button'),
+        chain: Array.prototype.map.call(c.querySelectorAll('.chain99 .st99'), function (e) { return { t: e.textContent.trim(), on: e.classList.contains('on') }; }),
+        vars: Array.prototype.map.call(c.querySelectorAll('.v99'), function (v, j) {
+          var cb = v.querySelector('input[type=checkbox]');
+          return { j: j, t: ((v.querySelector('div b')) || {}).textContent || '', s: ((v.querySelector('div small')) || {}).textContent || '',
+            price: ((v.querySelector('strong')) || {}).textContent || '', on: cb ? cb.checked : !v.classList.contains('off'), toggle: !!cb };
+        }) });
+    }
+    return { title: txt('#services .subhead b'), search: field(search), add: shown(add) ? add.textContent.trim() : '', cats: list,
+      empty: shown(empty) ? empty.textContent.trim() : '', note: note && shown(note) ? note.textContent.replace(/\s+/g, ' ').trim() : '' };
+  }
   // Pelanggan: daftar & database native; ranking (podium) tetap HTML saat dibuka.
   function customersModel() {
     var rank = document.getElementById('rk138');
@@ -508,7 +529,7 @@
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout') };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel };
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
@@ -530,6 +551,13 @@
   window.__goyanaTap = function (sel, index, child) {
     var list = document.querySelectorAll(sel), el = list[index || 0];
     if (el && child) el = el.querySelector(child);
+    if (el) el.click();
+    scheduleHome();
+    return !!el;
+  };
+  /** Click the j-th `child` inside the i-th `sel` (nested lists such as service variants). */
+  window.__goyanaTapIn = function (sel, index, child, childIndex) {
+    var box = document.querySelectorAll(sel)[index || 0], el = box && box.querySelectorAll(child)[childIndex || 0];
     if (el) el.click();
     scheduleHome();
     return !!el;

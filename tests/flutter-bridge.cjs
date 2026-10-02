@@ -24,7 +24,7 @@ try{
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
   const natives=()=>p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native'));
   let last=(await natives()).at(-1);assert.equal(last.page,'home');assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
-  await p.evaluate(()=>openPage('services'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
+  await p.evaluate(()=>openPage('perfume'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
   await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
   assert.equal((await natives()).at(-1).page,null,'a sheet opened from Beranda hides the native page');
@@ -172,6 +172,20 @@ try{
   last=await lastAdd();assert.equal(last.page,'cashout');assert.equal(last.model.subtract,true);
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Kas Masuk / Pengeluaran forms reach Flutter and save through the HTML logic');
+
+  // Layanan: list, search and per-duration switches run the HTML logic.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('services')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'services');assert.ok(last.model.cats.length>=3);
+  const svc0=last.model.cats[0];assert.equal(svc0.vars.length,3);assert.match(svc0.vars[0].price,/Rp/);assert.ok(svc0.chain.length>=3);
+  const wasOn=svc0.vars[2].on;
+  await p.evaluate(([i,j])=>__goyanaTapIn('#cat99-list .cat99',i,'.v99 input',j),[svc0.i,2]);await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.model.cats.find(c=>c.i===svc0.i).vars[2].on,!wasOn,'switch toggles through the HTML');
+  await p.evaluate(([i,j])=>__goyanaTapIn('#cat99-list .cat99',i,'.v99 input',j),[svc0.i,2]);await p.waitForTimeout(200);
+  await p.evaluate(t=>__goyanaSearch('#services .bar99 input',t),svc0.t.slice(0,4));await p.waitForTimeout(300);
+  last=await lastAdd();assert.ok(last.model.cats.length>=1&&last.model.cats.length<5,'search filters services: '+last.model.cats.length);
+  await p.evaluate(()=>__goyanaSearch('#services .bar99 input',''));await p.waitForTimeout(200);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Layanan list, search and switches reach Flutter and use the HTML logic');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

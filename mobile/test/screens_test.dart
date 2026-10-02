@@ -16,6 +16,7 @@ import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
 import 'package:goyana_flutter/native/reports_page.dart';
+import 'package:goyana_flutter/native/services_page.dart';
 import 'package:goyana_flutter/native/settings_page.dart';
 
 class _NoActions implements HomeActions {
@@ -356,6 +357,39 @@ final _addOptions = AddOrderModel.fromJson({
     ]},
 });
 
+class _NoServicesActions implements ServicesActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void svBack() {}
+  @override
+  void svSearch(String text) {}
+  @override
+  void svAdd() {}
+  @override
+  void svEdit(int index) {}
+  @override
+  void svToggle(int index, int variant) {}
+}
+
+Map<String, dynamic> _svc(int i, String name, String unit, List<int> prices, {bool kilatOff = false}) => {
+      'i': i, 'svg': _basket, 't': name, 's': 'Per $unit', 'edit': true,
+      'chain': [{'t': 'Cuci', 'on': true}, {'t': 'Kering', 'on': true}, {'t': 'Setrika', 'on': unit == 'kg'}, {'t': 'Packing', 'on': true}],
+      'vars': [
+        {'j': 0, 't': 'Reguler', 's': '72 jam', 'price': 'Rp${prices[0]} / $unit', 'on': true, 'toggle': true},
+        {'j': 1, 't': 'Express', 's': '24 jam', 'price': 'Rp${prices[1]} / $unit', 'on': true, 'toggle': true},
+        {'j': 2, 't': 'Kilat', 's': '6 jam', 'price': kilatOff ? 'Nonaktif' : 'Rp${prices[2]} / $unit', 'on': !kilatOff, 'toggle': true},
+      ],
+    };
+
+final _services = ServicesModel.fromJson({
+  'title': 'Layanan', 'search': {'v': '', 'ph': 'Cari layanan…'}, 'add': '+ Kategori',
+  'cats': [_svc(0, 'Cuci Baju', 'kg', [7000, 10500, 14000]), _svc(1, 'Bedcover', 'pcs', [30000, 45000, 60000], kilatOff: true)],
+  'note': 'Alur proses menentukan tahap produksi & hak akses pegawai.',
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -525,4 +559,25 @@ void main() {
     });
   }
 
+
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Layanan native at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeServices(model: _services, actions: _NoServicesActions(), topInset: 0),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/services_${width.toInt()}.png'));
+    });
+  }
 }

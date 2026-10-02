@@ -78,7 +78,7 @@ class _Payment extends StatelessWidget {
             GestureDetector(
               onTap: () => actions.aoPay((m['i'] as num?)?.toInt() ?? 0),
               child: Container(
-                width: w, height: _s(m['svg']).isNotEmpty ? 96 : 77, padding: const EdgeInsets.all(10),
+                width: w, constraints: BoxConstraints(minHeight: _s(m['svg']).isNotEmpty ? 96 : 77), padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xffeceff3)),
                     boxShadow: _s(m['svg']).isNotEmpty ? [gShadow(const Color(0x0a172235), 2, 8)] : null),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

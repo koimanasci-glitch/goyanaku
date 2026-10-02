@@ -64,7 +64,13 @@ jobs:
       - run: flutter test --exclude-tags screens
         working-directory: mobile
       - name: Screenshot halaman Flutter native
-        run: flutter test --tags screens --update-goldens
+        run: |
+          set +e
+          flutter test --tags screens --update-goldens --reporter expanded > screens.txt 2>&1; code=$?
+          cat screens.txt
+          # Failures as annotations (readable from the API without log access).
+          grep -E '\[E\]|EXCEPTION CAUGHT|overflowed|Expected:|Actual:|Error:' screens.txt | head -30 | sed 's/^/::warning::/'
+          exit $code
         working-directory: mobile
       - name: Kirim screenshot ke branch ci-screens
         if: github.event_name == 'push'

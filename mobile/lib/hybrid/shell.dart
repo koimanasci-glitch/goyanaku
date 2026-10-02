@@ -15,6 +15,7 @@ import '../native/customers_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
 import '../native/reports_page.dart';
+import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import 'bridge.dart';
 
@@ -46,7 +47,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions, CashCloseActions {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions, CashCloseActions, ServicesActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -59,6 +60,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   ReportsModel _reports = const ReportsModel();
   SettingsModel _settings = const SettingsModel();
   CashModel _cash = const CashModel();
+  ServicesModel _services = const ServicesModel();
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
@@ -183,6 +185,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
       setState(() {
         _nativePage = page;
         if (page == 'cashclose' && model != null) _cashClose = model;
+        if (page == 'services' && model != null) _services = ServicesModel.fromJson(model);
         if (page == 'home' && model != null) _home = HomeModel.fromJson(model);
         if (page == 'orders' && model != null) _orders = OrdersModel.fromJson(model);
         if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
@@ -280,6 +283,19 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void aoPay(int index) => _tap('#f61-payment .f61-paygrid button', index, null, false);
   @override
   void aoPayCancel() => _tap('#f61-payment .pay-cancel152', 0, null, false);
+
+  // Layanan
+  @override
+  void svBack() => _tap('#services .subhead .back', 0, null, false);
+  @override
+  void svSearch(String text) => _type('#services .bar99 input', text);
+  @override
+  void svAdd() => _tap('#services .bar99 button');
+  @override
+  void svEdit(int index) => _tap('#cat99-list .cat99', index, '.cat99-h button');
+  @override
+  void svToggle(int index, int variant) =>
+      _web.runJavaScript('window.__goyanaTapIn&&__goyanaTapIn("#cat99-list .cat99",$index,".v99 input",$variant)');
 
   // Pelanggan
   @override
@@ -524,6 +540,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
             if ((_nativePage == 'cashin' || _nativePage == 'cashout') && !_loading)
               Positioned.fill(child: NativeCash(key: ValueKey(_nativePage), model: _cash, actions: this)),
+            if (_nativePage == 'services' && !_loading)
+              Positioned.fill(child: NativeServices(model: _services, actions: this)),
             if (_nativePage == 'cashclose' && !_loading)
               Positioned.fill(child: NativeCashClose(model: _cashClose, actions: this)),
             if (_nativePage == 'settings' && !_loading)
