@@ -848,3 +848,10 @@ Alur (program, tanpa AI):
 Hak paket: Balasan Cepat & Trigger saat ini Silver. Katalog §19/v190 menaruh "AI mengecek status laundry pelanggan" di Gold. Karena cek status versi program tidak memakan biaya AI, **tanyakan pemilik**: cek status otomatis masuk Silver atau tetap Gold.
 
 Status: **mesin jawaban sudah dibangun & diuji** (`backend/app/Support/QuickReply.php`: status, tagihan, nota, jam/alamat, harga, antar-jemput; hanya data milik pengirim). Bisa dicoba di detail usaha admin → "Uji Balasan Cepat WhatsApp". Belum: webhook CHATKU, jeda bot 15 menit, dan hak paket (Silver/Gold, tunggu keputusan pemilik).
+
+## 48. Keputusan Deploy — 3 Oktober 2026
+
+- GOYANA dideploy di **VPS** (bukan Jagoan Hosting). VPS **belum dibeli**.
+- Spek awal: Ubuntu 24.04, 2 vCPU, 2 GB RAM, SSD 40–60 GB, lokasi Jakarta/Singapura.
+- Panduan: `deploy/README.md` bagian A.
+- CHATKU tetap di VPS terpisah (§41).
