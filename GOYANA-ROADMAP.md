@@ -1367,3 +1367,35 @@ Status: **permintaan pengguna untuk backend/integrasi mendatang; penerima webhoo
 - [ ] Setelah jadwal tersimpan, kurir yang ditugaskan dapat melihatnya dan menerima pemberitahuan; bila belum ada kurir, jadwal tetap tersimpan pada tugas sampai penugasan dilakukan.
 - [ ] Cegah pertanyaan jadwal ganda saat order dimuat ulang/sinkronisasi atau event status yang sama diterima ulang. Pertanyaan ulang hanya untuk perubahan/peristiwa yang relevan.
 - Ini penegasan alur otomatis yang diminta, **belum implementasi aktif pada APK/server**. Basic tetap menjalankan komunikasi/pencatatan manual.
+
+
+## 41. Nomor Pusat, Marketing, dan CS Terhubung ke Diagnosis Sistem — 2 Oktober 2026
+
+Status: **kebutuhan pengguna dan usulan rancangan backend mendatang; bukan fungsi aktif atau bukti Chatku siap diintegrasikan.**
+
+### Identitas dan pemisahan layanan
+
+- Pengguna menginginkan nomor WhatsApp pusat, marketing, dan customer service yang dikelola pada layanan pusat.
+- [ ] Konfigurasi nomor/device beserta fungsi masing-masing; nomor CS pusat Goyana berbeda dari chatbot setiap laundry yang melayani pelanggan laundry.
+- [ ] Hubungkan nomor CS ke backend agar dapat membantu pelanggan usaha Goyana mengenai akun, perangkat, paket, sinkronisasi, dan koneksi WhatsApp.
+- Chatku merupakan calon sistem gateway yang dapat digunakan kembali. Kelengkapan kode/API/webhook/monitoring/isolasinyanya perlu diperiksa sebelum menetapkan integrasi; jangan menganggap seluruh kemampuan tersedia hanya berdasarkan nama modul.
+- [ ] Monitor status koneksi, error, antrean pesan, kegagalan sinkronisasi, dan layanan terkait dari panel administrator. Penggunaan kembali Chatku tidak berarti backend bisnis Goyana digabung tanpa batas dengan data Chatku.
+
+### Diagnosis dari laporan pelanggan
+
+- [ ] Verifikasi identitas serta kepemilikan usaha/izin pelapor sebelum mengungkap data akun atau menjalankan tindakan sensitif. Nomor WhatsApp pengirim saja tidak selalu cukup untuk reset akun.
+- [ ] Kaitkan percakapan/tiket ke usaha dan kasus yang benar, kemudian baca status operasional melalui API diagnosis yang ruang lingkupnya terbatas.
+- [ ] Chatbot dapat menjelaskan kondisi yang terverifikasi, misalnya WA terputus, pesan tertunda, atau paket tidak aktif; jangan mengarang diagnosis atau menyatakan masalah selesai tanpa pemeriksaan hasil.
+- [ ] Jangan mengungkap password, token, secret, atau data usaha lain melalui percakapan.
+
+### Usulan perbaikan otomatis yang perlu diwujudkan dan diuji
+
+- [ ] Sediakan tindakan terkontrol sesuai jenis masalah, seperti pemeriksaan ulang status atau retry satu pekerjaan gagal yang aman dan idempotent. Jangan retry pembayaran/pesan tanpa perlindungan duplikasi.
+- [ ] Penautan WA yang memerlukan scan QR tetap membutuhkan tindakan pemilik nomor; bot tidak dapat menjamin menyambungkan ulang semua sesi secara otomatis.
+- [ ] Reset password menggunakan alur verifikasi dan tautan/kode yang aman; jangan mengirim password lama atau mengganti akses berdasarkan klaim chat semata.
+- [ ] Reset data usaha/transaksi, perubahan paket berbayar, pembatalan/refund, atau restart seluruh server tidak dilakukan bebas oleh chatbot. Sediakan otorisasi/konfirmasi spesifik dan eskalasi manusia sesuai dampaknya.
+- [ ] Batasi bot pada daftar tindakan API yang disetujui; tidak diberi akses shell/server tanpa batas.
+- [ ] Catat pelapor, usaha, diagnosis, aksi, persetujuan jika diperlukan, waktu, dan hasil dalam audit. Periksa hasil sebelum memberi konfirmasi selesai.
+- [ ] Bila tidak dapat menyelesaikan atau diagnosis tidak pasti, buat tiket/escalation ke CS manusia dengan ringkasan kasus dan hasil pemeriksaan.
+
+Ketentuan tindakan otomatis di atas merupakan **usulan pengamanan dan implementasi**, bukan janji bahwa semua jenis masalah dapat di-reset sendiri.
