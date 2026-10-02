@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
+import '../native/home_page.dart';
 import 'bridge.dart';
 
 const _brand = Color(0xffe8493f);
@@ -36,11 +38,13 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
   bool _loading = true;
+  bool _homeVisible = false;
+  HomeModel _home = const HomeModel();
   bool _loginBar = false;
   String? _loadError;
   DateTime? _lastBack;
@@ -132,6 +136,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost {
 
   // ---------- page <-> native ----------
   Future<void> _onMessage(String message) async {
+    if (message.startsWith('{"event"')) {
+      _onEvent(message);
+      return;
+    }
     final request = BridgeRequest.parse(message);
     if (request == null) return;
     final result = await _bridge.handle(request);
@@ -139,6 +147,44 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost {
     try {
       await _web.runJavaScript(result.script(request.id));
     } catch (_) {/* page reloaded meanwhile */}
+  }
+
+  // ---------- native pages (Flutter) over the HTML app ----------
+  void _onEvent(String message) {
+    try {
+      final data = jsonDecode(message) as Map<String, dynamic>;
+      if (data['event'] == 'home') {
+        final visible = data['visible'] == true;
+        final model = data['model'] is Map ? HomeModel.fromJson(Map<String, dynamic>.from(data['model'] as Map)) : _home;
+        if (mounted) setState(() { _homeVisible = visible; _home = model; });
+      }
+    } catch (_) {/* ignore malformed events */}
+  }
+
+  /// Runs the same HTML element's action, then shows the HTML app while it opens.
+  void _tap(String selector, [int index = 0]) {
+    setState(() => _homeVisible = false);
+    _web.runJavaScript('window.__goyanaTap&&__goyanaTap(${jsonEncode(selector)},$index)');
+  }
+
+  @override
+  void scan() => _tap('#home .gy167-scan');
+  @override
+  void slide(int index) => _tap('#home .gy155-slide', index);
+  @override
+  void tile(int index) => _tap('#home .gy155-grid button', index);
+  @override
+  void manageOutlet() => _tap('#home .gy155-manage');
+  @override
+  void qr() => _tap('#home .gy155-receipt-wrap button');
+  @override
+  void monthly() => _tap('#home .gy155-omset button');
+  @override
+  void helpChat() => _tap('#home .help100 button');
+  @override
+  void nav(String pageId) {
+    if (pageId == 'home') return;
+    _tap('#nav-$pageId');
   }
 
   Future<NavigationDecision> _onNavigation(NavigationRequest request) async {
@@ -291,6 +337,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost {
                 ),
               ),
             ),
+            // Native Flutter Beranda over the HTML app (kept alive underneath).
+            if (_homeVisible && !_loading)
+              Positioned.fill(child: NativeHome(model: _home, actions: this)),
             if (_loading && _loadError == null)
               const Positioned.fill(
                 child: ColoredBox(

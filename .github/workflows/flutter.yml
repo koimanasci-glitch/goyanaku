@@ -54,8 +54,18 @@ jobs:
         working-directory: mobile
       - run: flutter analyze
         working-directory: mobile
-      - run: flutter test
+      - run: flutter test --exclude-tags screens
         working-directory: mobile
+      - name: Screenshot halaman Flutter native
+        run: flutter test --tags screens --update-goldens
+        working-directory: mobile
+      - name: Kirim screenshot ke branch ci-screens
+        if: github.event_name == 'push'
+        run: |
+          cd mobile/test/screens
+          git init -q && git checkout -q -b ci-screens
+          git add . && git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Screenshots $GITHUB_SHA"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-screens
       - name: Build APK (release, cepat)
         run: flutter build apk --release --target-platform android-arm,android-arm64
         working-directory: mobile

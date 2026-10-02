@@ -200,6 +200,64 @@
     }
     return best;
   }
+  /* ---------- native Flutter pages ----------
+   * Beranda is drawn by Flutter (lib/native/home_page.dart). The HTML page keeps
+   * running underneath and stays the source of truth: Flutter shows its native
+   * Beranda only while #home is the active page and nothing covers it, and every
+   * native tap clicks the same HTML element, so behaviour is identical. */
+  function txt(sel) { var e = document.querySelector(sel); return e ? (e.innerText || e.textContent || '').trim() : ''; }
+  function homeModel() {
+    var badge = document.getElementById('today187-badge');
+    var labels = Array.prototype.map.call(document.querySelectorAll('#home .gy155-stats > div > span'), function (e) { return e.textContent.trim(); });
+    return {
+      statIn: txt('#gy155-in'), statReady: txt('#gy155-progress'), statLate: txt('#gy155-ready'),
+      labelIn: labels[0] || '', labelReady: labels[1] || '', labelLate: labels[2] || '',
+      today: txt('#gy155-today'), todayLabel: txt('#home .gy155-omset span'),
+      badge: badge ? badge.textContent.trim() : '', showBadge: !!(badge && visible(badge)),
+      slides: Array.prototype.map.call(document.querySelectorAll('#home .gy155-slide'), function (s) {
+        return { brand: (s.querySelector('.gy155-slide-brand') || {}).textContent || '',
+          title: (s.querySelector('.gy155-slide-title') || {}).innerText || '', sub: (s.querySelector('.gy155-slide-sub') || {}).textContent || '' };
+      }),
+      helpTitle: txt('#home .help100 b'), helpText: txt('#home .help100 small')
+    };
+  }
+  function coveringOverlay() {
+    // Overlays are body children or dialog/sheet/modal/overlay elements; checking only those keeps this cheap.
+    var list = document.querySelectorAll('body > *, [role="dialog"], [class*="sheet"], [class*="modal"], [class*="overlay"], .show');
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.closest('#home') || el.closest('#gy156-nav') || el.classList.contains('page')) continue;
+      var s = getComputedStyle(el);
+      if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') continue;
+      var r = el.getBoundingClientRect();
+      if (r.width >= innerWidth * 0.9 && r.height >= innerHeight * 0.5) return el;
+    }
+    return null;
+  }
+  var homeTimer = 0, lastHome = '';
+  function reportHome() {
+    homeTimer = 0;
+    var page = document.querySelector('.page.active');
+    var visibleHome = !!page && page.id === 'home' && !coveringOverlay();
+    var msg = JSON.stringify({ event: 'home', visible: visibleHome, model: visibleHome ? homeModel() : null });
+    if (msg === lastHome) return;
+    lastHome = msg;
+    try { window.GoyanaNative.postMessage(msg); } catch (e) {}
+  }
+  function scheduleHome() { if (!homeTimer) homeTimer = setTimeout(reportHome, 80); }
+  window.__goyanaHomeRefresh = function () { lastHome = ''; scheduleHome(); };
+  window.__goyanaTap = function (sel, index) {
+    var list = document.querySelectorAll(sel), el = list[index || 0];
+    if (el) el.click();
+    scheduleHome();
+    return !!el;
+  };
+  function watchHome() {
+    new MutationObserver(scheduleHome).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'], characterData: true });
+    scheduleHome();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchHome); else watchHome();
+
   window.__goyanaBack = function () {
     try {
       var login = document.getElementById('lg167');

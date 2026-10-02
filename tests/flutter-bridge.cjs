@@ -6,7 +6,7 @@ const zxing=path.join(__dirname,'node_modules','@zxing','library','umd','index.m
 const b0=spawnSync('python',[path.join(root,'tools/prepare_flutter_web.py'),root,zxing],{encoding:'utf8'});if(b0.status)throw Error(b0.stderr||b0.stdout);
 
 // Fake Flutter side: records every call and answers like MainActivity/bridge.dart.
-const fakeNative=()=>{window.__calls=[];window.GoyanaNative={postMessage(raw){const m=JSON.parse(raw);window.__calls.push(m);const key=m.plugin+'.'+m.method;
+const fakeNative=()=>{window.__calls=[];window.GoyanaNative={__events:[],postMessage(raw){if(raw.startsWith('{"event"')){this.__events.push(raw);return}const m=JSON.parse(raw);window.__calls.push(m);const key=m.plugin+'.'+m.method;
   const answers={'GoyanaDevice.insets':{top:31},'GoyanaDevice.requestAccess':{granted:true},'LocalNotifications.checkPermissions':{display:'granted'},
     'Geolocation.getCurrentPosition':{timestamp:1,coords:{latitude:-6.2,longitude:106.8,accuracy:5}},'Clipboard.read':{text:'dari HP'}};
   setTimeout(()=>window.__goyanaNative.finish(m.id,true,answers[key]||{}),5)}}};
@@ -19,6 +19,17 @@ try{
   assert.equal(await p.evaluate(()=>Capacitor.isNativePlatform()),true);
   assert.equal(await p.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--goyana-safe-top').trim()),'31px');
   console.log('PASS app boots on the Flutter bridge and receives the status bar inset');
+
+  // Native Beranda: HTML reports what Flutter should draw and when.
+  await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
+  const homes=()=>p.evaluate(()=>{const raw=window.GoyanaNative.__events||[];return raw.map(m=>JSON.parse(m)).filter(m=>m.event==='home')});
+  let last=(await homes()).at(-1);assert.equal(last.visible,true);assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
+  await p.evaluate(()=>openPage('orders'));await p.waitForTimeout(300);assert.equal((await homes()).at(-1).visible,false);
+  await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await homes()).at(-1).visible,true);
+  await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
+  assert.equal((await homes()).at(-1).visible,false,'a sheet opened from Beranda hides the native page');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});
+  console.log('PASS Beranda data and visibility are reported to Flutter; native taps run the HTML actions');
 
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));

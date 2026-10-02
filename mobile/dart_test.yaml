@@ -1,0 +1,3 @@
+tags:
+  screens:
+    description: Screenshot export of native pages (run with --update-goldens).
