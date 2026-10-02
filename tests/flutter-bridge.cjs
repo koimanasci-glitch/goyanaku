@@ -75,6 +75,23 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Tambah Transaksi steps 1-2 reach Flutter; search, duration, quantity sheet, category and toast use the HTML logic');
 
+  // Pelanggan: list + database native, ranking stays HTML.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customers')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'customers');assert.equal(last.model.db.open,false);assert.match(last.model.add,/Tambah Pelanggan/);
+  await p.evaluate(()=>__goyanaTap('#customers .cust59-dbbtn'));await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'customers');assert.equal(last.model.db.open,true);
+  const names=last.model.rows.map(r=>r.name);assert.ok(names.includes('Budi Native')&&names.includes('Sari Native'),names.join());
+  const budi=last.model.rows.find(r=>r.name==='Budi Native');assert.match(budi.balance,/Saldo/);assert.match(budi.topup,/Top Up/);assert.equal(budi.edit,'Edit');
+  await p.evaluate(()=>__goyanaSearch('#cust59-search','Sari'));await p.waitForTimeout(400);
+  last=await lastAdd();assert.deepEqual(last.model.rows.map(r=>r.name),['Sari Native'],'customer database search uses the HTML filter');
+  await p.evaluate(()=>__goyanaSearch('#cust59-search',''));await p.waitForTimeout(300);
+  await p.evaluate(()=>__goyanaTap('#rk138btn'));await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'ranking (podium) stays HTML');
+  await p.evaluate(()=>__goyanaTap('#rk138btn'));await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,'customers','closing the ranking returns to native');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Pelanggan list & database reach Flutter; search, toggle and ranking hand-off use the HTML logic');
+
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));
   const save=await p.evaluate(()=>__calls.find(c=>c.plugin==='Files'&&c.method==='save').args);

@@ -8,6 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../native/addorder_page.dart';
+import '../native/customers_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
 import 'bridge.dart';
@@ -40,7 +41,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -49,6 +50,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   HomeModel _home = const HomeModel();
   OrdersModel _orders = const OrdersModel();
   AddOrderModel _addOrder = const AddOrderModel();
+  CustomersModel _customers = const CustomersModel();
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -174,6 +176,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         if (page == 'home' && model != null) _home = HomeModel.fromJson(model);
         if (page == 'orders' && model != null) _orders = OrdersModel.fromJson(model);
         if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
+        if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         final toast = page == null ? '' : (data['toast'] as String? ?? '');
         if (toast.isNotEmpty && toast != _toast) {
           _toastTimer?.cancel();
@@ -246,6 +249,30 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void aoService(int index) => _tap('#list116 .sv116', index);
   @override
   void aoNext() => _tap('#f61-service-footer > button');
+
+  // Pelanggan
+  @override
+  void cuBack() => _tap('#customers .cust59-head .back', 0, null, false);
+  @override
+  void cuSearch(String text) => _type('#cust59-search', text);
+  @override
+  void cuDeposit() => _tap('#customers .depositshortcut180');
+  @override
+  void cuAdd() => _tap('#customers .cust59-add');
+  @override
+  void cuToggleDb() => _tap('#customers .cust59-dbbtn', 0, null, false);
+  @override
+  void cuFilter() => _tap('#customers .cust59-dbhead button');
+  @override
+  void cuTopUp(int index) => _tap('#cust59-db .cust59-row', index, '.balance180 button');
+  @override
+  void cuEdit(int index) => _tap('#cust59-db .cust59-row', index, '.gy154-edit');
+  @override
+  void cuPage(int delta) => _tap(delta < 0 ? '#pg138-p' : '#pg138-n', 0, null, false);
+  @override
+  void cuRank() => _tap('#rk138btn');
+  @override
+  void cuCrm() => _tap('#customers .crm130-entry');
 
   Future<NavigationDecision> _onNavigation(NavigationRequest request) async {
     final uri = Uri.tryParse(request.url);
@@ -408,6 +435,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeHome(model: _home, actions: this)),
             if (_nativePage == 'orders' && !_loading)
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
+            if (_nativePage == 'customers' && !_loading)
+              Positioned.fill(child: NativeCustomers(model: _customers, actions: this)),
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)

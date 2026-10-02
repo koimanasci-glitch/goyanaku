@@ -52,8 +52,15 @@ jobs:
           cache: true
       - run: flutter pub get
         working-directory: mobile
-      - run: flutter analyze
+      - name: flutter analyze
         working-directory: mobile
+        run: |
+          set +e
+          flutter analyze > analyze.txt 2>&1; code=$?
+          cat analyze.txt
+          # Show each finding as a GitHub annotation (readable from the API without log access).
+          awk -F ' • ' '/^ *(info|warning|error) • /{split($3,a,":"); gsub(/^ +/,"",$1); printf "::warning file=mobile/%s,line=%s::%s %s (%s)\n", a[1], a[2], $1, $2, $4}' analyze.txt
+          exit $code
       - run: flutter test --exclude-tags screens
         working-directory: mobile
       - name: Screenshot halaman Flutter native

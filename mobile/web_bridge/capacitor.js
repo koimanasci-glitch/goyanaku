@@ -325,13 +325,52 @@
     } else return null; // unknown stage: leave it to the HTML page
     return m;
   }
+  // Pelanggan: daftar & database native; ranking (podium) tetap HTML saat dibuka.
+  function customersModel() {
+    var rank = document.getElementById('rk138');
+    if (rank && shown(rank) && rank.getBoundingClientRect().height > 10) return null;
+    var page = document.getElementById('customers');
+    var db = document.getElementById('cust59-db'), dbBtn = page.querySelector('.cust59-dbbtn');
+    var dep = page.querySelector('.depositshortcut180'), add = page.querySelector('.cust59-add');
+    var crm = page.querySelector('.crm130-entry'), rk = document.getElementById('rk138btn');
+    var m = {
+      title: txt('#customers .cust59-head b'), sub: txt('#customers .cust59-head small'),
+      search: field(document.getElementById('cust59-search')),
+      deposit: shown(dep) ? dep.textContent.trim() : '', add: shown(add) ? add.textContent.replace(/^\s*[+＋]\s*/, '').trim() : '',
+      db: dbBtn ? { t: txt('#customers .cust59-dbbtn b'), s: txt('#customers .cust59-dbbtn small'), open: !!db && db.classList.contains('show') } : null,
+      rank: shown(rk) ? { t: txt('#rk138btn b'), s: txt('#rk138btn small'), icon: txt('#rk138btn > span') } : null,
+      crm: shown(crm) ? { t: ((crm.querySelector('b') || {}).childNodes[0] || {}).textContent || '', badge: txt('#customers .crm130-entry em'), s: txt('#customers .crm130-entry small'), icon: txt('#customers .crm130-entry > span') } : null,
+      rows: [], empty: '', pager: null
+    };
+    if (m.crm) m.crm.t = m.crm.t.trim();
+    if (m.db && m.db.open) {
+      m.dbTitle = txt('#customers .cust59-dbhead b'); m.dbSub = txt('#customers .cust59-dbhead small'); m.filter = txt('#customers .cust59-dbhead button');
+      var rows = db.querySelectorAll('.cust59-row');
+      for (var i = 0; i < rows.length && m.rows.length < 200; i++) {
+        var r = rows[i];
+        if (!shown(r)) continue;
+        var smalls = Array.prototype.filter.call(r.querySelectorAll('div small'), function (e) { return shown(e) && !e.classList.contains('sp138'); });
+        var bal = r.querySelector('.balance180');
+        m.rows.push({ i: i, name: ((r.querySelector('div b') || {}).textContent || '').trim(), avatar: svgOf(r.querySelector('.av126')),
+          lines: smalls.map(function (e) { return e.textContent.trim(); }), spend: ((r.querySelector('.sp138') || {}).textContent || '').trim(),
+          orders: ((r.querySelector(':scope > strong') || {}).textContent || '').trim(), last: ((r.querySelector(':scope > time') || {}).textContent || '').trim(),
+          balance: bal && shown(bal) ? ((bal.querySelector('span') || {}).textContent || '').trim() : '', topup: bal && shown(bal) ? ((bal.querySelector('button') || {}).textContent || '').trim() : '',
+          edit: shown(r.querySelector('.gy154-edit')) ? r.querySelector('.gy154-edit').textContent.trim() : '' });
+      }
+      var empty = db.querySelector('.empty176');
+      m.empty = shown(empty) ? empty.textContent.trim() : '';
+      var pg = document.getElementById('pg138'), pp = document.getElementById('pg138-p'), pn = document.getElementById('pg138-n');
+      if (shown(pg) && pp && pn && (!pp.disabled || !pn.disabled)) m.pager = { prev: pp.textContent.trim(), next: pn.textContent.trim(), info: txt('#pg138-i'), canPrev: !pp.disabled, canNext: !pn.disabled };
+    }
+    return m;
+  }
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;
