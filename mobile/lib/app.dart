@@ -66,7 +66,9 @@ class _AccountPageState extends State<AccountPage> {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
       if (mounted) setState(() => _error = 'Data belum dapat diperbarui.');
-    } finally { if (mounted) setState(() => _busy = false); }
+    } finally {
+      if (mounted) { setState(() => _busy = false); }
+    }
   }
   Future<void> _logout() async {
     setState(() => _busy = true);
