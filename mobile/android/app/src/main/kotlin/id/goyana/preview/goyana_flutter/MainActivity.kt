@@ -300,7 +300,17 @@ class MainActivity : FlutterActivity() {
     @SuppressLint("MissingPermission")
     private fun currentPosition(call: MethodCall, result: MethodChannel.Result) {
         if (!allowed("location")) {
-            result.error("denied", "Izin lokasi diperlukan", null)
+            // Ask once, then continue; before this fix "Lokasi saya" failed silently on a fresh install.
+            val code = nextRequest++
+            permissionCalls[code] = "location" to object : MethodChannel.Result {
+                override fun success(value: Any?) {
+                    if (allowed("location")) currentPosition(call, result)
+                    else result.error("denied", "Izin lokasi ditolak. Buka Pengaturan HP > Aplikasi > GOYANA > Izin > Lokasi.", null)
+                }
+                override fun error(code: String, message: String?, details: Any?) = result.error(code, message, details)
+                override fun notImplemented() = result.notImplemented()
+            }
+            requestPermissions(permissionsFor("location"), code)
             return
         }
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
