@@ -41,4 +41,31 @@ return [
 
     // Wajibkan verifikasi email owner. Aktifkan setelah SMTP/email pengirim produksi siap.
     'require_email_verification' => env('GOYANA_REQUIRE_EMAIL_VERIFICATION', false),
+
+    /*
+     | Sync collections from the Android app. write = any of these permissions may change it,
+     | read = any of these may download it ('*' = every role of the business).
+     | scope outlet = record belongs to one outlet (staff only see their outlet); business = shared.
+     | transactional = writing it uses a cashier device slot (max 2 per outlet).
+     */
+    'sync' => [
+        'max_changes' => 200,
+        'max_record_bytes' => 400000,
+        'collections' => [
+            'orders' => ['scope' => 'outlet', 'transactional' => true, 'read' => ['*'],
+                'write' => ['orders.create', 'orders.update', 'orders.status', 'payments.receive', 'courier.tasks']],
+            'kas' => ['scope' => 'outlet', 'transactional' => true, 'read' => ['cash.manage'], 'write' => ['cash.manage']],
+            'deposits' => ['scope' => 'business', 'transactional' => true, 'read' => ['payments.receive'], 'write' => ['payments.receive']],
+            'customers' => ['scope' => 'business', 'read' => ['*'], 'write' => ['customers.manage', 'orders.create']],
+            'services' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
+            'settings' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
+            'outlet_profiles' => ['scope' => 'business', 'read' => ['*'], 'write' => ['owner']],
+            'couriers' => ['scope' => 'business', 'read' => ['courier.assign', 'courier.tasks'], 'write' => ['courier.assign']],
+            'stock_items' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage']],
+            'stock_ledger' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage', 'stock.use']],
+            'stock_suppliers' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],
+            'stock_purchases' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],
+            'stock_recipes' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage']],
+        ],
+    ],
 ];
