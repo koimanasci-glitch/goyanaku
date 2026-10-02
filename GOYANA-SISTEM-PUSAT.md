@@ -467,3 +467,15 @@ Arahan pembahasan: pengguna mengkhawatirkan notifikasi berulang. Rekomendasi des
 - Notifikasi lokal dapat bekerja tanpa pesan server, sesuai izin notifikasi dan batas OS. Tidak menjamin tampil bila izin dimatikan/app force-stop; ini opsi rancangan, bukan kepastian fitur yang sudah terpasang.
 - Sediakan preferensi pengingat; batalkan pengingat setelah pending selesai. Tidak mengirim notifikasi rutin untuk setiap sinkronisasi berhasil.
 - Ambang durasi/cooldown belum diputuskan; pilih melalui pengujian/pola operasional. Kekurangan penyimpanan/gagal menyimpan transaksi tetap memberi peringatan segera di aplikasi.
+
+
+## 30. Mandat Penyempurnaan Offline/Sync dan Efisiensi Data
+
+Pengguna menyerahkan keputusan teknis rutin offline/sinkronisasi kepada pengembang agar mengikuti kebutuhan sistem kasir yang cepat, stabil dan tidak mengganggu.
+
+- Gunakan sinkronisasi incremental: kirim operasi/data berubah dan tarik perubahan berdasarkan cursor/version, bukan seluruh database pada setiap sync.
+- Data teks transaksi biasanya lebih ringan dari foto/lampiran; ukuran nyata bergantung isi, jumlah dan backlog. Ukur payload, jangan menjanjikan nominal kuota tertentu.
+- Kirim lampiran secara terpisah dengan batas ukuran/kompresi yang sesuai. Jangan menahan pencatatan lokal transaksi hanya karena unggahan foto belum selesai; tampilkan status masing-masing.
+- Batch terbatas, backoff dan retry otomatis; indikator pending/terakhir sync, deduplikasi serta aturan konflik mengikuti bagian27–29. Jika jaringan ada tetapi backend gagal, pending tetap aman dan tidak dianggap berhasil.
+- Pengembang memilih parameter awal melalui uji perangkat/koneksi dan pengukuran, lalu mencatatnya sebagai konfigurasi yang dapat disesuaikan. Tidak perlu meminta pengguna menentukan setiap interval teknis.
+- Tidak memperluas mandat menjadi izin menghapus data, mengubah harga atau membeli infrastruktur tanpa kebijakan yang sesuai. Implementasi offline/sync tetap belum selesai; dokumen merupakan acuan kerja.
