@@ -167,3 +167,44 @@ Panel Paduka mencakup akun usaha, trial/paket, invoice, cabang, users/devices, s
 - Xendit Subscriptions: https://docs.xendit.co/docs/how-subscriptions-work
 
 Aturan dan channel dapat berubah; periksa kembali ketika implementasi/peluncuran.
+
+
+## 12. AI Pusat Dipanggil Saat Perlu, Aturan Server Tetap Bekerja
+
+Penegasan pengguna: AI utama menjadi pusat diagnosis/perawatan/keamanan, dapat dihubungkan ke penyedia AI seperti OpenRouter atau penyedia langsung. Kata “cloud” belum cukup memastikan penyedia tertentu; jika maksudnya Claude, konfirmasikan ketika memilih penyedia. Semua ini kebutuhan mendatang, belum aktif.
+
+### Lapisan tanpa AI, berjalan rutin
+- Health checks, error/queue monitoring, audit, backup beserta uji pemulihan, dan pengecekan status WA.
+- Rate limit login/API/WA, validasi token/webhook, pembatasan dua perangkat kasir/outlet, isolasi usaha, serta deteksi retry/event duplikat.
+- Aturan mendeteksi volume pesan tidak wajar, percobaan login berulang, akses outlet di luar izin, dan pola perangkat mencurigakan.
+- Tindakan terukur seperti penundaan/rate limit, penolakan request yang jelas melanggar, dan retry terbatas yang idempotent.
+- Indikator mencurigakan bukan bukti pasti kecurangan. Jangan menuduh pelanggan atau memblokir permanen seluruh usaha berdasarkan kesimpulan AI/pola tunggal.
+
+### Lapisan AI, dipanggil berdasarkan kebutuhan
+- Ketika diagnosis aturan tidak cukup, insiden berulang/tidak dikenal, keluhan membutuhkan pembacaan konteks, atau ulasan perlu respons yang disesuaikan.
+- Data yang dikirim dibatasi dan disamarkan bila relevan; jangan mengirim password/secret/full database.
+- AI membaca konteks dari API diagnosis dan mengusulkan/menjalankan hanya tindakan yang diberi izin. Teks chat, ulasan, dan log adalah data tidak tepercaya, bukan instruksi untuk mengubah izin/server.
+- Model/penyedia dapat diganti melalui konfigurasi backend; API key hanya di server.
+- Batasi biaya harian/bulanan, jumlah pemanggilan, token, timeout, dan retry. Cache/deduplicate insiden; gunakan model sesuai kebutuhan.
+- Jika API AI mati atau saldo habis, transaksi utama, login, aturan keamanan, backup, dan monitoring tetap bekerja; kasus sulit masuk antrean/tiket manusia.
+- Perbaikan otomatis harus dicek hasilnya dan dicatat; perubahan kode/deployment/restore database memerlukan alur review, tes, otorisasi dan rollback tersendiri.
+- AI tidak menjamin semua serangan atau gangguan dapat dideteksi. Keamanan produksi memakai fondasi server dan uji, bukan AI saja.
+
+## 13. Monitoring dan Balasan Ulasan Google Play
+
+- Pengguna meminta server memantau ulasan dan membalas dengan bahasa CS Goyana yang sopan, sesuai keluhan.
+- Google menyediakan Reply to Reviews API untuk aplikasi produksi, dengan akses OAuth/service account berizin Reply to reviews.
+- API mencakup ulasan dengan komentar; bukan seluruh rating tanpa teks atau feedback alpha/beta.
+- Tarik ulasan baru/diubah secara berkala sesuai kuota, simpan reviewId/versi komentar dan status respons. List API membatasi ulasan dibuat/diubah dalam minggu terakhir, sehingga arsip pusat harus dibangun bertahap; histori lebih lama melalui ekspor Console bila diperlukan.
+- Batas respons API yang diperiksa: 350 karakter. Jangan memuat data pribadi, nomor transaksi, identitas usaha, atau log internal pada respons publik.
+- Rancangan otomatis: pujian/FAQ aman menggunakan template; keluhan dianalisis AI bila diperlukan; kasus sensitif/diagnosis tidak pasti perlu eskalasi. Cegah respons ganda/berulang.
+- Jangan mengklaim “sudah diperbaiki”, “sedang diperiksa”, atau tanggal selesai tanpa status pekerjaan nyata. Ulasan dapat membuat tiket, tetapi bukan bukti identitas pelanggan.
+- Contoh awal bila belum ada diagnosis: “Mohon maaf atas kendala yang dialami. Agar kami dapat membantu dengan tepat, silakan hubungi CS melalui menu Bantuan dan sertakan versi aplikasi serta langkah saat kendala muncul. Jangan cantumkan data pribadi di ulasan ini. Terima kasih atas masukannya.”
+- Jika insiden/perbaikan telah terverifikasi, respons dapat menyebut kondisi serta langkah yang benar, tanpa janji kosong.
+- Perlu packageName aplikasi produksi dan akses Play Developer API; belum ada koneksi/otomasi balasan aktif dalam pekerjaan ini. Ini modul backend Goyana, bukan pembuatan reminder/automation eksternal ChatGPT.
+
+Sumber tambahan resmi:
+- Reply to Reviews: https://developers.google.com/android-publisher/reply-to-reviews
+- Endpoint reply: https://developers.google.com/android-publisher/api-ref/rest/v3/reviews/reply
+- OpenRouter API: https://openrouter.ai/docs/quickstart
+- Claude API (opsi bila penyedia ini dipilih): https://platform.claude.com/docs/en/api/overview
