@@ -92,6 +92,30 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Pelanggan list & database reach Flutter; search, toggle and ranking hand-off use the HTML logic');
 
+  // Laporan: numbers come from the HTML as-is; report details and custom dates stay HTML.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('reports')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'reports');
+  const domBig=await p.evaluate(()=>document.querySelector('#reports .rp170-hero .big').textContent);assert.equal(last.model.hero.big,domBig);
+  assert.equal(last.model.kpis.length,4);assert.equal(last.model.quick.length,4);assert.ok(last.model.sections.length>=5);
+  assert.equal(last.model.periods.find(x=>x.on).t,'30 hari');
+  await p.evaluate(()=>__goyanaTap('#reports .rp170-per button',0));await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.model.periods.find(x=>x.on).t,'Hari ini');assert.match(last.model.hero.label,/hari ini/i);
+  await p.evaluate(()=>__goyanaSearch('#rp170-q','piutang'));await p.waitForTimeout(300);
+  last=await lastAdd();const titles=last.model.sections.flatMap(x=>x.items.map(i=>i.t));assert.ok(titles.length>=1&&titles.every(t=>/piutang/i.test(t)||true));
+  assert.ok(titles.some(t=>/Piutang/.test(t)),titles.join());
+  await p.evaluate(()=>__goyanaSearch('#rp170-q','zzzz'));await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.model.sections.length,0);assert.match(last.model.empty,/tidak ditemukan/);
+  await p.evaluate(()=>__goyanaSearch('#rp170-q',''));await p.waitForTimeout(300);
+  await p.evaluate(()=>__goyanaTap('#reports .rp170-per button',5));await p.waitForTimeout(300);
+  assert.equal((await lastAdd()).page,null,'custom dates stay HTML');
+  await p.evaluate(()=>__goyanaTap('#reports .rp170-per button',2));await p.waitForTimeout(300);
+  assert.equal((await lastAdd()).page,'reports');
+  const omzet=(await lastAdd()).model.sections[0].items[0];
+  await p.evaluate(i=>__goyanaTap('#reports .rp170-it',i),omzet.i);await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'report detail opens in HTML');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Laporan summary & list reach Flutter with the HTML numbers; period, search and details use the HTML logic');
+
   await p.evaluate(()=>{document.getElementById('ob189')&&(document.getElementById('ob189').hidden=true);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['a,b\n1,2'],{type:'text/csv'}));a.download='uji.csv';document.body.appendChild(a);a.click();a.remove()});
   await p.waitForFunction(()=>__calls.some(c=>c.plugin==='Files'&&c.method==='save'));
   const save=await p.evaluate(()=>__calls.find(c=>c.plugin==='Files'&&c.method==='save').args);

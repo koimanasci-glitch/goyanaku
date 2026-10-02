@@ -12,6 +12,7 @@ import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
+import '../native/reports_page.dart';
 import 'bridge.dart';
 
 const _brand = Color(0xffe8493f);
@@ -42,7 +43,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions {
+class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -52,6 +53,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   OrdersModel _orders = const OrdersModel();
   AddOrderModel _addOrder = const AddOrderModel();
   CustomersModel _customers = const CustomersModel();
+  ReportsModel _reports = const ReportsModel();
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -178,6 +180,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         if (page == 'orders' && model != null) _orders = OrdersModel.fromJson(model);
         if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
+        if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         final toast = page == null ? '' : (data['toast'] as String? ?? '');
         if (toast.isNotEmpty && toast != _toast) {
           _toastTimer?.cancel();
@@ -274,6 +277,22 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void cuRank() => _tap('#rk138btn');
   @override
   void cuCrm() => _tap('#customers .crm130-entry');
+
+  // Laporan
+  @override
+  void rpOutlet() => _tap('#reports .g62-outlet');
+  @override
+  void rpPeriod(int index) => _tap('#reports .rp170-per button', index, null, false);
+  @override
+  void rpKpi(int index) => _tap('#reports .rp170-kp button', index);
+  @override
+  void rpQuick(int index) => _tap('#reports .rp170-qa button', index);
+  @override
+  void rpSearch(String text) => _type('#rp170-q', text);
+  @override
+  void rpCategory(int index) => _tap('#reports .rp170-cat button', index, null, false);
+  @override
+  void rpOpen(int index) => _tap('#reports .rp170-it', index);
 
   Future<NavigationDecision> _onNavigation(NavigationRequest request) async {
     final uri = Uri.tryParse(request.url);
@@ -436,6 +455,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeHome(model: _home, actions: this)),
             if (_nativePage == 'orders' && !_loading)
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
+            if (_nativePage == 'reports' && !_loading)
+              Positioned.fill(child: NativeReports(model: _reports, actions: this)),
             if (_nativePage == 'customers' && !_loading)
               Positioned.fill(child: NativeCustomers(model: _customers, actions: this)),
             if (_nativePage == 'addorder' && !_loading)

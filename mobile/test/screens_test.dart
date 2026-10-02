@@ -12,6 +12,7 @@ import 'package:goyana_flutter/native/addorder_page.dart';
 import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
+import 'package:goyana_flutter/native/reports_page.dart';
 
 class _NoActions implements HomeActions {
   @override
@@ -184,6 +185,55 @@ final _customers = CustomersModel.fromJson({
   'pager': {'prev': '‹ Sebelumnya', 'next': 'Berikutnya ›', 'info': 'Hal 1 dari 3', 'canPrev': false, 'canNext': true},
 });
 
+class _NoReportActions implements ReportsActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void rpOutlet() {}
+  @override
+  void rpPeriod(int index) {}
+  @override
+  void rpKpi(int index) {}
+  @override
+  void rpQuick(int index) {}
+  @override
+  void rpSearch(String text) {}
+  @override
+  void rpCategory(int index) {}
+  @override
+  void rpOpen(int index) {}
+}
+
+Map<String, dynamic> _it(int i, String icon, String t, String s, String v) => {'i': i, 'icon': icon, 'bg': 'rgb(255, 244, 229)', 't': t, 's': s, 'v': v};
+
+final _reports = ReportsModel.fromJson({
+  'title': 'Laporan', 'outlet': '',
+  'periods': [{'t': 'Hari ini', 'on': false}, {'t': '7 hari', 'on': false}, {'t': '30 hari', 'on': true}, {'t': 'Bulan ini', 'on': false}, {'t': 'Bulan lalu', 'on': false}, {'t': 'Pilih tanggal', 'on': false}],
+  'hero': {'label': 'Omzet · 30 hari', 'big': 'Rp12.450.000', 'sub': '312 pesanan · rata-rata Rp39.904',
+    'pm': [{'t': 'Tunai', 'v': 'Rp6.200.000'}, {'t': 'QRIS', 'v': 'Rp4.100.000'}, {'t': 'Transfer', 'v': 'Rp1.900.000'}, {'t': 'Deposit', 'v': 'Rp250.000'}]},
+  'kpis': [
+    {'icon': '↘', 'bg': 'rgb(255, 240, 241)', 't': 'Pengeluaran', 'v': 'Rp3.120.000', 's': '18 catatan'},
+    {'icon': '＝', 'bg': 'rgb(234, 247, 228)', 't': 'Laba bersih', 'v': 'Rp9.330.000', 's': ''},
+    {'icon': '⏳', 'bg': 'rgb(255, 246, 223)', 't': 'Belum dibayar', 'v': 'Rp420.000', 's': 'piutang berjalan'},
+    {'icon': '＋', 'bg': 'rgb(243, 239, 255)', 't': 'Pelanggan baru', 'v': '24 orang', 's': '30 hari'},
+  ],
+  'quick': [
+    {'icon': '＋', 'bg': 'rgb(234, 247, 228)', 't': 'Kas Masuk'}, {'icon': '−', 'bg': 'rgb(255, 240, 241)', 't': 'Pengeluaran'},
+    {'icon': '✓', 'bg': 'rgb(234, 242, 253)', 't': 'Tutup Kasir'}, {'icon': '✎', 'bg': 'rgb(243, 239, 255)', 't': 'Ralat'},
+  ],
+  'search': {'v': '', 'ph': 'Cari laporan… (mis. piutang, pegawai, stok)'},
+  'cats': [{'t': 'Semua', 'on': true, 'bg': 'rgb(30, 30, 30)', 'c': 'rgb(255, 255, 255)'}, {'t': '💰 Keuangan', 'on': false, 'bg': 'rgb(255, 255, 255)', 'c': 'rgb(91, 95, 110)'}, {'t': '🧾 Transaksi', 'on': false, 'bg': 'rgb(255, 255, 255)', 'c': 'rgb(91, 95, 110)'}],
+  'sections': [
+    {'t': '💰 Keuangan', 'items': [
+      _it(0, '📈', 'Omzet', 'Total nilai transaksi (tidak termasuk batal)', 'Rp12.450.000'),
+      _it(1, '🔄', 'Arus Kas', 'Uang masuk vs uang keluar', 'Rp9.330.000'),
+      _it(2, '⏳', 'Piutang (Belum Bayar)', 'Pesanan yang belum dibayar pelanggan', 'Rp420.000'),
+    ]},
+  ],
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -271,6 +321,27 @@ void main() {
       }
       expect(tester.takeException(), isNull);
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/customers_${width.toInt()}.png'));
+    });
+  }
+
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Laporan native at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 1200 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeReports(model: _reports, actions: _NoReportActions(), topInset: 0),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/reports_${width.toInt()}.png'));
     });
   }
 }

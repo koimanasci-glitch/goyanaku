@@ -364,13 +364,47 @@
     }
     return m;
   }
+  // Laporan: ringkasan & daftar laporan native; detail laporan, tanggal kustom dan halaman kas tetap HTML.
+  function reportsModel() {
+    var root = document.querySelector('#reports .rp170');
+    if (!root) return null;
+    var cus = root.querySelector('.rp170-cus');
+    if (shown(cus)) return null; // date inputs: leave to HTML
+    function all(sel, fn) { return Array.prototype.filter.call(root.querySelectorAll(sel), shown).map(fn); }
+    var hero = root.querySelector('.rp170-hero'), outlet = document.querySelector('#reports .g62-outlet');
+    var items = root.querySelectorAll('.rp170-it'), idx = new Map();
+    for (var k = 0; k < items.length; k++) idx.set(items[k], k);
+    var empty = root.querySelector('.rp170-empty');
+    return {
+      title: txt('#reports .g62-top b'), outlet: shown(outlet) ? outlet.textContent.trim() : '',
+      periods: Array.prototype.map.call(root.querySelectorAll('.rp170-per button'), function (b) { return { t: b.textContent.trim(), on: b.classList.contains('on') }; }),
+      hero: shown(hero) ? { label: ((hero.querySelector('small')) || {}).textContent || '', big: ((hero.querySelector('.big')) || {}).textContent || '', sub: ((hero.querySelector('.sub')) || {}).textContent || '',
+        pm: Array.prototype.map.call(hero.querySelectorAll('.pm > div'), function (d) { return { t: ((d.querySelector('span')) || {}).textContent || '', v: ((d.querySelector('b')) || {}).textContent || '' }; }) } : null,
+      kpis: all('.rp170-kp button', function (b) {
+        var i = b.querySelector('small i');
+        return { icon: i ? i.textContent.trim() : '', bg: i ? getComputedStyle(i).backgroundColor : '', t: ((b.querySelector('small')) || {}).textContent.replace(i ? i.textContent : '', '').trim(),
+          v: ((b.querySelector('b')) || {}).textContent || '', s: ((b.querySelector('em')) || {}).textContent || '' };
+      }),
+      quick: all('.rp170-qa button', function (b) { var sp = b.querySelector('span'); return { icon: sp ? sp.textContent.trim() : '', bg: sp ? getComputedStyle(sp).backgroundColor : '', t: b.textContent.replace(sp ? sp.textContent : '', '').trim() }; }),
+      search: field(document.getElementById('rp170-q')),
+      cats: Array.prototype.map.call(root.querySelectorAll('.rp170-cat button'), function (b) { var c = getComputedStyle(b); return { t: b.textContent.trim(), on: b.classList.contains('on'), bg: c.backgroundColor, c: c.color }; }),
+      sections: all('.rp170-sec', function (sec) {
+        return { t: ((sec.querySelector('h4')) || {}).textContent || '', items: Array.prototype.filter.call(sec.querySelectorAll('.rp170-it'), shown).map(function (it) {
+          var ic = it.querySelector('.ic');
+          return { i: idx.get(it), icon: ic ? ic.textContent.trim() : '', bg: ic ? getComputedStyle(ic).backgroundColor : '', t: ((it.querySelector('.tx b')) || {}).textContent || '',
+            s: ((it.querySelector('.tx small')) || {}).textContent || '', v: ((it.querySelector('.vl')) || {}).textContent || '' };
+        }) };
+      }).filter(function (sec) { return sec.items.length; }),
+      empty: shown(empty) ? empty.textContent.trim() : ''
+    };
+  }
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel };
   var pageTimer = 0, lastPage = '';
   function reportPage() {
     pageTimer = 0;
