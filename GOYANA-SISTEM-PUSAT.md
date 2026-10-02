@@ -348,3 +348,21 @@ Dokumen ini menjadi acuan pembangunan pusat untuk akun/role, paket/perangkat, pe
 - Saat VPS utama mati, monitoring/pemulihan eksternal diperlukan; AI yang hanya berada pada VPS mati tidak bisa memulihkan dirinya sendiri. Tidak menjamin seluruh insiden dapat ditangani otomatis.
 - Perubahan fitur/kode, perubahan keamanan penting, penghapusan/reset data, restore database dengan risiko kehilangan perubahan, dan pembelian kapasitas baru memerlukan approval atau kebijakan spesifik yang telah disetujui sesuai dampak.
 - Komplain menerima respons sesuai status nyata; jangan otomatis menjanjikan fitur baru atau menyebut masalah selesai sebelum diverifikasi. Simpan tiket, kategori, dampak, diagnosis, tindakan dan hasil.
+
+
+## 22. Dashboard Konfigurasi AI, Etika dan Isolasi SaaS
+
+Penegasan pengguna: dashboard administrator menyediakan pengaturan penyedia/model/API key; AI pusat dipisahkan dari AI chat pelanggan, dan data/chat usaha SaaS tidak tercampur.
+
+- Dua profil konfigurasi independen: **AI Pusat Goyana** untuk monitoring/diagnosis/CS platform, dan **AI Chat Laundry** untuk chatbot pelanggan usaha. Setiap profil memilih provider (misalnya OpenRouter atau OpenAI langsung), model ID, credential, status aktif, timeout, batas biaya/token dan aturan perilaku.
+- GPT adalah keluarga model, bukan nama gateway. Provider dan model dipilih terpisah; daftar model mengikuti dukungan provider. Admin dapat mengganti profil aktif tanpa mengubah profil lainnya. Tidak menjanjikan semua model memiliki kemampuan/tool yang sama.
+- Form API key menyimpan secret terenkripsi di backend dengan akses admin khusus; tampil masked, tidak dikirim ke APK/browser setelah disimpan, tidak masuk repo/log/chat. Sediakan ganti/cabut, tes koneksi server, status konfigurasi dan audit. Tes berbayar harus menampilkan bahwa penggunaan dapat menimbulkan biaya.
+- Credential/budget pusat dan chatbot pelanggan dipisahkan. Credential chatbot platform dapat dipakai bersama di sisi server dengan pencatatan pemakaian per tenant, tetapi tidak menyatukan riwayat, prompt, knowledge base atau saldo. BYOK per usaha merupakan opsi terpisah bila kelak dipilih, bukan kewajiban pengguna saat ini.
+- **Etika/aturan perilaku** dapat diatur admin: sopan, jujur, tidak mengarang status/perbaikan, menjaga privasi, tidak meminta password/OTP, tidak menjanjikan fitur, eskalasi saat tidak pasti, dan batas tindakan yang boleh otomatis. Aturan keamanan inti tidak dapat dibypass hanya dengan prompt.
+- Identitas usaha berasal dari sesi/token dan pemetaan device WA yang tervalidasi. Setiap query, pesan, job queue, cache, session, retrieval/knowledge base dan ledger menggunakan tenant scope; request tidak boleh memilih tenant sewenang-wenang.
+- Isolasi dapat memakai database bersama dengan tenant_id dan kontrol server yang ketat atau database terpisah bila kebutuhan menuntut; keputusan fisik belum ditetapkan. Penyimpanan pusat tidak berarti akses lintas usaha terbuka.
+- Riwayat percakapan dibatasi per usaha dan per pelanggan/conversation, bukan satu memori chatbot global. AI pusat hanya membaca data yang diperlukan lewat API diagnosis berizin/audit, bukan otomatis menerima semua chat laundry.
+- Teks pelanggan, dokumen dan log dianggap data tidak tepercaya; instruksi di dalamnya tidak dapat mengubah scope/izin/tool. Provider/model berubah tidak mengubah identitas tenant atau memberikan akses baru.
+- Versioning aturan/model/tarif, pemakaian dan audit per profil/tenant; pergantian berlaku terkontrol pada request baru. Fallback provider hanya jika telah dikonfigurasi dengan aturan data/biaya yang sesuai, bukan mengirim data diam-diam ke penyedia lain.
+- Uji wajib mencoba akses silang tenant pada API, webhook, queue, cache dan pencarian konteks sebelum produksi. Pembatasan bukan hanya menu dashboard.
+- Ini kebutuhan implementasi, bukan klaim bahwa form API key, engine AI atau isolasi backend telah selesai dibuat.
