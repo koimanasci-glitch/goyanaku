@@ -13,6 +13,7 @@ import 'package:goyana_flutter/native/addorder_page.dart';
 import 'package:goyana_flutter/native/cash_page.dart';
 import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/native/customers_page.dart';
+import 'package:goyana_flutter/native/form_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
 import 'package:goyana_flutter/native/reports_page.dart';
@@ -390,6 +391,39 @@ final _services = ServicesModel.fromJson({
   'note': 'Alur proses menentukan tahap produksi & hak akses pegawai.',
 });
 
+class _NoFormActions implements FormActions {
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void fmBack() {}
+  @override
+  void fmInput(int index, Object value) {}
+  @override
+  void fmToggle(int index) {}
+  @override
+  void fmRadio(int index) {}
+  @override
+  void fmButton(int index) {}
+}
+
+final _printerForm = FormModel.fromJson('printer', {
+  'title': 'Printer & Nota',
+  'items': [
+    {'type': 'card', 't': 'Printer Bluetooth', 's': 'Hubungkan printer thermal dan cek izin perangkat', 'svg': '', 'i': 0},
+    {'type': 'title', 't': 'Profil Nota'},
+    {'type': 'label', 't': 'Profil Nota (Header)'}, {'type': 'input', 'v': 'Goyana Laundry', 'ph': '', 'i': 0},
+    {'type': 'label', 't': 'Alamat Outlet'}, {'type': 'input', 'v': 'Perum GCC Cluster Sakura Blok F36 No 39', 'ph': '', 'multiline': true, 'i': 1},
+    {'type': 'hint', 't': 'Catatan: hindari emoticon pada teks nota agar kompatibel dengan printer thermal.'},
+    {'type': 'row', 't': 'Menampilkan Logo', 'btn': 'Konfigurasi', 'i': 1},
+    {'type': 'toggle', 't': 'Menampilkan QR Code', 'on': false, 'i': 0},
+    {'type': 'toggle', 't': 'Menampilkan Estimasi Selesai', 'on': true, 'i': 1},
+    {'type': 'choice', 't': 'Ukuran Printer', 'options': [{'t': '58 mm', 'on': true, 'i': 0}, {'t': '80 mm', 'on': false, 'i': 1}]},
+    {'type': 'button', 't': 'SIMPAN', 'primary': true, 'i': 2},
+  ],
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -578,6 +612,27 @@ void main() {
       }
       expect(tester.takeException(), isNull);
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/services_${width.toInt()}.png'));
+    });
+  }
+
+  for (final width in [320.0, 390.0]) {
+    testWidgets('Formulir generik (Printer) at $width px', (tester) async {
+      tester.view.physicalSize = Size(width * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeForm(model: _printerForm, actions: _NoFormActions(), topInset: 0),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/printer_${width.toInt()}.png'));
     });
   }
 }

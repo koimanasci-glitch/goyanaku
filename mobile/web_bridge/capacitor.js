@@ -405,7 +405,7 @@
           }
           if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
             items.push(tag === 'SELECT' ? { type: 'select', options: Array.prototype.map.call(c.options, function (o) { return o.textContent.trim(); }), index: c.selectedIndex, i: inputs.indexOf(c) }
-              : { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), i: inputs.indexOf(c) });
+              : { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), secret: c.type === 'password', email: c.type === 'email', i: inputs.indexOf(c) });
             return;
           }
           if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
@@ -572,7 +572,7 @@
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer') };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile') };
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

@@ -228,8 +228,9 @@ class _FormInputState extends State<_FormInput> {
       decoration: BoxDecoration(color: ro ? const Color(0xfff6f7f9) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffdfe3e8))),
       child: TextField(
         controller: _c, focusNode: _focus, readOnly: ro, onChanged: widget.onChanged, cursorColor: gBrand,
+        obscureText: it['secret'] == true, enableSuggestions: it['secret'] != true, autocorrect: it['secret'] != true,
         minLines: multi ? 2 : 1, maxLines: multi ? 5 : 1,
-        keyboardType: it['numeric'] == true ? TextInputType.number : (multi ? TextInputType.multiline : TextInputType.text),
+        keyboardType: it['numeric'] == true ? TextInputType.number : (it['email'] == true ? TextInputType.emailAddress : (multi ? TextInputType.multiline : TextInputType.text)),
         style: gText(13.5, c: ro ? const Color(0xff8a8fa3) : _ink, h: 19),
         decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: _s(it['ph']), hintStyle: gText(13.5, c: const Color(0xffb0b4bf))),
       ),

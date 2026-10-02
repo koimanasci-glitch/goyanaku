@@ -28,7 +28,11 @@ jobs:
           npm install --prefix tests --ignore-scripts --no-audit --no-fund
           cd tests
           npx playwright install --with-deps chromium
-          npm test
+          npm test > test-output.txt 2>&1; code=$?
+          cat test-output.txt
+          # Failure details as annotations (readable from the API without log access).
+          if [ $code -ne 0 ]; then grep -E 'Error|assert|expected|actual|\.cjs:[0-9]+' test-output.txt | head -25 | sed 's/^/::warning::/'; fi
+          exit $code
 
       - uses: actions/setup-java@v4
         with:

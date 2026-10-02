@@ -202,6 +202,11 @@ try{
   assert.equal(await p.evaluate(()=>document.querySelector('#printer .content input.printer-input').value),'Laundry Native');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS generic native form (Printer & Nota) writes to the HTML fields, toggles and choices');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('profile')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'profile');assert.ok(last.model.items.some(x=>x.type==='input'&&x.secret),'password field is marked secret');
+  assert.ok(last.model.items.some(x=>x.type==='button'));
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Profil uses the generic native form');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.
