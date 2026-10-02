@@ -658,29 +658,20 @@ Permintaan pengguna: AI yang menjawab klien bila ada masalah, serta pesan otomat
 - Tidak yakin, klien marah, atau masalah pembayaran → **eskalasi ke admin manusia** (masuk tiket di panel admin plus notifikasi).
 - Semua percakapan tercatat di tiket/riwayat klien (CRM pusat §17).
 
-**B. Pesan otomatis siklus klien (WA + email, dari nomor pusat)**
+**B. Pesan otomatis ke klien — HEMAT (keputusan pengguna: jangan sering, klien bisa kabur)**
 
-| Pemicu | Isi |
-|---|---|
-| Daftar/instal (H0) | Selamat datang, link panduan singkat, kontak CS |
-| H+1 belum isi layanan/harga | Panduan atur layanan & harga (gambar/video pendek) |
-| H+2 belum ada transaksi | Panduan transaksi pertama |
-| H+3 printer belum diatur | Panduan sambung printer Bluetooth |
-| H+7 | Tips fitur (laporan, kurir, pengingat) + tanya kendala |
-| Tidak aktif 7/14 hari | Sapaan + tawaran bantuan |
-| Trial H-7, H-3, H-1 | Pengingat trial berakhir + link pilih paket |
-| Trial/paket habis | Info "baca saja", data aman, cara aktifkan lagi |
-| Paket H-7, H-3, H-1 | Pengingat perpanjangan |
-| Bayar/upgrade berhasil | Terima kasih + fitur baru yang terbuka |
-| Tambah kasir/HP/cabang | Panduan untuk anggota baru |
+| Pemicu | Isi | Berapa kali |
+|---|---|---|
+| Daftar/instal | Selamat datang + **satu** link panduan lengkap (atur harga, transaksi pertama, printer) + kontak CS | **1x saja** |
+| Trial/paket tinggal 3 hari | Pengingat + link pilih/perpanjang paket | 1x |
+| Trial/paket habis | Info "baca saja", data aman, cara aktifkan lagi | 1x |
+| Bayar/upgrade berhasil | Bukti bayar/terima kasih | 1x per pembayaran |
 
 Aturan:
-- Pesan berbasis **perilaku**: tidak dikirim bila langkahnya sudah dikerjakan. Contoh: sudah ada transaksi → panduan transaksi dilewati.
-- Batas maksimal 1 pesan otomatis per hari per usaha. Tidak dikirim pukul 21.00–07.00 WIB.
-- Klien bisa berhenti menerima pesan tips/promo ("STOP"). Pesan penting (tagihan, keamanan, paket habis) tetap dikirim.
-- Template, jadwal, dan on/off dapat diubah di panel admin, beserta statistik terkirim, dibaca, dan dibalas.
-- Balasan klien atas pesan otomatis masuk ke AI CS (bagian A).
-- Dijalankan oleh antrean/jadwal Laravel (scheduler + queue). Pengiriman lewat CHATKU.
+- **Tidak ada** pesan harian, tips berkala, atau sapaan "tidak aktif".
+- Panduan lain tetap tersedia di aplikasi (Bantuan > Panduan) dan dijawab AI CS bila klien bertanya.
+- Tidak dikirim pukul 21.00–07.00 WIB. Template dan on/off dapat diubah di panel admin.
+- Balasan klien masuk ke AI CS (bagian A). Dikirim lewat antrean Laravel → CHATKU.
 
 **C. Balas ulasan Play Store**
 - Pakai Google Play Developer API (Reviews: list/reply) dengan service account yang dihubungkan ke Play Console. Kredensial disimpan di server, bukan di repo.
