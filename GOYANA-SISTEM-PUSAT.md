@@ -694,3 +694,31 @@ Aturan:
 - Semua ulasan dan balasan tercatat; statistik rating per versi aplikasi ditampilkan di panel admin.
 
 Status: **rencana**, belum dibangun. Bergantung pada: server di-deploy, API CHATKU (§41), dan panel admin (tiket, template), dan untuk bagian C: aplikasi terbit di Play Store + service account Play Console.
+
+## 43. Visi: GOYANA Berjalan Otomatis, Pemilik Cukup Sedikit Terlibat — 3 Oktober 2026
+
+Keputusan pengguna: sistem harus berjalan sendiri tanpa staf. Pemilik platform hanya terlibat sedikit, dan sistem juga mengerjakan marketing, termasuk SEO/AEO website. Prinsip hemat AI §42 tetap berlaku: program dulu, AI terakhir.
+
+| Area | Otomatis oleh sistem | Pemilik terlibat |
+|---|---|---|
+| Pendaftaran & trial | Daftar, verifikasi, trial, panduan 1x (§35, §42B) | — |
+| Billing | Tagihan, bayar (gateway/Play), aktif otomatis, kunci "baca saja", pengingat 1x | Atur harga/promo |
+| CS | Menu/FAQ/data akun → AI → tiket (§42A) | Tiket yang dieskalasi |
+| Monitoring & pemulihan | Cek server/sinkron/antrean/WA; restart/ulang otomatis; backup harian + uji restore | Notifikasi bila gagal pulih |
+| Ulasan Play Store | Template/AI (§42C) | Setujui balasan keluhan |
+| Website & SEO/AEO | Landing page cepat, schema FAQ/HowTo/SoftwareApplication, halaman per kota/fitur, FAQ dari pertanyaan CS nyata, sitemap & pengecekan teknis otomatis | Setujui artikel/halaman baru sebelum terbit |
+| Konten marketing | Draf artikel/post dari pertanyaan & fitur yang sering dipakai (terjadwal, jumlah dibatasi) | Setujui sebelum terbit |
+| Referral | Kode referral per klien, bonus masa aktif otomatis saat yang diajak membayar | Atur besaran bonus |
+| Laporan | Ringkasan mingguan ke WA/email pemilik: klien baru, bayar, churn, tiket, biaya AI/server, rating | Baca 5 menit/minggu |
+
+Batas otomatis (wajib persetujuan manusia):
+- Uang: refund, ubah harga, diskon besar.
+- Hapus/reset data klien.
+- Konten publik baru (artikel, iklan, balasan keluhan).
+- Blast ke banyak klien.
+- Iklan berbayar hanya dengan batas anggaran yang ditetapkan pemilik.
+
+Marketing tidak boleh spam: WA hanya ke klien yang sudah daftar (§42B hemat). Tidak ada pesan massal ke nomor yang tidak pernah setuju dihubungi.
+
+Urutan: inti produk + server + billing → CS & monitoring → laporan mingguan → website SEO/AEO + referral → konten & ulasan otomatis.
+Status: **visi/rencana**.
