@@ -66,5 +66,6 @@ Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
 | Halaman | Status |
 |---|---|
 | Beranda | ✅ native (logika masih dari HTML) |
-| Pesanan, Tambah Transaksi, Pembayaran, Pelanggan, Laporan, Kas | berikutnya |
+| Pesanan | ✅ native (cari, tab status, kartu, tombol status; logika dari HTML) |
+| Tambah Transaksi, Pembayaran, Pelanggan, Laporan, Kas | berikutnya |
 | Pengaturan, stok, kurir, WhatsApp, dll. | bertahap |
