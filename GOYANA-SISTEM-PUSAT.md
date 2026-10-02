@@ -275,3 +275,37 @@ Referensi resmi:
 - UU 27/2022 Pelindungan Data Pribadi: https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022
 - WhatsApp opt-in: https://developers.facebook.com/documentation/business-messaging/whatsapp/getting-opt-in
 - WhatsApp Business Messaging Policy: https://whatsappbusiness.com/policy/
+
+
+## 17. Saldo AI dan Top-up Android
+
+Penegasan terbaru pengguna: top-up minimal **Rp50.000**; target keuntungan 20–30%, dengan contoh 30%. Ini rancangan backend, bukan fitur pembayaran/saldo yang sudah aktif. Tombol prototype saat ini menampilkan top-up belum terhubung.
+
+- Saldo AI terikat akun usaha, tersimpan di server sebagai ledger, terlihat konsisten pada Android/web. Pisahkan dari deposit laundry, langganan paket, dan anggaran AI pusat.
+- Untuk pembelian digital dalam Android Google Play, rancang produk sekali beli consumable melalui Play Billing, sesuai kebijakan/program yang berlaku. Backend memverifikasi status PURCHASED dan akun usaha; purchaseToken unik mencegah saldo bertambah dua kali. Pending/gagal tidak menambah saldo. Konsumsi/acknowledgment, retry, refund/revocation dan rekonsiliasi wajib ditangani.
+- Web memakai gateway terpilih dengan verifikasi dan ledger yang sama; tidak memasang ajakan checkout web dalam Android tanpa dasar kebijakan yang sesuai.
+- Usulan: pembayaran Rp50.000 menambah kredit pemakaian Rp50.000; keuntungan diterapkan pada tarif penggunaan, bukan dipotong diam-diam saat top-up. Harga/tarif dan perubahan diumumkan sebelum pemakaian.
+- Bedakan markup dan margin: modal Rp1.000 ditambah 30% menjadi Rp1.300 (margin sekitar23,08%). Target margin30% dari harga jual memakai harga=modal/0,70; modal Rp1.000 menjadi sekitarRp1.429. Pengguna belum menetapkan apakah 30% adalah markup atau margin bersih.
+- Margin bersih memperhitungkan biaya nyata model, pembelian kredit OpenRouter, kurs/konversi, biaya Play/gateway, pajak, dan infrastruktur yang relevan. Tidak menjamin untung30% hanya dengan menaikkan biaya model30%.
+- OpenRouter tidak mempunyai satu tarif semua chat: tarif mengikuti model, token input/output, dan fitur tambahan. Backend mengambil katalog harga resmi/API dan mencatat model, biaya aktual, kurs bersumber/timestamp, serta versi tarif setiap pemakaian. Gunakan biaya konversi nyata untuk rekonsiliasi; kurs referensi bukan selalu kurs tagihan.
+- Kurs dan harga diperbarui terjadwal; sumber kurs/provider/model belum dipilih. Jangan memakai angka kurs tetap atau menjanjikan jumlah chat tertentu untuk Rp50.000.
+- Debit idempotent/atomik dengan reservasi batas biaya bila perlu, cegah saldo negatif karena chat bersamaan, tampilkan histori; retry tidak mendebit dua kali. Jika provider tetap membebankan request gagal, perlakuan biaya pelanggan harus eksplisit, bukan tersembunyi.
+- Nota elektronik, reminder terjadwal, notifikasi status, dan balasan template dapat berjalan tanpa AI; tidak mengurangi saldo AI. Biaya layanan WhatsApp terpisah jika ada.
+- Hak chatbot mengikuti paket; saldo positif tidak otomatis membuka fitur paket yang tidak mencakup AI. Saldo habis menghentikan pemanggilan AI berbayar, sementara operasional/template tetap berjalan.
+- Tetapkan kebijakan saldo tersisa, refund, expiry dan tarif sebelum produksi; jangan menghapus saldo tanpa ketentuan yang jelas.
+
+Referensi:
+- Produk sekali beli: https://developer.android.com/google/play/billing/one-time-products
+- Verifikasi backend: https://developer.android.com/google/play/billing/security
+- Harga OpenRouter: https://openrouter.ai/pricing
+- Katalog model/API: https://openrouter.ai/docs/api/api-reference/models/get-models
+
+## 18. Nota Elektronik di Web dan Kode Pesanan
+
+Penegasan pengguna: link nota membuka halaman web berisi nota, nomor/ID pesanan serta barcode/QR yang dapat dipindai, bukan harus membuka APK.
+
+- Nota mencantumkan identitas laundry/outlet, ID pesanan yang konsisten dengan aplikasi, layanan/nominal, status pembayaran, dan status pesanan yang diizinkan.
+- Kode pada nota web dan nota cetak mengarah ke pesanan yang sama. Format QR/barcode harus sesuai pemindai operasional yang dipilih; belum menyatakan format/scan prototype sekarang sudah berfungsi produksi.
+- Link publik memakai token acak yang tidak dapat ditebak; nomor urut/ID internal saja tidak memberi akses. Batasi informasi pribadi, cegah akses lintas usaha dan sediakan pencabutan token bila perlu.
+- Pemindaian oleh pegawai membuka pesanan sesuai login/hak akses; pelanggan hanya mendapat halaman status/nota terbatas. Membuka link atau memindai kode tidak otomatis melunasi atau menyelesaikan pesanan.
+- Pengiriman link/nota menggunakan template tanpa kebutuhan AI. Jadwal/status diperbarui dari backend; jangan menampilkan data lokal belum sync sebagai status pusat.
