@@ -1,7 +1,7 @@
 name: Backend foundation
 on:
   push:
-    branches: [main, "backend/**"]
+    branches: [main, "backend/**", "flutter/**"]
     paths: ["backend/**", ".github/workflows/backend.yml", "goyana-sync-core.js", "goyana-v197-sync.js", "tools/prepare_web.py", "tests/sync-e2e.cjs"]
   pull_request:
     paths: ["backend/**", ".github/workflows/backend.yml", "goyana-sync-core.js", "goyana-v197-sync.js", "tools/prepare_web.py", "tests/sync-e2e.cjs"]
