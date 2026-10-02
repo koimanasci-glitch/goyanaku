@@ -122,3 +122,16 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Pengaman bila elemen hilang.
   - Teks "belum dibayar" dan judul jumlah transaksi tidak lagi menempel.
 - **Catatan**: pekerjaan GPT soal sheet pembayaran native belum ter-push saat kuotanya habis. Bila ada di lokal GPT, push dulu ke branch baru dari `flutter/native` terbaru.
+
+## Lanjutan Claude 3 Oktober (pagi)
+- **Halaman native baru**:
+  - Sheet Atur Pesanan & Pembayaran (`addorder_sheet.dart`)
+  - Layanan (`services_page.dart`)
+  - Formulir generik untuk Printer & Nota + Profil (`form_page.dart`)
+- **Cara menambah halaman form sederhana**:
+  1. Tambahkan `formModel('<id>')` ke `NATIVE` di `capacitor.js`.
+  2. Tambahkan `<id>` ke `_formPages` di `shell.dart`.
+  3. Cek hasilnya. Halaman dengan visual khusus (preview label, kartu kurir) jangan dipakai form generik.
+- **CI**: error tes jembatan, analyze, dan screenshot kini tampil sebagai anotasi.
+  - Tes yang memakai jeda tetap diganti polling (CI lebih lambat dari lokal).
+- **Jumlah halaman native**: 12 dari 66 halaman HTML (+ 2 sheet transaksi).

@@ -73,5 +73,9 @@ Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
 | Laporan | ✅ native (ringkasan, KPI, aksi cepat, cari, daftar; angka dari HTML). Detail laporan & tanggal kustom masih HTML |
 | Pengaturan | ✅ native (kartu sinkron, grup akordeon, kartu paket, keluar akun). Halaman tujuan masih HTML |
 | Kas Masuk & Pengeluaran | ✅ native (formulir; simpan lewat logika HTML) |
-| Pembayaran (native), Tutup Kasir, Kurir, Stok, halaman tujuan Pengaturan | berikutnya |
+| Tambah Transaksi langkah 3–4 | ✅ sheet Atur Pesanan & Pembayaran native. Popup tunai/QRIS/transfer/DP/deposit masih HTML |
+| Tutup Kasir | ✅ native (GPT, direview Claude) |
+| Layanan | ✅ native (saklar durasi, cari). Edit/tambah kategori masih sheet HTML |
+| Printer & Nota, Profil | ✅ lewat **formulir generik** (`form_page.dart`). Halaman form sederhana lain cukup ditambah ke `formModel` + `_formPages` |
+| Pegawai, Outlet, Kurir, Stok, CRM, WhatsApp, dll. | berikutnya |
 | Pengaturan, stok, kurir, WhatsApp, dll. | bertahap |
