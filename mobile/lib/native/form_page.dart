@@ -81,13 +81,15 @@ class NativeSheet extends StatelessWidget {
         ),
       );
     }
+    // Popup tanpa kolom isian selalu menempel di bawah (tidak ikut terdorong keyboard).
+    final hasInput = items.any((it) => it['type'] == 'input');
     return Material(
       color: const Color(0x80141b26),
       child: Column(children: [
         Expanded(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: sa.fmBack)),
         AnimatedPadding(
           duration: const Duration(milliseconds: 120),
-          padding: EdgeInsets.only(bottom: bottom),
+          padding: EdgeInsets.only(bottom: hasInput ? bottom : 0),
           child: Container(
             constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * (full ? .94 : .85)),
             decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(22))),

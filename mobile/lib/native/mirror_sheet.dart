@@ -38,9 +38,12 @@ class NativeMirrorSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mq = MediaQuery.of(context);
+    final mq0 = MediaQuery.of(context);
     final env = MirrorEnv(onButton: onButton, onTap: onTap, onInput: onInput);
     final box = _m(model['box']);
+    // Popup tanpa kolom isian selalu menempel di bawah (tidak ikut terdorong keyboard).
+    final hasInput = jsonEncode(box).contains('"input":');
+    final mq = hasInput ? mq0 : mq0.copyWith(viewInsets: EdgeInsets.zero);
     final center = model['kind'] == 'center';
     final s = _m(box['s']);
     final p = _q(s['p']);

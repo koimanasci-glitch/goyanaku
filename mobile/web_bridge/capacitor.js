@@ -1140,6 +1140,8 @@
     try { sheet = openSheet(); } catch (e) { sheet = null; }
     if (sheet && sheet.screen) {
       // Login / first-run screen covers everything: Flutter draws it alone.
+      nativeShown = true;
+      blurHidden();
       var smsg = JSON.stringify({ event: 'native', page: 'screen', model: {}, sheet: sheet, toast: toastText() });
       if (smsg !== lastPage) { lastPage = smsg; try { window.GoyanaNative.postMessage(smsg); } catch (e) {} }
       return;
@@ -1150,11 +1152,25 @@
     // A model error must never break the app: fall back to the HTML page.
     if (native) { try { model = NATIVE[id](); } catch (e) { console.warn('GOYANA native model', id, e); model = null; } }
     if (!model) native = false;
+    nativeShown = native;
+    if (native) blurHidden();
     var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: model, sheet: native ? sheet : null, toast: native ? toastText() : '' });
     if (msg === lastPage) return;
     lastPage = msg;
     try { window.GoyanaNative.postMessage(msg); } catch (e) {}
   }
+  // Saat layar Flutter menutupi WebView, kolom isian HTML (tersembunyi) tidak boleh mengambil fokus:
+  // kalau tidak, keyboard milik WebView yang muncul (ketikan masuk ke HTML, koma/titik hilang, popup Flutter terdorong ke atas).
+  var nativeShown = false;
+  function blurHidden() {
+    var a = document.activeElement;
+    if (a && a !== document.body && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'file') { try { a.blur(); } catch (e) {} }
+  }
+  document.addEventListener('focusin', function (e) {
+    if (!nativeShown) return;
+    var t = e.target;
+    if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.type !== 'file') setTimeout(function () { if (nativeShown && document.activeElement === t) t.blur(); }, 0);
+  }, true);
   function scheduleHome() { if (!pageTimer) pageTimer = setTimeout(reportPage, 80); }
   window.__goyanaHomeRefresh = function () { lastPage = ''; scheduleHome(); };
   window.__goyanaTap = function (sel, index, child) {

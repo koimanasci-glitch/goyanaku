@@ -75,6 +75,7 @@ try{
   const svc=last.model.items.find(x=>!x.h);
   await p.evaluate(i=>__goyanaTap('#list116 .sv116',i),svc.i);await p.waitForTimeout(300);
   last=await lastAdd();assert.equal(last.sheet&&last.sheet.id,'qty116','quantity sheet is native');assert.ok(last.sheet.items.some(x=>x.type==='input'&&x.numeric&&x.decimal), 'berat bisa koma');
+  assert.equal(await p.evaluate(async()=>{const i=document.getElementById('qty116-in');i.focus();await new Promise(r=>setTimeout(r,50));return document.activeElement===i}),false,'hidden HTML field must not take the keyboard while Flutter shows the sheet');
   await p.evaluate(()=>{document.getElementById('qty116-in').value='3';saveQty116()});await p.waitForTimeout(400);
   last=await lastAdd();assert.equal(last.page,'addorder');assert.ok(last.model.items.find(x=>x.i===svc.i).on);assert.match(last.model.items.find(x=>x.i===svc.i).btn,/3/);
   assert.notEqual(last.model.footer.total,'Rp 0');assert.match(last.toast,/ditambahkan/,'HTML toast is forwarded to Flutter');
