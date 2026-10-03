@@ -134,7 +134,11 @@ List<Map<String, dynamic>> orderDetailItems(Business b, Order o, DateTime now) {
   final t = o.totals;
   final action = actionLabel(o);
   return [
-    {'type': 'entry', 't': 'Rincian Pesanan', 'lines': ['${o.id} · ${o.dur}'], 'compact': true, 'btns': [{'t': '×', 'i': 0}]},
+    {'type': 'entry', 't': 'Rincian Pesanan', 'lines': ['${o.id} · ${o.dur}'], 'compact': true, 'btns': [
+      if (!o.isCancelled) {'t': 'Edit', 'i': 7},
+      {'t': 'Riwayat', 'i': 8},
+      {'t': '×', 'i': 0},
+    ]},
     {
       'type': 'entry', 't': o.name, 'lines': [[o.phone, cust?.address ?? ''].where((e) => e.isNotEmpty).join(' · ')],
       'btns': [

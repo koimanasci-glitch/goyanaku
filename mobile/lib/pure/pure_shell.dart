@@ -21,6 +21,7 @@ import '../native/form_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
 import 'pages.dart';
+import 'scan_page.dart';
 import 'views.dart';
 
 /// Kunci penanda mode (dibaca main.dart).
@@ -154,8 +155,17 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     });
     _pages[pageId]?.opened();
   }
+  /// Scan barcode/QR struk atau label: buka rincian pesanan yang cocok.
   @override
-  void scan() => toast('Scan barcode belum tersedia di mode murni');
+  Future<void> scan() async {
+    final code = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const ScanPage()));
+    if (code == null || !mounted) return;
+    final m = RegExp(r'GY-\d{6}-\d+').firstMatch(code);
+    final id = m?.group(0) ?? code.trim();
+    if (_b!.orderById(id) == null) return toast('Pesanan $id tidak ditemukan');
+    nav('orders');
+    _showDetail(id);
+  }
 
   // ---------------- Beranda ----------------
   @override
@@ -185,7 +195,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void manageOutlet() => toast('Kelola outlet menyusul di mode murni');
   @override
-  void qr() => toast('Scan QR belum tersedia di mode murni');
+  void qr() => scan();
   @override
   void monthly() => nav('reports');
 
@@ -311,6 +321,46 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     ]));
   }
 
+  void _openEdit(Order o) {
+    final disc = _discs.indexWhere((d) => d[1] == o.discKey);
+    final per = _perfumes.indexOf(o.perfume);
+    _form
+      ..clear()
+      ..['note'] = o.note == '-' ? '' : o.note
+      ..['perfume'] = per < 0 ? 0 : per
+      ..['disc'] = disc < 0 ? 0 : disc;
+    final days = o.due != null && o.masuk != null ? o.due!.difference(o.masuk!).inHours / 24 : 3;
+    _open(_Sheet('edit', [
+      {'type': 'title', 't': 'Edit Transaksi', 's': o.id},
+      {'type': 'label', 't': 'Keterangan'},
+      {'type': 'input', 'v': '${_form['note']}', 'ph': 'Contoh: 12 pcs · rak B2', 'i': 0},
+      {'type': 'label', 't': 'Parfum'},
+      {'type': 'select', 'options': _perfumes, 'index': _form['perfume'], 'i': 1},
+      {'type': 'label', 't': 'Diskon'},
+      {'type': 'select', 'options': [for (final d in _discs) d[0]], 'index': _form['disc'], 'i': 2},
+      {'type': 'label', 't': 'Estimasi selesai (hari setelah masuk)'},
+      {'type': 'input', 'v': days == days.roundToDouble() ? '${days.round()}' : '', 'ph': 'Contoh: 3', 'numeric': true, 'i': 3},
+      {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'i': 1},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
+    ]));
+  }
+
+  void _openHistory(Order o) {
+    String fmt(Object? v) {
+      final d = DateTime.tryParse('${v ?? ''}')?.toLocal();
+      return d == null ? '' : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    }
+
+    _open(_Sheet('history', [
+      {'type': 'title', 't': 'Riwayat Status', 's': o.id},
+      for (final h in o.history.reversed) {'type': 'pair', 't': '${statusLabel['${h['st']}'] ?? h['st']} · ${h['by'] ?? ''}', 'v': fmt(h['at'] ?? h['t'])},
+      if (o.payments.isNotEmpty) {'type': 'title', 't': 'Pembayaran'},
+      for (final p in o.payments) {'type': 'pair', 't': '${p['m']} · ${fmt(p['at'])}', 'v': rp(parseRupiah(p['a'])), 'tone': 'g'},
+      if ('${o.detail['cancelReason'] ?? ''}'.isNotEmpty) {'type': 'pair', 't': 'Alasan batal', 'v': '${o.detail['cancelReason']}', 'tone': 'r'},
+      {'type': 'button', 't': 'Tutup', 'primary': false, 'i': 0},
+    ]));
+  }
+
   void _sendWa(Order o) {
     final cust = _b!.customerByName(o.name);
     var phone = (o.phone.isNotEmpty ? o.phone : cust?.phone ?? '').replaceAll(RegExp(r'[^0-9]'), '');
@@ -346,6 +396,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       final key = switch (scope) {
         'custform' => const ['name', 'phone', 'address'][index.clamp(0, 2)],
         'cancel' => index == 0 ? 'reason' : 'note',
+        'edit' => const ['note', 'perfume', 'disc', 'dueDays'][index.clamp(0, 3)],
         _ => 'amount',
       };
       _form[key] = value ?? '';
@@ -375,6 +426,10 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             openMaps(mapsLink(b.customerByName(o.name)));
           case 6:
             _print(o);
+          case 7:
+            _openEdit(o);
+          case 8:
+            _openHistory(o);
         }
       case 'pay':
         if (o == null) return;
@@ -406,6 +461,24 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         } else {
           _close('cancel');
         }
+      case 'edit':
+        if (o == null) return;
+        if (index == 1) {
+          final dueDays = int.tryParse('${_form['dueDays'] ?? ''}');
+          b.edit(o,
+              note: '${_form['note'] ?? o.note}',
+              perfume: _perfumes[((_form['perfume'] as int?) ?? 0).clamp(0, _perfumes.length - 1)],
+              discKey: _discs[((_form['disc'] as int?) ?? 0).clamp(0, _discs.length - 1)][1],
+              due: dueDays == null ? null : (o.masuk ?? now).add(Duration(days: dueDays)));
+          _save();
+          _close('edit');
+          toast('Perubahan tersimpan');
+          _refreshDetail();
+        } else {
+          _close('edit');
+        }
+      case 'history':
+        _close('history');
       case 'custform':
         _saveCustomerForm(index);
       case 'dur':

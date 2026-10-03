@@ -128,6 +128,11 @@ void main() {
     o = (await Business.load(kv)).orders.first;
     expect(o.status, 'batal');
 
+    s.fmScoped('detail', 'button', 8); // Riwayat
+    await _settle(tester);
+    expect(find.text('Riwayat Status'), findsOneWidget);
+    s.fmScoped('history', 'button', 0);
+    await _settle(tester);
     s.tab(6);
     s.search('budi');
     await _settle(tester);
@@ -188,6 +193,26 @@ void main() {
     s.fmInput(0, 'Melati');
     s.fmButton(1);
     await _settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('edit transaksi: diskon, parfum, keterangan, estimasi', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('orders');
+    s.openCard(0);
+    await _settle(tester);
+    s.fmScoped('detail', 'button', 7);
+    await _settle(tester);
+    s.fmScoped('edit', 'input', 0, 'rak B2');
+    s.fmScoped('edit', 'input', 2, 3); // Potongan Rp5.000
+    s.fmScoped('edit', 'input', 3, '5');
+    s.fmScoped('edit', 'button', 1);
+    await _settle(tester);
+    final o = (await Business.load(kv)).orders.first;
+    expect(o.note, 'rak B2');
+    expect(o.total, 9000);
+    expect(o.due!.difference(o.masuk!).inDays, 5);
     expect(tester.takeException(), isNull);
   });
 }
