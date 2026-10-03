@@ -1,14 +1,12 @@
 name: goyana_flutter
-description: Aplikasi Android Goyana (Flutter hybrid) - tampilan HTML final + fitur perangkat native.
+description: Aplikasi Android Goyana - 100% Flutter (tanpa WebView).
 publish_to: none
-version: 0.2.0+2
+version: 0.3.0+3
 environment:
   sdk: ">=3.8.0 <4.0.0"
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.13.0
-  webview_flutter_android: ^4.12.1
   flutter_svg: ^2.2.0
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.0.0
@@ -18,8 +16,6 @@ dev_dependencies:
     sdk: flutter
 flutter:
   uses-material-design: true
-  assets:
-    - assets/web/
   fonts:
     - family: Poppins
       fonts:

@@ -1,17 +1,12 @@
-name: Flutter Android (hybrid)
+name: Flutter Android
 on:
   push:
     branches: [main, "flutter/**", "backend/**"]
     paths:
       - "mobile/**"
-      - "index.html"
-      - "goyana-v*.js"
-      - "tools/**"
-      - "goyana-sync-core.js"
-      - "tests/flutter-bridge.cjs"
       - ".github/workflows/flutter.yml"
   pull_request:
-    paths: ["mobile/**", "index.html", "goyana-v*.js", "tools/**", ".github/workflows/flutter.yml"]
+    paths: ["mobile/**", ".github/workflows/flutter.yml"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -24,31 +19,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Pasang npm & Playwright
-        run: |
-          npm install --prefix tests --ignore-scripts --no-audit --no-fund
-          cd tests
-          npx playwright install --with-deps chromium
-      - name: Uji jembatan Flutter di browser
-        run: |
-          cd tests
-          set +e
-          node flutter-bridge.cjs > test-output.txt 2>&1; code=$?
-          cat test-output.txt
-          # Failure details as annotations (readable from the API without log access).
-          if [ $code -ne 0 ]; then grep -E 'Error|assert|expected|actual|\.cjs:[0-9]+' test-output.txt | head -25 | sed 's/^/::warning::/'; fi
-          exit $code
-
-      - name: Siapkan tampilan GOYANA (HTML final) untuk APK
-        env:
-          # Alamat server sinkronisasi: GitHub → Settings → Variables → GOYANA_API_URL. Kosong = mode offline.
-          GOYANA_API_URL: ${{ vars.GOYANA_API_URL }}
-        run: python tools/prepare_flutter_web.py . tests/node_modules/@zxing/library/umd/index.min.js
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

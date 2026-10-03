@@ -1,3 +1,15 @@
+# GOYANA Android — 100% Flutter
+
+Sejak versi 0.3.0 aplikasi Android murni Flutter (tanpa WebView). Logika bisnis di `lib/core/` (Dart), layar di `lib/pure/` + widget `lib/native/`. Fitur HP (printer Bluetooth, file, notifikasi, lokasi, database SQLite) lewat `MainActivity.kt` (channel `id.goyana/device`).
+
+Data disimpan di SQLite HP (`GoyanaStore.kt`) dengan format yang sama dengan aplikasi HTML lama, jadi data dari versi sebelumnya tetap terbaca.
+
+Tes: `flutter test` (core_test = paritas hitungan dengan HTML, pure_test = alur kasir di layar, screens = screenshot). CI: `.github/workflows/flutter.yml` → APK di GitHub Release `flutter-uji`.
+
+---
+
+Catatan lama (versi hybrid, sudah tidak dipakai):
+
 # GOYANA Android — Flutter hybrid
 
 Aplikasi Android Flutter yang menjalankan **tampilan HTML final GOYANA apa adanya** (index.html + semua patch goyana-v*.js), sehingga desain, posisi, dan alur 100% sama dengan prototype. Fitur HP dikerjakan oleh Flutter/Android native, bukan Capacitor.

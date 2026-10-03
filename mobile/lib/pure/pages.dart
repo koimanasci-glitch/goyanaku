@@ -24,7 +24,6 @@ abstract class PureHost {
   void go(String page);
   void refresh();
   Future<void> saveAll();
-  void exitPure();
   MethodChannel get device;
 }
 
@@ -80,14 +79,11 @@ class SettingsPage extends PurePage {
       card('Notifikasi', 'Terlambat, siap diambil, piutang', '🔔', 18),
       card('Paket GOYANA', 'Lihat & aktifkan paket', '⭐', 19),
       card('Pusat Bantuan', 'Panduan & hubungi support', '❓', 14),
-      {'type': 'title', 't': 'Lainnya'},
-      card('Versi lama (HTML)', 'Cadangan sementara · data tetap sama', '↩', 99),
     ];
   }
 
   @override
   void button(int i) {
-    if (i == 99) return host.exitPure();
     if (i >= 0 && i < _pages.length) host.go(_pages[i]);
   }
 }

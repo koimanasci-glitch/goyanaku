@@ -25,14 +25,12 @@ import 'scan_page.dart';
 import 'views.dart';
 
 /// Kunci penanda mode (dibaca main.dart).
-const pureModeKey = 'goyana-pure-mode';
 
 class PureShell extends StatefulWidget {
-  const PureShell({super.key, required this.store, this.clock, this.onExit});
+  const PureShell({super.key, required this.store, this.clock});
   final KvStore store;
   final DateTime Function()? clock;
   /// Kembali ke versi lama (hybrid).
-  final VoidCallback? onExit;
   @override
   State<PureShell> createState() => PureShellState();
 }
@@ -90,8 +88,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     await _settings!.save();
   }
 
-  @override
-  void exitPure() => widget.onExit?.call();
   String _page = 'home';
   String _toast = '';
   Timer? _toastTimer;
@@ -1196,21 +1192,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       ]),
     );
   }
-}
-
-/// Mode tersimpan di database yang sama: "1" = murni.
-Future<bool> pureModeEnabled(KvStore store) async {
-  try {
-    return (await store.get(pureModeKey)) == '1';
-  } catch (_) {
-    return false;
-  }
-}
-
-Future<void> setPureMode(KvStore store, bool on) async {
-  try {
-    await store.set(pureModeKey, on ? '1' : '0');
-  } catch (_) {}
 }
 
 String debugJson(Object o) => const JsonEncoder.withIndent(' ').convert(o);
