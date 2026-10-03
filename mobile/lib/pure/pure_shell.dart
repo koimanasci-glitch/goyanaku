@@ -50,6 +50,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   late final Map<String, PurePage> _pages = {
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'kas': KasPage(this),
+    'reports': ReportsPage(this), 'outlet': OutletPage(this),
   };
 
   // PureHost
@@ -415,6 +416,19 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         _cashButton(index);
       case 'dp':
         _dpButton(index);
+      case 'topup':
+        if (index >= 20) {
+          _form['dpMethod'] = const ['Tunai', 'QRIS', 'Transfer'][index - 20];
+          _open(_Sheet('topup', _topUpItems()));
+        } else if (index == 1) {
+          final err = b.topUpDeposit(_topUpName, parseRupiah(_form['amount']), method: '${_form['dpMethod']}', now: now);
+          if (err != null) return toast(err);
+          _save();
+          _close('topup');
+          toast('Saldo $_topUpName bertambah');
+        } else {
+          _close('topup');
+        }
       case 'confirm':
         if (index == 1) _finishOrder(_pendingMethod);
         _close('confirm');
@@ -452,7 +466,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void cuSearch(String text) => setState(() => _custSearch = text);
   @override
-  void cuDeposit() => toast('Deposit pelanggan menyusul di mode murni');
+  void cuDeposit() => toast('Pilih pelanggan lalu tekan Isi Saldo');
   @override
   void cuAdd() => _openCustomerForm(null);
   @override
@@ -460,7 +474,26 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void cuFilter() {}
   @override
-  void cuTopUp(int index) => toast('Isi saldo deposit menyusul di mode murni');
+  void cuTopUp(int index) {
+    final list = _b!.customers;
+    if (index < 0 || index >= list.length) return;
+    _topUpName = list[index].name;
+    _form
+      ..clear()
+      ..['amount'] = ''
+      ..['dpMethod'] = 'Tunai';
+    _open(_Sheet('topup', _topUpItems()));
+  }
+
+  String _topUpName = '';
+  List<Map<String, dynamic>> _topUpItems() => [
+        {'type': 'title', 't': 'Isi Saldo Deposit', 's': _topUpName},
+        {'type': 'pair', 't': 'Saldo sekarang', 'v': rpSpaced(_b!.depositOf(_topUpName))},
+        {'type': 'input', 'v': '${_form['amount']}', 'ph': '0', 'numeric': true, 'pre': 'Rp', 'label': 'Nominal', 'i': 0},
+        {'type': 'buttons', 'options': [for (var k = 0; k < 3; k++) {'t': const ['Tunai', 'QRIS', 'Transfer'][k], 'on': _form['dpMethod'] == const ['Tunai', 'QRIS', 'Transfer'][k], 'i': 20 + k}]},
+        {'type': 'button', 't': 'Simpan Tambah Saldo', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Tutup', 'primary': false, 'i': 2},
+      ];
   @override
   void cuEdit(int index) {
     final list = _b!.customers;
@@ -882,26 +915,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   // ---------------- Pengaturan & Laporan (sementara) ----------------
-  FormModel _reportsModel() {
-    final b = _b!;
-    final t = b.today(now);
-    final orders = b.orders.where((o) => !o.isCancelled).toList();
-    final unpaid = orders.fold<int>(0, (a, o) => a + o.remaining);
-    return FormModel(page: 'reports', title: 'Laporan', items: [
-      {'type': 'stats', 'cells': [
-        {'v': rp(t.income), 't': 'Omset hari ini', 'tone': 'g'},
-        {'v': '${t.inCount}', 't': 'Pesanan masuk'},
-        {'v': rp(unpaid), 't': 'Piutang', 'tone': 'r'},
-      ]},
-      {'type': 'title', 't': 'Pesanan terbaru', 's': '${orders.length} pesanan'},
-      {'type': 'table', 'rows': [
-        [{'t': 'ID', 'h': true, 'b': true}, {'t': 'Pelanggan', 'h': true, 'b': true}, {'t': 'Total', 'h': true, 'b': true, 'n': true}],
-        for (final o in orders.take(50)) [{'t': o.id}, {'t': o.name}, {'t': rp(o.total), 'n': true}],
-      ]},
-      {'type': 'hint', 't': 'Laporan lengkap sedang dipindahkan ke mode murni.'},
-    ]);
-  }
-
   // ---------------- tampilan ----------------
   @override
   Widget build(BuildContext context) {
@@ -916,8 +929,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch)), actions: this);
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
-      case 'reports':
-        page = NativeForm(key: const ValueKey('reports'), model: _reportsModel(), actions: this, navActive: 2);
       default:
         final pp = _pages[_page];
         page = pp != null

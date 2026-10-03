@@ -64,6 +64,30 @@ class Business {
   }
 
   Future<bool> save() => store.set(Keys.business, jsonEncode(raw));
+  /// Ubah outlet aktif (atau buat yang pertama).
+  Future<bool> saveOutlet({required String name, String address = '', String phone = ''}) async {
+    var o = outlets.where((x) => x.id == activeOutlet).firstOrNull ?? outlets.firstOrNull;
+    if (o == null) {
+      o = Outlet({'id': 'outlet180-${DateTime.now().microsecondsSinceEpoch}', 'logo': ''});
+      outlets.add(o);
+      activeOutlet = o.id;
+      await store.set(Keys.activeOutlet, jsonEncode(activeOutlet));
+    }
+    o.raw
+      ..['name'] = name
+      ..['address'] = address
+      ..['phone'] = phone;
+    return store.set(Keys.outlets, jsonEncode(outlets.map((e) => e.raw).toList()));
+  }
+
+  /// Isi saldo deposit pelanggan (dicatat juga sebagai kas masuk).
+  String? topUpDeposit(String name, int amount, {required String method, required DateTime now}) {
+    if (amount <= 0) return 'Isi nominal';
+    _depositMove(name, amount, 'topup', method, now);
+    kasEntry(income: true, type: 'Titipan deposit $name', amount: amount, method: method, now: now);
+    return null;
+  }
+
   Future<bool> saveServices() => store.set(Keys.services, jsonEncode(services.map((e) => e.raw).toList()));
 
   /// Harga & status aktif layanan per durasi.
@@ -94,7 +118,8 @@ class Business {
       final m = '${s['m']}';
       byMethod[m] = (byMethod[m] ?? 0) + parseRupiah(s['a']);
     }
-    final ins = (k['ins'] as List? ?? const []).whereType<Map>().fold<int>(0, (a, e) => a + parseRupiah(e['a']));
+    // Kas tunai hanya dari kas masuk tunai (titipan deposit lewat QRIS/transfer tidak masuk laci).
+    final ins = (k['ins'] as List? ?? const []).whereType<Map>().where((e) => '${e['m'] ?? 'Tunai'}' == 'Tunai').fold<int>(0, (a, e) => a + parseRupiah(e['a']));
     final outs = (k['outs'] as List? ?? const []).whereType<Map>().fold<int>(0, (a, e) => a + parseRupiah(e['a']));
     final start = parseRupiah(k['start']);
     return ShiftSummary(start: start, byMethod: byMethod, ins: ins, outs: outs, cashExpected: start + (byMethod['Tunai'] ?? 0) + ins - outs);
@@ -147,7 +172,35 @@ class Business {
     return null;
   }
 
-  int depositOf(String name) => parseRupiah((raw['deposits178'] as Map)[name.trim().toLowerCase()] ?? (raw['deposits178'] as Map)[name]);
+  // ---------- deposit (format HTML: kunci "phone:62…" atau "name:…", {name, phone, balance, history}) ----------
+  static String normalizedPhone(String p) {
+    var n = p.replaceAll(RegExp(r'\D'), '');
+    if (n.startsWith('0')) n = '62${n.substring(1)}';
+    return n;
+  }
+
+  String depositKey(String name) {
+    final c = customerByName(name);
+    final p = normalizedPhone(c?.phone ?? '');
+    return p.isNotEmpty ? 'phone:$p' : 'name:${name.trim().toLowerCase()}';
+  }
+
+  Map<String, dynamic> _depositRecord(String name) {
+    final d = raw['deposits178'] as Map<String, dynamic>;
+    final v = d[depositKey(name)];
+    if (v is Map) return Map<String, dynamic>.from(v);
+    final c = customerByName(name);
+    return {'name': name, 'phone': c?.phone ?? '', 'balance': 0, 'history': <dynamic>[]};
+  }
+
+  int depositOf(String name) => parseRupiah(_depositRecord(name)['balance']);
+
+  void _depositMove(String name, int amount, String type, String method, DateTime now) {
+    final r = _depositRecord(name);
+    r['balance'] = parseRupiah(r['balance']) + amount;
+    (r.putIfAbsent('history', () => <dynamic>[]) as List).add({'type': type, 'amount': amount.abs(), 'at': isoString(now), 'method': method});
+    (raw['deposits178'] as Map<String, dynamic>)[depositKey(name)] = r;
+  }
 
   // ---------- pesanan ----------
   Map<String, dynamic> get _details => raw['details'] as Map<String, dynamic>;
@@ -280,9 +333,8 @@ class Business {
     if (a <= 0) return 'Nominal pembayaran belum diisi';
     final m = normalizeMethod(method);
     if (m == 'Deposit') {
-      final bal = depositOf(o.name);
-      if (bal < a) return 'Saldo deposit tidak cukup';
-      (raw['deposits178'] as Map)[o.name.trim().toLowerCase()] = bal - a;
+      if (depositOf(o.name) < a) return 'Saldo deposit tidak cukup';
+      _depositMove(o.name, -a, 'pay', 'Deposit', now);
     }
     o.detail['paid'] = o.paid + a;
     final list = o.payments..add({'m': m, 'a': a, 'at': isoString(now)});
@@ -342,8 +394,9 @@ class Business {
   }
 
   /// Kas masuk / pengeluaran manual.
-  void kasEntry({required bool income, required String type, required int amount, String note = '', required DateTime now}) {
-    (kas.putIfAbsent(income ? 'ins' : 'outs', () => <dynamic>[]) as List).add({'t': type, 'a': amount, 'n': note, 'at': isoString(now)});
+  void kasEntry({required bool income, required String type, required int amount, String note = '', String method = 'Tunai', required DateTime now}) {
+    (kas.putIfAbsent(income ? 'ins' : 'outs', () => <dynamic>[]) as List)
+        .add({'m': method == 'Tunai' ? 'Tunai' : 'Non-Tunai', 'actualMethod178': method, 't': type, 'a': amount, 'n': note, 'at': isoString(now)});
   }
 
   /// Ringkasan hari ini untuk Beranda.

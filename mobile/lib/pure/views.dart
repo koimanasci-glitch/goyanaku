@@ -180,7 +180,7 @@ Map<String, dynamic> customersJson(Business b, String search) {
     final dep = b.depositOf(c.name);
     rows.add({
       'i': i, 'name': c.name, 'lines': [c.phone, if (c.address.isNotEmpty) c.address], 'spend': rp(spend), 'orders': '${mine.length}',
-      'last': last == null ? '—' : '${_two(last.day)}/${_two(last.month)}', 'balance': dep > 0 ? rp(dep) : '', 'edit': 'Edit',
+      'last': last == null ? '—' : '${_two(last.day)}/${_two(last.month)}', 'balance': rp(dep), 'topup': 'Isi Saldo', 'edit': 'Edit',
     });
   }
   return {

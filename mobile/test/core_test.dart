@@ -136,4 +136,21 @@ void main() {
     expect(text, contains('Rp14.000'));
     expect(text, contains('BELUM BAYAR'));
   });
+
+  test('deposit: isi saldo (format HTML), bayar pakai saldo, saldo kurang ditolak', () async {
+    final b = await _load();
+    final now = DateTime(2026, 10, 3, 11);
+    expect(b.topUpDeposit('Budi Native', 20000, method: 'QRIS', now: now), isNull);
+    expect(b.depositOf('Budi Native'), 20000);
+    final rec = (b.raw['deposits178'] as Map)['phone:6281200000001'] as Map;
+    expect(rec['balance'], 20000);
+    expect((rec['history'] as List).single['type'], 'topup');
+    expect(b.shift().ins, 0, reason: 'titipan lewat QRIS tidak masuk laci tunai');
+    final o = b.orders.first;
+    expect(b.pay(o, method: 'Saldo Deposit', amount: 14000, now: now), isNull);
+    expect(b.depositOf('Budi Native'), 6000);
+    expect(o.isPaid, isTrue);
+    final o2 = b.createOrder(customer: 'Budi Native', dur: 'Reguler', items: [OrderItem(name: 'Sprei', unit: 'pcs', price: 15000, qty: 1)], now: now);
+    expect(b.pay(o2, method: 'Deposit', amount: 15000, now: now), isNotNull);
+  });
 }

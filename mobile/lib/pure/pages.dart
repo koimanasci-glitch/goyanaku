@@ -44,13 +44,14 @@ class SettingsPage extends PurePage {
   String get title => 'Pengaturan';
   @override
   String get back => 'home';
-  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers'];
+  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers', 'outlet'];
   @override
   List<Map<String, dynamic>> items() {
     final s = host.settings;
     return [
       {'type': 'entry', 't': 'GOYANA Mode Murni (beta)', 'lines': ['Tanpa WebView · lebih ringan & cepat'], 'avatar': '⚡'},
       {'type': 'title', 't': 'Toko & Struk'},
+      card('Profil Outlet', host.business.outlets.isEmpty ? 'Belum diatur' : host.business.outlets.first.name, '🏪', 8),
       card('Profil Struk', s.receipt.header, '🧾', 0),
       card('Printer Bluetooth', s.printerName.isEmpty ? 'Belum terhubung' : s.printerName, '🖨', 1),
       {'type': 'title', 't': 'Pembayaran'},
@@ -480,5 +481,133 @@ class KasPage extends PurePage {
         host.toast('Kas ditutup · shift baru dimulai');
         return _reset('');
     }
+  }
+}
+
+class ReportsPage extends PurePage {
+  ReportsPage(super.host);
+  int period = 2; // 0 hari ini, 1 7 hari, 2 30 hari, 3 bulan ini
+  static const periods = ['Hari ini', '7 hari', '30 hari', 'Bulan ini'];
+  @override
+  String get title => 'Laporan';
+  @override
+  String get back => 'home';
+  @override
+  int get navActive => 2;
+
+  DateTime get _from {
+    final n = host.now, d = DateTime(n.year, n.month, n.day);
+    return switch (period) { 0 => d, 1 => d.subtract(const Duration(days: 6)), 3 => DateTime(n.year, n.month), _ => d.subtract(const Duration(days: 29)) };
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final b = host.business, from = _from;
+    bool inRange(DateTime? t) => t != null && !t.isBefore(from);
+    final orders = b.orders.where((o) => !o.isCancelled && inRange(o.created)).toList();
+    final omzet = orders.fold<int>(0, (a, o) => a + o.total);
+    final piutang = b.orders.where((o) => !o.isCancelled).fold<int>(0, (a, o) => a + o.remaining);
+    // Pemasukan dari pembayaran pesanan (semua shift, menurut tanggal bayar).
+    final byMethod = <String, int>{'Tunai': 0, 'QRIS': 0, 'Transfer': 0, 'Deposit': 0};
+    for (final o in b.orders) {
+      for (final p in o.payments) {
+        final at = DateTime.tryParse('${p['at']}')?.toLocal();
+        if (inRange(at)) byMethod['${p['m']}'] = (byMethod['${p['m']}'] ?? 0) + parseRupiah(p['a']);
+      }
+    }
+    final income = byMethod.values.fold<int>(0, (a, v) => a + v);
+    var expense = 0;
+    for (final e in (b.kas['outs'] as List? ?? const []).whereType<Map>()) {
+      if (inRange(DateTime.tryParse('${e['at']}')?.toLocal())) expense += parseRupiah(e['a']);
+    }
+    // Per layanan & per hari.
+    final perService = <String, List<num>>{};
+    for (final o in orders) {
+      for (final it in o.items) {
+        final r = perService.putIfAbsent(it.name, () => [0, 0]);
+        r[0] += it.qty;
+        r[1] += it.subtotal;
+      }
+    }
+    final days = period == 0 ? 1 : (host.now.difference(from).inDays + 1).clamp(1, 31);
+    final perDay = List<int>.filled(days, 0);
+    for (final o in orders) {
+      final i = o.created!.difference(from).inDays;
+      if (i >= 0 && i < days) perDay[i] += o.total;
+    }
+    final maxDay = perDay.fold<int>(1, (a, v) => v > a ? v : a);
+    final maxMethod = byMethod.values.fold<int>(1, (a, v) => v > a ? v : a);
+    return [
+      {'type': 'buttons', 'options': [for (var k = 0; k < periods.length; k++) {'t': periods[k], 'on': k == period, 'i': k}]},
+      {'type': 'stats', 'cells': [
+        {'v': rp(omzet), 't': 'Omset'}, {'v': rp(income), 't': 'Pemasukan', 'tone': 'g'}, {'v': rp(piutang), 't': 'Piutang', 'tone': 'r'},
+        {'v': rp(expense), 't': 'Pengeluaran', 'tone': 'r'}, {'v': rp(income - expense), 't': 'Laba (kas)', 'tone': income >= expense ? 'g' : 'r'}, {'v': '${orders.length}', 't': 'Pesanan'},
+      ]},
+      if (days > 1) ...[
+        {'type': 'title', 't': 'Omset per hari'},
+        {'type': 'bars', 'bars': [
+          for (var k = 0; k < days; k++)
+            {'v': perDay[k] == 0 ? '' : thousands(perDay[k] ~/ 1000), 't': days <= 7 || k % 5 == 0 ? '${from.add(Duration(days: k)).day}' : '', 'h': perDay[k] / maxDay},
+        ]},
+      ],
+      {'type': 'title', 't': 'Per metode bayar'},
+      {'type': 'hbars', 'bars': [for (final m in byMethod.entries) {'t': m.key, 'v': rp(m.value), 'w': m.value / maxMethod}]},
+      {'type': 'title', 't': 'Per layanan', 's': '${perService.length} layanan'},
+      if (perService.isEmpty) {'type': 'hint', 't': 'Belum ada transaksi di periode ini.'},
+      if (perService.isNotEmpty)
+        {'type': 'table', 'rows': [
+          [{'t': 'Layanan', 'h': true, 'b': true}, {'t': 'Jumlah', 'h': true, 'b': true, 'n': true}, {'t': 'Nilai', 'h': true, 'b': true, 'n': true}],
+          for (final e in (perService.entries.toList()..sort((a, b) => b.value[1].compareTo(a.value[1]))))
+            [{'t': e.key}, {'t': qtyText(e.value[0]), 'n': true}, {'t': rp(e.value[1]), 'n': true}],
+        ]},
+      {'type': 'title', 't': 'Pesanan terbaru'},
+      {'type': 'table', 'rows': [
+        [{'t': 'ID', 'h': true, 'b': true}, {'t': 'Pelanggan', 'h': true, 'b': true}, {'t': 'Total', 'h': true, 'b': true, 'n': true}],
+        for (final o in orders.take(30)) [{'t': o.id}, {'t': o.name}, {'t': rp(o.total), 'n': true}],
+      ]},
+      {'type': 'card', 't': 'Kas & Tutup Kasir', 's': 'Kas masuk, pengeluaran, tutup shift', 'ic': '💰', 'i': 20},
+    ];
+  }
+
+  @override
+  void button(int i) {
+    if (i == 20) return host.go('kas');
+    if (i >= 0 && i < periods.length) {
+      period = i;
+      host.refresh();
+    }
+  }
+}
+
+class OutletPage extends PurePage {
+  OutletPage(super.host);
+  late List<String> f;
+  @override
+  String get title => 'Profil Outlet';
+  @override
+  void opened() {
+    final o = host.business.outlets.isEmpty ? null : host.business.outlets.firstWhere((x) => x.id == host.business.activeOutlet, orElse: () => host.business.outlets.first);
+    f = [o?.name ?? '', o?.address ?? '', o?.phone ?? ''];
+  }
+
+  @override
+  List<Map<String, dynamic>> items() => [
+        {'type': 'label', 't': 'Nama Outlet'},
+        {'type': 'input', 'v': f[0], 'ph': 'Nama outlet', 'i': 0},
+        {'type': 'label', 't': 'Alamat'},
+        {'type': 'input', 'v': f[1], 'ph': 'Alamat outlet', 'multiline': true, 'i': 1},
+        {'type': 'label', 't': 'No. WhatsApp Outlet'},
+        {'type': 'input', 'v': f[2], 'ph': '08…', 'numeric': true, 'i': 2},
+        {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'i': 0},
+      ];
+  @override
+  void input(int i, Object value) => f[i.clamp(0, 2)] = '$value'.trim();
+  @override
+  void button(int i) async {
+    if (f[0].isEmpty) return host.toast('Nama outlet wajib diisi');
+    if (f[2].isNotEmpty && f[2].replaceAll(RegExp(r'[^0-9]'), '').length < 10) return host.toast('Nomor WA minimal 10 digit');
+    await host.business.saveOutlet(name: f[0], address: f[1], phone: f[2]);
+    host.toast('Outlet tersimpan');
+    host.go('settings');
   }
 }
