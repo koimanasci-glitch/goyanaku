@@ -32,6 +32,11 @@ abstract class FormActions {
 
 const _ink = Color(0xff1e1e1e);
 
+String _dmy(String iso) {
+  final p = iso.split('-');
+  return p.length == 3 ? '${p[2]}/${p[1]}/${p[0]}' : iso;
+}
+
 class NativeForm extends StatelessWidget {
   const NativeForm({super.key, required this.model, required this.actions, this.navActive = 3, this.topInset});
   final FormModel model;
@@ -67,7 +72,7 @@ class NativeForm extends StatelessWidget {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 110),
               itemCount: model.items.length,
-              itemBuilder: (context, i) => _item(model.items[i]),
+              itemBuilder: (context, i) => _item(context, model.items[i]),
             ),
           ),
         ]),
@@ -76,7 +81,7 @@ class NativeForm extends StatelessWidget {
     );
   }
 
-  Widget _item(Map<String, dynamic> it) {
+  Widget _item(BuildContext context, Map<String, dynamic> it) {
     final a = actions;
     switch (it['type']) {
       case 'card':
@@ -108,7 +113,119 @@ class NativeForm extends StatelessWidget {
           ),
         );
       case 'title':
-        return Padding(padding: const EdgeInsets.only(top: 6, bottom: 8), child: Text(_s(it['t']), style: gText(15, w: FontWeight.w600, c: _ink)));
+        return Padding(
+          padding: const EdgeInsets.only(top: 6, bottom: 8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Expanded(child: Text(_s(it['t']), style: gText(15, w: FontWeight.w600, c: _ink))),
+            if (_s(it['s']).isNotEmpty) Text(_s(it['s']), style: gText(11, c: const Color(0xff8a8fa3))),
+          ]),
+        );
+      case 'date':
+        final v = _s(it['v']);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: GestureDetector(
+            onTap: () async {
+              final now = DateTime.now();
+              final init = DateTime.tryParse(v) ?? now;
+              final d = await showDatePicker(context: context, initialDate: init, firstDate: DateTime(2020), lastDate: DateTime(now.year + 2));
+              if (d != null) {
+                a.fmInput(_i(it['i']), '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}');
+              }
+            },
+            child: Container(
+              height: 46, padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffdfe3e8))),
+              child: Row(children: [
+                const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xff8a8fa3)),
+                const SizedBox(width: 10),
+                Text(v.isEmpty ? 'Pilih tanggal' : _dmy(v), style: gText(13.5, c: v.isEmpty ? const Color(0xffb0b4bf) : _ink)),
+              ]),
+            ),
+          ),
+        );
+      case 'bars':
+        final bars = _list(it['bars']);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: SizedBox(
+            height: 150,
+            child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              for (final b in bars)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                      FittedBox(fit: BoxFit.scaleDown, child: Text(_s(b['v']), style: gText(9, c: const Color(0xff6b7280)))),
+                      const SizedBox(height: 2),
+                      Container(height: 4 + 100 * ((b['h'] as num?)?.toDouble() ?? 0).clamp(0, 1), decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(4))),
+                      const SizedBox(height: 3),
+                      SizedBox(height: 14, child: FittedBox(fit: BoxFit.scaleDown, child: Text(_s(b['t']), style: gText(9, c: const Color(0xff8a8fa3))))),
+                    ]),
+                  ),
+                ),
+            ]),
+          ),
+        );
+      case 'hbars':
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(children: [
+            for (final b in _list(it['bars']))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    Expanded(child: Text(_s(b['t']), style: gText(12.5, c: _ink))),
+                    Text(_s(b['v']), style: gText(12.5, w: FontWeight.w600, c: _ink)),
+                  ]),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(value: ((b['w'] as num?)?.toDouble() ?? 0).clamp(0, 1), minHeight: 7, color: gBrand, backgroundColor: const Color(0xfff1f2f5)),
+                  ),
+                ]),
+              ),
+          ]),
+        );
+      case 'table':
+        final rows = (it['rows'] as List? ?? const []).map((r) => _list(r)).toList();
+        final cols = rows.fold<int>(0, (m, r) => r.length > m ? r.length : m);
+        if (cols == 0) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffe8ecf2))),
+            clipBehavior: Clip.antiAlias,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: MediaQuery.sizeOf(context).width - 34),
+                child: Table(
+                  defaultColumnWidth: const IntrinsicColumnWidth(),
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: [
+                    for (var r = 0; r < rows.length; r++)
+                      TableRow(
+                        decoration: BoxDecoration(color: rows[r].any((c) => c['h'] == true) ? const Color(0xfff7f9fc) : (r.isEven ? Colors.white : const Color(0xfffcfcfd))),
+                        children: [
+                          for (var k = 0; k < cols; k++)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              child: k < rows[r].length
+                                  ? Text(_s(rows[r][k]['t']), textAlign: rows[r][k]['n'] == true ? TextAlign.right : TextAlign.left,
+                                      style: gText(rows[r][k]['h'] == true ? 11 : 12, w: rows[r][k]['b'] == true ? FontWeight.w600 : FontWeight.w400,
+                                          c: rows[r][k]['h'] == true ? const Color(0xff6b7280) : _ink))
+                                  : const SizedBox.shrink(),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
       case 'label':
         return Padding(padding: const EdgeInsets.only(top: 6, bottom: 6), child: Text(_s(it['t']), style: gText(12.5, w: FontWeight.w500, c: const Color(0xff4c5260))));
       case 'hint':
@@ -421,8 +538,10 @@ class NativeForm extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xffe8ecf2))),
                   child: Column(children: [
-                    FittedBox(fit: BoxFit.scaleDown, child: Text(_s(cells[k]['v']), style: gText(18, w: FontWeight.w600, c: _ink))),
+                    FittedBox(fit: BoxFit.scaleDown, child: Text(_s(cells[k]['v']), style: gText(18, w: FontWeight.w600,
+                        c: cells[k]['tone'] == 'g' ? const Color(0xff1f8a55) : (cells[k]['tone'] == 'r' ? gBrand : _ink)))),
                     Text(_s(cells[k]['t']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(11, c: const Color(0xff8a8fa3))),
+                    if (_s(cells[k]['n']).isNotEmpty) Text(_s(cells[k]['n']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(10, c: const Color(0xffa0a4ac))),
                   ]),
                 ),
               ),

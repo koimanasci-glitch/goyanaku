@@ -438,6 +438,7 @@
       function fieldItem(c) {
         var tag = c.tagName;
         if (tag === 'SELECT') return { type: 'select', options: Array.prototype.map.call(c.options, function (o) { return o.textContent.trim(); }), index: c.selectedIndex, i: inputs.indexOf(c) };
+        if (c.type === 'date') return { type: 'date', v: c.value, i: inputs.indexOf(c) };
         if (c.type === 'file') {
           // Visible file field: Flutter picks the file (a script click has no user gesture).
           if (!c.id) c.id = 'gyfile-' + id + '-' + inputs.indexOf(c);
@@ -523,9 +524,26 @@
             return;
           }
           // Stat tiles: <div><b>12</b><small>Pelanggan</small></div> x N.
-          var tile = function (k) { return k.tagName === 'DIV' && k.children.length === 2 && k.querySelector(':scope > b, :scope > strong') && k.querySelector(':scope > small'); };
+          var tile = function (k) { return k.tagName === 'DIV' && (k.children.length === 2 || (k.children.length === 3 && k.querySelector(':scope > em'))) && k.querySelector(':scope > b, :scope > strong') && k.querySelector(':scope > small'); };
           if (kids.length > 1 && kids.length <= 9 && kids.every(tile)) {
-            items.push({ type: 'stats', cells: kids.map(function (k) { return { v: clean(k.querySelector(':scope > b, :scope > strong')), t: clean(k.querySelector(':scope > small')) }; }) });
+            items.push({ type: 'stats', cells: kids.map(function (k) { return { v: clean(k.querySelector(':scope > b, :scope > strong')), t: clean(k.querySelector(':scope > small')), n: clean(k.querySelector(':scope > em')),
+              tone: /\bg\b/.test(k.className) ? 'g' : (/\br\b/.test(k.className) ? 'r' : '') }; }) });
+            return;
+          }
+          // Column chart: <div class="b"><em>3</em><i style="height:40%"></i><span>07</span></div> x N.
+          if (kids.length > 1 && kids.every(function (k) { var i = k.querySelector(':scope > i'); return i && /height/.test(i.getAttribute('style') || ''); })) {
+            items.push({ type: 'bars', bars: kids.map(function (k) { return { v: clean(k.querySelector(':scope > em')), t: clean(k.querySelector(':scope > span')), h: (parseFloat(k.querySelector(':scope > i').style.height) || 0) / 100 }; }) });
+            return;
+          }
+          // Horizontal bars: <div><p><span>Tunai</span><b>Rp0</b></p><s><i style="width:20%"></i></s></div> x N.
+          if (kids.length && kids.every(function (k) { var i = k.querySelector(':scope > s > i'); return i && k.querySelector(':scope > p'); })) {
+            items.push({ type: 'hbars', bars: kids.map(function (k) { return { t: clean(k.querySelector(':scope > p > span')), v: clean(k.querySelector(':scope > p > b')), w: (parseFloat(k.querySelector(':scope > s > i').style.width) || 0) / 100 }; }) });
+            return;
+          }
+          if (tag === 'TABLE') {
+            var trs = Array.prototype.slice.call(c.querySelectorAll('tr'), 0, 201);
+            items.push({ type: 'table', rows: trs.map(function (tr) { return Array.prototype.map.call(tr.children, function (td) {
+              return { t: clean(td), b: !!td.querySelector('b, strong') || td.tagName === 'TH', h: td.tagName === 'TH', n: /\bn\b/.test(td.className) }; }); }) });
             return;
           }
           // Big number card: <small>Omzet Hari Ini</small><strong>Rp0</strong><span>Outlet</span>.
@@ -541,7 +559,7 @@
           }
           if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
           if (tag === 'SUMMARY') { items.push({ type: 'label', t: clean(c) }); return; }
-          if (/^H[1-6]$/.test(tag)) { items.push({ type: 'title', t: clean(c) }); return; }
+          if (/^H[1-6]$/.test(tag)) { items.push({ type: 'title', t: main(c), s: sub(c) }); return; }
           if (tag === 'P' || tag === 'SMALL') { items.push({ type: 'hint', t: clean(c) }); return; }
           var btn = c.querySelector(':scope > button'), span = c.querySelector(':scope > span');
           if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
@@ -757,7 +775,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

@@ -149,7 +149,7 @@ try{
   assert.equal((await lastAdd()).page,'reports');
   const omzet=(await lastAdd()).model.sections[0].items[0];
   await p.evaluate(i=>__goyanaTap('#reports .rp170-it',i),omzet.i);await p.waitForTimeout(400);
-  assert.equal((await lastAdd()).page,null,'report detail opens in HTML');
+  assert.equal((await lastAdd()).page,'rp170d','report detail opens natively');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Laporan summary & list reach Flutter with the HTML numbers; period, search and details use the HTML logic');
 
@@ -307,6 +307,15 @@ try{
   const durs=last.model.items.find(x=>x.type==='buttons'&&x.options.some(o=>/Bulan/.test(o.t)));assert.ok(durs.options[0].on,'chosen duration is marked');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Tambah Nomor Chatbot: stepper, durations and total are native');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('reports');rep170('metode')});
+  await p.waitForFunction(()=>JSON.parse(window.GoyanaNative.__events.at(-1)).page==='rp170d',null,{timeout:3000});
+  last=await lastAdd();const tb=last.model.items.find(x=>x.type==='table');assert.ok(tb&&tb.rows.length>=2&&tb.rows[0][0].h,'report table with header');
+  assert.ok(last.model.items.some(x=>x.type==='hbars'));const per=last.model.items.find(x=>x.type==='buttons');
+  await p.evaluate(i=>__goyanaForm('rp170d','button',i),per.options[0].i);await p.waitForTimeout(300);
+  assert.ok((await lastAdd()).model.items.find(x=>x.type==='buttons').options[0].on,'period chip runs the HTML logic');
+  await p.evaluate(()=>rep170('jam'));await p.waitForTimeout(300);assert.ok((await lastAdd()).model.items.some(x=>x.type==='bars'),'column chart');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Laporan detail (40 reports): period chips, KPI tiles, bar charts and tables are native');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

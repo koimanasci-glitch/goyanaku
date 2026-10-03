@@ -66,7 +66,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   /// HTML pages drawn by the generic native form (formModel in capacitor.js).
   static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter', 'outlets', 'outletedit', 'delivery', 'qris',
     'cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal'};
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
@@ -210,8 +210,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
     } catch (_) {/* ignore malformed events */}
   }
 
-  /// Runs the same HTML element's action, then shows the HTML app while it opens.
-  void _tap(String selector, [int index = 0, String? child, bool reveal = true]) {
+  /// Runs the same HTML element's action. The native view stays until the page reports back (~80 ms):
+  /// a new native page, an HTML sheet (then the WebView shows) or updated values — no HTML flash in between.
+  void _tap(String selector, [int index = 0, String? child, bool reveal = false]) {
     if (reveal) setState(() => _nativePage = null);
     _web.runJavaScript('window.__goyanaTap&&__goyanaTap(${jsonEncode(selector)},$index,${jsonEncode(child)})');
   }
@@ -582,7 +583,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
             if ((_nativePage == 'cashin' || _nativePage == 'cashout') && !_loading)
               Positioned.fill(child: NativeCash(key: ValueKey(_nativePage), model: _cash, actions: this)),
             if (_formPages.contains(_nativePage) && !_loading)
-              Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this)),
+              Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2}[_nativePage] ?? 3)),
             if (_nativePage == 'services' && !_loading)
               Positioned.fill(child: NativeServices(model: _services, actions: this)),
             if (_nativePage == 'cashclose' && !_loading)
