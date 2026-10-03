@@ -1,0 +1,46 @@
+{
+"now": "2026-10-03T03:00:13.547Z",
+"store": {
+"goyana-perfumes178": "[[\"Akasia\",\"rgb(233, 185, 73)\"],[\"Junjung Buih\",\"rgb(90, 169, 230)\"],[\"Lavender\",\"rgb(155, 122, 224)\"],[\"Ocean\",\"rgb(43, 179, 163)\"],[\"Sakura\",\"rgb(240, 122, 160)\"]]",
+"goyana-trial190": "{\"start\":\"2026-10-03T03:00:00.647Z\",\"until\":\"2026-12-03T03:00:00.647Z\"}",
+"goyana-qris-dynamic186": "1",
+"goyana-active-outlet180": "\"outlet180-c93c328e-e7b1-46da-9d5c-24feb45fb6bd\"",
+"goyana-services158": "[{\"key\":\"cuci baju\",\"name\":\"Cuci Baju\",\"unit\":\"kg\",\"prices\":{\"Reguler\":7000,\"Express\":10500,\"Kilat\":14000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"sprei\",\"name\":\"Sprei\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":15000,\"Express\":22500,\"Kilat\":30000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"boneka\",\"name\":\"Boneka\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":20000,\"Express\":30000,\"Kilat\":40000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"bedcover\",\"name\":\"Bedcover\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":30000,\"Express\":45000,\"Kilat\":60000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"karpet\",\"name\":\"Karpet\",\"unit\":\"m\",\"prices\":{\"Reguler\":15000,\"Express\":22500,\"Kilat\":30000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"gorden\",\"name\":\"Gorden\",\"unit\":\"m\",\"prices\":{\"Reguler\":12000,\"Express\":18000,\"Kilat\":24000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"sepatu\",\"name\":\"Sepatu\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":35000,\"Express\":52500,\"Kilat\":70000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"setrika\",\"name\":\"Setrika\",\"unit\":\"kg\",\"prices\":{\"Reguler\":5000,\"Express\":7500,\"Kilat\":10000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"selimut\",\"name\":\"Selimut\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":20000,\"Express\":30000,\"Kilat\":40000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"jas\",\"name\":\"Jas\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":35000,\"Express\":52500,\"Kilat\":70000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]}]",
+"goyana-seed178": "1",
+"goyana-qris-options185": "{\"dynamic\":true}",
+"goyana-business177": "{\"orders\":[{\"dataset\":{\"v108\":\"1\",\"st\":\"antrian\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":5}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:05.956Z\",\"method177\":\"QRIS\",\"paid177\":\"35000\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[{\\\"m\\\":\\\"QRIS\\\",\\\"a\\\":35000,\\\"at\\\":\\\"2026-10-03T03:00:05.956Z\\\"}]\",\"outlet180\":\"outlet180-c93c328e-e7b1-46da-9d5c-24feb45fb6bd\",\"w133\":\"1\",\"ts133\":\"1790996405956\",\"w138\":\"1\",\"w141\":\"1\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0135\"],[\"Koko\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":35000,\"payment\":\"Lunas\",\"paid\":true,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"diambil\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":3}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:05.095Z\",\"method177\":\"Tunai\",\"paid177\":\"21000\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[{\\\"m\\\":\\\"Tunai\\\",\\\"a\\\":21000,\\\"at\\\":\\\"2026-10-03T03:00:05.095Z\\\"}]\",\"outlet180\":\"outlet180-c93c328e-e7b1-46da-9d5c-24feb45fb6bd\",\"w133\":\"1\",\"ts133\":\"1790996409035\",\"w138\":\"1\",\"w141\":\"1\",\"auto133\":\"\",\"siap138\":\"1790996408126\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0134\"],[\"Sari\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":21000,\"payment\":\"Lunas\",\"paid\":true,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"antrian\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":2}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:04.283Z\",\"method177\":\"Tunai\",\"paid177\":\"0\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[]\",\"outlet180\":\"outlet180-c93c328e-e7b1-46da-9d5c-24feb45fb6bd\",\"w133\":\"1\",\"ts133\":\"1790996404283\",\"w138\":\"1\",\"w141\":\"1\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0133\"],[\"Budi\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":14000,\"payment\":\"Belum Bayar\",\"paid\":false,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]}],\"details\":{\"GY-261003-0133\":{\"id\":\"GY-261003-0133\",\"name\":\"Budi\",\"phone\":\"6281200000001\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":0,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:04.283Z\",\"due\":\"2026-10-06T03:00:04.283Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:04.283Z\",\"by\":\"Kasir\"}]},\"GY-261003-0134\":{\"id\":\"GY-261003-0134\",\"name\":\"Sari\",\"phone\":\"6281200000002\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":3}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":21000,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:05.095Z\",\"due\":\"2026-10-06T03:00:05.095Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:05.095Z\",\"by\":\"Kasir\"},{\"st\":\"cuci\",\"at\":\"2026-10-03T03:00:07.407Z\",\"by\":\"Koko\"},{\"st\":\"siap\",\"at\":\"2026-10-03T03:00:08.126Z\",\"by\":\"Koko\"},{\"st\":\"diambil\",\"at\":\"2026-10-03T03:00:09.035Z\",\"by\":\"Koko\"}]},\"GY-261003-0135\":{\"id\":\"GY-261003-0135\",\"name\":\"Koko\",\"phone\":\"6285212348626\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":5}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":35000,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:05.956Z\",\"due\":\"2026-10-06T03:00:05.956Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:05.956Z\",\"by\":\"Kasir\"}]}},\"deposits178\":{},\"kas\":{\"start\":0,\"openAt\":\"\",\"kasir\":\"\",\"outlet\":\"Uji\",\"sales\":[{\"m\":\"Tunai\",\"a\":21000,\"id\":\"GY-261003-0134\",\"at\":\"2026-10-03T03:00:05.095Z\"},{\"m\":\"QRIS\",\"a\":35000,\"id\":\"GY-261003-0135\",\"at\":\"2026-10-03T03:00:05.956Z\"}],\"ins\":[],\"outs\":[],\"hist\":[],\"den\":{},\"phys\":null,\"qrisReal\":\"\",\"tfReal\":\"\",\"setor\":null,\"voided\":[],\"outsVoid\":[]},\"customers\":[{\"name\":\"Budi\",\"phone\":\"081200000001\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Sari\",\"phone\":\"081200000002\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Koko\",\"phone\":\"085212348626\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"}]}",
+"goyana-outlets180": "[{\"id\":\"outlet180-c93c328e-e7b1-46da-9d5c-24feb45fb6bd\",\"name\":\"Uji\",\"address\":\"Jakarta\",\"phone\":\"081234567890\",\"logo\":\"\"}]",
+"goyana-empty-version": "176"
+},
+"home": {
+"statIn": "3",
+"statReady": "0",
+"statLate": "0",
+"labelIn": "Masuk",
+"labelReady": "Siap diambil",
+"labelLate": "Terlambat",
+"today": "Rp 56.000",
+"todayLabel": "Omset hari ini",
+"badge": "0",
+"showBadge": true,
+"slides": [
+{
+"brand": "GOYANA SMART SERVICE",
+"title": "Chatbot Pintar\nLayani Pelanggan 24 Jam",
+"sub": "Balasan cepat & otomatis"
+},
+{
+"brand": "KONTROL BISNIS",
+"title": "Pantau Semua Cabang\nDari Satu Dashboard",
+"sub": "Omzet • transaksi • performa"
+},
+{
+"brand": "CRM & PELANGGAN",
+"title": "Kelola Pelanggan\nFollow-up Jadi Lebih Rapi",
+"sub": "Lead • pelanggan • histori"
+}
+],
+"helpTitle": "Butuh bantuan?",
+"helpText": "Tim GOYANA siap bantu setup, printer & kendala aplikasi lewat WhatsApp."
+}
+}
