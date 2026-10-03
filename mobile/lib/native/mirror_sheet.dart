@@ -424,6 +424,22 @@ class NativeMirrorPage extends StatelessWidget {
       );
     }
     final nav = (model['nav'] as num?)?.toInt() ?? -1;
+    // Bar "sticky" di bawah (contoh: tombol Checkout) tetap menempel di bawah layar seperti di HTML.
+    final sticky = <Map<String, dynamic>>[];
+    Map<String, dynamic> strip(Map<String, dynamic> n) {
+      final ch = _l(n['ch']);
+      if (ch.isEmpty) return n;
+      final keep = <Map<String, dynamic>>[];
+      for (final c in ch) {
+        if (c['sticky'] == 1) {
+          sticky.add(c);
+        } else {
+          keep.add(strip(c));
+        }
+      }
+      return {...n, 'ch': keep};
+    }
+    final flowBody = strip(body);
     final s = _m(body['s']);
     final p = _q(s['p']);
     return Material(
@@ -433,9 +449,10 @@ class NativeMirrorPage extends StatelessWidget {
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(p[3], p[0], p[1], p[2] + 16),
-            child: _Node.children(env, body, inheritColor: ink),
+            child: _Node.children(env, flowBody, inheritColor: ink),
           ),
         ),
+        for (final st in sticky) _Node.build(env, st, ink),
         if (nav >= 0) GBottomNav(onTap: onNav, active: nav > 3 ? -1 : nav),
       ]),
     );

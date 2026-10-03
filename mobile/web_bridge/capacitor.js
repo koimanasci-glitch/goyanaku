@@ -577,6 +577,7 @@
     if (ti >= 0) n.tap = ti;
     if (ctx.skip && ctx.skip.indexOf(el) >= 0) return null;
     if (tag === 'VIDEO') { n.video = 1; n.fill = 1; return n; }
+    if (cs.position === 'sticky' && /px$/.test(cs.bottom)) n.sticky = 1;
     if (cs.position === 'absolute' || cs.position === 'fixed') {
       var pos = function (v) { return /px$/.test(v) ? px(v) : null; };
       n.abs = { t: pos(cs.top), l: pos(cs.left), r: pos(cs.right), b: pos(cs.bottom) };
