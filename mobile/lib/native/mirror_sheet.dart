@@ -20,6 +20,15 @@ List<double> _q(Object? v) {
 
 FontWeight _weight(int w) => w >= 600 ? FontWeight.w600 : (w >= 500 ? FontWeight.w500 : FontWeight.w400);
 
+/// Aksi & penyedia widget khusus untuk cermin HTML.
+class MirrorEnv {
+  const MirrorEnv({required this.onButton, required this.onTap, required this.onInput, this.video});
+  final MirrorTap onButton, onTap;
+  final MirrorInput onInput;
+  /// Pengganti <video> (contoh: kamera pemindai native).
+  final WidgetBuilder? video;
+}
+
 class NativeMirrorSheet extends StatelessWidget {
   const NativeMirrorSheet({super.key, required this.model, required this.onButton, required this.onTap, required this.onInput, required this.onClose});
   final Map<String, dynamic> model;
@@ -30,6 +39,7 @@ class NativeMirrorSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
+    final env = MirrorEnv(onButton: onButton, onTap: onTap, onInput: onInput);
     final box = _m(model['box']);
     final center = model['kind'] == 'center';
     final s = _m(box['s']);
@@ -43,7 +53,7 @@ class NativeMirrorSheet extends StatelessWidget {
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(p[3], p[0], p[1], p[2] + (center ? 0 : mq.padding.bottom)),
-        child: _Node.children(this, box, inheritColor: cssColor(s['c'] as String?, const Color(0xff1e1e1e))),
+        child: _Node.children(env, box, inheritColor: cssColor(s['c'] as String?, const Color(0xff1e1e1e))),
       ),
     );
     return Material(
@@ -63,12 +73,36 @@ class NativeMirrorSheet extends StatelessWidget {
 
 class _Node {
   /// Isi sebuah elemen (anak-anaknya), tanpa kotak/padding elemen itu sendiri.
-  static Widget children(NativeMirrorSheet sheet, Map<String, dynamic> n, {required Color inheritColor}) {
+  static Widget children(MirrorEnv sheet, Map<String, dynamic> n, {required Color inheritColor}) {
     final s = _m(n['s']);
     final color = cssColor(s['c'] as String?, inheritColor);
     if (n['spans'] is List) return _text(sheet, n, color);
-    final ch = _l(n['ch']).where((c) => c['br'] != 1).toList();
+    final all = _l(n['ch']).where((c) => c['br'] != 1).toList();
+    final absKids = all.where((c) => c['abs'] is Map || c['fill'] == 1).toList();
+    final ch = all.where((c) => c['abs'] is! Map && c['fill'] != 1).toList();
+    if (absKids.isNotEmpty) {
+      final flow = ch.isEmpty ? const SizedBox.shrink() : _flow(sheet, n, ch, color);
+      return Stack(clipBehavior: Clip.none, children: [
+        for (final c in absKids.where((c) => c['fill'] == 1)) Positioned.fill(child: build(sheet, c, color, inRow: true)),
+        if (n['abs'] is Map || n['fixed'] == 1) Positioned.fill(child: flow) else flow,
+        for (final c in absKids.where((c) => c['fill'] != 1)) _positioned(sheet, c, color),
+      ]);
+    }
     if (ch.isEmpty) return const SizedBox.shrink();
+    return _flow(sheet, n, ch, color);
+  }
+
+  static Widget _positioned(MirrorEnv sheet, Map<String, dynamic> c, Color color) {
+    final a = _m(c['abs']);
+    double? v(String k) => a[k] is num ? (a[k] as num).toDouble() : null;
+    final l = v('l'), t = v('t'), r = v('r'), b = v('b');
+    final fill = l != null && t != null && r != null && b != null && c['fixed'] != 1;
+    if (fill) return Positioned(left: l, top: t, right: r, bottom: b, child: build(sheet, c, color, inRow: true));
+    return Positioned(left: l, top: t, right: l == null ? r : null, bottom: t == null ? b : null, child: build(sheet, c, color, inRow: true));
+  }
+
+  static Widget _flow(MirrorEnv sheet, Map<String, dynamic> n, List<Map<String, dynamic>> ch, Color color) {
+    final s = _m(n['s']);
     final gap = _d(n['gap']), rgap = n['rgap'] != null ? _d(n['rgap']) : gap;
     if (n['row'] == true && n['wrap'] == 1) {
       return Wrap(spacing: gap, runSpacing: rgap, children: [for (final c in ch) build(sheet, c, color, inRow: true)]);
@@ -124,6 +158,16 @@ class _Node {
       prevBottom = m[2];
     }
     if (prevBottom > 0) kids.add(SizedBox(height: prevBottom));
+    if (n['col'] == 1) {
+      final jc = '${n['jc'] ?? ''}', ai = '${n['ai'] ?? ''}';
+      final positioned = n['abs'] is Map || n['fixed'] == 1;
+      return Column(
+        mainAxisSize: positioned ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: jc.contains('center') ? MainAxisAlignment.center : (jc.contains('space-between') ? MainAxisAlignment.spaceBetween : (jc.contains('end') ? MainAxisAlignment.end : MainAxisAlignment.start)),
+        crossAxisAlignment: ai.contains('center') ? CrossAxisAlignment.center : (ai.contains('start') ? CrossAxisAlignment.start : (ai.contains('end') ? CrossAxisAlignment.end : CrossAxisAlignment.stretch)),
+        children: kids,
+      );
+    }
     final col = Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: kids);
     return n['center'] == 1 ? Center(child: col) : col;
   }
@@ -133,7 +177,7 @@ class _Node {
     return cm[0] > 0 || cm[2] > 0 ? Padding(padding: EdgeInsets.only(top: cm[0], bottom: cm[2]), child: w) : w;
   }
 
-  static Widget _text(NativeMirrorSheet sheet, Map<String, dynamic> n, Color color) {
+  static Widget _text(MirrorEnv sheet, Map<String, dynamic> n, Color color) {
     final s = _m(n['s']);
     final fs = _d(s['fs']) == 0 ? 14.0 : _d(s['fs']);
     final lh = _d(s['lh']);
@@ -161,10 +205,13 @@ class _Node {
   }
 
   /// Satu elemen: kotak (padding, latar, garis, sudut) + isinya. Margin kiri/kanan dipasang di sini; atas/bawah oleh induk.
-  static Widget build(NativeMirrorSheet sheet, Map<String, dynamic> n, Color inherit, {bool inRow = false, String parentTa = ''}) {
+  static Widget build(MirrorEnv sheet, Map<String, dynamic> n, Color inherit, {bool inRow = false, String parentTa = ''}) {
     final s = _m(n['s']);
     final color = cssColor(s['c'] as String?, inherit);
     Widget child;
+    if (n['video'] == 1) {
+      return Builder(builder: (ctx) => sheet.video?.call(ctx) ?? const ColoredBox(color: Colors.black));
+    }
     if (n['svg'] is String) {
       child = gSvg(n['svg'] as String, _d(n['w']), h: _d(n['h']));
     } else if (n['img'] is String) {
@@ -177,8 +224,10 @@ class _Node {
     final p = _q(s['p']), m = _q(s['m']), r = _q(s['br']);
     final bw = _d(s['bw']);
     final fixed = n['fixed'] == 1;
-    final stripe = s['stripe'] is Map ? _m(s['stripe']) : null;
+    final stripe = s['stripe'] is Map ? _m(s['stripe']) : (s['checker'] is Map ? {..._m(s['checker']), 'checker': true} : null);
+    final bgimg = s['bgimg'] is String ? _memory(s['bgimg'] as String) : null;
     final deco = BoxDecoration(
+      image: bgimg == null ? null : DecorationImage(image: bgimg, fit: BoxFit.contain),
       color: s['bg'] == null ? null : cssColor(s['bg'] as String?),
       border: bw > 0 ? Border.all(color: cssColor(s['bc'] as String?, const Color(0xffe6e9ee)), width: bw) : null,
       borderRadius: r.any((x) => x > 0) ? BorderRadius.only(topLeft: Radius.circular(r[0]), topRight: Radius.circular(r[1]), bottomRight: Radius.circular(r[2]), bottomLeft: Radius.circular(r[3])) : null,
@@ -211,6 +260,16 @@ class _Node {
     }
     if (m[1] > 0 || m[3] > 0) child = Padding(padding: EdgeInsets.only(left: m[3], right: m[1]), child: child);
     return child;
+  }
+
+  static ImageProvider? _memory(String src) {
+    final i = src.indexOf(',');
+    if (!src.startsWith('data:') || i < 0 || src.contains('svg+xml')) return null;
+    try {
+      return MemoryImage(base64Decode(src.substring(i + 1)));
+    } catch (_) {
+      return null;
+    }
   }
 
   static Widget _image(String src, double w, double h) {
@@ -305,6 +364,17 @@ class _Stripes extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cs = (st['c'] as List? ?? const []).map((e) => cssColor('$e', Colors.black)).toList();
     if (cs.length < 2) return;
+    if (st['checker'] == true) {
+      final q = _d(st['s']) <= 0 ? 12.0 : _d(st['s']) / 2;
+      canvas.drawRect(Offset.zero & size, Paint()..color = cs[1]);
+      final paint = Paint()..color = cs[0];
+      for (var y = 0.0; y < size.height; y += q) {
+        for (var x = 0.0; x < size.width; x += q) {
+          if (((x / q).round() + (y / q).round()).isEven) canvas.drawRect(Rect.fromLTWH(x, y, q, q), paint);
+        }
+      }
+      return;
+    }
     final w = _d(st['w']) <= 0 ? 8.0 : _d(st['w']);
     canvas.save();
     canvas.clipRect(Offset.zero & size);
@@ -321,4 +391,45 @@ class _Stripes extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _Stripes old) => false;
+}
+
+/// Halaman HTML yang digambar Flutter dari cermin HTML (judul GOYANA & menu bawah tetap native).
+class NativeMirrorPage extends StatelessWidget {
+  const NativeMirrorPage({super.key, required this.model, required this.env, required this.onNav, required this.onHeaderScan, this.topInset});
+  final Map<String, dynamic> model;
+  final MirrorEnv env;
+  final ValueChanged<String> onNav;
+  final VoidCallback onHeaderScan;
+  final double? topInset;
+
+  @override
+  Widget build(BuildContext context) {
+    final top = topInset ?? MediaQuery.paddingOf(context).top;
+    final body = _m(model['body']);
+    final bg = cssColor(model['bg'] as String?, const Color(0xfff6f7f9));
+    final ink = cssColor(_m(body['s'])['c'] as String?, const Color(0xff1e1e1e));
+    if (model['kind'] == 'screen') {
+      // Layar penuh (kamera): elemen HTML mengisi seluruh layar, di bawah status bar.
+      return Material(
+        color: cssColor(_m(body['s'])['bg'] as String?, Colors.black),
+        child: Padding(padding: EdgeInsets.only(top: top), child: _Node.children(env, {...body, 'abs': const {}}, inheritColor: ink)),
+      );
+    }
+    final nav = (model['nav'] as num?)?.toInt() ?? -1;
+    final s = _m(body['s']);
+    final p = _q(s['p']);
+    return Material(
+      color: bg,
+      child: Column(children: [
+        if (model['head'] == true) GTopBar(top: top, onScan: onHeaderScan) else SizedBox(height: top),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(p[3], p[0], p[1], p[2] + 16),
+            child: _Node.children(env, body, inheritColor: ink),
+          ),
+        ),
+        if (nav >= 0) GBottomNav(onTap: onNav, active: nav > 3 ? -1 : nav),
+      ]),
+    );
+  }
 }

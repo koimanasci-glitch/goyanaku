@@ -718,6 +718,35 @@ void main() {
     });
   }
 
+  // Halaman HTML yang digambar Flutter dari cermin HTML (test/fixtures/mirror_pages/*.json).
+  final mirrorPages = Directory('test/fixtures/mirror_pages').listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList()
+    ..sort((a, b) => a.path.compareTo(b.path));
+  for (final f in mirrorPages) {
+    final id = f.uri.pathSegments.last.replaceAll('.json', '');
+    testWidgets('Halaman cermin $id', (tester) async {
+      tester.view.physicalSize = const Size(390 * 2, 844 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final model = Map<String, dynamic>.from(jsonDecode(f.readAsStringSync()) as Map);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: NativeMirrorPage(
+            model: model, topInset: 31, onNav: (_) {}, onHeaderScan: () {},
+            env: MirrorEnv(onButton: (_) {}, onTap: (_) {}, onInput: (_, _) {}, video: (_) => const ColoredBox(color: Color(0xff080a0d))),
+          ),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/mirrorpage_$id.png'));
+    });
+  }
+
   // Popup HTML yang digambar Flutter dari cermin HTML (test/fixtures/popups/*.json).
   final popups = Directory('test/fixtures/popups').listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList()
     ..sort((a, b) => a.path.compareTo(b.path));
