@@ -88,7 +88,8 @@ jobs:
           git add . && git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Screenshots $GITHUB_SHA"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-screens
       - name: Build APK (release, cepat)
-        run: flutter build apk --release --target-platform android-arm,android-arm64
+        # Nomor build naik tiap run supaya HP selalu menerima APK baru sebagai pembaruan.
+        run: flutter build apk --release --target-platform android-arm,android-arm64 --build-number=$((100 + ${{ github.run_number }}))
         working-directory: mobile
       - name: Siapkan APK
         run: cp mobile/build/app/outputs/flutter-apk/app-release.apk GOYANA-Flutter-Uji.apk
@@ -122,4 +123,11 @@ jobs:
           else
             gh release create "$TAG" --title "GOYANA Flutter (uji)" --notes "$NOTES" --prerelease --latest=false
           fi
-          gh release upload "$TAG" GOYANA-Flutter-Uji.apk --clobber
+          # Unggah dulu dengan nama sementara, baru tukar: link unduhan tidak pernah kosong/terpotong saat diunduh.
+          cp GOYANA-Flutter-Uji.apk GOYANA-Flutter-Uji-baru.apk
+          gh release upload "$TAG" GOYANA-Flutter-Uji-baru.apk --clobber
+          REL=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" --jq .id)
+          OLD=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji.apk") | .id')
+          NEW=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji-baru.apk") | .id')
+          if [ -n "$OLD" ]; then gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$OLD"; fi
+          gh api -X PATCH "repos/${{ github.repository }}/releases/assets/$NEW" -f name=GOYANA-Flutter-Uji.apk >/dev/null
