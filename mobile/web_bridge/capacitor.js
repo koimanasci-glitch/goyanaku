@@ -582,7 +582,7 @@
       var pos = function (v) { return /px$/.test(v) ? px(v) : null; };
       n.abs = { t: pos(cs.top), l: pos(cs.left), r: pos(cs.right), b: pos(cs.bottom) };
     }
-    if (tag === 'svg') { n.svg = el.outerHTML.replace(/currentColor/g, cs.color); if (!/\sfill=/.test(el.outerHTML.slice(0, 200)) && !/fill/.test(el.getAttribute('style') || '')) n.svg = n.svg.replace('<svg', '<svg fill="' + cs.fill.replace(/^none$/, 'none') + '" stroke="' + (cs.stroke === 'none' ? 'none' : cs.stroke) + '" stroke-width="' + (cs.strokeWidth || '') + '"'); return n; }
+    if (tag === 'svg') { n.svg = el.outerHTML.replace(/currentColor/g, cs.color).replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/g, function (_, r, g, b) { return '#' + [r, g, b].map(function (x) { return ('0' + (+x).toString(16)).slice(-2); }).join(''); }); if (!/\sfill=/.test(el.outerHTML.slice(0, 200)) && !/fill/.test(el.getAttribute('style') || '')) n.svg = n.svg.replace('<svg', '<svg fill="' + cs.fill.replace(/^none$/, 'none') + '" stroke="' + (cs.stroke === 'none' ? 'none' : cs.stroke) + '" stroke-width="' + (cs.strokeWidth || '') + '"'); return n; }
     if (tag === 'IMG') { n.img = el.src && el.src.length < 1500000 ? el.src : ''; return n; }
     if (tag === 'CANVAS') { try { n.img = el.toDataURL('image/png'); } catch (e) { n.img = ''; } return n; }
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
