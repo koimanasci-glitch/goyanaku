@@ -60,13 +60,13 @@ try{
   await p.evaluate(()=>__goyanaSearch('#f61-customer .f61-search input','Sari'));await p.waitForTimeout(300);
   last=await lastAdd();assert.deepEqual(last.model.people.map(x=>x.name),['Sari Native'],'customer search filters through the HTML logic');
   await p.evaluate(i=>__goyanaTap('#f61-customer .f61-person',i,'button'),last.model.people[0].i);await p.waitForTimeout(400);
-  assert.equal((await lastAdd()).page,null,'duration sheet (HTML) hides the native page');
+  last=await lastAdd();assert.equal(last.sheet&&last.sheet.id,'f61-duration','duration sheet is native');assert.deepEqual(last.sheet.items.filter(x=>x.type==='card').map(x=>x.t),['Reguler','Express','Kilat']);
   await p.evaluate(()=>document.querySelectorAll('#f61-duration button')[1].click());await p.waitForTimeout(400);
   last=await lastAdd();assert.equal(last.page,'addorder');assert.equal(last.model.stage,'services');assert.equal(last.model.customer.name.trim(),'Sari Native');
   assert.equal(last.model.durations.find(d=>d.on).t,'Express');assert.ok(last.model.items.some(x=>x.h)&&last.model.items.some(x=>!x.h));assert.equal(last.model.footer.total,'Rp 0');
   const svc=last.model.items.find(x=>!x.h);
   await p.evaluate(i=>__goyanaTap('#list116 .sv116',i),svc.i);await p.waitForTimeout(300);
-  assert.equal((await lastAdd()).page,null,'quantity sheet (HTML) hides the native page');
+  last=await lastAdd();assert.equal(last.sheet&&last.sheet.id,'qty116','quantity sheet is native');assert.ok(last.sheet.items.some(x=>x.type==='input'&&x.numeric));
   await p.evaluate(()=>{document.getElementById('qty116-in').value='3';saveQty116()});await p.waitForTimeout(400);
   last=await lastAdd();assert.equal(last.page,'addorder');assert.ok(last.model.items.find(x=>x.i===svc.i).on);assert.match(last.model.items.find(x=>x.i===svc.i).btn,/3/);
   assert.notEqual(last.model.footer.total,'Rp 0');assert.match(last.toast,/ditambahkan/,'HTML toast is forwarded to Flutter');
@@ -237,8 +237,8 @@ try{
 
   // Tambah Pelanggan & Pusat Bantuan: generic native form, save/search run in the HTML.
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customeradd')});await p.waitForTimeout(400);
-  assert.equal((await lastAdd()).page,null,'gender picker (HTML) opens first and covers the native form');
-  await p.evaluate(()=>pickGp128('female'));await p.waitForFunction(()=>JSON.parse(window.GoyanaNative.__events.at(-1)).page==='customeradd',null,{timeout:3000});
+  last=await lastAdd();assert.equal(last.sheet&&last.sheet.id,'gp128','gender picker opens first as a native sheet');assert.deepEqual(last.sheet.items.find(x=>x.type==='buttons').options.map(o=>o.t),['Pria','Wanita']);
+  await p.evaluate(()=>pickGp128('female'));await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='customeradd'&&!m.sheet},null,{timeout:3000});
   last=await lastAdd();assert.equal(last.model.items.find(x=>x.type==='row').t,'Wanita');
   const ins=last.model.items.filter(x=>x.type==='input');assert.equal(ins[0].ph,'Nama Pelanggan');
   assert.ok(last.model.items.some(x=>x.type==='row'&&x.btn==='Ganti'),'avatar row with Ganti button');

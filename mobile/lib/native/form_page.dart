@@ -751,10 +751,17 @@ class NativeForm extends StatelessWidget {
             for (final o in _list(it['options']))
               GestureDetector(
                 onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _press(a, o); },
-                child: Container(height: 36, padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Container(height: _s(o['svg']).isNotEmpty ? 92 : 36, padding: const EdgeInsets.symmetric(horizontal: 12),
+                    constraints: BoxConstraints(minWidth: _s(o['svg']).isNotEmpty ? 120 : 0),
                     decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff0ee) : const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
-                    child: Center(widthFactor: 1, child: Text(_s(o['t']), style: gText(12.5, w: FontWeight.w500, c: o['on'] == true ? gBrand : _ink)))),
+                    child: Center(
+                      widthFactor: 1,
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        if (_s(o['svg']).isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 6), child: gSvg(_s(o['svg']), 44)),
+                        Text(_s(o['t']), style: gText(12.5, w: FontWeight.w500, c: o['on'] == true ? gBrand : _ink)),
+                      ]),
+                    )),
               ),
           ]),
         );
