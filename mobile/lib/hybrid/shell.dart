@@ -24,7 +24,9 @@ const _brand = Color(0xffe8493f);
 const _startPage = 'assets/web/index.html';
 
 class GoyanaHybridApp extends StatelessWidget {
-  const GoyanaHybridApp({super.key});
+  const GoyanaHybridApp({super.key, this.onPureMode});
+  /// Pindah ke mode murni Flutter (tombol di Pengaturan).
+  final VoidCallback? onPureMode;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -35,14 +37,15 @@ class GoyanaHybridApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: _brand),
           scaffoldBackgroundColor: Colors.white,
         ),
-        home: const GoyanaShell(),
+        home: GoyanaShell(onPureMode: onPureMode),
       );
 }
 
 /// Full-screen WebView that runs the final GOYANA HTML exactly as designed,
 /// with Android features provided natively through [NativeBridge].
 class GoyanaShell extends StatefulWidget {
-  const GoyanaShell({super.key});
+  const GoyanaShell({super.key, this.onPureMode});
+  final VoidCallback? onPureMode;
 
   @override
   State<GoyanaShell> createState() => _GoyanaShellState();
@@ -611,6 +614,19 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeCustomers(model: _customers, actions: this)),
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
+            if (_nativePage == 'settings' && widget.onPureMode != null && !_loading)
+              Positioned(
+                right: 16, bottom: 104,
+                child: GestureDetector(
+                  onTap: widget.onPureMode,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(color: const Color(0xff1e1e1e), borderRadius: BorderRadius.circular(22),
+                        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 4))]),
+                    child: const Text('⚡ Coba Mode Murni (beta)', style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ),
             if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
               Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this, full: _sheetFull, screen: _sheetScreen)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)
