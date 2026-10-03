@@ -609,7 +609,7 @@
             return;
           }
           // Total bar: <div><small>Total</small><b>Rp 14.000</b><em>Belum dibayar</em></div><button>Bayar</button>.
-          if (kids.length === 2 && kids[0].tagName === 'DIV' && kids[1].tagName === 'BUTTON' && kids[0].querySelector(':scope > small') && kids[0].querySelector(':scope > b')) {
+          if (kids.length === 2 && kids[0].tagName === 'DIV' && kids[1].tagName === 'BUTTON' && !kids[1].querySelector('small, div') && kids[0].firstElementChild && kids[0].firstElementChild.tagName === 'SMALL' && kids[0].querySelector(':scope > b')) {
             items.push({ type: 'total', t: clean(kids[0].querySelector(':scope > small')), v: clean(kids[0].querySelector(':scope > b')), s: clean(kids[0].querySelector(':scope > em')),
               btn: blab(kids[1]), i: buttons.indexOf(kids[1]) });
             return;

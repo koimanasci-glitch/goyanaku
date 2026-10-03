@@ -115,11 +115,22 @@
    "t": "Pilih jenis import di atas. Sebelum disimpan, GOYANA akan menampilkan preview, mapping kolom, data valid, duplikat dan data gagal."
   },
   {
-   "type": "total",
-   "t": "Mulai dari nol sebelum dipakai sungguhan.",
-   "v": "Masa Trial",
-   "s": "",
-   "btn": "🗑Hapus Data TrialHapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.›",
+   "type": "title",
+   "t": "Masa Trial"
+  },
+  {
+   "type": "hint",
+   "t": "Mulai dari nol sebelum dipakai sungguhan."
+  },
+  {
+   "type": "card",
+   "t": "Hapus Data Trial",
+   "s": "Hapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.",
+   "svg": "",
+   "ic": "🗑",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 6
   }
  ]
