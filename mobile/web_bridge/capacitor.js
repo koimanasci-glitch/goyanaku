@@ -418,23 +418,57 @@
       var inputs = q('input:not([type=checkbox]):not([type=radio]), textarea, select'), boxes = q('input[type=checkbox]'), radios = q('input[type=radio]'), buttons = q('button');
       var items = [], seen = new Set();
       function clean(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
+      // Text of an element without its <small> (shown separately as a subtitle).
+      function main(el) {
+        if (!el) return '';
+        var c = el.cloneNode(true);
+        Array.prototype.forEach.call(c.querySelectorAll('small'), function (x) { x.remove(); });
+        return clean(c);
+      }
+      // Upload buttons click a hidden <input type=file>; a script click has no user gesture, so Flutter picks the file instead.
+      function fileOf(b) {
+        var m = /getElementById\(['"]([^'"]+)['"]\)\.click\(\)/.exec(b.getAttribute('onclick') || '');
+        var f = m && document.getElementById(m[1]);
+        return f && f.type === 'file' ? m[1] : '';
+      }
+      function sub(el) { var sm = el && el.querySelector('small'); return sm && shown(sm) ? clean(sm) : ''; }
+      function image(el) {
+        var img = el.querySelector('img');
+        var src = img && img.src && img.src.length < 1500000 ? img.src : '';
+        var mark = el.querySelector(':scope > div, :scope > span');
+        return { type: 'image', src: src, svg: src ? '' : svgOf(el), mark: src ? '' : clean(mark || el).slice(0, 3), t: src ? '' : clean(el.querySelector('b')).slice(0, 40), s: src ? '' : sub(el) };
+      }
       (function walk(el) {
         Array.prototype.forEach.call(el.children, function (c) {
           if (seen.has(c) || !shown(c)) return;
-          var tag = c.tagName, cls = c.className || '';
-          var cb = c.querySelector && c.querySelector(':scope > input[type=checkbox]');
-          if (tag === 'LABEL' && cb) { seen.add(c); items.push({ type: 'toggle', t: clean(c.querySelector('span')), on: cb.checked, i: boxes.indexOf(cb) }); return; }
-          if (c.querySelector && c.querySelector(':scope > label > input[type=radio]')) {
-            seen.add(c);
-            items.push({ type: 'choice', t: clean(c.querySelector(':scope > b')), options: Array.prototype.map.call(c.querySelectorAll('input[type=radio]'), function (r) {
-              return { t: clean(r.parentElement.querySelector('span')), on: r.checked, i: radios.indexOf(r) }; }) });
+          var tag = c.tagName, cls = typeof c.className === 'string' ? c.className : '';
+          var kids = Array.prototype.filter.call(c.children, shown);
+          var cb = c.querySelector(':scope > input[type=checkbox]');
+          if (tag === 'LABEL' && cb) {
+            var txtEl = c.querySelector(':scope > span') || c.querySelector(':scope > div > b');
+            var subEl = c.querySelector(':scope > span') || c.querySelector(':scope > div');
+            items.push({ type: 'toggle', t: main(txtEl), s: sub(subEl), on: cb.checked, i: boxes.indexOf(cb) });
             return;
           }
+          // Title + subtitle with a bare switch beside it (e.g. "Layanan Antar-Jemput").
+          var sw = c.querySelector(':scope > label > input[type=checkbox]');
+          if (sw && !clean(sw.parentElement) && c.querySelector(':scope > div > b')) {
+            items.push({ type: 'toggle', t: clean(c.querySelector(':scope > div > b')), s: sub(c.querySelector(':scope > div')), on: sw.checked, i: boxes.indexOf(sw) });
+            return;
+          }
+          if (c.querySelector(':scope > label > input[type=radio]')) {
+            seen.add(c);
+            items.push({ type: 'choice', t: clean(c.querySelector(':scope > b')), options: Array.prototype.filter.call(c.querySelectorAll('input[type=radio]'), function (r) { return shown(r.parentElement); }).map(function (r) {
+              var lab = r.parentElement, t = lab.querySelector(':scope > span') || lab.querySelector(':scope > div > b') || lab;
+              return { t: main(t), s: sub(lab), on: r.checked, i: radios.indexOf(r) }; }) });
+            return;
+          }
+          if (/preview/.test(cls + ' ' + c.id) && !c.querySelector('button, input')) { items.push(image(c)); return; }
           if (tag === 'BUTTON') {
             var sm = c.querySelector('small'), b = c.querySelector('b');
             var em = c.querySelector(':scope > span');
             items.push(sm ? { type: 'card', t: clean(b), s: clean(sm), svg: svgOf(c), ic: em && !em.querySelector('svg') ? clean(em) : '', i: buttons.indexOf(c) }
-              : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go/.test(cls), i: buttons.indexOf(c) });
+              : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
             return;
           }
           if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
@@ -442,21 +476,43 @@
               : { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), secret: c.type === 'password', email: c.type === 'email', i: inputs.indexOf(c) });
             return;
           }
-          if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
-          if (tag === 'P' || tag === 'SMALL') { items.push({ type: 'hint', t: clean(c) }); return; }
-          var btn = c.querySelector && c.querySelector(':scope > button'), span = c.querySelector && c.querySelector(':scope > span');
-          if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
-          // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
-          var rb = c.querySelector && c.querySelector(':scope > div > b'), rs = c.querySelector && c.querySelector(':scope > div > small');
-          if (btn && rb && c.querySelectorAll(':scope > button').length === 1 && !c.querySelector('input')) { items.push({ type: 'row', t: clean(rb), s: clean(rs), btn: clean(btn), svg: svgOf(c.querySelector(':scope > span')), i: buttons.indexOf(btn) }); return; }
-          // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link).
-          var kids = Array.prototype.filter.call(c.children, shown);
-          if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
-            kids.forEach(function (k) { seen.add(k); });
-            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: clean(k), i: buttons.indexOf(k) }; }) });
+          // Labelled field: "<span>Jemput</span><div><em>Rp</em><input></div>".
+          var fin = c.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select');
+          var lspan = c.querySelector(':scope > span');
+          if (fin.length === 1 && lspan && !c.querySelector('button') && fin[0].tagName === 'INPUT' && shown(fin[0])) {
+            var box = fin[0].parentElement, ems = Array.prototype.slice.call(box.querySelectorAll(':scope > em'));
+            var pre = ems.filter(function (e) { return e.compareDocumentPosition(fin[0]) & Node.DOCUMENT_POSITION_FOLLOWING; }), suf = ems.filter(function (e) { return pre.indexOf(e) < 0; });
+            var f = fin[0];
+            items.push({ type: 'input', label: clean(lspan), pre: pre.map(clean).join(' '), suf: suf.map(clean).join(' '), v: f.value, ph: f.placeholder || '', numeric: /numeric|decimal|tel/.test(f.inputMode || f.type || ''), ro: !!(f.readOnly || f.disabled), i: inputs.indexOf(f) });
             return;
           }
-          if (!c.children.length && clean(c)) { items.push({ type: 'title', t: clean(c) }); return; }
+          if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
+          if (tag === 'SUMMARY') { items.push({ type: 'label', t: clean(c) }); return; }
+          if (/^H[1-6]$/.test(tag)) { items.push({ type: 'title', t: clean(c) }); return; }
+          if (tag === 'P' || tag === 'SMALL') { items.push({ type: 'hint', t: clean(c) }); return; }
+          var btn = c.querySelector(':scope > button'), span = c.querySelector(':scope > span');
+          if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
+          // List entry: name, detail lines, status badge and action buttons (outlet, kurir, ...).
+          var eb = c.querySelector(':scope > b') || c.querySelector(':scope > div > b');
+          var ebox = eb && eb.parentElement;
+          var ebtns = Array.prototype.filter.call(c.querySelectorAll('button'), shown);
+          var esm = ebox ? Array.prototype.filter.call(ebox.querySelectorAll(':scope > small'), shown) : [];
+          if (eb && esm.length && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span'))) {
+            var av = c.querySelector(':scope > span');
+            items.push({ type: 'entry', t: clean(eb), lines: esm.map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
+              btns: ebtns.map(function (x) { return { t: clean(x), i: buttons.indexOf(x) }; }) });
+            return;
+          }
+          // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
+          var rb = c.querySelector(':scope > div > b'), rs = c.querySelector(':scope > div > small');
+          if (btn && rb && c.querySelectorAll(':scope > button').length === 1 && !c.querySelector('input')) { items.push({ type: 'row', t: clean(rb), s: clean(rs), btn: clean(btn), svg: svgOf(c.querySelector(':scope > span')), i: buttons.indexOf(btn) }); return; }
+          // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link).
+          if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
+            kids.forEach(function (k) { seen.add(k); });
+            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: clean(k), file: fileOf(k), i: buttons.indexOf(k) }; }) });
+            return;
+          }
+          if (!c.children.length && clean(c)) { items.push({ type: clean(c).length > 45 ? 'hint' : 'title', t: clean(c) }); return; }
           walk(c);
         });
       })(root);
@@ -616,7 +672,7 @@
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter') };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
@@ -660,6 +716,18 @@
       if (el.tagName === 'SELECT') el.selectedIndex = value; else el.value = value;
       ['input', 'keyup', 'change'].forEach(function (type) { el.dispatchEvent(new Event(type, { bubbles: true })); });
     } else el.click();
+    scheduleHome();
+    return true;
+  };
+  window.__goyanaFile = function (id, name, mime, b64) {
+    var input = document.getElementById(id);
+    if (!input || !window.DataTransfer) return false;
+    var raw = atob(b64), bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    var dt = new DataTransfer();
+    dt.items.add(new File([bytes], name || 'upload', { type: mime || 'application/octet-stream' }));
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
     scheduleHome();
     return true;
   };

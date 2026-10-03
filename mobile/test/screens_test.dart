@@ -408,6 +408,8 @@ class _NoFormActions implements FormActions {
   void fmRadio(int index) {}
   @override
   void fmButton(int index) {}
+  @override
+  void fmFile(String inputId) {}
 }
 
 final _printerForm = FormModel.fromJson('printer', {
@@ -450,6 +452,24 @@ final _helpForm = FormModel.fromJson('helpcenter', {
     {'type': 'card', 't': 'Membuat Pesanan', 's': 'Layanan, berat, durasi dan pembayaran', 'svg': '', 'ic': '🧾', 'i': 0},
     {'type': 'card', 't': 'Pembayaran & QRIS', 's': 'Tunai, transfer, QRIS dan status pembayaran', 'svg': '', 'ic': '▦', 'i': 2},
     {'type': 'button', 't': 'Hubungi Support GOYANA', 'primary': false, 'i': 7},
+  ],
+});
+
+final _deliveryForm = FormModel.fromJson('delivery', {
+  'title': 'Antar-Jemput',
+  'items': [
+    {'type': 'title', 't': 'Tarif Transportasi'},
+    {'type': 'choice', 't': '', 'options': [
+      {'t': '1. Gratis Transportasi', 's': 'Default. Tidak menambah biaya ke pesanan.', 'on': false, 'i': 0},
+      {'t': 'Tarif Tetap', 's': 'Satu tarif untuk order yang memakai transportasi.', 'on': true, 'i': 1},
+    ]},
+    {'type': 'input', 'label': 'Ongkir flat', 'pre': 'Rp', 'suf': '', 'v': '5.000', 'numeric': true, 'i': 0},
+    {'type': 'input', 'label': 'Jarak maksimal', 'pre': '', 'suf': 'km', 'v': '10', 'numeric': true, 'i': 1},
+    {'type': 'toggle', 't': 'Layanan Antar-Jemput', 's': 'Matikan jika outlet hanya melayani pelanggan datang langsung', 'on': true, 'i': 1},
+    {'type': 'entry', 't': 'Andi', 'lines': ['0857-2233-4455 · motor'], 'badge': 'Aktif', 'avatar': 'A', 'svg': '', 'btns': []},
+    {'type': 'entry', 't': 'Outlet Uji', 'lines': ['Jakarta', 'WA 081234567890'], 'badge': '', 'avatar': '', 'svg': '', 'btns': [{'t': 'Monitoring', 'i': 2}, {'t': 'Edit', 'i': 3}]},
+    {'type': 'image', 'src': '', 'svg': '', 'mark': '▦', 't': 'QRIS Outlet', 's': 'Upload QRIS untuk menerima pembayaran'},
+    {'type': 'button', 't': 'Simpan Pengaturan', 'primary': true, 'i': 2},
   ],
 });
 
@@ -665,7 +685,7 @@ void main() {
     });
   }
 
-  for (final entry in {'customeradd': _customerAddForm, 'helpcenter': _helpForm}.entries) {
+  for (final entry in {'customeradd': _customerAddForm, 'helpcenter': _helpForm, 'delivery': _deliveryForm}.entries) {
     testWidgets('Formulir generik (${entry.key}) at 390 px', (tester) async {
       tester.view.physicalSize = const Size(390 * 2, 900 * 2);
       tester.view.devicePixelRatio = 2;

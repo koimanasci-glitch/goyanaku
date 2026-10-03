@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'common.dart';
@@ -25,6 +27,7 @@ abstract class FormActions {
   void fmToggle(int index);
   void fmRadio(int index);
   void fmButton(int index);
+  void fmFile(String inputId);
 }
 
 const _ink = Color(0xff1e1e1e);
@@ -157,7 +160,13 @@ class NativeForm extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 9),
             child: Row(children: [
-              Expanded(child: Text(_s(it['t']), style: gText(13.5, c: _ink))),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_s(it['t']), style: gText(13.5, c: _ink)),
+                  if (_s(it['s']).isNotEmpty) Text(_s(it['s']), style: gText(11, c: const Color(0xff8a8fa3))),
+                ]),
+              ),
+              const SizedBox(width: 10),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 width: 42, height: 24, padding: const EdgeInsets.all(2),
@@ -170,6 +179,36 @@ class NativeForm extends StatelessWidget {
         );
       case 'choice':
         final options = _list(it['options']);
+        if (options.any((o) => _s(o['s']).isNotEmpty)) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 6, bottom: 6),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              if (_s(it['t']).isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(_s(it['t']), style: gText(13.5, w: FontWeight.w500, c: _ink))),
+              for (final o in options)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GestureDetector(
+                    onTap: () => a.fmRadio(_i(o['i'])),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff6f5) : Colors.white, borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
+                      child: Row(children: [
+                        Icon(o['on'] == true ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, size: 20, color: o['on'] == true ? gBrand : const Color(0xffb0b4bf)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(_s(o['t']), style: gText(13.5, w: FontWeight.w500, c: _ink)),
+                            if (_s(o['s']).isNotEmpty) Text(_s(o['s']), style: gText(11, c: const Color(0xff8a8fa3))),
+                          ]),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
+            ]),
+          );
+        }
         return Padding(
           padding: const EdgeInsets.only(top: 10, bottom: 4),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -190,13 +229,86 @@ class NativeForm extends StatelessWidget {
             ]),
           ]),
         );
+      case 'entry':
+        final btns = _list(it['btns']);
+        final badge = _s(it['badge']);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xffe8ecf2))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                if (_s(it['svg']).isNotEmpty || _s(it['avatar']).isNotEmpty) ...[
+                  Container(width: 40, height: 40, alignment: Alignment.center,
+                      decoration: BoxDecoration(color: const Color(0xfffff0f2), borderRadius: BorderRadius.circular(12)),
+                      child: _s(it['svg']).isNotEmpty ? gSvg(_s(it['svg']), 26) : Text(_s(it['avatar']), style: gText(16, w: FontWeight.w700, c: gBrand))),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_s(it['t']), style: gText(14, w: FontWeight.w600, c: _ink)),
+                    for (final l in (it['lines'] as List? ?? const [])) Text(_s(l), style: gText(11.5, c: const Color(0xff8a8fa3))),
+                  ]),
+                ),
+                if (badge.isNotEmpty)
+                  Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xffe8f7ee), borderRadius: BorderRadius.circular(8)),
+                      child: Text(badge, style: gText(11, w: FontWeight.w500, c: const Color(0xff1f8a55)))),
+              ]),
+              if (btns.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Row(children: [
+                  for (var k = 0; k < btns.length; k++) ...[
+                    if (k > 0) const SizedBox(width: 8),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => a.fmButton(_i(btns[k]['i'])),
+                        child: Container(height: 36, alignment: Alignment.center,
+                            decoration: BoxDecoration(color: k == btns.length - 1 ? gBrand : Colors.white, borderRadius: BorderRadius.circular(10),
+                                border: k == btns.length - 1 ? null : Border.all(color: const Color(0xffe1e5ea))),
+                            child: Text(_s(btns[k]['t']), style: gText(12.5, w: FontWeight.w500, c: k == btns.length - 1 ? Colors.white : _ink))),
+                      ),
+                    ),
+                  ],
+                ]),
+              ],
+            ]),
+          ),
+        );
+      case 'image':
+        final src = _s(it['src']);
+        Widget? pic;
+        final comma = src.indexOf(',');
+        if (src.startsWith('data:image') && comma > 0) {
+          try {
+            pic = Image.memory(base64Decode(src.substring(comma + 1)), fit: BoxFit.contain, gaplessPlayback: true);
+          } catch (_) {}
+        }
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Center(
+            child: Container(
+              width: pic != null ? 200 : null, height: pic != null ? 200 : null,
+              constraints: const BoxConstraints(minWidth: 84, minHeight: 84),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: pic != null ? Colors.white : const Color(0xfffff0f2), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xffffd7db))),
+              child: pic ?? Column(mainAxisSize: MainAxisSize.min, children: [
+                if (_s(it['svg']).isNotEmpty) gSvg(_s(it['svg']), 34)
+                else if (_s(it['mark']).isNotEmpty) Text(_s(it['mark']), style: gText(26, w: FontWeight.w700, c: gBrand)),
+                if (_s(it['t']).isNotEmpty) Text(_s(it['t']), style: gText(13, w: FontWeight.w600, c: _ink)),
+                if (_s(it['s']).isNotEmpty) Text(_s(it['s']), textAlign: TextAlign.center, style: gText(11, c: const Color(0xff8a8fa3))),
+              ]),
+            ),
+          ),
+        );
       case 'buttons':
         return Padding(
           padding: const EdgeInsets.only(top: 2, bottom: 10),
           child: Wrap(spacing: 8, runSpacing: 8, children: [
             for (final o in _list(it['options']))
               GestureDetector(
-                onTap: () { FocusManager.instance.primaryFocus?.unfocus(); a.fmButton(_i(o['i'])); },
+                onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _s(o['file']).isNotEmpty ? a.fmFile(_s(o['file'])) : a.fmButton(_i(o['i'])); },
                 child: Container(height: 36, padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xffe1e5ea))),
                     child: Center(widthFactor: 1, child: Text(_s(o['t']), style: gText(12.5, w: FontWeight.w500, c: _ink)))),
@@ -208,7 +320,7 @@ class NativeForm extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(top: 14),
           child: GestureDetector(
-            onTap: () { FocusManager.instance.primaryFocus?.unfocus(); a.fmButton(_i(it['i'])); },
+            onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _s(it['file']).isNotEmpty ? a.fmFile(_s(it['file'])) : a.fmButton(_i(it['i'])); },
             child: Container(height: 50, alignment: Alignment.center,
                 decoration: BoxDecoration(color: primary ? gBrand : Colors.white, borderRadius: BorderRadius.circular(12),
                     border: primary ? null : Border.all(color: const Color(0xffe1e5ea))),
@@ -249,17 +361,41 @@ class _FormInputState extends State<_FormInput> {
   @override
   Widget build(BuildContext context) {
     final it = widget.item, multi = it['multiline'] == true, ro = it['ro'] == true;
+    final label = _s(it['label']), pre = _s(it['pre']), suf = _s(it['suf']);
+    if (label.isEmpty && pre.isEmpty && suf.isEmpty) return _field(it, multi, ro);
+    return Row(children: [
+      if (label.isNotEmpty) Expanded(flex: 5, child: Padding(padding: const EdgeInsets.only(right: 10), child: Text(label, style: gText(13, c: _ink)))),
+      Expanded(
+        flex: 5,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(color: ro ? const Color(0xfff6f7f9) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffdfe3e8))),
+          child: Row(children: [
+            if (pre.isNotEmpty) Padding(padding: const EdgeInsets.only(right: 6), child: Text(pre, style: gText(13, w: FontWeight.w500, c: const Color(0xff6b7280)))),
+            Expanded(child: _text(it, false, ro)),
+            if (suf.isNotEmpty) Padding(padding: const EdgeInsets.only(left: 6), child: Text(suf, style: gText(13, w: FontWeight.w500, c: const Color(0xff6b7280)))),
+          ]),
+        ),
+      ),
+    ]);
+  }
+
+  Widget _field(Map<String, dynamic> it, bool multi, bool ro) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(color: ro ? const Color(0xfff6f7f9) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffdfe3e8))),
-      child: TextField(
+      child: _text(it, multi, ro),
+    );
+  }
+
+  Widget _text(Map<String, dynamic> it, bool multi, bool ro) {
+    return TextField(
         controller: _c, focusNode: _focus, readOnly: ro, onChanged: widget.onChanged, cursorColor: gBrand,
         obscureText: it['secret'] == true, enableSuggestions: it['secret'] != true, autocorrect: it['secret'] != true,
         minLines: multi ? 2 : 1, maxLines: multi ? 5 : 1,
         keyboardType: it['numeric'] == true ? TextInputType.number : (it['email'] == true ? TextInputType.emailAddress : (multi ? TextInputType.multiline : TextInputType.text)),
         style: gText(13.5, c: ro ? const Color(0xff8a8fa3) : _ink, h: 19),
         decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: _s(it['ph']), hintStyle: gText(13.5, c: const Color(0xffb0b4bf))),
-      ),
-    );
+      );
   }
 }

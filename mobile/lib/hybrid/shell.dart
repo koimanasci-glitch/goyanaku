@@ -64,7 +64,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   ServicesModel _services = const ServicesModel();
   FormModel _form = const FormModel();
   /// HTML pages drawn by the generic native form (formModel in capacitor.js).
-  static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter'};
+  static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter', 'outlets', 'outletedit', 'delivery', 'qris'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
@@ -310,6 +310,19 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
     // Buttons usually open another page or a sheet: show the HTML until it reports back.
     setState(() => _nativePage = null);
     _formAct('button', index);
+  }
+
+  @override
+  Future<void> fmFile(String inputId) async {
+    try {
+      final uris = await _device.invokeListMethod<String>('Files.pick', {'accept': ['image/png', 'image/jpeg', 'image/webp'], 'multiple': false, 'capture': false});
+      if (uris == null || uris.isEmpty) return;
+      final f = await _device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
+      if (f == null) return;
+      await _web.runJavaScript('window.__goyanaFile&&__goyanaFile(${jsonEncode(inputId)},${jsonEncode(f['name'])},${jsonEncode(f['mime'])},${jsonEncode(f['data'])})');
+    } catch (_) {
+      setState(() => _toast = 'File tidak dapat dibaca');
+    }
   }
 
   // Layanan

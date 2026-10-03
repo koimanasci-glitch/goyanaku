@@ -239,6 +239,30 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Tambah Pelanggan & Pusat Bantuan use the generic native form');
 
+  // Outlet, Edit Outlet, Antar-Jemput, QRIS: generic native form incl. list entries, radio cards and file upload.
+  const openNative=async id=>{await p.evaluate(id=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage(id)},id);
+    await p.waitForFunction(id=>JSON.parse(window.GoyanaNative.__events.at(-1)).page===id,id,{timeout:3000});return lastAdd()};
+  last=await openNative('outlets');const outlet=last.model.items.find(x=>x.type==='entry');
+  assert.ok(outlet&&outlet.btns.some(b=>b.t==='Edit'),'outlet list entry with Edit button');
+  await p.evaluate(i=>__goyanaForm('outlets','button',i),outlet.btns.find(b=>b.t==='Edit').i);
+  await p.waitForFunction(()=>document.getElementById('outletedit').classList.contains('active'),null,{timeout:3000});
+  last=await openNative('outletedit');assert.ok(last.model.items.some(x=>x.type==='image'),'logo preview');
+  const up=last.model.items.find(x=>x.type==='buttons').options[0];assert.equal(up.file,'outlet-logo-file','upload button picks the file natively');
+  const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  await p.evaluate(b=>__goyanaFile('outlet-logo-file','logo.png','image/png',b),png);
+  await p.waitForFunction(()=>!!document.querySelector('#outlet-logo-preview img'),null,{timeout:3000});await p.waitForTimeout(300);
+  last=await lastAdd();assert.match(last.model.items.find(x=>x.type==='image').src,/^data:image/,'uploaded logo reaches Flutter');
+  last=await openNative('delivery');const modes=last.model.items.find(x=>x.type==='choice');
+  assert.ok(modes.options.length>=4&&modes.options[0].s,'tariff modes with descriptions');
+  await p.evaluate(i=>__goyanaForm('delivery','radio',i),modes.options[1].i);await p.waitForTimeout(300);
+  last=await lastAdd();assert.ok(last.model.items.find(x=>x.type==='choice').options[1].on);
+  assert.ok(last.model.items.some(x=>x.type==='input'&&x.pre==='Rp')||last.model.items.some(x=>x.type==='input'&&x.label),'tariff field appears');
+  assert.ok(last.model.items.some(x=>x.type==='entry'&&x.avatar),'couriers listed');
+  last=await openNative('qris');assert.ok(last.model.items.find(x=>x.type==='button'&&x.file==='qris-file'),'QRIS upload picks the file natively');
+  assert.ok(last.model.items.filter(x=>x.type==='toggle').length>=8);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Outlet, Edit Outlet, Antar-Jemput & QRIS use the generic native form (entries, radio cards, file upload)');
+
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.
   await p.evaluate(()=>openPage('cashclose'));await p.waitForTimeout(400);

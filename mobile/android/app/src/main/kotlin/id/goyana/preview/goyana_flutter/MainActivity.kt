@@ -28,6 +28,7 @@ import android.print.PrintAttributes
 import android.print.PrintManager
 import android.provider.ContactsContract
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Base64
 import android.webkit.WebView
@@ -117,6 +118,7 @@ class MainActivity : FlutterActivity() {
             "Files.save" -> saveFile(call, result)
             "Files.share" -> shareFiles(call, result)
             "Files.pick" -> pickFiles(call, result)
+            "Files.read" -> readFile(call.argument<String>("uri") ?: "", result)
 
             "Clipboard.write" -> {
                 val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -491,6 +493,27 @@ class MainActivity : FlutterActivity() {
         } catch (e: ActivityNotFoundException) {
             pickResult = null
             result.success(emptyList<String>())
+        }
+    }
+
+    /** Reads a picked file (content URI) for the native pages' upload buttons; max 8 MB. */
+    private fun readFile(uri: String, result: MethodChannel.Result) {
+        io.execute {
+            try {
+                val u = Uri.parse(uri)
+                var name = "upload"
+                contentResolver.query(u, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c -> if (c.moveToFirst()) name = c.getString(0) ?: name }
+                val bytes = contentResolver.openInputStream(u)?.use { it.readBytes() } ?: ByteArray(0)
+                if (bytes.size > 8 * 1024 * 1024) {
+                    main.post { result.error("large", "File terlalu besar", null) }
+                    return@execute
+                }
+                val mime = contentResolver.getType(u) ?: "application/octet-stream"
+                val data = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                main.post { result.success(mapOf("name" to name, "mime" to mime, "data" to data)) }
+            } catch (e: Exception) {
+                main.post { result.error("failed", "File tidak dapat dibaca", null) }
+            }
         }
     }
 
