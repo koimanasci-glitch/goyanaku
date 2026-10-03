@@ -24,7 +24,7 @@ try{
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
   const natives=()=>p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native'));
   let last=(await natives()).at(-1);assert.equal(last.page,'home');assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
-  await p.evaluate(()=>openPage('finreport'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
+  await p.evaluate(()=>openPage('printlabel'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
   await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
   last=(await natives()).at(-1);assert.ok(last.page===null||(last.page==='home'&&last.sheet),'a sheet opened from Beranda covers the native page (natively when simple)');
@@ -291,7 +291,7 @@ try{
   await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='perfume'&&m.model.items.some(x=>x.type==='entry')},null,{timeout:4000});
   last=await lastAdd();const pf=last.model.items.find(x=>x.type==='entry');assert.ok(pf.compact&&pf.color&&pf.btns.length===2,'perfume rows with colour and edit/delete');
   console.log('PASS Parfum list rows (colour dot, edit/delete) are native');
-  for(const id of ['finance','duration','discount','barcode','paymentfinal','notif','today187','superbilling','courier181','ralat139','txhist111']){last=await openNative(id);assert.ok(last.model.items.length>0,id)}
+  for(const id of ['finance','duration','discount','barcode','paymentfinal','notif','today187','superbilling','courier181','ralat139','txhist111','finreport']){last=await openNative(id);assert.ok(last.model.items.length>0,id)}
   last=await openNative('discount');assert.ok(last.model.items.some(x=>x.type==='input'&&x.sub),'labelled field keeps its explanation');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   // "+ Tambah Durasi" opens the shared HTML form sheet: drawn natively, values and save go through the HTML.

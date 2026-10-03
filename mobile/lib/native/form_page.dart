@@ -232,15 +232,20 @@ class NativeForm extends StatelessWidget {
             child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               for (final b in bars)
                 Expanded(
-                  child: Padding(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: ((b['tap'] as num?)?.toInt() ?? -1) >= 0 ? () => a.fmTap(_i(b['tap'])) : null,
+                    child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 1.5),
                     child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
                       FittedBox(fit: BoxFit.scaleDown, child: Text(_s(b['v']), style: gText(9, c: const Color(0xff6b7280)))),
                       const SizedBox(height: 2),
-                      Container(height: 4 + 100 * ((b['h'] as num?)?.toDouble() ?? 0).clamp(0, 1), decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(4))),
+                      Container(height: 4 + 100 * ((b['h'] as num?)?.toDouble() ?? 0).clamp(0, 1),
+                          decoration: BoxDecoration(color: b['on'] == true ? const Color(0xff1e1e1e) : gBrand, borderRadius: BorderRadius.circular(4))),
                       const SizedBox(height: 3),
                       SizedBox(height: 14, child: FittedBox(fit: BoxFit.scaleDown, child: Text(_s(b['t']), style: gText(9, c: const Color(0xff8a8fa3))))),
                     ]),
+                  ),
                   ),
                 ),
             ]),
@@ -616,7 +621,9 @@ class NativeForm extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: LayoutBuilder(builder: (context, box) => Wrap(spacing: 8, runSpacing: 8, children: [
             for (var k = 0; k < cells.length; k++)
-              SizedBox(
+              GestureDetector(
+                onTap: cells[k]['i'] is num ? () => a.fmButton(_i(cells[k]['i'])) : null,
+                child: SizedBox(
                 width: (box.maxWidth - 8 * (cols - 1)) / cols,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -628,7 +635,7 @@ class NativeForm extends StatelessWidget {
                     if (_s(cells[k]['n']).isNotEmpty) Text(_s(cells[k]['n']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(10, c: const Color(0xffa0a4ac))),
                   ]),
                 ),
-              ),
+              )),
           ])),
         );
       case 'pair':

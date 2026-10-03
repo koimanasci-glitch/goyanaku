@@ -564,9 +564,26 @@
               tone: /\bg\b/.test(k.className) ? 'g' : (/\br\b/.test(k.className) ? 'r' : '') }; }) });
             return;
           }
+          // KPI buttons: <button><span>Omset <i>?</i></span><b>Rp0</b></button> x N (tap explains the number).
+          if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && k.querySelector(':scope > b') && /\d|—/.test(clean(k.querySelector(':scope > b'))) && k.querySelector(':scope > span') && !k.querySelector('small'); })) {
+            items.push({ type: 'stats', cells: kids.map(function (k) { var sp = k.querySelector(':scope > span').cloneNode(true);
+              Array.prototype.forEach.call(sp.querySelectorAll('i'), function (x) { x.remove(); });
+              return { v: clean(k.querySelector(':scope > b')), t: clean(sp), n: '', tone: /\b(pos|good)\b/.test(k.className) ? 'g' : (/\b(neg|warn|bad)\b/.test(k.className) ? 'r' : ''), i: buttons.indexOf(k) }; }) });
+            return;
+          }
           // Column chart: <div class="b"><em>3</em><i style="height:40%"></i><span>07</span></div> x N.
           if (kids.length > 1 && kids.every(function (k) { var i = k.querySelector(':scope > i'); return i && /height/.test(i.getAttribute('style') || ''); })) {
-            items.push({ type: 'bars', bars: kids.map(function (k) { return { v: clean(k.querySelector(':scope > em')), t: clean(k.querySelector(':scope > span')), h: (parseFloat(k.querySelector(':scope > i').style.height) || 0) / 100 }; }) });
+            items.push({ type: 'bars', bars: kids.map(function (k) { return { v: clean(k.querySelector(':scope > em')), t: clean(k.querySelector(':scope > span')), h: (parseFloat(k.querySelector(':scope > i').style.height) || 0) / 100,
+              on: /\b(on|active|sel)\b/.test(k.className || ''), tap: k.hasAttribute('onclick') ? taps.indexOf(k) : -1 }; }) });
+            return;
+          }
+          // Row list laid out like a table: <p><span>Januari</span><span>0</span><b>Rp 0</b></p> x N.
+          var cols0 = kids[0] ? kids[0].children.length : 0;
+          if (kids.length > 2 && cols0 >= 3 && kids.every(function (k) { return k.tagName === kids[0].tagName && /^(P|DIV)$/.test(k.tagName) && k.children.length === cols0 &&
+              Array.prototype.every.call(k.children, function (x) { return !x.querySelector('div, p, button, input, table, ul'); }); })) {
+            var head0 = clean(kids[0]) === clean(kids[0]).toUpperCase();
+            items.push({ type: 'table', rows: kids.map(function (k, r) { return Array.prototype.map.call(k.children, function (x, cix) {
+              return { t: clean(x), b: x.tagName === 'B' || (r === 0 && head0), h: r === 0 && head0, n: cix > 0 }; }); }) });
             return;
           }
           // Horizontal bars: <div><p><span>Tunai</span><b>Rp0</b></p><s><i style="width:20%"></i></s></div> x N.
@@ -827,7 +844,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling', 'courier181', 'ralat139', 'txhist111'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling', 'courier181', 'ralat139', 'txhist111', 'finreport'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
