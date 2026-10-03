@@ -101,6 +101,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   final List<_Sheet> _sheets = [];
 
+  @override
   DateTime get now => (widget.clock ?? DateTime.now)();
 
   @override
@@ -122,6 +123,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     super.dispose();
   }
 
+  @override
   void toast(String t) {
     _toastTimer?.cancel();
     setState(() => _toast = t);
