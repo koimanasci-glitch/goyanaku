@@ -163,7 +163,7 @@ class _NativeCustomersState extends State<NativeCustomers> {
             ),
           ),
         ]),
-        Positioned(left: 0, right: 0, bottom: 0, child: GBottomNav(active: 3, onTap: a.nav)),
+        Positioned(left: 0, right: 0, bottom: 0, child: GBottomNav(active: 0, onTap: a.nav)),
       ]),
     );
   }

@@ -176,10 +176,16 @@ class NativeForm extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_s(it['t']), style: gText(14, w: FontWeight.w500, c: _ink)),
+                    Text(_s(it['t']), style: gText(14, w: it['on'] == true ? FontWeight.w600 : FontWeight.w500, c: _ink)),
                     Text(_s(it['s']), style: gText(11.5, c: const Color(0xff8a8fa3))),
+                    if (_s(it['badge']).isNotEmpty)
+                      Container(margin: const EdgeInsets.only(top: 6), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: const Color(0xfffff0eb), borderRadius: BorderRadius.circular(7)),
+                          child: Text(_s(it['badge']), style: gText(11, c: const Color(0xffbc493d)))),
                   ]),
                 ),
+                if (_s(it['meta']).isNotEmpty) Padding(padding: const EdgeInsets.only(left: 8), child: Text(_s(it['meta']), style: gText(10.5, c: const Color(0xff9aa0ac)))),
+                if (it['on'] == true) Container(width: 8, height: 8, margin: const EdgeInsets.only(left: 6), decoration: const BoxDecoration(color: gBrand, shape: BoxShape.circle)),
                 const Icon(Icons.chevron_right_rounded, color: Color(0xffa0a4ac)),
               ]),
             ),

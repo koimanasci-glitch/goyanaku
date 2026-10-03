@@ -537,10 +537,11 @@
           if (tag === 'BUTTON') {
             var sm = c.querySelector('small'), b = c.querySelector('b');
             var em = c.querySelector(':scope > span');
-            var ct = clean(b), cic = em && !em.querySelector('svg') ? clean(em) : '';
+            var ct = clean(b), cic = em && !em.querySelector('svg') ? clean(em) : '', cbadge = '';
+            if (cic.length > 2) { cbadge = cic; cic = ''; }
             var lead = !cic && !svgOf(c) && /^([^\s\wÀ-ž]{1,2})\s+(.+)$/.exec(ct);
             if (lead) { cic = lead[1]; ct = lead[2]; }
-            items.push(sm ? { type: 'card', t: ct, s: clean(sm), svg: svgOf(c), ic: cic, i: buttons.indexOf(c) }
+            items.push(sm ? { type: 'card', t: ct, s: clean(sm), svg: svgOf(c), ic: cic, badge: cbadge, meta: clean(c.querySelector(':scope > time')), on: /\bunread\b/.test(cls), i: buttons.indexOf(c) }
               : { type: 'button', t: blab(c), primary: /save|primary|submit|main|go|danger/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
             return;
           }
@@ -818,7 +819,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

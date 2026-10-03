@@ -66,7 +66,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   /// HTML pages drawn by the generic native form (formModel in capacitor.js).
   static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter', 'outlets', 'outletedit', 'delivery', 'qris',
     'cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode'};
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   String _sheetId = ''; // simple HTML sheet drawn natively over the native page
@@ -597,7 +597,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
             if ((_nativePage == 'cashin' || _nativePage == 'cashout') && !_loading)
               Positioned.fill(child: NativeCash(key: ValueKey(_nativePage), model: _cash, actions: this)),
             if (_formPages.contains(_nativePage) && !_loading)
-              Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2}[_nativePage] ?? 3)),
+              Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2, 'customeradd': 0, 'crm': 0, 'today187': 1, 'notif': 0}[_nativePage] ?? 3)),
             if (_nativePage == 'services' && !_loading)
               Positioned.fill(child: NativeServices(model: _services, actions: this)),
             if (_nativePage == 'cashclose' && !_loading)
