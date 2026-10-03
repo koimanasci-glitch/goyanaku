@@ -888,7 +888,7 @@ class DiscountPage extends PurePage {
   bool percent = true;
   @override
   String get title => 'Diskon';
-  List<dynamic> get _list => (host.settings.raw['discounts'] as List?) ?? (host.settings.raw['discounts'] = <dynamic>[]) as List;
+  List<dynamic> get _list => (host.settings.raw['discounts'] as List?) ?? (host.settings.raw['discounts'] = <dynamic>[]);
   @override
   List<Map<String, dynamic>> items() => [
         {'type': 'hint', 't': 'Diskon aktif muncul sebagai pilihan saat kasir membuat pesanan.'},
@@ -900,7 +900,7 @@ class DiscountPage extends PurePage {
         {'type': 'button', 't': 'Simpan Diskon', 'primary': true, 'i': 3},
       ];
   @override
-  void input(int i, Object v) => i == 0 ? name = '$v' : value = '$v';
+  void input(int i, Object value) => i == 0 ? name = '$value' : this.value = '$value';
   @override
   void button(int i) async {
     if (i == 1 || i == 2) {
@@ -927,7 +927,7 @@ class EmployeesPage extends PurePage {
   String name = '', phone = '', pin = '';
   @override
   String get title => 'Pegawai & PIN';
-  List<dynamic> get _list => (host.settings.raw['employees'] as List?) ?? (host.settings.raw['employees'] = <dynamic>[]) as List;
+  List<dynamic> get _list => (host.settings.raw['employees'] as List?) ?? (host.settings.raw['employees'] = <dynamic>[]);
   @override
   List<Map<String, dynamic>> items() => [
         {'type': 'toggle', 't': 'Kunci aplikasi dengan PIN', 's': 'Saat dibuka, kasir memasukkan PIN. Namanya tercatat di riwayat pesanan.', 'on': host.settings.raw['pinLock'] == true, 'i': 0},
@@ -940,10 +940,10 @@ class EmployeesPage extends PurePage {
         {'type': 'button', 't': 'Simpan Pegawai', 'primary': true, 'i': 1},
       ];
   @override
-  void input(int i, Object v) {
-    if (i == 0) name = '$v';
-    if (i == 1) phone = '$v';
-    if (i == 2) pin = '$v'.replaceAll(RegExp(r'\D'), '');
+  void input(int i, Object value) {
+    if (i == 0) name = '$value';
+    if (i == 1) phone = '$value';
+    if (i == 2) pin = '$value'.replaceAll(RegExp(r'\D'), '');
   }
 
   @override
