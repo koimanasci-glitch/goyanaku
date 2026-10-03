@@ -451,7 +451,7 @@
         var img = el.querySelector('img');
         var src = img && img.src && img.src.length < 1500000 ? img.src : '';
         var mark = el.querySelector(':scope > div, :scope > span');
-        return { type: 'image', src: src, svg: src ? '' : svgOf(el), mark: src ? '' : clean(mark || el).slice(0, 3), t: src ? '' : clean(el.querySelector('b')).slice(0, 40), s: src ? '' : sub(el) };
+        return { type: 'image', src: src, svg: src ? '' : svgOf(el), mark: src || clean(mark || el).length > 3 ? '' : clean(mark || el), t: src ? '' : clean(el.querySelector('b')).slice(0, 40), s: src ? '' : sub(el) };
       }
       (function walk(el) {
         Array.prototype.forEach.call(el.children, function (c) {
@@ -775,7 +775,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
