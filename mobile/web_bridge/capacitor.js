@@ -537,8 +537,8 @@
           if (tag === 'BUTTON') {
             var sm = c.querySelector('small'), b = c.querySelector('b');
             var em = c.querySelector(':scope > span');
-            var ct = clean(b), cic = em && !em.querySelector('svg') ? clean(em) : '', cbadge = '';
-            if (cic.length > 2) { cbadge = cic; cic = ''; }
+            var ct = clean(b), cic = em && !em.querySelector('svg') ? clean(em) : '', cbadge = clean(c.querySelector(':scope > em'));
+            if (cic.length > 2) { cbadge = cbadge || cic; cic = ''; }
             var lead = !cic && !svgOf(c) && /^([^\s\wÀ-ž]{1,2})\s+(.+)$/.exec(ct);
             if (lead) { cic = lead[1]; ct = lead[2]; }
             items.push(sm ? { type: 'card', t: ct, s: clean(sm), svg: svgOf(c), ic: cic, badge: cbadge, meta: clean(c.querySelector(':scope > time')), on: /\bunread\b/.test(cls), i: buttons.indexOf(c) }
@@ -623,10 +623,33 @@
           }
           if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
           if (tag === 'SUMMARY') { items.push({ type: 'label', t: clean(c) }); return; }
-          if (/^H[1-6]$/.test(tag)) { items.push({ type: 'title', t: main(c), s: sub(c) }); return; }
+          if (/^H[1-6]$/.test(tag)) {
+            // Numbered step heading: <h4><i>1</i>Pilih pesanan</h4> → "1. Pilih pesanan".
+            var num = c.firstElementChild && /^(I|SPAN|EM)$/.test(c.firstElementChild.tagName) && /^\d+$/.test(clean(c.firstElementChild)) ? c.firstElementChild : null;
+            var ht = main(c);
+            if (num) ht = clean(num) + '. ' + ht.slice(clean(num).length).trim();
+            items.push({ type: 'title', t: ht, s: sub(c) });
+            return;
+          }
+          // Printed label preview (name, bag count, barcode): drawn as a label card.
+          if (/\blbl\b|label-prev/.test(cls) && c.querySelector('svg')) {
+            var lclone = c.cloneNode(true);
+            Array.prototype.forEach.call(lclone.querySelectorAll('svg'), function (x) { x.remove(); });
+            items.push({ type: 'labelprev', lines: Array.prototype.map.call(lclone.querySelectorAll('small, b, .m, .c, .k'), function (x) { return clean(x); }).filter(function (x, n, arr) { return x && arr.indexOf(x) === n; }),
+              svg: svgOf(c) });
+            return;
+          }
           if (tag === 'P' || tag === 'SMALL') { items.push({ type: 'hint', t: clean(c) }); return; }
           var btn = c.querySelector(':scope > button'), span = c.querySelector(':scope > span');
           if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
+          // Quantity stepper: [label] [−] 1 [+].
+          var sk = kids.length === 4 && kids[0].tagName === 'DIV' && !kids[0].querySelector('button, input') ? kids.slice(1) : kids;
+          if (sk.length === 3 && sk[0].tagName === 'BUTTON' && sk[2].tagName === 'BUTTON' && /^(STRONG|B|SPAN)$/.test(sk[1].tagName)) {
+            var lab = sk !== kids ? kids[0] : null;
+            items.push({ type: 'stepper', v: clean(sk[1]), minus: buttons.indexOf(sk[0]), plus: buttons.indexOf(sk[2]), mt: clean(sk[0]), pt: clean(sk[2]),
+              t: lab ? clean(lab.querySelector('b') || lab) : '', s: lab ? clean(lab.querySelector('small')) : '' });
+            return;
+          }
           // Simple list row: [icon] <b>Name</b> [colour dot] [✎ ×] (parfum, kategori, ...).
           var rowB = c.querySelector(':scope > b'), rowInfo = null;
           if (!rowB && kids[0] && kids[0].tagName === 'DIV' && !kids[0].querySelector('button, input') && kids[0].querySelector(':scope > b')) {
@@ -665,11 +688,6 @@
           // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
           var rb = c.querySelector(':scope > div > b'), rs = c.querySelector(':scope > div > small');
           if (btn && rb && kids.length <= 3 && !btn.querySelector('small, div') && c.querySelectorAll(':scope > button').length === 1 && !c.querySelector('input')) { items.push({ type: 'row', t: clean(rb), s: clean(rs), btn: clean(btn), svg: svgOf(c.querySelector(':scope > span')), i: buttons.indexOf(btn) }); return; }
-          // Quantity stepper: [−] 1 [+].
-          if (kids.length === 3 && kids[0].tagName === 'BUTTON' && kids[2].tagName === 'BUTTON' && /^(STRONG|B|SPAN)$/.test(kids[1].tagName)) {
-            items.push({ type: 'stepper', v: clean(kids[1]), minus: buttons.indexOf(kids[0]), plus: buttons.indexOf(kids[2]), mt: clean(kids[0]), pt: clean(kids[2]) });
-            return;
-          }
           // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link; tabs and durations mark the chosen one).
           if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
             kids.forEach(function (k) { seen.add(k); });
@@ -844,7 +862,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling', 'courier181', 'ralat139', 'txhist111', 'finreport'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling', 'courier181', 'ralat139', 'txhist111', 'finreport', 'printlabel'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

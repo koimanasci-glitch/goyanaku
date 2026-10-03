@@ -696,6 +696,22 @@ class NativeForm extends StatelessWidget {
             ]),
           ),
         );
+      case 'labelprev':
+        final lines = (it['lines'] as List? ?? const []).map(_s).toList();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Center(
+            child: Container(
+              width: 260, padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xff1e1e1e), width: 1.4)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (var k = 0; k < lines.length; k++)
+                  Text(lines[k], style: gText(k == 1 ? 15 : 11, w: k == 1 ? FontWeight.w700 : FontWeight.w500, c: _ink)),
+                if (_s(it['svg']).isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: SizedBox(height: 56, child: gSvg(_s(it['svg']), 236, h: 56))),
+              ]),
+            ),
+          ),
+        );
       case 'stepper':
         Widget sb(String t, int i) => GestureDetector(
               onTap: () => a.fmButton(i),
@@ -706,6 +722,13 @@ class NativeForm extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            if (_s(it['t']).isNotEmpty)
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_s(it['t']), style: gText(14, w: FontWeight.w600, c: _ink)),
+                  if (_s(it['s']).isNotEmpty) Text(_s(it['s']), style: gText(11, c: const Color(0xff8a8fa3))),
+                ]),
+              ),
             sb(_s(it['mt']), _i(it['minus'])),
             SizedBox(width: 70, child: Text(_s(it['v']), textAlign: TextAlign.center, style: gText(20, w: FontWeight.w600, c: _ink))),
             sb(_s(it['pt']), _i(it['plus'])),
