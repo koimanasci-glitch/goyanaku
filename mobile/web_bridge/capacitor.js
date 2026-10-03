@@ -413,7 +413,11 @@
   function formModel(id) {
     return function () {
       var page = document.getElementById(id), root = page && page.querySelector('.content');
-      if (!root) return null;
+      if (!root || !shown(root)) return null;
+      var extra = Array.prototype.some.call(page.children, function (k) {
+        return k !== root && !k.matches('header, .page-brandbar, .subhead') && shown(k) && k.getBoundingClientRect().height > 40 && getComputedStyle(k).position !== 'fixed';
+      });
+      if (extra) return null;
       var q = function (sel) { return Array.prototype.slice.call(root.querySelectorAll(sel)); };
       var inputs = q('input:not([type=checkbox]):not([type=radio]), textarea, select'), boxes = q('input[type=checkbox]'), radios = q('input[type=radio]'), buttons = q('button');
       var items = [], seen = new Set();
@@ -534,6 +538,8 @@
           walk(c);
         });
       })(root);
+      // Nothing readable (e.g. the page is locked behind a plan) or extra blocks outside .content: keep the HTML.
+      if (!items.length) return null;
       return { title: txt('#' + id + ' .subhead b'), items: items };
     };
   }
