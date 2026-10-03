@@ -356,7 +356,7 @@ class _MirrorFieldState extends State<_MirrorField> {
       child: TextField(
         controller: _c, focusNode: _focus, readOnly: inp['ro'] == true, obscureText: inp['secret'] == true,
         minLines: multi ? 2 : 1, maxLines: multi ? 5 : 1, style: style, cursorColor: gBrand,
-        keyboardType: inp['numeric'] == true ? (inp['decimal'] == true ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number) : (multi ? TextInputType.multiline : TextInputType.text),
+        keyboardType: inp['numeric'] == true ? (inp['decimal'] == true ? const TextInputType.numberWithOptions(decimal: true, signed: true) : TextInputType.number) : (multi ? TextInputType.multiline : TextInputType.text),
         decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: '${inp['ph'] ?? ''}', hintStyle: style.copyWith(color: const Color(0xffb0b4bf))),
         onChanged: (v) => widget.onInput(i, v),
       ),

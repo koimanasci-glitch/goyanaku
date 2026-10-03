@@ -158,5 +158,5 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Rincian Pesanan: widget khusus `lib/native/order_detail_page.dart` (model `orderDetailModel` di capacitor.js).
 - "Cermin HTML" (`lib/native/mirror_sheet.dart`, `mirrorNode` di capacitor.js): elemen + computed style HTML digambar Flutter apa adanya; aksi ke elemen HTML yang sama (`__goyanaMirror` / `__goyanaForm`).
   - 14 popup (MIRROR_SHEETS) dan 9 halaman sisa (MIRROR_PAGES: pickservice, pickup, orderscan + kamera native mobile_scanner, qrstatus, plan111, checkout111, billing, invoice111, waautomation).
-- Revisi Koko: berat cucian desimal (keyboard koma) — selesai.
+- Revisi Koko: berat cucian desimal. 3 Okt: keyboard angka desimal. 4 Okt: Koko lapor masih tidak bisa koma/titik → keyboard diganti `numberWithOptions(decimal: true, signed: true)` (keyboard Samsung baru menampilkan tombol titik/koma dengan signed:true).
 - Aturan dari Koko: kerjakan hanya yang diminta, jangan ubah bagian lain; tampilan harus sama dengan patokan HTML.
