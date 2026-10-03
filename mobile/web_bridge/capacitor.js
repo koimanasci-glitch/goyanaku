@@ -432,7 +432,8 @@
           }
           if (tag === 'BUTTON') {
             var sm = c.querySelector('small'), b = c.querySelector('b');
-            items.push(sm ? { type: 'card', t: clean(b), s: clean(sm), svg: svgOf(c), i: buttons.indexOf(c) }
+            var em = c.querySelector(':scope > span');
+            items.push(sm ? { type: 'card', t: clean(b), s: clean(sm), svg: svgOf(c), ic: em && !em.querySelector('svg') ? clean(em) : '', i: buttons.indexOf(c) }
               : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go/.test(cls), i: buttons.indexOf(c) });
             return;
           }
@@ -442,9 +443,19 @@
             return;
           }
           if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
-          if (tag === 'P') { items.push({ type: 'hint', t: clean(c) }); return; }
+          if (tag === 'P' || tag === 'SMALL') { items.push({ type: 'hint', t: clean(c) }); return; }
           var btn = c.querySelector && c.querySelector(':scope > button'), span = c.querySelector && c.querySelector(':scope > span');
           if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
+          // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
+          var rb = c.querySelector && c.querySelector(':scope > div > b'), rs = c.querySelector && c.querySelector(':scope > div > small');
+          if (btn && rb && c.querySelectorAll(':scope > button').length === 1 && !c.querySelector('input')) { items.push({ type: 'row', t: clean(rb), s: clean(rs), btn: clean(btn), svg: svgOf(c.querySelector(':scope > span')), i: buttons.indexOf(btn) }); return; }
+          // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link).
+          var kids = Array.prototype.filter.call(c.children, shown);
+          if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
+            kids.forEach(function (k) { seen.add(k); });
+            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: clean(k), i: buttons.indexOf(k) }; }) });
+            return;
+          }
           if (!c.children.length && clean(c)) { items.push({ type: 'title', t: clean(c) }); return; }
           walk(c);
         });
@@ -605,7 +616,7 @@
     return t && visible(t) ? t.textContent.replace(/\s+/g, ' ').trim() : '';
   }
   window.__goyanaCovering = coveringOverlay;
-  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile') };
+  var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter') };
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

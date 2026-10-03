@@ -426,6 +426,33 @@ final _printerForm = FormModel.fromJson('printer', {
   ],
 });
 
+final _customerAddForm = FormModel.fromJson('customeradd', {
+  'title': 'TAMBAH PELANGGAN',
+  'items': [
+    {'type': 'button', 't': 'Pilih dari Kontak HP', 'primary': true, 'i': 0},
+    {'type': 'row', 't': 'Wanita', 's': 'Jenis kelamin · untuk avatar', 'btn': 'Ganti', 'svg': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f8b4c0"/></svg>', 'i': 1},
+    {'type': 'input', 'v': 'Sari', 'ph': 'Nama Pelanggan', 'i': 0},
+    {'type': 'input', 'v': '', 'ph': 'No Handphone', 'numeric': true, 'i': 1},
+    {'type': 'input', 'v': '', 'ph': 'Alamat', 'i': 2},
+    {'type': 'input', 'v': '', 'ph': 'Lokasi pelanggan / tautan Maps (opsional)', 'i': 3},
+    {'type': 'buttons', 'options': [{'t': 'Pilih Titik di Peta', 'i': 4}, {'t': '📍 Lokasi saya', 'i': 5}, {'t': '📋 Tempel link', 'i': 6}]},
+    {'type': 'button', 't': 'Tambahkan', 'primary': true, 'i': 7},
+    {'type': 'hint', 't': 'Nama dan no handphone wajib diisi. Alamat dan Maps boleh dikosongkan.'},
+  ],
+});
+
+final _helpForm = FormModel.fromJson('helpcenter', {
+  'title': 'Pusat Bantuan',
+  'items': [
+    {'type': 'title', 't': 'Ada yang bisa kami bantu?'},
+    {'type': 'hint', 't': 'Panduan penggunaan GOYANA untuk operasional laundry.'},
+    {'type': 'input', 'v': '', 'ph': 'Cari bantuan...', 'i': 0},
+    {'type': 'card', 't': 'Membuat Pesanan', 's': 'Layanan, berat, durasi dan pembayaran', 'svg': '', 'ic': '🧾', 'i': 0},
+    {'type': 'card', 't': 'Pembayaran & QRIS', 's': 'Tunai, transfer, QRIS dan status pembayaran', 'svg': '', 'ic': '▦', 'i': 2},
+    {'type': 'button', 't': 'Hubungi Support GOYANA', 'primary': false, 'i': 7},
+  ],
+});
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -635,6 +662,24 @@ void main() {
       }
       expect(tester.takeException(), isNull);
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/printer_${width.toInt()}.png'));
+    });
+  }
+
+  for (final entry in {'customeradd': _customerAddForm, 'helpcenter': _helpForm}.entries) {
+    testWidgets('Formulir generik (${entry.key}) at 390 px', (tester) async {
+      tester.view.physicalSize = const Size(390 * 2, 900 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(key: const Key('screen'), child: NativeForm(model: entry.value, actions: _NoFormActions(), topInset: 0)),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/${entry.key}_390.png'));
     });
   }
 }

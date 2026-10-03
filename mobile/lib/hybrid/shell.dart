@@ -64,7 +64,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   ServicesModel _services = const ServicesModel();
   FormModel _form = const FormModel();
   /// HTML pages drawn by the generic native form (formModel in capacitor.js).
-  static const _formPages = {'printer', 'profile'};
+  static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;

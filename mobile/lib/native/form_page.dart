@@ -87,7 +87,9 @@ class NativeForm extends StatelessWidget {
               child: Row(children: [
                 Container(width: 44, height: 44, alignment: Alignment.center,
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13)),
-                    child: _s(it['svg']).isEmpty ? const Icon(Icons.print_rounded, color: gBrand) : gSvg(_s(it['svg']), 26)),
+                    child: _s(it['svg']).isNotEmpty
+                        ? gSvg(_s(it['svg']), 26)
+                        : (_s(it['ic']).isNotEmpty ? Text(_s(it['ic']), style: gText(19, c: gBrand)) : const Icon(Icons.print_rounded, color: gBrand))),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -128,7 +130,17 @@ class NativeForm extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(children: [
-            Expanded(child: Text(_s(it['t']), style: gText(13.5, c: _ink))),
+            if (_s(it['svg']).isNotEmpty) ...[
+              Container(width: 40, height: 40, alignment: Alignment.center,
+                  decoration: BoxDecoration(color: const Color(0xfff6f7f9), borderRadius: BorderRadius.circular(12)), child: gSvg(_s(it['svg']), 28)),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_s(it['t']), style: gText(13.5, c: _ink)),
+                if (_s(it['s']).isNotEmpty) Text(_s(it['s']), style: gText(11, c: const Color(0xff8a8fa3))),
+              ]),
+            ),
             GestureDetector(
               onTap: () => a.fmButton(_i(it['i'])),
               child: Container(height: 34, padding: const EdgeInsets.symmetric(horizontal: 12), alignment: Alignment.center,
@@ -176,6 +188,19 @@ class NativeForm extends StatelessWidget {
                   ),
                 ),
             ]),
+          ]),
+        );
+      case 'buttons':
+        return Padding(
+          padding: const EdgeInsets.only(top: 2, bottom: 10),
+          child: Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final o in _list(it['options']))
+              GestureDetector(
+                onTap: () { FocusManager.instance.primaryFocus?.unfocus(); a.fmButton(_i(o['i'])); },
+                child: Container(height: 36, padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xffe1e5ea))),
+                    child: Center(widthFactor: 1, child: Text(_s(o['t']), style: gText(12.5, w: FontWeight.w500, c: _ink)))),
+              ),
           ]),
         );
       case 'button':

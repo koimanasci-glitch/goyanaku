@@ -134,4 +134,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   3. Cek hasilnya. Halaman dengan visual khusus (preview label, kartu kurir) jangan dipakai form generik.
 - **CI**: error tes jembatan, analyze, dan screenshot kini tampil sebagai anotasi.
   - Tes yang memakai jeda tetap diganti polling (CI lebih lambat dari lokal).
-- **Jumlah halaman native**: 12 dari 66 halaman HTML (+ 2 sheet transaksi).
+- **Jumlah halaman native**: 14 dari 66 halaman HTML (+ 2 sheet transaksi). Baru: **Tambah Pelanggan** (popup jenis kelamin tetap HTML) dan **Pusat Bantuan**, lewat formulir generik (kini juga mendukung baris berjudul+subjudul, deretan tombol kecil, ikon emoji).

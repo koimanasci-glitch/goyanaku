@@ -220,6 +220,25 @@ try{
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Profil uses the generic native form');
 
+  // Tambah Pelanggan & Pusat Bantuan: generic native form, save/search run in the HTML.
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customeradd')});await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'gender picker (HTML) opens first and covers the native form');
+  await p.evaluate(()=>pickGp128('female'));await p.waitForFunction(()=>JSON.parse(window.GoyanaNative.__events.at(-1)).page==='customeradd',null,{timeout:3000});
+  last=await lastAdd();assert.equal(last.model.items.find(x=>x.type==='row').t,'Wanita');
+  const ins=last.model.items.filter(x=>x.type==='input');assert.equal(ins[0].ph,'Nama Pelanggan');
+  assert.ok(last.model.items.some(x=>x.type==='row'&&x.btn==='Ganti'),'avatar row with Ganti button');
+  assert.ok(last.model.items.find(x=>x.type==='buttons').options.some(o=>/Lokasi saya/.test(o.t)),'location buttons in one strip');
+  await p.evaluate(([a,b])=>{__goyanaForm('customeradd','input',a,'Tono Native');__goyanaForm('customeradd','input',b,'081200000009')},[ins[0].i,ins[1].i]);
+  const addBtn=last.model.items.find(x=>x.type==='button'&&x.t==='Tambahkan');await p.evaluate(i=>__goyanaForm('customeradd','button',i),addBtn.i);
+  await p.waitForFunction(()=>JSON.stringify(window.business177||{}).includes('Tono Native')||document.body.textContent.includes('Tono Native'),null,{timeout:5000});
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('helpcenter')});await p.waitForTimeout(400);
+  last=await lastAdd();assert.equal(last.page,'helpcenter');
+  const cards=last.model.items.filter(x=>x.type==='card');assert.ok(cards.length>=5&&cards[0].ic,'help topics with emoji icons');
+  await p.evaluate(i=>__goyanaForm('helpcenter','button',i),cards[0].i);await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'help article (HTML) covers the native page');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Tambah Pelanggan & Pusat Bantuan use the generic native form');
+
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.
   await p.evaluate(()=>openPage('cashclose'));await p.waitForTimeout(400);
