@@ -116,7 +116,8 @@ class _Node {
         final cm = _q(_m(c['s'])['m']);
         Widget w = build(sheet, c, color, inRow: true);
         if (cm[0] > 0 || cm[2] > 0) w = Padding(padding: EdgeInsets.only(top: cm[0], bottom: cm[2]), child: w);
-        if (c['grow'] == 1) {
+        final inner = _d(n['w']) - _q(s['p'])[1] - _q(s['p'])[3];
+        if (c['grow'] == 1 || (ch.length == 1 && c['fixed'] != 1 && _d(c['w']) >= inner - 2)) {
           kids.add(Expanded(child: w));
         } else if (c['fixed'] == 1 || c['svg'] != null || c['img'] != null || c['s'] != null && _m(c['s'])['nowrap'] == 1) {
           kids.add(w);
@@ -154,12 +155,18 @@ class _Node {
       final m = _q(_m(c['s'])['m']);
       final space = i == 0 ? m[0] : (m[0] > prevBottom ? m[0] : prevBottom);
       if (space > 0) kids.add(SizedBox(height: space));
-      kids.add(build(sheet, c, color, parentTa: '${s['ta'] ?? ''}'));
+      var w = build(sheet, c, color, parentTa: '${s['ta'] ?? ''}');
+      // Kolom flex rata-tengah: anak memakai lebarnya sendiri seperti di CSS (contoh: kotak pencarian 320 px).
+      if (n['col'] == 1 && '${n['ai'] ?? ''}'.contains('center') && c['fixed'] != 1 && _d(c['w']) > 0) {
+        w = Center(child: ConstrainedBox(constraints: BoxConstraints(maxWidth: _d(c['w']) + 1), child: w));
+      }
+      kids.add(w);
       prevBottom = m[2];
     }
     if (prevBottom > 0) kids.add(SizedBox(height: prevBottom));
     if (n['col'] == 1) {
       final jc = '${n['jc'] ?? ''}', ai = '${n['ai'] ?? ''}';
+
       final positioned = n['abs'] is Map || n['fixed'] == 1;
       return Column(
         mainAxisSize: positioned ? MainAxisSize.max : MainAxisSize.min,
