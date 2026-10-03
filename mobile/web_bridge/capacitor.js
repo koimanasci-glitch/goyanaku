@@ -411,6 +411,7 @@
   }
   // Formulir generik (mis. Printer & Nota): elemen dibaca berurutan dari DOM, setiap isian & tombol memakai elemen HTML aslinya.
   function formModel(id) {
+    FORM_PAGES[id] = true;
     return function () {
       var page = document.getElementById(id), root = page && page.querySelector('.content');
       if (!root || !shown(root)) return null;
@@ -418,6 +419,22 @@
         return k !== root && !k.matches('header, .page-brandbar, .subhead') && shown(k) && k.getBoundingClientRect().height > 40 && getComputedStyle(k).position !== 'fixed';
       });
       if (extra) return null;
+      var items = formItems(root, id);
+      // Nothing readable (e.g. the page is locked behind a plan): keep the HTML.
+      if (!items.length) return null;
+      var m = { title: txt('#' + id + ' .subhead b'), items: items };
+      // Simple HTML sheets (e.g. "Tambah Kurir", "Hapus durasi?") are drawn natively over the native page.
+      GENERIC_SHEETS.forEach(function (sid) {
+        var sh = document.getElementById(sid), box = sh && (sh.querySelector('.sheet91-box') || sh);
+        if (sh && sh.classList.contains('show') && !m.sheet) m.sheet = { id: sid, items: formItems(box, sid) };
+      });
+      return m;
+    };
+  }
+  var GENERIC_SHEETS = ['gs107'], FORM_PAGES = {};
+  /** Form items read in DOM order from root; indexes are per kind inside root (see __goyanaForm). */
+  function formItems(root, id) {
+    {
       var q = function (sel) { return Array.prototype.slice.call(root.querySelectorAll(sel)); };
       var inputs = q('input:not([type=checkbox]):not([type=radio]), textarea, select'), boxes = q('input[type=checkbox]'), radios = q('input[type=radio]'), buttons = q('button');
       var items = [], seen = new Set();
@@ -509,7 +526,7 @@
             var lead = !cic && !svgOf(c) && /^([^\s\wÀ-ž]{1,2})\s+(.+)$/.exec(ct);
             if (lead) { cic = lead[1]; ct = lead[2]; }
             items.push(sm ? { type: 'card', t: ct, s: clean(sm), svg: svgOf(c), ic: cic, i: buttons.indexOf(c) }
-              : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
+              : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go|danger/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
             return;
           }
           if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') { items.push(fieldItem(c)); return; }
@@ -615,10 +632,8 @@
           walk(c);
         });
       })(root);
-      // Nothing readable (e.g. the page is locked behind a plan) or extra blocks outside .content: keep the HTML.
-      if (!items.length) return null;
-      return { title: txt('#' + id + ' .subhead b'), items: items };
-    };
+      return items;
+    }
   }
   // Pelanggan: daftar & database native; ranking (podium) tetap HTML saat dibuka.
   function customersModel() {
@@ -782,7 +797,8 @@
   function reportPage() {
     pageTimer = 0;
     var page = document.querySelector('.page.active'), id = page && page.id;
-    var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay(NATIVE_SHEETS[id]);
+    var skip = (NATIVE_SHEETS[id] || []).concat(FORM_PAGES[id] ? GENERIC_SHEETS : []);
+    var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay(skip);
     var model = null;
     // A model error must never break the app: fall back to the HTML page.
     if (native) { try { model = NATIVE[id](); } catch (e) { console.warn('GOYANA native model', id, e); model = null; } }
@@ -810,8 +826,14 @@
   };
   /** Generic native forms: act on the i-th field of a kind inside #id .content (same order as formModel). */
   window.__goyanaForm = function (id, kind, i, value) {
-    var root = document.querySelector('#' + id + ' .content');
+    var host = document.getElementById(id);
+    var root = host && (host.classList.contains('page') ? host.querySelector('.content') : (host.querySelector('.sheet91-box') || host));
     if (!root) return false;
+    if (kind === 'close') {
+      if (window.closeSheet91) closeSheet91(id); else host.classList.remove('show');
+      scheduleHome();
+      return true;
+    }
     var sel = { input: 'input:not([type=checkbox]):not([type=radio]), textarea, select', toggle: 'input[type=checkbox]', radio: 'input[type=radio]', button: 'button' }[kind];
     var el = sel && root.querySelectorAll(sel)[i];
     if (!el) return false;

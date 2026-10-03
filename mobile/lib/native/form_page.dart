@@ -13,10 +13,15 @@ List<Map<String, dynamic>> _list(Object? v) =>
     v is List ? v.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList() : const [];
 
 class FormModel {
-  const FormModel({this.page = '', this.title = '', this.items = const []});
-  factory FormModel.fromJson(String page, Map<String, dynamic> j) => FormModel(page: page, title: _s(j['title']).trim(), items: _list(j['items']));
-  final String page, title;
+  const FormModel({this.page = '', this.title = '', this.items = const [], this.sheetId = '', this.sheet = const []});
+  factory FormModel.fromJson(String page, Map<String, dynamic> j) {
+    final sh = j['sheet'] is Map ? Map<String, dynamic>.from(j['sheet'] as Map) : const <String, dynamic>{};
+    return FormModel(page: page, title: _s(j['title']).trim(), items: _list(j['items']), sheetId: _s(sh['id']), sheet: _list(sh['items']));
+  }
+  final String page, title, sheetId;
   final List<Map<String, dynamic>> items;
+  /// A simple HTML sheet (e.g. "Tambah Kurir") drawn natively over the page; empty when closed.
+  final List<Map<String, dynamic>> sheet;
 }
 
 abstract class FormActions {
@@ -28,6 +33,33 @@ abstract class FormActions {
   void fmRadio(int index);
   void fmButton(int index);
   void fmFile(String inputId);
+  /// Same actions inside another container (a sheet): kind is input/toggle/radio/button/close.
+  void fmScoped(String scope, String kind, int index, [Object? value]);
+}
+
+/// Routes a sheet's taps to its own element instead of the page.
+class _SheetActions implements FormActions {
+  _SheetActions(this.base, this.scope);
+  final FormActions base;
+  final String scope;
+  @override
+  void scan() => base.scan();
+  @override
+  void nav(String pageId) => base.nav(pageId);
+  @override
+  void fmBack() => base.fmScoped(scope, 'close', 0);
+  @override
+  void fmInput(int index, Object value) => base.fmScoped(scope, 'input', index, value);
+  @override
+  void fmToggle(int index) => base.fmScoped(scope, 'toggle', index);
+  @override
+  void fmRadio(int index) => base.fmScoped(scope, 'radio', index);
+  @override
+  void fmButton(int index) => base.fmScoped(scope, 'button', index);
+  @override
+  void fmFile(String inputId) => base.fmFile(inputId);
+  @override
+  void fmScoped(String scope, String kind, int index, [Object? value]) => base.fmScoped(scope, kind, index, value);
 }
 
 const _ink = Color(0xff1e1e1e);
@@ -77,12 +109,41 @@ class NativeForm extends StatelessWidget {
           ),
         ]),
         Positioned(left: 0, right: 0, bottom: 0, child: GBottomNav(active: navActive, onTap: a.nav)),
+        if (model.sheet.isNotEmpty) Positioned.fill(child: _sheet(context)),
       ]),
     );
   }
 
-  Widget _item(BuildContext context, Map<String, dynamic> it) {
-    final a = actions;
+  Widget _sheet(BuildContext context) {
+    final sa = _SheetActions(actions, model.sheetId);
+    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    return Material(
+      color: const Color(0x80141b26),
+      child: Column(children: [
+        Expanded(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: sa.fmBack)),
+        AnimatedPadding(
+          duration: const Duration(milliseconds: 120),
+          padding: EdgeInsets.only(bottom: bottom),
+          child: Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .85),
+            decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+            child: ListView(
+              shrinkWrap: true,
+              padding: EdgeInsets.fromLTRB(17, 8, 17, 18 + MediaQuery.paddingOf(context).bottom),
+              children: [
+                Center(child: Container(width: 38, height: 4, margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(color: const Color(0xffd9dde2), borderRadius: BorderRadius.circular(9)))),
+                for (final it in model.sheet) _item(context, it, sa),
+              ],
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _item(BuildContext context, Map<String, dynamic> it, [FormActions? scoped]) {
+    final a = scoped ?? actions;
     switch (it['type']) {
       case 'card':
         return Padding(

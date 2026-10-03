@@ -312,6 +312,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   // The page reports back right after the click (new page, sheet, or updated values), so the native view stays
   // until then instead of flashing the HTML underneath (steppers, tabs and switches tap many times).
   void fmButton(int index) => _formAct('button', index);
+  @override
+  void fmScoped(String scope, String kind, int index, [Object? value]) => _web.runJavaScript(
+      'window.__goyanaForm&&__goyanaForm(${jsonEncode(scope)},${jsonEncode(kind)},$index,${jsonEncode(value)})');
 
   @override
   Future<void> fmFile(String inputId) async {

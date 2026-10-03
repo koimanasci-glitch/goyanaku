@@ -292,6 +292,16 @@ try{
   for(const id of ['finance','duration','discount','barcode','paymentfinal']){last=await openNative(id);assert.ok(last.model.items.length>0,id)}
   last=await openNative('discount');assert.ok(last.model.items.some(x=>x.type==='input'&&x.sub),'labelled field keeps its explanation');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  // "+ Tambah Durasi" opens the shared HTML form sheet: drawn natively, values and save go through the HTML.
+  last=await openNative('duration');const addDur=last.model.items.find(x=>x.type==='button'&&/Tambah Durasi/.test(x.t));
+  await p.evaluate(i=>__goyanaForm('duration','button',i),addDur.i);
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&m.model.sheet},null,{timeout:3000});
+  last=await lastAdd();const shIn=last.model.sheet.items.filter(x=>x.type==='input');assert.equal(shIn.length,2,'sheet fields');
+  assert.ok(last.model.sheet.items.some(x=>x.type==='title'&&x.t==='Tambah Durasi'));
+  await p.evaluate(([a,b])=>{__goyanaForm('gs107','input',a,'Super Kilat');__goyanaForm('gs107','input',b,'3')},[shIn[0].i,shIn[1].i]);
+  const okBtn=last.model.sheet.items.find(x=>x.type==='button'&&x.primary);await p.evaluate(i=>__goyanaForm('gs107','button',i),okBtn.i);
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&!m.model.sheet&&m.model.items.some(x=>x.type==='entry'&&x.t==='Super Kilat')},null,{timeout:3000});
+  await p.evaluate(()=>{const r=[...document.querySelectorAll('#duration .duration-row')].find(r=>/Super Kilat/.test(r.textContent));r&&r.remove()});
   console.log('PASS Keuangan (kategori), Durasi, Diskon are native');
   last=await openNative('upgrade');const plans=last.model.items.filter(x=>x.type==='plan');
   assert.deepEqual(plans.map(x=>x.t),['FREE','BASIC','SILVER','GOLD','PLATINUM']);assert.equal(plans[1].price,'Rp30.000');
