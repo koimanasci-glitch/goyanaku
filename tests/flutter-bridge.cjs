@@ -27,7 +27,7 @@ try{
   await p.evaluate(()=>openPage('finreport'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
   await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
-  assert.equal((await natives()).at(-1).page,null,'a sheet opened from Beranda hides the native page');
+  last=(await natives()).at(-1);assert.ok(last.page===null||(last.page==='home'&&last.sheet),'a sheet opened from Beranda covers the native page (natively when simple)');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});
     addBranch96();const f=document.querySelector('#outletedit');f.querySelector('input.profile-input').value='Uji';f.querySelector('textarea').value='Jakarta';f.querySelector('input[inputmode=tel]').value='081234567890';saveOutlet158();
     for(const [n,ph] of [['Budi Native','081200000001'],['Sari Native','081200000002']]){document.getElementById('v88-name').value=n;document.getElementById('v88-phone').value=ph;document.getElementById('v88-address').value='Jakarta';saveCustomerV88();

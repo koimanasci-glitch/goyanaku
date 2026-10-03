@@ -628,14 +628,14 @@ class NativeForm extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xfff1f2f5)))),
           child: Row(children: [
-            Expanded(child: Text(_s(it['t']), style: gText(13, c: const Color(0xff6b7280)))),
+            Expanded(flex: 5, child: Text(_s(it['t']), style: gText(13, c: const Color(0xff6b7280)))),
             const SizedBox(width: 10),
             if (tone == 'p')
               Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                   decoration: BoxDecoration(color: const Color(0xfffff0ee), borderRadius: BorderRadius.circular(8)),
                   child: Text(_s(it['v']), style: gText(11.5, w: FontWeight.w600, c: gBrand)))
             else
-              Flexible(child: Text(_s(it['v']), textAlign: TextAlign.right, style: gText(13, w: FontWeight.w600, c: tap >= 0 ? const Color(0xff2b6aa6) : vc))),
+              Expanded(flex: 6, child: Text(_s(it['v']), textAlign: TextAlign.right, style: gText(13, w: FontWeight.w600, c: tap >= 0 ? const Color(0xff2b6aa6) : vc))),
           ]),
         );
         return tap >= 0 ? GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => a.fmTap(tap), child: row) : row;

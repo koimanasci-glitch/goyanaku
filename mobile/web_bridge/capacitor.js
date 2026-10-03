@@ -427,7 +427,7 @@
   }
   // Simple HTML sheets drawn by Flutter over any native page (same walker as the generic form).
   // Sheets with previews, cameras, QRIS or payment flows stay HTML.
-  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'g62-order-detail'], FORM_PAGES = {};
+  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'act115', 'qr160-menu', 'g62-order-detail'], FORM_PAGES = {};
   function sheetRoot(sh) { return sh.querySelector('.sheet91-box, .g62-sheet') || sh; }
   function openSheet() {
     // The topmost open sheet (highest z-index, then latest in the page) is the one the user sees.
