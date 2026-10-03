@@ -15,6 +15,7 @@ import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/form_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
+import 'package:goyana_flutter/native/mirror_sheet.dart';
 import 'package:goyana_flutter/native/order_detail_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
 import 'package:goyana_flutter/native/reports_page.dart';
@@ -714,6 +715,35 @@ void main() {
       }
       expect(tester.takeException(), isNull);
       await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/printer_${width.toInt()}.png'));
+    });
+  }
+
+  // Popup HTML yang digambar Flutter dari cermin HTML (test/fixtures/popups/*.json).
+  final popups = Directory('test/fixtures/popups').listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList()
+    ..sort((a, b) => a.path.compareTo(b.path));
+  for (final f in popups) {
+    final id = f.uri.pathSegments.last.replaceAll('.json', '');
+    testWidgets('Popup cermin $id', (tester) async {
+      tester.view.physicalSize = const Size(390 * 2, 844 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final model = Map<String, dynamic>.from(jsonDecode(f.readAsStringSync()) as Map);
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: Stack(children: [
+            const Positioned.fill(child: ColoredBox(color: Color(0xfff6f7f9))),
+            Positioned.fill(child: NativeMirrorSheet(model: model, onButton: (_) {}, onTap: (_) {}, onInput: (_, _) {}, onClose: () {})),
+          ]),
+        ),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/popup_$id.png'));
     });
   }
 
