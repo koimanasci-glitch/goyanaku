@@ -79,7 +79,9 @@ class _Node {
       for (var i = 0; i < ch.length; i++) {
         if (i > 0 && gap > 0) kids.add(SizedBox(width: gap));
         final c = ch[i];
-        final w = build(sheet, c, color, inRow: true);
+        final cm = _q(_m(c['s'])['m']);
+        Widget w = build(sheet, c, color, inRow: true);
+        if (cm[0] > 0 || cm[2] > 0) w = Padding(padding: EdgeInsets.only(top: cm[0], bottom: cm[2]), child: w);
         if (c['grow'] == 1) {
           kids.add(Expanded(child: w));
         } else if (c['fixed'] == 1 || c['svg'] != null || c['img'] != null || c['s'] != null && _m(c['s'])['nowrap'] == 1) {
@@ -103,7 +105,7 @@ class _Node {
         for (var j = 0; j < cols; j++) {
           if (j > 0) line.add(SizedBox(width: gap));
           final flex = j < colw.length && colw[j] > 0 ? (colw[j] * 10).round() : 10;
-          line.add(Expanded(flex: flex, child: i + j < ch.length ? build(sheet, ch[i + j], color, inRow: true) : const SizedBox.shrink()));
+          line.add(Expanded(flex: flex, child: i + j < ch.length ? _vm(ch[i + j], build(sheet, ch[i + j], color, inRow: true)) : const SizedBox.shrink()));
         }
         if (rows.isNotEmpty) rows.add(SizedBox(height: rgap));
         rows.add(Row(crossAxisAlignment: CrossAxisAlignment.start, children: line));
@@ -118,12 +120,17 @@ class _Node {
       final m = _q(_m(c['s'])['m']);
       final space = i == 0 ? m[0] : (m[0] > prevBottom ? m[0] : prevBottom);
       if (space > 0) kids.add(SizedBox(height: space));
-      kids.add(build(sheet, c, color));
+      kids.add(build(sheet, c, color, parentTa: '${s['ta'] ?? ''}'));
       prevBottom = m[2];
     }
     if (prevBottom > 0) kids.add(SizedBox(height: prevBottom));
     final col = Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: kids);
     return n['center'] == 1 ? Center(child: col) : col;
+  }
+
+  static Widget _vm(Map<String, dynamic> c, Widget w) {
+    final cm = _q(_m(c['s'])['m']);
+    return cm[0] > 0 || cm[2] > 0 ? Padding(padding: EdgeInsets.only(top: cm[0], bottom: cm[2]), child: w) : w;
   }
 
   static Widget _text(NativeMirrorSheet sheet, Map<String, dynamic> n, Color color) {
@@ -141,15 +148,20 @@ class _Node {
       spans.add(TextSpan(text: t, style: style(sp, c).copyWith(backgroundColor: sp['bg'] == null ? null : cssColor(sp['bg'] as String?))));
     }
     final ta = '${s['ta'] ?? ''}';
-    return Text.rich(
+    // Tautan di dalam paragraf (contoh: "Upgrade ke PRO"): seluruh paragraf meneruskan ketukan ke tautan itu.
+    final link = _l(n['spans']).where((x) => x['tap'] is num || x['b'] is num).firstOrNull;
+    final text = Text.rich(
       TextSpan(children: spans, style: style(s, color)),
       textAlign: ta == 'center' ? TextAlign.center : (ta == 'right' ? TextAlign.right : TextAlign.left),
       softWrap: s['nowrap'] != 1,
     );
+    if (link == null) return text;
+    final lb = (link['b'] as num?)?.toInt(), lt = (link['tap'] as num?)?.toInt();
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => lb != null ? sheet.onButton(lb) : sheet.onTap(lt!), child: text);
   }
 
   /// Satu elemen: kotak (padding, latar, garis, sudut) + isinya. Margin kiri/kanan dipasang di sini; atas/bawah oleh induk.
-  static Widget build(NativeMirrorSheet sheet, Map<String, dynamic> n, Color inherit, {bool inRow = false}) {
+  static Widget build(NativeMirrorSheet sheet, Map<String, dynamic> n, Color inherit, {bool inRow = false, String parentTa = ''}) {
     final s = _m(n['s']);
     final color = cssColor(s['c'] as String?, inherit);
     Widget child;
@@ -165,6 +177,7 @@ class _Node {
     final p = _q(s['p']), m = _q(s['m']), r = _q(s['br']);
     final bw = _d(s['bw']);
     final fixed = n['fixed'] == 1;
+    final stripe = s['stripe'] is Map ? _m(s['stripe']) : null;
     final deco = BoxDecoration(
       color: s['bg'] == null ? null : cssColor(s['bg'] as String?),
       border: bw > 0 ? Border.all(color: cssColor(s['bc'] as String?, const Color(0xffe6e9ee)), width: bw) : null,
@@ -177,7 +190,12 @@ class _Node {
         alignment: fixed ? Alignment.center : null,
         padding: fixed ? null : EdgeInsets.fromLTRB(p[3], p[0], p[1], p[2]),
         decoration: deco,
-        child: child,
+        child: stripe == null
+            ? child
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(r[0] > bw ? r[0] - bw : 0),
+                child: CustomPaint(painter: _Stripes(stripe), child: SizedBox.expand(child: Center(child: child))),
+              ),
       );
     }
     final b = (n['b'] as num?)?.toInt(), tap = (n['tap'] as num?)?.toInt();
@@ -188,7 +206,7 @@ class _Node {
     }
     // Kotak kecil berukuran tetap dengan margin kiri = kanan (margin auto di CSS): di tengah.
     if (fixed && !inRow) {
-      final centered = (m[1] - m[3]).abs() < 2 && m[1] > 0;
+      final centered = ((m[1] - m[3]).abs() < 2 && m[1] > 0) || parentTa == 'center';
       return Align(alignment: centered ? Alignment.center : Alignment.centerLeft, child: child);
     }
     if (m[1] > 0 || m[3] > 0) child = Padding(padding: EdgeInsets.only(left: m[3], right: m[1]), child: child);
@@ -277,4 +295,30 @@ class _MirrorFieldState extends State<_MirrorField> {
       ),
     );
   }
+}
+
+/// repeating-linear-gradient(…deg, warna1 0 Npx, warna2 Npx 2Npx): garis miring bergantian.
+class _Stripes extends CustomPainter {
+  _Stripes(this.st);
+  final Map<String, dynamic> st;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cs = (st['c'] as List? ?? const []).map((e) => cssColor('$e', Colors.black)).toList();
+    if (cs.length < 2) return;
+    final w = _d(st['w']) <= 0 ? 8.0 : _d(st['w']);
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, Paint()..color = cs[1]);
+    final diag = size.width + size.height;
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate((_d(st['deg'])) * 3.1415926535 / 180);
+    final paint = Paint()..color = cs[0];
+    for (var x = -diag; x < diag; x += w * 2) {
+      canvas.drawRect(Rect.fromLTWH(x, -diag, w, diag * 2), paint);
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _Stripes old) => false;
 }
