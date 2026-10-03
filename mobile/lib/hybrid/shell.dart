@@ -70,7 +70,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   String _sheetId = ''; // simple HTML sheet drawn natively over the native page
-  bool _sheetFull = false;
+  bool _sheetFull = false, _sheetScreen = false;
   List<Map<String, dynamic>> _sheetItems = const [];
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -206,6 +206,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         final sheet = data['sheet'] is Map ? Map<String, dynamic>.from(data['sheet'] as Map) : null;
         _sheetId = sheet == null ? '' : (sheet['id'] as String? ?? '');
         _sheetFull = sheet?['full'] == true;
+        _sheetScreen = sheet?['screen'] == true;
         _sheetItems = sheet == null || sheet['items'] is! List
             ? const []
             : (sheet['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
@@ -611,7 +612,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
             if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
-              Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this, full: _sheetFull)),
+              Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this, full: _sheetFull, screen: _sheetScreen)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)
               Positioned(
                 left: 24, right: 24, bottom: 130,

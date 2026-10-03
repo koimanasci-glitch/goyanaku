@@ -22,8 +22,10 @@ class FormModel {
 /// A simple HTML sheet (e.g. "Tambah Kurir", "Batalkan Pesanan?") drawn by Flutter over any native page.
 /// Every field and button acts on the same element inside the HTML sheet.
 class NativeSheet extends StatelessWidget {
-  const NativeSheet({super.key, required this.id, required this.items, required this.actions, this.full = false});
+  const NativeSheet({super.key, required this.id, required this.items, required this.actions, this.full = false, this.screen = false});
   final String id;
+  /// Whole screen (login, first-run setup) instead of a bottom sheet.
+  final bool screen;
   /// Full-height sheet (order detail).
   final bool full;
   final List<Map<String, dynamic>> items;
@@ -34,6 +36,23 @@ class NativeSheet extends StatelessWidget {
     final sa = _SheetActions(actions, id);
     final form = NativeForm(model: FormModel(page: id, items: items), actions: sa);
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    if (screen) {
+      return Material(
+        color: Colors.white,
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: ListView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.fromLTRB(24, 32, 24, 24 + bottom),
+                children: [for (final it in items) form._item(context, it)],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Material(
       color: const Color(0x80141b26),
       child: Column(children: [

@@ -709,7 +709,7 @@ void main() {
             NativeForm(model: model, actions: _NoFormActions(), topInset: 0),
             if (sheet != null)
               Positioned.fill(
-                child: NativeSheet(id: sheet['id'] as String, actions: _NoFormActions(),
+                child: NativeSheet(id: sheet['id'] as String, actions: _NoFormActions(), screen: sheet['screen'] == true, full: sheet['full'] == true,
                     items: (sheet['items'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()),
               ),
           ]),

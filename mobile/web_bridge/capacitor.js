@@ -439,7 +439,16 @@
     var kids = Array.prototype.filter.call(sh.children, shown);
     return kids.length === 1 ? kids[0] : sh;
   }
+  // Full-screen HTML overlays (login, first-run setup) drawn as a whole native screen.
+  var SCREEN_SHEETS = ['lg167', 'ob189'];
   function openSheet() {
+    for (var q = 0; q < SCREEN_SHEETS.length; q++) {
+      var sc = document.getElementById(SCREEN_SHEETS[q]);
+      if (sc && !sc.hidden && shown(sc) && sc.getBoundingClientRect().height >= innerHeight * 0.6) {
+        var sitems = formItems(sheetRoot(sc), sc.id);
+        return sitems.length ? { id: sc.id, items: sitems, screen: true } : null;
+      }
+    }
     // The topmost open sheet (highest z-index, then latest in the page) is the one the user sees.
     var top = null, topZ = -Infinity;
     GENERIC_SHEETS.forEach(function (sid) {
@@ -893,6 +902,12 @@
     var page = document.querySelector('.page.active'), id = page && page.id;
     var sheet = null;
     try { sheet = openSheet(); } catch (e) { sheet = null; }
+    if (sheet && sheet.screen) {
+      // Login / first-run screen covers everything: Flutter draws it alone.
+      var smsg = JSON.stringify({ event: 'native', page: 'screen', model: {}, sheet: sheet, toast: toastText() });
+      if (smsg !== lastPage) { lastPage = smsg; try { window.GoyanaNative.postMessage(smsg); } catch (e) {} }
+      return;
+    }
     var skip = (NATIVE_SHEETS[id] || []).concat(sheet ? [sheet.id] : []);
     var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay(skip);
     var model = null;

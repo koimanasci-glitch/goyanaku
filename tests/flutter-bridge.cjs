@@ -19,6 +19,11 @@ try{
   assert.equal(await p.evaluate(()=>Capacitor.isNativePlatform()),true);
   assert.equal(await p.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--goyana-safe-top').trim()),'31px');
   console.log('PASS app boots on the Flutter bridge and receives the status bar inset');
+  // First run: the setup screen (or login) is drawn by Flutter as a whole native screen.
+  const boot=await p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native').at(-1));
+  assert.ok(boot&&boot.page==='screen'&&boot.sheet&&boot.sheet.screen&&['ob189','lg167'].includes(boot.sheet.id),'first screen is native');
+  assert.ok(boot.sheet.items.some(x=>x.type==='input')&&boot.sheet.items.some(x=>x.type==='button'&&x.primary));
+  console.log('PASS login / first-run screen is drawn natively');
 
   // Native pages: HTML reports what Flutter should draw and when.
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
