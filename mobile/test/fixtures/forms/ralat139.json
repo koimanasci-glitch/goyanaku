@@ -39,18 +39,21 @@
     {
      "t": "Pembayaran",
      "file": "",
+     "after": false,
      "on": true,
      "i": 2
     },
     {
      "t": "Pengeluaran",
      "file": "",
+     "after": false,
      "on": false,
      "i": 3
     },
     {
      "t": "Log",
      "file": "",
+     "after": false,
      "on": false,
      "i": 4
     }

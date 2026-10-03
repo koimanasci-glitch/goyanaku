@@ -24,6 +24,7 @@
    "t": "Pengaturan Bluetooth HP",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   },
   {
@@ -40,6 +41,7 @@
    "t": "↻ Cari Ulang Printer",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 1
   },
   {
@@ -47,6 +49,7 @@
    "t": "Tes Cetak",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 2
   }
  ]

@@ -105,6 +105,14 @@ class _SheetActions implements FormActions {
 
 const _ink = Color(0xff1e1e1e);
 
+/// A button: plain click, or a native file pick (optionally after running the button's own JS first).
+void _press(FormActions a, Map<String, dynamic> b) {
+  final file = _s(b['file']);
+  if (file.isEmpty) return a.fmButton(_i(b['i']));
+  if (b['after'] == true) a.fmButton(_i(b['i']));
+  a.fmFile(file);
+}
+
 String _dmy(String iso) {
   final p = iso.split('-');
   return p.length == 3 ? '${p[2]}/${p[1]}/${p[0]}' : iso;
@@ -535,7 +543,8 @@ class NativeForm extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: Center(
             child: Container(
-              width: pic != null ? 200 : null, height: pic != null ? 200 : null,
+              width: pic != null ? ((it['w'] as num?)?.toDouble() ?? 200).clamp(120, 300) : null,
+              height: pic != null && it['w'] == null ? 200 : null,
               constraints: const BoxConstraints(minWidth: 84, minHeight: 84),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: pic != null ? Colors.white : const Color(0xfffff0f2), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xffffd7db))),
@@ -741,7 +750,7 @@ class NativeForm extends StatelessWidget {
           child: Wrap(spacing: 8, runSpacing: 8, children: [
             for (final o in _list(it['options']))
               GestureDetector(
-                onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _s(o['file']).isNotEmpty ? a.fmFile(_s(o['file'])) : a.fmButton(_i(o['i'])); },
+                onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _press(a, o); },
                 child: Container(height: 36, padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff0ee) : const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
@@ -754,7 +763,7 @@ class NativeForm extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(top: 14),
           child: GestureDetector(
-            onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _s(it['file']).isNotEmpty ? a.fmFile(_s(it['file'])) : a.fmButton(_i(it['i'])); },
+            onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _press(a, it); },
             child: Container(height: 50, alignment: Alignment.center,
                 decoration: BoxDecoration(color: primary ? gBrand : Colors.white, borderRadius: BorderRadius.circular(12),
                     border: primary ? null : Border.all(color: const Color(0xffe1e5ea))),

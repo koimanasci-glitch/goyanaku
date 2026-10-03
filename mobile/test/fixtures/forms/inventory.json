@@ -107,18 +107,21 @@
     {
      "t": "Stok",
      "file": "",
+     "after": false,
      "on": true,
      "i": 7
     },
     {
      "t": "Hutang",
      "file": "",
+     "after": false,
      "on": false,
      "i": 8
     },
     {
      "t": "Riwayat",
      "file": "",
+     "after": false,
      "on": false,
      "i": 9
     }

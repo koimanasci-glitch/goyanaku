@@ -427,7 +427,11 @@
   }
   // Simple HTML sheets drawn by Flutter over any native page (same walker as the generic form).
   // Sheets with previews, cameras, QRIS or payment flows stay HTML.
-  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'act115', 'qr160-menu', 'g62-order-detail'], FORM_PAGES = {};
+  // Buttons whose JS handler (set in code, not in onclick) prepares state and then opens a file input:
+  // Flutter runs the click first, then picks the file into that input (a script click has no user gesture).
+  var FILE_AFTER = { 'qris193-upload': 'qris-file', 'photochoose178-camera': 'ph115-file', 'photochoose178-gallery': 'ph115-file' };
+  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'act115', 'qr160-menu',
+    'gy154-cash', 'gy154-transfer', 'f61-qris', 'qris193-setup', 'dp178', 'depositpay178', 'dp91', 'photochoose178', 'rc106', 'g62-order-detail'], FORM_PAGES = {};
   function sheetRoot(sh) { return sh.querySelector('.sheet91-box, .g62-sheet') || sh; }
   function openSheet() {
     // The topmost open sheet (highest z-index, then latest in the page) is the one the user sees.
@@ -462,6 +466,7 @@
       }
       // Upload buttons click a hidden <input type=file>; a script click has no user gesture, so Flutter picks the file instead.
       function fileOf(b) {
+        if (FILE_AFTER[b.id]) return FILE_AFTER[b.id];
         var m = /getElementById\(['"]([^'"]+)['"]\)\.click\(\)/.exec(b.getAttribute('onclick') || '');
         var f = m && document.getElementById(m[1]);
         return f && f.type === 'file' ? m[1] : '';
@@ -525,6 +530,16 @@
             return;
           }
           if (/preview/.test(cls + ' ' + c.id) && !c.querySelector('button, input')) { items.push(image(c)); return; }
+          // Pictures (QRIS code, receipt): sent as data URL so Flutter draws them.
+          if (tag === 'IMG' || tag === 'CANVAS') {
+            var src = '';
+            try { src = tag === 'CANVAS' ? c.toDataURL('image/png') : (c.currentSrc || c.src || ''); } catch (e) { src = ''; }
+            if (src && !/^data:/.test(src) && tag === 'IMG' && c.complete && c.naturalWidth) {
+              try { var cv = document.createElement('canvas'); cv.width = c.naturalWidth; cv.height = c.naturalHeight; cv.getContext('2d').drawImage(c, 0, 0); src = cv.toDataURL('image/png'); } catch (e) { src = ''; }
+            }
+            if (src && src.length < 1500000) items.push({ type: 'image', src: src, svg: '', mark: '', t: '', s: '', w: Math.round(c.getBoundingClientRect().width) });
+            return;
+          }
           // Package card: name, description, price and the feature list (✓ / ✕).
           var pbtn = c.querySelector(':scope > button'), pr = pbtn && pbtn.querySelector('.pr');
           if (pr) {
@@ -542,7 +557,7 @@
             var lead = !cic && !svgOf(c) && /^([^\s\wÀ-ž]{1,2})\s+(.+)$/.exec(ct);
             if (lead) { cic = lead[1]; ct = lead[2]; }
             items.push(sm ? { type: 'card', t: ct, s: clean(sm), svg: svgOf(c), ic: cic, badge: cbadge, meta: clean(c.querySelector(':scope > time')), on: /\bunread\b/.test(cls), i: buttons.indexOf(c) }
-              : { type: 'button', t: blab(c), primary: /save|primary|submit|main|go|danger/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
+              : { type: 'button', t: blab(c), primary: /save|primary|submit|main|go|danger/.test(cls), file: fileOf(c), after: !!FILE_AFTER[c.id], i: buttons.indexOf(c) });
             return;
           }
           if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') { items.push(fieldItem(c)); return; }
@@ -691,7 +706,7 @@
           // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link; tabs and durations mark the chosen one).
           if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
             kids.forEach(function (k) { seen.add(k); });
-            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: blab(k), file: fileOf(k), on: /\b(on|active|selected)\b/.test(k.className || '') || k.getAttribute('aria-selected') === 'true', i: buttons.indexOf(k) }; }) });
+            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: blab(k), file: fileOf(k), after: !!FILE_AFTER[k.id], on: /\b(on|active|selected)\b/.test(k.className || '') || k.getAttribute('aria-selected') === 'true', i: buttons.indexOf(k) }; }) });
             return;
           }
           if (!c.children.length && clean(c)) { items.push({ type: clean(c).length > 45 ? 'hint' : 'title', t: clean(c) }); return; }

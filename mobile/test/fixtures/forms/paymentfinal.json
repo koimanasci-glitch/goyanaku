@@ -55,6 +55,7 @@
    "t": "Bayar Nanti",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 4
   },
   {

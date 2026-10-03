@@ -11,24 +11,28 @@
     {
      "t": "Payment Gateway / QRIS›",
      "file": "",
+     "after": false,
      "on": false,
      "i": 0
     },
     {
      "t": "WhatsApp›",
      "file": "",
+     "after": false,
      "on": false,
      "i": 1
     },
     {
      "t": "Webhook›",
      "file": "",
+     "after": false,
      "on": false,
      "i": 2
     },
     {
      "t": "API Goyana›",
      "file": "",
+     "after": false,
      "on": false,
      "i": 3
     }

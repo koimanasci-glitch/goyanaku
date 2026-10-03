@@ -6,6 +6,7 @@
    "t": "+ Tambah Parfum",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   },
   {
@@ -20,10 +21,12 @@
    "btns": [
     {
      "t": "✎",
+     "on": false,
      "i": 1
     },
     {
      "t": "×",
+     "on": false,
      "i": 2
     }
    ]
@@ -40,10 +43,12 @@
    "btns": [
     {
      "t": "✎",
+     "on": false,
      "i": 3
     },
     {
      "t": "×",
+     "on": false,
      "i": 4
     }
    ]
@@ -60,10 +65,12 @@
    "btns": [
     {
      "t": "✎",
+     "on": false,
      "i": 5
     },
     {
      "t": "×",
+     "on": false,
      "i": 6
     }
    ]
@@ -80,10 +87,12 @@
    "btns": [
     {
      "t": "✎",
+     "on": false,
      "i": 7
     },
     {
      "t": "×",
+     "on": false,
      "i": 8
     }
    ]
@@ -100,10 +109,12 @@
    "btns": [
     {
      "t": "✎",
+     "on": false,
      "i": 9
     },
     {
      "t": "×",
+     "on": false,
      "i": 10
     }
    ]

@@ -21,6 +21,7 @@
    "t": "≡",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 0
   },
   {
@@ -29,24 +30,28 @@
     {
      "t": "Semua",
      "file": "",
+     "after": false,
      "on": true,
      "i": 1
     },
     {
      "t": "Transaksi",
      "file": "",
+     "after": false,
      "on": false,
      "i": 2
     },
     {
      "t": "Kas",
      "file": "",
+     "after": false,
      "on": false,
      "i": 3
     },
     {
      "t": "Login",
      "file": "",
+     "after": false,
      "on": false,
      "i": 4
     }

@@ -7,18 +7,21 @@
     {
      "t": "Pengingat",
      "file": "",
+     "after": false,
      "on": true,
      "i": 0
     },
     {
      "t": "Poin Member",
      "file": "",
+     "after": false,
      "on": false,
      "i": 1
     },
     {
      "t": "Voucher",
      "file": "",
+     "after": false,
      "on": false,
      "i": 2
     }
@@ -49,36 +52,42 @@
     {
      "t": "H+1",
      "file": "",
+     "after": false,
      "on": false,
      "i": 3
     },
     {
      "t": "H+2",
      "file": "",
+     "after": false,
      "on": false,
      "i": 4
     },
     {
      "t": "H+3",
      "file": "",
+     "after": false,
      "on": true,
      "i": 5
     },
     {
      "t": "H+5",
      "file": "",
+     "after": false,
      "on": false,
      "i": 6
     },
     {
      "t": "H+7",
      "file": "",
+     "after": false,
      "on": true,
      "i": 7
     },
     {
      "t": "H+10",
      "file": "",
+     "after": false,
      "on": false,
      "i": 8
     }
@@ -166,30 +175,35 @@
     {
      "t": "{nama}",
      "file": "",
+     "after": false,
      "on": false,
      "i": 9
     },
     {
      "t": "{kode}",
      "file": "",
+     "after": false,
      "on": false,
      "i": 10
     },
     {
      "t": "{hari}",
      "file": "",
+     "after": false,
      "on": false,
      "i": 11
     },
     {
      "t": "{total}",
      "file": "",
+     "after": false,
      "on": false,
      "i": 12
     },
     {
      "t": "{outlet}",
      "file": "",
+     "after": false,
      "on": false,
      "i": 13
     }
@@ -200,6 +214,7 @@
    "t": "Simpan Template",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 14
   }
  ]

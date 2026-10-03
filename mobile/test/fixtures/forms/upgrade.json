@@ -12,6 +12,7 @@
    "t": "Riwayat transaksi ›",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 0
   },
   {
@@ -74,6 +75,7 @@
    "t": "Top-up Saldo AI · nominal belum ditentukan",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 9
   },
   {

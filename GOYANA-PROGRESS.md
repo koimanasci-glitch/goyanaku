@@ -139,3 +139,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Lalu: Pegawai, Stok, CRM, Chatbot AI, Blast, Balasan Cepat, Trigger, Audit, Integrasi (halaman paket berbayar; saat terkunci tetap HTML). Isian di dalam label, saklar tanpa teks, dan input file terlihat kini dikenali.
   - Sheet serbaguna HTML (`#gs107`: Tambah Kurir/Durasi/Kategori, konfirmasi hapus, dll) kini digambar native di atas halaman native.
   - **Rincian Pesanan** (detail order) kini sheet native penuh: langkah status, item, info, tombol aksi, bar total & Bayar. Popup lanjutan (⋯, QRIS, struk) tetap HTML.
+  - Popup pembayaran kini sheet native: Tunai (kembalian dihitung HTML), Transfer, QRIS (gambar QR dinamis dikirim sebagai gambar), Upload QRIS, DP, Deposit, Foto (kamera/galeri lewat pemilih file Android), Struk.

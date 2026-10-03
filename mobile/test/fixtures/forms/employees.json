@@ -189,6 +189,7 @@
    "t": "SIMPAN DATA PEGAWAI",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   }
  ]

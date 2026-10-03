@@ -97,7 +97,9 @@ try{
   assert.deepEqual(last.model.sheet.methods.map(x=>x.t),['Tunai','QRIS','Transfer','Bayar Nanti','DP / Uang Muka','Saldo Deposit']);
   assert.match(last.model.sheet.total,/Rp/);assert.match(last.model.sheet.methods[0].svg,/^<svg/);
   await p.evaluate(i=>__goyanaTap('#f61-payment .f61-paygrid button',i),last.model.sheet.methods[0].i);await p.waitForTimeout(400);
-  assert.equal((await lastAdd()).page,null,'cash popup stays HTML and hides the native page');
+  last=await lastAdd();assert.equal(last.page,'addorder');assert.equal(last.sheet&&last.sheet.id,'gy154-cash','cash popup is a native sheet above the payment sheet');
+  const cashIn=last.sheet.items.find(x=>x.type==='input');await p.evaluate(i=>__goyanaForm('gy154-cash','input',i,'50000'),cashIn.i);await p.waitForTimeout(300);
+  assert.notEqual((await lastAdd()).sheet.items.find(x=>x.type==='pair'&&x.t==='Kembalian').v,'—','change is computed by the HTML');
   if(await p.evaluate(()=>typeof window.cancelPayment154==='function'))await p.evaluate(()=>cancelPayment154());
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(!['lg167','f61-payment'].includes(e.id))e.classList.remove('show')})});await p.waitForTimeout(400);
   const back=await lastAdd();assert.equal(back.page,'addorder');assert.equal(back.model.sheet&&back.model.sheet.kind,'payment','closing the popup returns to the native payment sheet');
@@ -105,14 +107,25 @@ try{
   for(const name of ['DP / Uang Muka','Saldo Deposit','QRIS']){
     const m=(await lastAdd()).model.sheet.methods.find(x=>x.t===name);
     await p.evaluate(i=>__goyanaTap('#f61-payment .f61-paygrid button',i),m.i);
-    await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(x=>JSON.parse(x)).filter(x=>x.event==='native').at(-1);return e&&e.page===null},null,{timeout:4000}).catch(()=>{});
-    assert.equal((await lastAdd()).page,null,name+' popup is shown (HTML) above the native sheet');
+    await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(x=>JSON.parse(x)).filter(x=>x.event==='native').at(-1);return e&&(e.page===null||e.sheet)},null,{timeout:4000}).catch(()=>{});
+    last=await lastAdd();assert.ok(last.page===null||last.sheet,name+' popup is shown above the payment sheet (native sheet or HTML)');
     await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(!['lg167','f61-payment'].includes(e.id))e.classList.remove('show')})});
     await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(x=>JSON.parse(x)).filter(x=>x.event==='native').at(-1);return e&&e.page==='addorder'},null,{timeout:4000}).catch(()=>{});
     assert.equal((await lastAdd()).page,'addorder');
   }
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Atur Pesanan & Pembayaran sheets are native; selects, switch, note and payment buttons use the HTML logic');
+  // QRIS with an outlet QRIS saved: the dynamic QR (image) is drawn in the native sheet.
+  await p.evaluate(()=>{function tlv(id,v){return id+String(v.length).padStart(2,'0')+v}function crc(s){let c=65535;for(const x of s){c^=x.charCodeAt(0)<<8;for(let i=0;i<8;i++)c=(c&32768)?(c<<1)^4129:c<<1;c&=65535}return c.toString(16).toUpperCase().padStart(4,'0')}
+    const body=tlv('00','01')+tlv('01','11')+tlv('26',tlv('00','ID.DANA.WWW')+tlv('01','936009153001234567')+tlv('02','000812345678')+tlv('03','UMI'))+tlv('52','7211')+tlv('53','360')+tlv('58','ID')+tlv('59','TEST LAUNDRY')+tlv('60','JAKARTA')+'6304';
+    localStorage.setItem('goyana-qris-text',body+crc(body));localStorage.setItem('goyana-qris-options185',JSON.stringify({dynamic:true}));
+    document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('addorder');f61.cart=[{id:'t',n:'Cuci Baju',name:'Cuci Baju',ic:'Kiloan',unit:'kg',price:7000,qty:2}];f61.total=14000;f61Payment()});
+  await p.waitForTimeout(500);
+  await p.evaluate(()=>document.querySelector('#f61-payment .pm132.qris').click());
+  await p.waitForFunction(()=>{const e=JSON.parse(window.GoyanaNative.__events.at(-1));return e.sheet&&e.sheet.id==='f61-qris'&&e.sheet.items.some(x=>x.type==='image'&&/^data:image/.test(x.src))},null,{timeout:5000});
+  await p.evaluate(()=>{localStorage.removeItem('goyana-qris-text');document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Tunai, Transfer, QRIS (with QR image), DP and Deposit popups are native sheets over the payment sheet');
+
 
   // Pelanggan: list + database native, ranking stays HTML.
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customers')});await p.waitForTimeout(400);

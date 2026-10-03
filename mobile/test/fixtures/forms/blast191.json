@@ -66,6 +66,7 @@
    "t": "Simpan Draft Promo",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   }
  ]

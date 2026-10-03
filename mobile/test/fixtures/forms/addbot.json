@@ -55,18 +55,21 @@
     {
      "t": "1 Bulan",
      "file": "",
+     "after": false,
      "on": true,
      "i": 2
     },
     {
      "t": "3 Bulan −10%",
      "file": "",
+     "after": false,
      "on": false,
      "i": 3
     },
     {
      "t": "12 Bulan −20%",
      "file": "",
+     "after": false,
      "on": false,
      "i": 4
     }
@@ -84,6 +87,7 @@
    "t": "Lanjut ke Pembayaran",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 5
   },
   {

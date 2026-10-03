@@ -10,6 +10,7 @@
    "t": "+ Tambah Device",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   },
   {

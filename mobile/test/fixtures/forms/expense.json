@@ -63,6 +63,7 @@
    "t": "Simpan",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   }
  ]

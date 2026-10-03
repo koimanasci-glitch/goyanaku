@@ -87,6 +87,7 @@
    "t": "Simpan Pengaturan",
    "primary": true,
    "file": "",
+   "after": false,
    "i": 0
   },
   {
@@ -106,6 +107,7 @@
    "t": "Perbarui Pratinjau",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 1
   },
   {
@@ -147,6 +149,7 @@
    "t": "Uji Jawaban",
    "primary": false,
    "file": "",
+   "after": false,
    "i": 2
   }
  ]
