@@ -155,9 +155,10 @@ class _Node {
       final m = _q(_m(c['s'])['m']);
       final space = i == 0 ? m[0] : (m[0] > prevBottom ? m[0] : prevBottom);
       if (space > 0) kids.add(SizedBox(height: space));
-      var w = build(sheet, c, color, parentTa: '${s['ta'] ?? ''}');
+      final colCenter = n['col'] == 1 && '${n['ai'] ?? ''}'.contains('center');
+      var w = build(sheet, c, color, parentTa: colCenter ? 'center' : '${s['ta'] ?? ''}');
       // Kolom flex rata-tengah: anak memakai lebarnya sendiri seperti di CSS (contoh: kotak pencarian 320 px).
-      if (n['col'] == 1 && '${n['ai'] ?? ''}'.contains('center') && c['fixed'] != 1 && _d(c['w']) > 0) {
+      if (colCenter && c['fixed'] != 1 && _d(c['w']) > 0) {
         w = Center(child: ConstrainedBox(constraints: BoxConstraints(maxWidth: _d(c['w']) + 1), child: w));
       }
       kids.add(w);

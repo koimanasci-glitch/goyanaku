@@ -483,11 +483,69 @@
     return { kind: kind, scrim: hs.backgroundColor, box: mirrorNode(root, ctx, 0) };
   }
   function px(v) { return Math.round((parseFloat(v) || 0) * 100) / 100; }
+  // Halaman HTML yang digambar Flutter dari cermin HTML (bentuk sama persis, logika tetap HTML).
+  var MIRROR_PAGES = ['pickservice', 'pickup', 'orderscan', 'qrstatus', 'plan111', 'checkout111', 'billing', 'invoice111', 'waautomation'];
+  function mirrorPage(id) {
+    var host = document.getElementById(id);
+    if (!host) return null;
+    var ctx = {
+      buttons: Array.prototype.slice.call(host.querySelectorAll('button')),
+      taps: Array.prototype.slice.call(host.querySelectorAll('[onclick]:not(button)')),
+      inputs: Array.prototype.slice.call(host.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select'))
+    };
+    var header = host.querySelector(':scope > header');
+    var scan = header && header.querySelector('.gy167-scan');
+    // Layar penuh (contoh: kamera scan) menutupi semuanya.
+    var full = Array.prototype.filter.call(host.querySelectorAll(':scope > *'), function (e) {
+      var c = getComputedStyle(e), r = e.getBoundingClientRect();
+      return c.position === 'fixed' && c.display !== 'none' && r.width >= innerWidth * 0.9 && r.height >= innerHeight * 0.9;
+    })[0];
+    if (full && full.querySelector('video')) {
+      // Kamera dipakai Flutter (pemindai native); kamera di WebView dimatikan agar tidak berebut.
+      try { if (window.stopCamV41) stopCamV41(); } catch (e) {}
+    }
+    var nav = document.getElementById('gy156-nav'), active = -1;
+    var navHit = null;
+    if (nav && shown(nav)) { var nr = nav.getBoundingClientRect(); navHit = document.elementFromPoint(innerWidth / 2, nr.top + nr.height / 2); }
+    if (nav && shown(nav) && navHit && nav.contains(navHit)) {
+      active = ['nav-home', 'nav-orders', 'nav-reports', 'nav-settings'].indexOf((nav.querySelector('button.on') || {}).id);
+      if (active < 0) active = 99;
+    }
+    ctx.skip = header ? [header] : [];
+    var bodyBg = getComputedStyle(document.body).backgroundColor;
+    return {
+      kind: full ? 'screen' : 'page', bg: getComputedStyle(host).backgroundColor !== 'rgba(0, 0, 0, 0)' ? getComputedStyle(host).backgroundColor : bodyBg,
+      head: !!header && shown(header) && !full, scan: scan ? ctx.buttons.indexOf(scan) : -1, nav: active,
+      body: mirrorNode(full || host, ctx, 0)
+    };
+  }
+  /** Aksi dari halaman/popup cermin: elemen ke-i (urutan DOM) di dalam halaman atau kotak popup. */
+  window.__goyanaMirror = function (id, kind, i, value) {
+    var host = document.getElementById(id);
+    var root = host && (host.classList.contains('page') ? host : sheetRoot(host));
+    if (!root) return false;
+    if (kind === 'scan') { if (window.findReceipt159) window.findReceipt159(String(value), true); scheduleHome(); return true; }
+    var el = kind === 'tap' ? root.querySelectorAll('[onclick]:not(button)')[i]
+      : root.querySelectorAll(kind === 'input' ? 'input:not([type=checkbox]):not([type=radio]), textarea, select' : 'button')[i];
+    if (!el) return false;
+    if (kind === 'input') {
+      if (el.tagName === 'SELECT') el.selectedIndex = value; else el.value = value;
+      ['input', 'keyup', 'change'].forEach(function (type) { el.dispatchEvent(new Event(type, { bubbles: true })); });
+    } else el.click();
+    scheduleHome();
+    return true;
+  };
   function sides(cs, prop) { return [px(cs[prop + 'Top']), px(cs[prop + 'Right']), px(cs[prop + 'Bottom']), px(cs[prop + 'Left'])]; }
   var INLINE = /^(inline|contents)$/;
   function mirrorStyle(el, cs) {
     var st = { m: sides(cs, 'margin'), p: sides(cs, 'padding'), fs: px(cs.fontSize), fw: parseInt(cs.fontWeight, 10) || 400, lh: px(cs.lineHeight) || 0, c: cs.color };
     if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') st.bg = cs.backgroundColor;
+    var bgu = /url\("?(data:[^")]+)"?\)/.exec(cs.backgroundImage || '');
+    if (bgu && bgu[1].length < 1500000) st.bgimg = bgu[1];
+    if (/repeating-conic-gradient/.test(cs.backgroundImage || '')) {
+      var cc = (cs.backgroundImage.match(/rgba?\([^)]*\)/g) || []).filter(function (x, i, l) { return l.indexOf(x) === i; });
+      if (cc.length >= 2) st.checker = { c: cc.slice(0, 2), s: px(cs.backgroundSize) || 12 };
+    }
     if (cs.backgroundImage && /gradient\(/.test(cs.backgroundImage)) {
       var gc = cs.backgroundImage.match(/rgba?\([^)]*\)|#[0-9a-f]{3,8}/gi) || [];
       if (/repeating-linear/.test(cs.backgroundImage) && gc.length >= 2) {
@@ -517,6 +575,12 @@
     var bi = ctx.buttons.indexOf(el), ti = ctx.taps.indexOf(el);
     if (bi >= 0) n.b = bi;
     if (ti >= 0) n.tap = ti;
+    if (ctx.skip && ctx.skip.indexOf(el) >= 0) return null;
+    if (tag === 'VIDEO') { n.video = 1; n.fill = 1; return n; }
+    if (cs.position === 'absolute' || cs.position === 'fixed') {
+      var pos = function (v) { return /px$/.test(v) ? px(v) : null; };
+      n.abs = { t: pos(cs.top), l: pos(cs.left), r: pos(cs.right), b: pos(cs.bottom) };
+    }
     if (tag === 'svg') { n.svg = el.outerHTML; return n; }
     if (tag === 'IMG') { n.img = el.src && el.src.length < 1500000 ? el.src : ''; return n; }
     if (tag === 'CANVAS') { try { n.img = el.toDataURL('image/png'); } catch (e) { n.img = ''; } return n; }
@@ -534,7 +598,8 @@
       if (cols > 1) { n.grid = cols; n.colw = cs.gridTemplateColumns.split(' ').map(px); }
       else n.center = cs.placeItems && /center/.test(cs.placeItems) ? 1 : 0;
     }
-    if (n.row) { n.jc = cs.justifyContent; n.ai = cs.alignItems; }
+    if (/flex/.test(disp) && !n.row) n.col = 1;
+    if (n.row || n.col) { n.jc = cs.justifyContent; n.ai = cs.alignItems; }
     var gap = px(cs.columnGap) || px(cs.gap); if (gap) n.gap = gap;
     var rgap = px(cs.rowGap); if (rgap) n.rgap = rgap;
     if (parseFloat(cs.flexGrow) > 0) n.grow = 1;
@@ -542,6 +607,8 @@
     var textLen = (el.innerText || '').trim().length;
     if ((rect.width <= 160 && rect.height <= 160 && textLen <= 10 && (n.s.bg || n.s.bw || !textLen)) || (tag === 'I' && rect.width > 0)) n.fixed = 1;
     if (/inline/.test(disp) && !/inline-(block|flex|grid)/.test(disp)) n.inline = 1;
+    // Kotak kosong bergaris/berlatar (contoh: bingkai kamera) yang isinya hanya elemen absolut: ukurannya tetap.
+    if (!n.fixed && !textLen && (n.s.bw || n.s.bg || n.s.stripe || n.s.checker) && Array.prototype.every.call(el.children, function (c) { var p = getComputedStyle(c).position; return p === 'absolute' || p === 'fixed'; })) n.fixed = 1;
     var kids = [];
     var allInline = true;
     Array.prototype.forEach.call(el.childNodes, function (c) {
@@ -1061,6 +1128,7 @@
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
     'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling', 'courier181', 'ralat139', 'txhist111', 'finreport', 'printlabel'].forEach(function (id) { NATIVE[id] = formModel(id); });
+  MIRROR_PAGES.forEach(function (id) { NATIVE[id] = function () { var m = mirrorPage(id); return m ? { mirror: m } : null; }; });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

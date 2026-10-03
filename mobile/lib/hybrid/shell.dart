@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
@@ -75,6 +76,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   bool _sheetFull = false, _sheetScreen = false;
   List<Map<String, dynamic>> _sheetItems = const [];
   Map<String, dynamic>? _sheetOd; // Rincian Pesanan: model khusus (tampilan sama dengan HTML)
+  Map<String, dynamic>? _pageMirror; // Halaman yang digambar dari cermin HTML
+  bool _scanned = false;
   Map<String, dynamic>? _sheetMirror; // Popup yang digambar dari cermin HTML (ukuran & warna dari CSS)
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -207,6 +210,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
         if ((page == 'cashin' || page == 'cashout') && model != null) _cash = CashModel.fromJson(model);
+        _pageMirror = model != null && model['mirror'] is Map ? Map<String, dynamic>.from(model['mirror'] as Map) : null;
+        if (page != 'orderscan') _scanned = false;
         final sheet = data['sheet'] is Map ? Map<String, dynamic>.from(data['sheet'] as Map) : null;
         _sheetId = sheet == null ? '' : (sheet['id'] as String? ?? '');
         _sheetFull = sheet?['full'] == true;
@@ -330,6 +335,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   void fmButton(int index) => _formAct('button', index);
   @override
   void fmTap(int index) => _formAct('tap', index);
+  void _mirror(String kind, int index, [Object? value]) => _web.runJavaScript(
+      'window.__goyanaMirror&&__goyanaMirror(${jsonEncode(_nativePage ?? '')},${jsonEncode(kind)},$index,${jsonEncode(value)})');
+
   @override
   void odButton(int index) => fmScoped('g62-order-detail', 'button', index);
   @override
@@ -610,6 +618,25 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
             if ((_nativePage == 'cashin' || _nativePage == 'cashout') && !_loading)
               Positioned.fill(child: NativeCash(key: ValueKey(_nativePage), model: _cash, actions: this)),
+            if (_nativePage != null && _pageMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeMirrorPage(
+                  key: ValueKey('mirror-page-$_nativePage'), model: _pageMirror!,
+                  env: MirrorEnv(
+                    onButton: (i) => _mirror('button', i),
+                    onTap: (i) => _mirror('tap', i),
+                    onInput: (i, v) => _mirror('input', i, v),
+                    video: (_) => MobileScanner(onDetect: (capture) {
+                      final code = capture.barcodes.map((b) => b.rawValue).whereType<String>().firstOrNull;
+                      if (code == null || _scanned) return;
+                      _scanned = true;
+                      _mirror('scan', 0, code);
+                    }),
+                  ),
+                  onNav: nav,
+                  onHeaderScan: () { final i = (_pageMirror?['scan'] as num?)?.toInt() ?? -1; if (i >= 0) _mirror('button', i); },
+                ),
+              ),
             if (_formPages.contains(_nativePage) && !_loading)
               Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2, 'customeradd': 0, 'crm': 0, 'today187': 1, 'notif': 0, 'printlabel': 1}[_nativePage] ?? 3)),
             if (_nativePage == 'services' && !_loading)

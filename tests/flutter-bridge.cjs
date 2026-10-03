@@ -29,7 +29,7 @@ try{
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
   const natives=()=>p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native'));
   let last=(await natives()).at(-1);assert.equal(last.page,'home');assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
-  await p.evaluate(()=>openPage('pickservice'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
+  await p.evaluate(()=>openPage('pickservice'));await p.waitForTimeout(300);{const pk=(await natives()).at(-1);assert.equal(pk.page,'pickservice','Pilih Layanan is drawn by Flutter');assert.ok(pk.model.mirror&&pk.model.mirror.body&&pk.model.mirror.head,'mirror of the HTML page');}
   await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
   last=(await natives()).at(-1);assert.ok(last.page===null||(last.page==='home'&&last.sheet),'a sheet opened from Beranda covers the native page (natively when simple)');
@@ -347,9 +347,9 @@ try{
   assert.deepEqual(plans.map(x=>x.t),['FREE','BASIC','SILVER','GOLD','PLATINUM']);assert.equal(plans[1].price,'Rp30.000');
   assert.equal(last.model.items[0].type,'hero','current package card');
   await p.evaluate(i=>__goyanaForm('upgrade','button',i),plans[2].i);await p.waitForTimeout(400);
-  assert.equal((await lastAdd()).page,null,'package detail (HTML) covers the native page');
+  {const pl=await lastAdd();assert.equal(pl.page,'plan111','package detail is drawn by Flutter');assert.ok(pl.model.mirror&&pl.model.mirror.body,'mirror of the HTML package page');}
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
-  console.log('PASS Upgrade Paket: package cards native, detail/checkout stay HTML');
+  console.log('PASS Upgrade Paket: package cards native, package detail (mirror) native');
   last=await openNative('addbot');const step=last.model.items.find(x=>x.type==='stepper');assert.equal(step.v,'1');
   await p.evaluate(i=>__goyanaForm('addbot','button',i),step.plus);await p.waitForTimeout(300);
   last=await lastAdd();assert.equal(last.model.items.find(x=>x.type==='stepper').v,'2','stepper runs the HTML logic');
