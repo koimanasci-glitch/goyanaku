@@ -22,8 +22,10 @@ class FormModel {
 /// A simple HTML sheet (e.g. "Tambah Kurir", "Batalkan Pesanan?") drawn by Flutter over any native page.
 /// Every field and button acts on the same element inside the HTML sheet.
 class NativeSheet extends StatelessWidget {
-  const NativeSheet({super.key, required this.id, required this.items, required this.actions});
+  const NativeSheet({super.key, required this.id, required this.items, required this.actions, this.full = false});
   final String id;
+  /// Full-height sheet (order detail).
+  final bool full;
   final List<Map<String, dynamic>> items;
   final FormActions actions;
 
@@ -40,7 +42,7 @@ class NativeSheet extends StatelessWidget {
           duration: const Duration(milliseconds: 120),
           padding: EdgeInsets.only(bottom: bottom),
           child: Container(
-            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .85),
+            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * (full ? .94 : .85)),
             decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
             child: ListView(
               shrinkWrap: true,
@@ -68,6 +70,8 @@ abstract class FormActions {
   void fmRadio(int index);
   void fmButton(int index);
   void fmFile(String inputId);
+  /// Clickable non-button element (e.g. "Foto Dokumentasi ›"), n-th [onclick] element.
+  void fmTap(int index);
   /// Same actions inside another container (a sheet): kind is input/toggle/radio/button/close.
   void fmScoped(String scope, String kind, int index, [Object? value]);
 }
@@ -93,6 +97,8 @@ class _SheetActions implements FormActions {
   void fmButton(int index) => base.fmScoped(scope, 'button', index);
   @override
   void fmFile(String inputId) => base.fmFile(inputId);
+  @override
+  void fmTap(int index) => base.fmScoped(scope, 'tap', index);
   @override
   void fmScoped(String scope, String kind, int index, [Object? value]) => base.fmScoped(scope, kind, index, value);
 }
@@ -475,6 +481,7 @@ class NativeForm extends StatelessWidget {
                     for (final l in (it['lines'] as List? ?? const [])) Text(_s(l), style: gText(11.5, c: const Color(0xff8a8fa3))),
                   ]),
                 ),
+                if (_s(it['amount']).isNotEmpty) Text(_s(it['amount']), style: gText(13.5, w: FontWeight.w600, c: _ink)),
                 if (badge.isNotEmpty)
                   Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(color: const Color(0xffe8f7ee), borderRadius: BorderRadius.circular(8)),
@@ -615,15 +622,62 @@ class NativeForm extends StatelessWidget {
           ])),
         );
       case 'pair':
-        return Container(
+        final tone = _s(it['tone']), tap = (it['tap'] as num?)?.toInt() ?? -1;
+        final vc = tone == 'r' ? gBrand : (tone == 'g' ? const Color(0xff1f8a55) : _ink);
+        final row = Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xfff1f2f5)))),
           child: Row(children: [
-            Expanded(child: Text(_s(it['t']), style: gText(13.5, c: _ink))),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xfffff0ee), borderRadius: BorderRadius.circular(8)),
-                child: Text(_s(it['v']), style: gText(11.5, w: FontWeight.w600, c: gBrand))),
+            Expanded(child: Text(_s(it['t']), style: gText(13, c: const Color(0xff6b7280)))),
+            const SizedBox(width: 10),
+            if (tone == 'p')
+              Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(color: const Color(0xfffff0ee), borderRadius: BorderRadius.circular(8)),
+                  child: Text(_s(it['v']), style: gText(11.5, w: FontWeight.w600, c: gBrand)))
+            else
+              Flexible(child: Text(_s(it['v']), textAlign: TextAlign.right, style: gText(13, w: FontWeight.w600, c: tap >= 0 ? const Color(0xff2b6aa6) : vc))),
           ]),
+        );
+        return tap >= 0 ? GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => a.fmTap(tap), child: row) : row;
+      case 'steps':
+        final steps = _list(it['steps']);
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(children: [
+            for (var k = 0; k < steps.length; k++) ...[
+              if (k > 0) Expanded(child: Container(height: 2, color: steps[k]['on'] == true ? gBrand : const Color(0xffe4e6ea))),
+              Column(mainAxisSize: MainAxisSize.min, children: [
+                Container(width: 28, height: 28, alignment: Alignment.center,
+                    decoration: BoxDecoration(color: steps[k]['on'] == true ? gBrand : const Color(0xfff1f2f5), shape: BoxShape.circle),
+                    child: Text(_s(steps[k]['n']), style: gText(12, w: FontWeight.w600, c: steps[k]['on'] == true ? Colors.white : const Color(0xff8a8fa3)))),
+                const SizedBox(height: 4),
+                Text(_s(steps[k]['t']), style: gText(10.5, c: steps[k]['on'] == true ? _ink : const Color(0xff8a8fa3))),
+              ]),
+            ],
+          ]),
+        );
+      case 'total':
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+            decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xffe8ecf2))),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_s(it['t']), style: gText(11, c: const Color(0xff8a8fa3))),
+                  Text(_s(it['v']), style: gText(18, w: FontWeight.w700, c: _ink)),
+                  if (_s(it['s']).isNotEmpty) Text(_s(it['s']), style: gText(11, c: gBrand)),
+                ]),
+              ),
+              GestureDetector(
+                onTap: () => a.fmButton(_i(it['i'])),
+                child: Container(height: 46, padding: const EdgeInsets.symmetric(horizontal: 26), alignment: Alignment.center,
+                    decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(12)),
+                    child: Text(_s(it['btn']), style: gText(14, w: FontWeight.w600, c: Colors.white))),
+              ),
+            ]),
+          ),
         );
       case 'stepper':
         Widget sb(String t, int i) => GestureDetector(

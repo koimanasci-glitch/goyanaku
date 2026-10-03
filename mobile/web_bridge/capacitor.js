@@ -427,24 +427,32 @@
   }
   // Simple HTML sheets drawn by Flutter over any native page (same walker as the generic form).
   // Sheets with previews, cameras, QRIS or payment flows stay HTML.
-  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115'], FORM_PAGES = {};
+  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'g62-order-detail'], FORM_PAGES = {};
+  function sheetRoot(sh) { return sh.querySelector('.sheet91-box, .g62-sheet') || sh; }
   function openSheet() {
-    for (var k = 0; k < GENERIC_SHEETS.length; k++) {
-      var sh = document.getElementById(GENERIC_SHEETS[k]);
-      if (sh && sh.classList.contains('show')) {
-        var items = formItems(sh.querySelector('.sheet91-box') || sh, sh.id);
-        return items.length ? { id: sh.id, items: items } : null;
-      }
-    }
-    return null;
+    // The topmost open sheet (highest z-index, then latest in the page) is the one the user sees.
+    var top = null, topZ = -Infinity;
+    GENERIC_SHEETS.forEach(function (sid) {
+      var sh = document.getElementById(sid);
+      if (!sh || !sh.classList.contains('show')) return;
+      var z = parseInt(getComputedStyle(sh).zIndex, 10) || 0;
+      if (z > topZ || (z === topZ && top && (top.compareDocumentPosition(sh) & Node.DOCUMENT_POSITION_FOLLOWING))) { top = sh; topZ = z; }
+    });
+    if (!top) return null;
+    // Another (HTML-only) sheet above it hides the native view instead.
+    var items = formItems(sheetRoot(top), top.id);
+    return items.length ? { id: top.id, items: items, full: top.id === 'g62-order-detail' } : null;
   }
   /** Form items read in DOM order from root; indexes are per kind inside root (see __goyanaForm). */
   function formItems(root, id) {
     {
       var q = function (sel) { return Array.prototype.slice.call(root.querySelectorAll(sel)); };
       var inputs = q('input:not([type=checkbox]):not([type=radio]), textarea, select'), boxes = q('input[type=checkbox]'), radios = q('input[type=radio]'), buttons = q('button');
+      var taps = q('[onclick]:not(button)');
       var items = [], seen = new Set();
       function clean(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
+      // Icon-only buttons (WA, print, ⋯) keep their accessible name.
+      function blab(b) { return clean(b) || b.getAttribute('aria-label') || b.title || ''; }
       // Text of an element without its <small> (shown separately as a subtitle).
       function main(el) {
         if (!el) return '';
@@ -480,6 +488,7 @@
         Array.prototype.forEach.call(el.children, function (c) {
           if (seen.has(c) || !shown(c)) return;
           var tag = c.tagName, cls = typeof c.className === 'string' ? c.className : '';
+          if (tag === 'HEADER' || /handle/.test(cls)) return;
           var kids = Array.prototype.filter.call(c.children, shown);
           var cb = c.querySelector(':scope > input[type=checkbox]');
           if (tag === 'LABEL' && cb) {
@@ -532,7 +541,7 @@
             var lead = !cic && !svgOf(c) && /^([^\s\wÀ-ž]{1,2})\s+(.+)$/.exec(ct);
             if (lead) { cic = lead[1]; ct = lead[2]; }
             items.push(sm ? { type: 'card', t: ct, s: clean(sm), svg: svgOf(c), ic: cic, i: buttons.indexOf(c) }
-              : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go|danger/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
+              : { type: 'button', t: blab(c), primary: /save|primary|submit|main|go|danger/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
             return;
           }
           if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') { items.push(fieldItem(c)); return; }
@@ -575,9 +584,22 @@
             items.push({ type: 'hero', t: clean(hl), v: clean(hs), s: clean(c.querySelector(':scope > span')) });
             return;
           }
+          // Progress steps: <div class="on"><i>1</i><span>Diterima</span></div> x N.
+          if (kids.length > 2 && kids.every(function (k) { return k.tagName === 'DIV' && k.children.length === 2 && k.children[0].tagName === 'I' && k.children[1].tagName === 'SPAN'; })) {
+            items.push({ type: 'steps', steps: kids.map(function (k) { return { n: clean(k.children[0]), t: clean(k.children[1]), on: /\b(on|done|active)\b/.test(k.className) }; }) });
+            return;
+          }
+          // Total bar: <div><small>Total</small><b>Rp 14.000</b><em>Belum dibayar</em></div><button>Bayar</button>.
+          if (kids.length === 2 && kids[0].tagName === 'DIV' && kids[1].tagName === 'BUTTON' && kids[0].querySelector(':scope > small') && kids[0].querySelector(':scope > b')) {
+            items.push({ type: 'total', t: clean(kids[0].querySelector(':scope > small')), v: clean(kids[0].querySelector(':scope > b')), s: clean(kids[0].querySelector(':scope > em')),
+              btn: blab(kids[1]), i: buttons.indexOf(kids[1]) });
+            return;
+          }
           // Label + value pair: <span>Pesanan diterima</span><b>WA</b>.
           if (kids.length === 2 && kids[0].tagName === 'SPAN' && /^(B|STRONG|EM)$/.test(kids[1].tagName) && !kids[0].children.length) {
-            items.push({ type: 'pair', t: clean(kids[0]), v: clean(kids[1]) });
+            var vb = kids[1], vcls = (vb.className || '') + ' ' + (c.className || '');
+            items.push({ type: 'pair', t: clean(kids[0]), v: clean(vb), tone: /red|danger|late/.test(vcls) ? 'r' : (/green|ok|paid|lunas/.test(vcls) ? 'g' : (/pill/.test(vcls) ? 'p' : '')),
+              tap: c.hasAttribute('onclick') ? taps.indexOf(c) : -1 });
             return;
           }
           if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
@@ -604,7 +626,7 @@
             var ic = c.querySelector(':scope > span'), dt = c.querySelector(':scope > [class*="dot"]');
             var extraLine = rowInfo ? clean(rowInfo.querySelector(':scope > strong, :scope > small, :scope > span')) : '';
             items.push({ type: 'entry', t: clean(rowB), lines: extraLine ? [extraLine] : [], badge: '', avatar: ic && !svgOf(ic) ? clean(ic) : '', svg: ic ? svgOf(ic) : '',
-              color: dt ? getComputedStyle(dt).backgroundColor : '', compact: true, btns: rowBtns.map(function (x) { return { t: clean(x), i: buttons.indexOf(x) }; }) });
+              color: dt ? getComputedStyle(dt).backgroundColor : '', compact: true, btns: rowBtns.map(function (x) { return { t: blab(x), i: buttons.indexOf(x) }; }) });
             return;
           }
           // List entry: name, detail lines, status badge and action buttons (outlet, kurir, ...).
@@ -613,11 +635,11 @@
           var ebtns = Array.prototype.filter.call(c.querySelectorAll('button'), shown);
           var esm = ebox ? Array.prototype.filter.call(ebox.querySelectorAll(':scope > small'), shown) : [];
           var simple = ebtns.every(function (x) { return !x.querySelector('small, div'); });
-          if (eb && esm.length && simple && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span'))) {
+          if (eb && esm.length && simple && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span, :scope > strong'))) {
             var av = c.querySelector(':scope > span'), dot = c.querySelector(':scope > [class*="dot"]');
             items.push({ type: 'entry', t: clean(eb), lines: esm.map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
-              color: dot ? getComputedStyle(dot).backgroundColor : '',
-              btns: ebtns.map(function (x) { return { t: clean(x), i: buttons.indexOf(x) }; }) });
+              color: dot ? getComputedStyle(dot).backgroundColor : '', amount: clean(c.querySelector(':scope > strong')),
+              btns: ebtns.map(function (x) { return { t: blab(x), i: buttons.indexOf(x) }; }) });
             return;
           }
           // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
@@ -631,7 +653,7 @@
           // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link; tabs and durations mark the chosen one).
           if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
             kids.forEach(function (k) { seen.add(k); });
-            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: clean(k), file: fileOf(k), on: /\b(on|active|selected)\b/.test(k.className || '') || k.getAttribute('aria-selected') === 'true', i: buttons.indexOf(k) }; }) });
+            items.push({ type: 'buttons', options: kids.map(function (k) { return { t: blab(k), file: fileOf(k), on: /\b(on|active|selected)\b/.test(k.className || '') || k.getAttribute('aria-selected') === 'true', i: buttons.indexOf(k) }; }) });
             return;
           }
           if (!c.children.length && clean(c)) { items.push({ type: clean(c).length > 45 ? 'hint' : 'title', t: clean(c) }); return; }
@@ -835,12 +857,20 @@
   /** Generic native forms: act on the i-th field of a kind inside #id .content (same order as formModel). */
   window.__goyanaForm = function (id, kind, i, value) {
     var host = document.getElementById(id);
-    var root = host && (host.classList.contains('page') ? host.querySelector('.content') : (host.querySelector('.sheet91-box') || host));
+    var root = host && (host.classList.contains('page') ? host.querySelector('.content') : sheetRoot(host));
     if (!root) return false;
     if (kind === 'close') {
-      if (window.closeSheet91) closeSheet91(id); else host.classList.remove('show');
+      if (id === 'g62-order-detail' && window.g62CloseDetail) g62CloseDetail();
+      else if (window.closeSheet91) closeSheet91(id);
+      host.classList.remove('show');
       scheduleHome();
       return true;
+    }
+    if (kind === 'tap') {
+      var t = root.querySelectorAll('[onclick]:not(button)')[i];
+      if (t) t.click();
+      scheduleHome();
+      return !!t;
     }
     var sel = { input: 'input:not([type=checkbox]):not([type=radio]), textarea, select', toggle: 'input[type=checkbox]', radio: 'input[type=radio]', button: 'button' }[kind];
     var el = sel && root.querySelectorAll(sel)[i];

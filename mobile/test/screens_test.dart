@@ -412,6 +412,8 @@ class _NoFormActions implements FormActions {
   void fmFile(String inputId) {}
   @override
   void fmScoped(String scope, String kind, int index, [Object? value]) {}
+  @override
+  void fmTap(int index) {}
 }
 
 final _printerForm = FormModel.fromJson('printer', {

@@ -34,8 +34,10 @@ try{
       document.querySelector('#f61-services .f61-customerbar div b').textContent=n;window.pickedName136=n;f61.cart=[{id:'t',n:'Cuci Baju',name:'Cuci Baju',ic:'Kiloan',unit:'kg',price:7000,qty:2}];f61.total=14000;f61.dur='Reguler';f61Payment();f61Finish('Bayar Nanti')}
     document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('orders')});
   await p.waitForTimeout(700);
-  // After saving, the app opens the new order's detail: the native page must stay hidden until it closes.
-  assert.equal((await natives()).at(-1).page,null);
+  // After saving, the app opens the new order's detail: drawn natively as a full sheet over the native page.
+  last=(await natives()).at(-1);assert.equal(last.sheet&&last.sheet.id,'g62-order-detail','order detail is a native sheet');
+  assert.ok(last.sheet.full&&last.sheet.items.some(x=>x.type==='steps')&&last.sheet.items.some(x=>x.type==='total'),'detail: steps and total bar');
+  const nextBtn=last.sheet.items.find(x=>x.type==='button'&&x.primary);assert.equal(nextBtn.t,'Mulai Proses');
   await p.evaluate(()=>{if(window.g62CloseDetail)g62CloseDetail();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});
   await p.waitForTimeout(400);last=(await natives()).at(-1);
   assert.equal(last.page,'orders');assert.equal(last.model.cards.length,2);assert.equal(last.model.cards[0].amount,'Rp14.000');

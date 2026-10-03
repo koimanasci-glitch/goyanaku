@@ -138,3 +138,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Tambahan 3 Okt siang: Kasir, Pengingat, Pengeluaran, Koneksi Printer, Tentang GOYANA, Audit Log, Otomasi, Pusat Data, Perangkat WA, WhatsApp Bot, Monitoring Cabang (formulir generik: kartu angka, kotak omzet, pasangan label-nilai). Gambar golden tiap halaman dari model nyata: `mobile/test/fixtures/forms/*.json`.
   - Lalu: Pegawai, Stok, CRM, Chatbot AI, Blast, Balasan Cepat, Trigger, Audit, Integrasi (halaman paket berbayar; saat terkunci tetap HTML). Isian di dalam label, saklar tanpa teks, dan input file terlihat kini dikenali.
   - Sheet serbaguna HTML (`#gs107`: Tambah Kurir/Durasi/Kategori, konfirmasi hapus, dll) kini digambar native di atas halaman native.
+  - **Rincian Pesanan** (detail order) kini sheet native penuh: langkah status, item, info, tombol aksi, bar total & Bayar. Popup lanjutan (⋯, QRIS, struk) tetap HTML.

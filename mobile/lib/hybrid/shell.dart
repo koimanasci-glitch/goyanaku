@@ -70,6 +70,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   String _sheetId = ''; // simple HTML sheet drawn natively over the native page
+  bool _sheetFull = false;
   List<Map<String, dynamic>> _sheetItems = const [];
   Timer? _toastTimer;
   bool _loginBar = false;
@@ -204,6 +205,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         if ((page == 'cashin' || page == 'cashout') && model != null) _cash = CashModel.fromJson(model);
         final sheet = data['sheet'] is Map ? Map<String, dynamic>.from(data['sheet'] as Map) : null;
         _sheetId = sheet == null ? '' : (sheet['id'] as String? ?? '');
+        _sheetFull = sheet?['full'] == true;
         _sheetItems = sheet == null || sheet['items'] is! List
             ? const []
             : (sheet['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
@@ -319,6 +321,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   // The page reports back right after the click (new page, sheet, or updated values), so the native view stays
   // until then instead of flashing the HTML underneath (steppers, tabs and switches tap many times).
   void fmButton(int index) => _formAct('button', index);
+  @override
+  void fmTap(int index) => _formAct('tap', index);
   @override
   void fmScoped(String scope, String kind, int index, [Object? value]) => _web.runJavaScript(
       'window.__goyanaForm&&__goyanaForm(${jsonEncode(scope)},${jsonEncode(kind)},$index,${jsonEncode(value)})');
@@ -607,7 +611,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
             if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
-              Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this)),
+              Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this, full: _sheetFull)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)
               Positioned(
                 left: 24, right: 24, bottom: 130,
