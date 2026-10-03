@@ -80,12 +80,18 @@ class Business {
   String? saveCustomer(Customer c, {String? originalName}) {
     if (c.name.trim().isEmpty || c.phone.trim().isEmpty) return 'Nama dan no handphone wajib diisi';
     final list = raw['customers'] as List;
-    final key = (originalName ?? c.name).trim().toLowerCase();
-    final i = list.indexWhere((e) => e is Map && '${e['name']}'.trim().toLowerCase() == key);
+    int find(String name) => list.indexWhere((e) => e is Map && '${e['name']}'.trim().toLowerCase() == name.trim().toLowerCase());
+    if (originalName == null) {
+      if (find(c.name) >= 0) return 'Pelanggan ${c.name} sudah ada';
+      list.add(c.toJson());
+      return null;
+    }
+    final i = find(originalName);
+    final clash = find(c.name);
+    if (clash >= 0 && clash != i) return 'Pelanggan ${c.name} sudah ada';
     if (i >= 0) {
       list[i] = c.toJson();
     } else {
-      if (customerByName(c.name) != null) return 'Pelanggan ${c.name} sudah ada';
       list.add(c.toJson());
     }
     return null;

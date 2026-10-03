@@ -11,7 +11,7 @@ num _n(Object? v) => v is num ? v : (num.tryParse(_s(v)) ?? 0);
 Map<String, dynamic> _map(Object? v) => v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{};
 List<dynamic> _list(Object? v) => v is List ? List<dynamic>.from(v) : <dynamic>[];
 DateTime? _date(Object? v) => v == null ? null : DateTime.tryParse(_s(v))?.toLocal();
-String _iso(DateTime d) => d.toUtc().toIso8601String().replaceFirst(RegExp(r'\.(\d{3})\d*Z$'), '.\$1Z');
+String _iso(DateTime d) => d.toUtc().toIso8601String().replaceFirstMapped(RegExp(r'\.(\d{3})\d*Z$'), (m) => '.${m.group(1)}Z');
 
 /// Urutan status pesanan (sama dengan FLOW di HTML).
 const orderFlow = ['jemput', 'antrian', 'cuci', 'kering', 'setrika', 'packing', 'siap', 'diantar', 'diambil'];
