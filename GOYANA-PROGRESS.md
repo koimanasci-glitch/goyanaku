@@ -152,3 +152,11 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 
 ## Revisi dari Koko (catatan)
 - 3 Okt 2026: Berat cucian harus bisa desimal (koma/titik), misal 2,5 kg. Penyebab: keyboard angka Flutter tanpa tombol koma. Perbaikan: input `inputmode=decimal` di HTML → keyboard angka dengan koma di Flutter (`decimal: true`). HTML sudah menerima "2,5" (diubah ke 2.5).
+
+## Tampilan 100% Flutter (Claude, 3 Okt 2026 malam, branch flutter/native)
+- Mode murni dibatalkan; aplikasi = hybrid sebelum mode murni (2742ff0) + lanjutan di bawah. Logika masih HTML.
+- Rincian Pesanan: widget khusus `lib/native/order_detail_page.dart` (model `orderDetailModel` di capacitor.js).
+- "Cermin HTML" (`lib/native/mirror_sheet.dart`, `mirrorNode` di capacitor.js): elemen + computed style HTML digambar Flutter apa adanya; aksi ke elemen HTML yang sama (`__goyanaMirror` / `__goyanaForm`).
+  - 14 popup (MIRROR_SHEETS) dan 9 halaman sisa (MIRROR_PAGES: pickservice, pickup, orderscan + kamera native mobile_scanner, qrstatus, plan111, checkout111, billing, invoice111, waautomation).
+- Revisi Koko: berat cucian desimal (keyboard koma) — selesai.
+- Aturan dari Koko: kerjakan hanya yang diminta, jangan ubah bagian lain; tampilan harus sama dengan patokan HTML.
