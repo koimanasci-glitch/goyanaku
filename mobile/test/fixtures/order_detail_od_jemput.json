@@ -1,0 +1,156 @@
+{
+ "title": "RINCIAN PESANAN",
+ "sub": "GY-261003-0133 · Reguler",
+ "head": [
+  {
+   "t": "⋯",
+   "b": 1
+  },
+  {
+   "t": "×",
+   "b": 2
+  }
+ ],
+ "banner": {
+  "bg": "rgb(255, 248, 236)",
+  "line": "rgb(255, 230, 194)",
+  "ic": "rgb(224, 161, 0)",
+  "c": "rgb(138, 75, 15)",
+  "icon": "!",
+  "t": "Pesanan tersimpan · Belum dibayar",
+  "s": "",
+  "ok": false,
+  "label": {
+   "t": "🏷 Label kantong",
+   "b": 3
+  }
+ },
+ "customer": {
+  "svg": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"tr",
+  "name": "Koko",
+  "sub": "0852 •••• 8626 · Cikarang",
+  "wa": {
+   "t": "",
+   "b": 4
+  },
+  "print": {
+   "t": "",
+   "b": 5
+  }
+ },
+ "steps": [
+  {
+   "n": "1",
+   "t": "Penjemputan",
+   "on": true,
+   "done": false
+  },
+  {
+   "n": "2",
+   "t": "Diterima Outlet",
+   "on": false,
+   "done": false
+  },
+  {
+   "n": "3",
+   "t": "Proses",
+   "on": false,
+   "done": false
+  },
+  {
+   "n": "4",
+   "t": "Siap",
+   "on": false,
+   "done": false
+  },
+  {
+   "n": "5",
+   "t": "Pengantaran",
+   "on": false,
+   "done": false
+  },
+  {
+   "n": "6",
+   "t": "Diterima Pelanggan",
+   "on": false,
+   "done": false
+  }
+ ],
+ "itemsTitle": "Detail Order",
+ "edit": {
+  "t": "Edit",
+  "b": 7
+ },
+ "items": [
+  {
+   "svg": "<svg viewBox=\"0 0 48 48\" width=\"30\" heig",
+   "t": "Cuci Baju (Reguler)",
+   "s": "32 kg × Rp 7.000",
+   "v": "Rp 224.000"
+  }
+ ],
+ "rows": [
+  {
+   "k": "Status",
+   "v": "Penjemputan",
+   "pill": true,
+   "bg": "rgb(238, 241, 245)",
+   "c": "rgb(30, 30, 30)",
+   "line": false,
+   "tap": -1
+  },
+  {
+   "k": "Penyerahan",
+   "v": "Diantar kurir",
+   "pill": false,
+   "line": false,
+   "tap": -1
+  },
+  {
+   "k": "Tanggal Masuk",
+   "v": "03/10/2026 · 20:41",
+   "pill": false,
+   "line": false,
+   "tap": -1
+  },
+  {
+   "k": "Estimasi Selesai",
+   "v": "06/10/2026 · 20:41",
+   "pill": false,
+   "line": false,
+   "tap": -1
+  },
+  {
+   "k": "Transportasi Jemput + Antar",
+   "v": "GRATIS",
+   "pill": false,
+   "line": true,
+   "tap": -1
+  }
+ ],
+ "actions": [
+  {
+   "t": "JEMPUT",
+   "b": 8,
+   "green": false,
+   "primary": true
+  },
+  {
+   "t": "KIRIM NOTA WA",
+   "b": 9,
+   "green": true,
+   "primary": false
+  }
+ ],
+ "total": {
+  "label": "Total",
+  "v": "Rp 224.000",
+  "s": "Belum dibayar",
+  "c": "rgb(216, 50, 63)",
+  "paid": false,
+  "pay": {
+   "t": "BAYAR",
+   "b": 12
+  }
+ }
+}

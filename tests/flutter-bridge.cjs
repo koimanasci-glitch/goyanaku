@@ -43,6 +43,9 @@ try{
   last=(await natives()).at(-1);assert.equal(last.sheet&&last.sheet.id,'g62-order-detail','order detail is a native sheet');
   assert.ok(last.sheet.full&&last.sheet.items.some(x=>x.type==='steps')&&last.sheet.items.some(x=>x.type==='total'),'detail: steps and total bar');
   const nextBtn=last.sheet.items.find(x=>x.type==='button'&&x.primary);assert.equal(nextBtn.t,'Mulai Proses');
+  const od=last.sheet.od;assert.ok(od&&od.customer&&od.total&&od.steps.length===4&&od.rows.length>=3,'order detail: Flutter model like the HTML page');
+  assert.equal(od.actions[0].t.toUpperCase(),'MULAI PROSES');assert.equal(od.actions[0].b,nextBtn.i,'same HTML button');assert.equal(od.total.pay.t.toUpperCase(),'BAYAR');
+  console.log('PASS order detail is drawn by Flutter with the HTML layout (Rincian Pesanan)');
   await p.evaluate(()=>{if(window.g62CloseDetail)g62CloseDetail();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});
   await p.waitForTimeout(400);last=(await natives()).at(-1);
   assert.equal(last.page,'orders');assert.equal(last.model.cards.length,2);assert.equal(last.model.cards[0].amount,'Rp14.000');

@@ -460,7 +460,43 @@
     if (!top) return null;
     // Another (HTML-only) sheet above it hides the native view instead.
     var items = formItems(sheetRoot(top), top.id);
-    return items.length ? { id: top.id, items: items, full: top.id === 'g62-order-detail' } : null;
+    if (!items.length) return null;
+    var out = { id: top.id, items: items, full: top.id === 'g62-order-detail' };
+    if (top.id === 'g62-order-detail') { try { out.od = orderDetailModel(sheetRoot(top)); } catch (e) { out.od = null; } }
+    return out;
+  }
+  // Rincian Pesanan: digambar Flutter persis seperti HTML. Tombol memakai indeks yang sama dengan __goyanaForm (button / tap).
+  function orderDetailModel(root) {
+    var buttons = Array.prototype.slice.call(root.querySelectorAll('button')), taps = Array.prototype.slice.call(root.querySelectorAll('[onclick]:not(button)'));
+    function t(el) { return el ? (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
+    function q(sel) { return root.querySelector(sel); }
+    function btn(el) { return shown(el) ? { t: t(el), b: buttons.indexOf(el) } : null; }
+    var head = q('.g62-detailhead'), ok = q('.ok132'), cu = q('.g62-customer'), bar = q('.bar115'), small = head && head.querySelector('small');
+    var headBtns = head ? Array.prototype.filter.call(head.querySelectorAll('button'), shown) : [];
+    var rowsHost = q('.g62-detailrows');
+    return {
+      title: t(head && head.querySelector('b')), sub: t(small),
+      head: headBtns.map(function (b) { return { t: t(b), b: buttons.indexOf(b) }; }),
+      banner: shown(ok) ? { bg: getComputedStyle(ok).backgroundColor, line: getComputedStyle(ok).borderBottomColor, ic: ok.querySelector('.c') ? getComputedStyle(ok.querySelector('.c')).backgroundColor : '', c: ok.querySelector('div b') ? getComputedStyle(ok.querySelector('div b')).color : '', icon: t(ok.querySelector('.c')), t: t(ok.querySelector('div b')), s: shown(ok.querySelector('div small')) ? t(ok.querySelector('div small')) : '', ok: !ok.classList.contains('later'), label: btn(ok.querySelector('button')) } : null,
+      customer: shown(cu) ? { svg: svgOf(cu.querySelector('.m')), name: t(cu.querySelector('div b')), sub: t(cu.querySelector('div small')),
+        wa: btn(cu.querySelector('button.wa115')), print: btn(cu.querySelector('button.pr115')) } : null,
+      steps: Array.prototype.filter.call(root.querySelectorAll('#steps91 > div'), shown).map(function (d) {
+        return { n: t(d.querySelector('i')), t: t(d.querySelector('span')), on: d.classList.contains('on'), done: d.classList.contains('done') };
+      }),
+      itemsTitle: t(q('.it115-h b')), edit: btn(q('.it115-h button')),
+      items: Array.prototype.filter.call(root.querySelectorAll('.it115-r'), shown).map(function (r) {
+        return { svg: svgOf(r.querySelector('.gi')), t: t(r.querySelector('div b')), s: t(r.querySelector('div small')), v: t(r.querySelector('strong')) };
+      }),
+      rows: rowsHost ? Array.prototype.filter.call(rowsHost.children, shown).map(function (r) {
+        var v = r.querySelector('b');
+        var cv = v && getComputedStyle(v);
+        return { k: t(r.querySelector('span')), v: t(v), pill: !!v && /pill/.test(v.className), bg: cv ? cv.backgroundColor : '', c: cv ? cv.color : '', line: r.classList.contains('g183-transport-line'), tap: taps.indexOf(r) };
+      }) : [],
+      actions: Array.prototype.filter.call(root.querySelectorAll(':scope > button, .g62-sheet > button'), shown).map(function (b) {
+        return { t: t(b), b: buttons.indexOf(b), green: /send-wa/.test(b.className), primary: /primary/.test(b.className) };
+      }),
+      total: bar ? { label: t(bar.querySelector('small')), v: t(bar.querySelector('b')), s: t(bar.querySelector('em')), c: bar.querySelector('em') ? getComputedStyle(bar.querySelector('em')).color : '', paid: /lunas/i.test(t(bar.querySelector('em'))), pay: btn(bar.querySelector('button')) } : null
+    };
   }
   /** Form items read in DOM order from root; indexes are per kind inside root (see __goyanaForm). */
   function formItems(root, id) {

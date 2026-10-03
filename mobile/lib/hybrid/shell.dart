@@ -14,6 +14,7 @@ import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/home_page.dart';
+import '../native/order_detail_page.dart';
 import '../native/orders_page.dart';
 import '../native/reports_page.dart';
 import '../native/services_page.dart';
@@ -48,7 +49,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions, CashCloseActions, ServicesActions, FormActions {
+class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions, ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions, CashCloseActions, ServicesActions, FormActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -72,6 +73,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   String _sheetId = ''; // simple HTML sheet drawn natively over the native page
   bool _sheetFull = false, _sheetScreen = false;
   List<Map<String, dynamic>> _sheetItems = const [];
+  Map<String, dynamic>? _sheetOd; // Rincian Pesanan: model khusus (tampilan sama dengan HTML)
   Timer? _toastTimer;
   bool _loginBar = false;
   String? _loadError;
@@ -207,6 +209,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         _sheetId = sheet == null ? '' : (sheet['id'] as String? ?? '');
         _sheetFull = sheet?['full'] == true;
         _sheetScreen = sheet?['screen'] == true;
+        _sheetOd = sheet?['od'] is Map ? Map<String, dynamic>.from(sheet!['od'] as Map) : null;
         _sheetItems = sheet == null || sheet['items'] is! List
             ? const []
             : (sheet['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
@@ -324,6 +327,13 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void fmButton(int index) => _formAct('button', index);
   @override
   void fmTap(int index) => _formAct('tap', index);
+  @override
+  void odButton(int index) => fmScoped('g62-order-detail', 'button', index);
+  @override
+  void odTap(int index) => fmScoped('g62-order-detail', 'tap', index);
+  @override
+  void odClose() => fmScoped('g62-order-detail', 'close', 0);
+
   @override
   void fmScoped(String scope, String kind, int index, [Object? value]) => _web.runJavaScript(
       'window.__goyanaForm&&__goyanaForm(${jsonEncode(scope)},${jsonEncode(kind)},$index,${jsonEncode(value)})');
@@ -611,7 +621,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeCustomers(model: _customers, actions: this)),
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
-            if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
+            if (_nativePage != null && _sheetId == 'g62-order-detail' && _sheetOd != null && !_loading)
+              Positioned.fill(child: NativeOrderDetail(model: _sheetOd!, actions: this))
+            else if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
               Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this, full: _sheetFull, screen: _sheetScreen)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)
               Positioned(

@@ -15,6 +15,7 @@ import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/native/customers_page.dart';
 import 'package:goyana_flutter/native/form_page.dart';
 import 'package:goyana_flutter/native/home_page.dart';
+import 'package:goyana_flutter/native/order_detail_page.dart';
 import 'package:goyana_flutter/native/orders_page.dart';
 import 'package:goyana_flutter/native/reports_page.dart';
 import 'package:goyana_flutter/native/services_page.dart';
@@ -325,6 +326,17 @@ final _cash = CashModel.fromJson({
   'amount': {'v': '50.000', 'ph': 'Jumlah'}, 'note': {'v': '', 'ph': 'Keterangan'}, 'submit': 'Tambah Kas', 'subtract': false,
 });
 
+class _NoOrderDetailActions implements OrderDetailActions {
+  @override
+  void scan() {}
+  @override
+  void odButton(int index) {}
+  @override
+  void odTap(int index) {}
+  @override
+  void odClose() {}
+}
+
 class _NoCashCloseActions implements CashCloseActions {
   @override
   void scan() {}
@@ -630,6 +642,22 @@ void main() {
     });
   }
   for (final width in [320.0, 390.0]) {
+    for (final name in ['order_detail_od', 'order_detail_od_jemput']) {
+      testWidgets('Rincian Pesanan $name at $width px', (tester) async {
+        tester.view.physicalSize = Size(width * 2, 844 * 2);
+        tester.view.devicePixelRatio = 2;
+        addTearDown(tester.view.reset);
+        final model = jsonDecode(File('test/fixtures/$name.json').readAsStringSync()) as Map<String, dynamic>;
+        await tester.pumpWidget(MaterialApp(home: RepaintBoundary(key: const Key('screen'), child: NativeOrderDetail(model: model, actions: _NoOrderDetailActions(), topInset: 31))));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/${name}_${width.toInt()}.png'));
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/${name}_bottom_${width.toInt()}.png'));
+      });
+    }
     testWidgets('Tutup Kasir native at $width px', (tester) async {
       tester.view.physicalSize = Size(width * 2, 844 * 2);
       tester.view.devicePixelRatio = 2;
