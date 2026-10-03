@@ -422,16 +422,22 @@
       var items = formItems(root, id);
       // Nothing readable (e.g. the page is locked behind a plan): keep the HTML.
       if (!items.length) return null;
-      var m = { title: txt('#' + id + ' .subhead b'), items: items };
-      // Simple HTML sheets (e.g. "Tambah Kurir", "Hapus durasi?") are drawn natively over the native page.
-      GENERIC_SHEETS.forEach(function (sid) {
-        var sh = document.getElementById(sid), box = sh && (sh.querySelector('.sheet91-box') || sh);
-        if (sh && sh.classList.contains('show') && !m.sheet) m.sheet = { id: sid, items: formItems(box, sid) };
-      });
-      return m;
+      return { title: txt('#' + id + ' .subhead b'), items: items };
     };
   }
-  var GENERIC_SHEETS = ['gs107'], FORM_PAGES = {};
+  // Simple HTML sheets drawn by Flutter over any native page (same walker as the generic form).
+  // Sheets with previews, cameras, QRIS or payment flows stay HTML.
+  var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115'], FORM_PAGES = {};
+  function openSheet() {
+    for (var k = 0; k < GENERIC_SHEETS.length; k++) {
+      var sh = document.getElementById(GENERIC_SHEETS[k]);
+      if (sh && sh.classList.contains('show')) {
+        var items = formItems(sh.querySelector('.sheet91-box') || sh, sh.id);
+        return items.length ? { id: sh.id, items: items } : null;
+      }
+    }
+    return null;
+  }
   /** Form items read in DOM order from root; indexes are per kind inside root (see __goyanaForm). */
   function formItems(root, id) {
     {
@@ -797,13 +803,15 @@
   function reportPage() {
     pageTimer = 0;
     var page = document.querySelector('.page.active'), id = page && page.id;
-    var skip = (NATIVE_SHEETS[id] || []).concat(FORM_PAGES[id] ? GENERIC_SHEETS : []);
+    var sheet = null;
+    try { sheet = openSheet(); } catch (e) { sheet = null; }
+    var skip = (NATIVE_SHEETS[id] || []).concat(sheet ? [sheet.id] : []);
     var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay(skip);
     var model = null;
     // A model error must never break the app: fall back to the HTML page.
     if (native) { try { model = NATIVE[id](); } catch (e) { console.warn('GOYANA native model', id, e); model = null; } }
     if (!model) native = false;
-    var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: model, toast: native ? toastText() : '' });
+    var msg = JSON.stringify({ event: 'native', page: native ? id : null, model: model, sheet: native ? sheet : null, toast: native ? toastText() : '' });
     if (msg === lastPage) return;
     lastPage = msg;
     try { window.GoyanaNative.postMessage(msg); } catch (e) {}

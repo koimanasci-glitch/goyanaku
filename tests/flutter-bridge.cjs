@@ -295,14 +295,21 @@ try{
   // "+ Tambah Durasi" opens the shared HTML form sheet: drawn natively, values and save go through the HTML.
   last=await openNative('duration');const addDur=last.model.items.find(x=>x.type==='button'&&/Tambah Durasi/.test(x.t));
   await p.evaluate(i=>__goyanaForm('duration','button',i),addDur.i);
-  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&m.model.sheet},null,{timeout:3000});
-  last=await lastAdd();const shIn=last.model.sheet.items.filter(x=>x.type==='input');assert.equal(shIn.length,2,'sheet fields');
-  assert.ok(last.model.sheet.items.some(x=>x.type==='title'&&x.t==='Tambah Durasi'));
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&m.sheet},null,{timeout:3000});
+  last=await lastAdd();const shIn=last.sheet.items.filter(x=>x.type==='input');assert.equal(shIn.length,2,'sheet fields');
+  assert.ok(last.sheet.items.some(x=>x.type==='title'&&x.t==='Tambah Durasi'));
   await p.evaluate(([a,b])=>{__goyanaForm('gs107','input',a,'Super Kilat');__goyanaForm('gs107','input',b,'3')},[shIn[0].i,shIn[1].i]);
-  const okBtn=last.model.sheet.items.find(x=>x.type==='button'&&x.primary);await p.evaluate(i=>__goyanaForm('gs107','button',i),okBtn.i);
-  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&!m.model.sheet&&m.model.items.some(x=>x.type==='entry'&&x.t==='Super Kilat')},null,{timeout:3000});
+  const okBtn=last.sheet.items.find(x=>x.type==='button'&&x.primary);await p.evaluate(i=>__goyanaForm('gs107','button',i),okBtn.i);
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&!m.sheet&&m.model.items.some(x=>x.type==='entry'&&x.t==='Super Kilat')},null,{timeout:3000});
   await p.evaluate(()=>{const r=[...document.querySelectorAll('#duration .duration-row')].find(r=>/Super Kilat/.test(r.textContent));r&&r.remove()});
   console.log('PASS Keuangan (kategori), Durasi, Diskon are native');
+  // Shared sheets also open natively above custom native pages (Pelanggan → Urutkan).
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customers')});await p.waitForTimeout(300);
+  await p.evaluate(()=>openSheet91('gy158-sort'));
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='customers'&&m.sheet&&m.sheet.id==='gy158-sort'},null,{timeout:3000});
+  await p.evaluate(()=>__goyanaForm('gy158-sort','close',0));
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='customers'&&!m.sheet},null,{timeout:3000});
+  console.log('PASS shared HTML sheets (Urutkan, Batalkan, Bayar, ...) are drawn natively over native pages and close through the HTML');
   last=await openNative('upgrade');const plans=last.model.items.filter(x=>x.type==='plan');
   assert.deepEqual(plans.map(x=>x.t),['FREE','BASIC','SILVER','GOLD','PLATINUM']);assert.equal(plans[1].price,'Rp30.000');
   assert.equal(last.model.items[0].type,'hero','current package card');
@@ -348,10 +355,18 @@ try{
   for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.screenshot({path:path.join(root,'mobile/test/screens/cashclose_html_'+width+'.png')});}
   await p.evaluate(()=>__goyanaTap('#cashclose .kc137-go'));
   // The confirmation sheet fades in; wait until Flutter is told to step aside (no fixed delay: CI machines vary).
-  await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native').at(-1);return e&&e.page===null},null,{timeout:4000}).catch(()=>{});
-  assert.equal((await lastAdd()).page,null,'confirmation stays visible above native cash close');
-  await p.getByRole('button',{name:'Ya, Tutup Kas',exact:true}).click();await p.waitForTimeout(500);
-  assert.equal((await lastAdd()).page,null,'shift receipt is an HTML sheet');
+  await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native').at(-1);return e&&(e.page===null||e.sheet)},null,{timeout:4000}).catch(()=>{});
+  last=await lastAdd();
+  if(last.sheet){
+    // The confirmation is the shared sheet: drawn natively, "Ya, Tutup Kas" runs the HTML button.
+    assert.equal(last.page,'cashclose');const yes=last.sheet.items.find(x=>x.type==='button'&&x.t==='Ya, Tutup Kas');assert.ok(yes,'confirmation drawn natively');
+    await p.evaluate(([id,i])=>__goyanaForm(id,'button',i),[last.sheet.id,yes.i]);
+  }else{
+    assert.equal(last.page,null,'confirmation stays visible above native cash close');
+    await p.getByRole('button',{name:'Ya, Tutup Kas',exact:true}).click();
+  }
+  await p.waitForTimeout(500);last=await lastAdd();
+  assert.ok(last.page===null||(last.sheet&&last.sheet.id==='kc137s'),'shift receipt sheet is shown');
   await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')}));await p.waitForTimeout(300);
   last=await lastAdd();assert.equal(last.page,'cashclose');assert.equal(last.model.sections[4].note.v,'');
   assert.match(last.model.sections[5].history[0].s,/Selisih uji kas/);

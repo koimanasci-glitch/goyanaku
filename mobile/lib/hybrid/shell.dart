@@ -69,6 +69,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
     'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
+  String _sheetId = ''; // simple HTML sheet drawn natively over the native page
+  List<Map<String, dynamic>> _sheetItems = const [];
   Timer? _toastTimer;
   bool _loginBar = false;
   String? _loadError;
@@ -200,6 +202,11 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
         if ((page == 'cashin' || page == 'cashout') && model != null) _cash = CashModel.fromJson(model);
+        final sheet = data['sheet'] is Map ? Map<String, dynamic>.from(data['sheet'] as Map) : null;
+        _sheetId = sheet == null ? '' : (sheet['id'] as String? ?? '');
+        _sheetItems = sheet == null || sheet['items'] is! List
+            ? const []
+            : (sheet['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
         final toast = page == null ? '' : (data['toast'] as String? ?? '');
         if (toast.isNotEmpty && toast != _toast) {
           _toastTimer?.cancel();
@@ -599,6 +606,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
               Positioned.fill(child: NativeCustomers(model: _customers, actions: this)),
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
+            if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
+              Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)
               Positioned(
                 left: 24, right: 24, bottom: 130,

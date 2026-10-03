@@ -696,10 +696,22 @@ void main() {
       tester.view.physicalSize = const Size(390 * 2, 1400 * 2);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
-      final model = FormModel.fromJson(id, Map<String, dynamic>.from(jsonDecode(f.readAsStringSync()) as Map));
+      final json = Map<String, dynamic>.from(jsonDecode(f.readAsStringSync()) as Map);
+      final model = FormModel.fromJson(id, json);
+      final sheet = json['sheet'] is Map ? Map<String, dynamic>.from(json['sheet'] as Map) : null;
       await tester.pumpWidget(MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: RepaintBoundary(key: const Key('screen'), child: NativeForm(model: model, actions: _NoFormActions(), topInset: 0)),
+        home: RepaintBoundary(
+          key: const Key('screen'),
+          child: Stack(children: [
+            NativeForm(model: model, actions: _NoFormActions(), topInset: 0),
+            if (sheet != null)
+              Positioned.fill(
+                child: NativeSheet(id: sheet['id'] as String, actions: _NoFormActions(),
+                    items: (sheet['items'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()),
+              ),
+          ]),
+        ),
       ));
       for (var i = 0; i < 5; i++) {
         await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
