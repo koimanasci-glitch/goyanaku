@@ -293,6 +293,13 @@ try{
   last=await openNative('discount');assert.ok(last.model.items.some(x=>x.type==='input'&&x.sub),'labelled field keeps its explanation');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Keuangan (kategori), Durasi, Diskon are native');
+  last=await openNative('upgrade');const plans=last.model.items.filter(x=>x.type==='plan');
+  assert.deepEqual(plans.map(x=>x.t),['FREE','BASIC','SILVER','GOLD','PLATINUM']);assert.equal(plans[1].price,'Rp30.000');
+  assert.equal(last.model.items[0].type,'hero','current package card');
+  await p.evaluate(i=>__goyanaForm('upgrade','button',i),plans[2].i);await p.waitForTimeout(400);
+  assert.equal((await lastAdd()).page,null,'package detail (HTML) covers the native page');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Upgrade Paket: package cards native, detail/checkout stay HTML');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

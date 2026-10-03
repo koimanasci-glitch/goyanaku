@@ -1,0 +1,122 @@
+{
+ "title": "HARGA PAKET",
+ "items": [
+  {
+   "type": "hero",
+   "t": "PAKET SAAT INI",
+   "v": "PLATINUM",
+   "s": "Paket aktif"
+  },
+  {
+   "type": "button",
+   "t": "Riwayat transaksi ›",
+   "primary": false,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "plan",
+   "t": "FREE",
+   "s": "Trial seluruh fitur Basic selama 2 bulan",
+   "price": "Gratis",
+   "per": "2 bulan",
+   "more": "Detail",
+   "on": false,
+   "features": [],
+   "i": 4
+  },
+  {
+   "type": "plan",
+   "t": "BASIC",
+   "s": "Kasir harian, kurir, peta pelanggan dan monitoring cabang",
+   "price": "Rp30.000",
+   "per": "/bulan",
+   "more": "Detail",
+   "on": false,
+   "features": [],
+   "i": 5
+  },
+  {
+   "type": "plan",
+   "t": "SILVER",
+   "s": "Operasional lengkap, stok, HPP dan Balasan Cepat & Trigger",
+   "price": "Rp65.000",
+   "per": "/bulan",
+   "more": "Detail",
+   "on": false,
+   "features": [],
+   "i": 6
+  },
+  {
+   "type": "plan",
+   "t": "GOLD",
+   "s": "Nota WhatsApp otomatis dan Chatbot AI dengan top-up terpisah",
+   "price": "Rp100.000",
+   "per": "/bulan",
+   "more": "Detail",
+   "on": false,
+   "features": [],
+   "i": 7
+  },
+  {
+   "type": "plan",
+   "t": "PLATINUM",
+   "s": "Seluruh fitur Goyana, termasuk WhatsApp Blast & Promo",
+   "price": "Rp350.000",
+   "per": "/bulan",
+   "more": "Detail",
+   "on": false,
+   "features": [],
+   "i": 8
+  },
+  {
+   "type": "button",
+   "t": "Top-up Saldo AI · nominal belum ditentukan",
+   "primary": false,
+   "file": "",
+   "i": 9
+  },
+  {
+   "type": "hint",
+   "t": "Nota manual tersedia di semua paket. Nota otomatis mulai Gold; Blast hanya Platinum. AI Gold/Platinum memakai top-up terpisah. WhatsApp, AI, pembayaran dan sinkronisasi masih menunggu server; kuota pesan belum ditentukan."
+  },
+  {
+   "type": "entry",
+   "t": "Tambah Cabang",
+   "lines": [
+    "Tambah kuota cabang di paket apa pun"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "btns": [
+    {
+     "t": "Tambah",
+     "i": 10
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Tambah Nomor Chatbot",
+   "lines": [
+    "Bisa untuk semua paket, termasuk FREE"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "btns": [
+    {
+     "t": "Tambah",
+     "i": 11
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "Free: trial Basic 2 bulan. Setiap paket mencakup 1 pusat; batas cabang mengikuti paket. Kurir, peta pelanggan dan monitoring cabang tersedia di semua paket. Setelah masa aktif berakhir, data lama tetap tersimpan."
+  }
+ ]
+}

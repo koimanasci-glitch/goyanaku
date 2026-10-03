@@ -1,0 +1,12 @@
+{
+ "title": "KATEGORI PENGELUARAN",
+ "items": [
+  {
+   "type": "button",
+   "t": "+ Tambah Kategori",
+   "primary": true,
+   "file": "",
+   "i": 0
+  }
+ ]
+}

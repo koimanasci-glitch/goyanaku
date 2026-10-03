@@ -492,6 +492,15 @@
             return;
           }
           if (/preview/.test(cls + ' ' + c.id) && !c.querySelector('button, input')) { items.push(image(c)); return; }
+          // Package card: name, description, price and the feature list (✓ / ✕).
+          var pbtn = c.querySelector(':scope > button'), pr = pbtn && pbtn.querySelector('.pr');
+          if (pr) {
+            var feats = Array.prototype.filter.call(c.querySelectorAll('[class*="feature"][class*="row"]'), shown);
+            items.push({ type: 'plan', t: clean(pbtn.querySelector('.nm b, b')), s: clean(pbtn.querySelector('.sb')), price: clean(pr.querySelector(':scope > b')),
+              per: clean(pr.querySelector(':scope > small')), more: clean(pr.querySelector(':scope > i')), on: /\b(on|current|active|selected)\b/.test(cls + ' ' + (pbtn.className || '')),
+              features: feats.map(function (f) { return { t: clean(f.querySelector(':scope > span:last-child')), on: !/excluded/.test(f.className) }; }), i: buttons.indexOf(pbtn) });
+            return;
+          }
           if (tag === 'BUTTON') {
             var sm = c.querySelector('small'), b = c.querySelector('b');
             var em = c.querySelector(':scope > span');
@@ -520,7 +529,7 @@
             return;
           }
           // Big number card: <small>Omzet Hari Ini</small><strong>Rp0</strong><span>Outlet</span>.
-          var hs = c.querySelector(':scope > strong'), hl = c.querySelector(':scope > small');
+          var hl = c.querySelector(':scope > small'), hs = c.querySelector(':scope > strong') || (c.firstElementChild === hl && c.querySelector(':scope > small + b'));
           if (hs && hl && !c.querySelector('button, input') && kids.length <= 3) {
             items.push({ type: 'hero', t: clean(hl), v: clean(hs), s: clean(c.querySelector(':scope > span')) });
             return;
@@ -743,7 +752,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

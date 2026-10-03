@@ -342,6 +342,56 @@ class NativeForm extends StatelessWidget {
             ),
           ),
         );
+      case 'plan':
+        final feats = _list(it['features']);
+        final on = it['on'] == true;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: GestureDetector(
+            onTap: () => a.fmButton(_i(it['i'])),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: on ? gBrand : const Color(0xffe8ecf2), width: on ? 1.6 : 1), boxShadow: [gShadow(const Color(0x0a172235), 2, 8)]),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(_s(it['t']), style: gText(15, w: FontWeight.w700, c: _ink, ls: .4)),
+                      const SizedBox(height: 2),
+                      Text(_s(it['s']), style: gText(11.5, c: const Color(0xff6b7280), h: 16)),
+                    ]),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(_s(it['price']), style: gText(16, w: FontWeight.w700, c: gBrand)),
+                    if (_s(it['per']).isNotEmpty) Text(_s(it['per']), style: gText(10.5, c: const Color(0xff8a8fa3))),
+                    if (_s(it['more']).isNotEmpty)
+                      Container(margin: const EdgeInsets.only(top: 6), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xfffff0ee), borderRadius: BorderRadius.circular(8)),
+                          child: Text(_s(it['more']), style: gText(11, w: FontWeight.w600, c: gBrand))),
+                  ]),
+                ]),
+                if (feats.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  const Divider(height: 1, color: Color(0xfff1f2f5)),
+                  const SizedBox(height: 8),
+                  for (final f in feats)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(children: [
+                        Container(width: 18, height: 18, alignment: Alignment.center,
+                            decoration: BoxDecoration(color: f['on'] == true ? const Color(0xffe8f7ee) : const Color(0xfff1f2f5), shape: BoxShape.circle),
+                            child: Icon(f['on'] == true ? Icons.check_rounded : Icons.close_rounded, size: 12, color: f['on'] == true ? const Color(0xff1f8a55) : const Color(0xffa0a4ac))),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(_s(f['t']), style: gText(12, c: f['on'] == true ? _ink : const Color(0xffa0a4ac)))),
+                      ]),
+                    ),
+                ],
+              ]),
+            ),
+          ),
+        );
       case 'hero':
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
