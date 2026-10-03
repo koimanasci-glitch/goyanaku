@@ -149,3 +149,6 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Mode murni (`mobile/lib/pure/`): Beranda, Tambah Transaksi (pelanggan, durasi, layanan, jumlah, opsi, Tunai/QRIS+QR/Transfer/DP/Deposit/Bayar Nanti, pesanan jemput), Pesanan (tab, cari, rincian, status, bayar, batal, edit, riwayat, isi layanan, cetak struk, WA, Maps), Scan barcode kamera, Pelanggan (+ isi saldo deposit), Laporan, Kas & Tutup Kasir, Hari Ini, Pengaturan (Profil Struk, Printer Bluetooth, QRIS, Rekening, Layanan & Harga, Parfum, Outlet, Pusat Data ekspor/backup).
 - Masuk: Pengaturan (versi lengkap) → "⚡ Coba Mode Murni (beta)". Keluar: Pengaturan mode murni → "Kembali ke versi lengkap". Penanda mode: kunci `goyana-pure-mode`.
 - Belum di mode murni: Pegawai & hak akses/PIN, Kurir, Label kantong, Stok, CRM/voucher, Diskon master, WhatsApp (chatbot/otomasi/blast), Multi-outlet monitoring, Upgrade paket, Notifikasi, Pusat Bantuan.
+
+## Revisi dari Koko (catatan)
+- 3 Okt 2026: Berat cucian harus bisa desimal (koma/titik), misal 2,5 kg. Penyebab: keyboard angka Flutter tanpa tombol koma. Perbaikan: input `inputmode=decimal` di HTML → keyboard angka dengan koma di Flutter (`decimal: true`). HTML sudah menerima "2,5" (diubah ke 2.5).

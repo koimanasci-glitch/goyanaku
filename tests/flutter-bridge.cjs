@@ -71,7 +71,7 @@ try{
   assert.equal(last.model.durations.find(d=>d.on).t,'Express');assert.ok(last.model.items.some(x=>x.h)&&last.model.items.some(x=>!x.h));assert.equal(last.model.footer.total,'Rp 0');
   const svc=last.model.items.find(x=>!x.h);
   await p.evaluate(i=>__goyanaTap('#list116 .sv116',i),svc.i);await p.waitForTimeout(300);
-  last=await lastAdd();assert.equal(last.sheet&&last.sheet.id,'qty116','quantity sheet is native');assert.ok(last.sheet.items.some(x=>x.type==='input'&&x.numeric));
+  last=await lastAdd();assert.equal(last.sheet&&last.sheet.id,'qty116','quantity sheet is native');assert.ok(last.sheet.items.some(x=>x.type==='input'&&x.numeric&&x.decimal), 'berat bisa koma');
   await p.evaluate(()=>{document.getElementById('qty116-in').value='3';saveQty116()});await p.waitForTimeout(400);
   last=await lastAdd();assert.equal(last.page,'addorder');assert.ok(last.model.items.find(x=>x.i===svc.i).on);assert.match(last.model.items.find(x=>x.i===svc.i).btn,/3/);
   assert.notEqual(last.model.footer.total,'Rp 0');assert.match(last.toast,/ditambahkan/,'HTML toast is forwarded to Flutter');

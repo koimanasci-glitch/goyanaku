@@ -495,7 +495,7 @@
           if (!c.id) c.id = 'gyfile-' + id + '-' + inputs.indexOf(c);
           return { type: 'button', t: c.files && c.files[0] ? '📎 ' + c.files[0].name : 'Pilih Gambar', primary: false, file: c.id, i: -1 };
         }
-        return { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), secret: c.type === 'password', email: c.type === 'email', i: inputs.indexOf(c) };
+        return { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), decimal: c.inputMode === 'decimal' || (c.type === 'number' && /\./.test(c.step || '')), ro: !!(c.readOnly || c.disabled), secret: c.type === 'password', email: c.type === 'email', i: inputs.indexOf(c) };
       }
       function sub(el) { var sm = el && el.querySelector('small'); return sm && shown(sm) ? clean(sm) : ''; }
       function image(el) {
@@ -584,7 +584,7 @@
             var box = fin[0].parentElement, ems = Array.prototype.slice.call(box.querySelectorAll(':scope > em'));
             var pre = ems.filter(function (e) { return e.compareDocumentPosition(fin[0]) & Node.DOCUMENT_POSITION_FOLLOWING; }), suf = ems.filter(function (e) { return pre.indexOf(e) < 0; });
             var f = fin[0];
-            items.push({ type: 'input', label: main(lspan), sub: sub(lspan), pre: pre.map(clean).join(' '), suf: suf.map(clean).join(' '), v: f.value, ph: f.placeholder || '', numeric: /numeric|decimal|tel/.test(f.inputMode || f.type || ''), ro: !!(f.readOnly || f.disabled), i: inputs.indexOf(f) });
+            items.push({ type: 'input', label: main(lspan), sub: sub(lspan), pre: pre.map(clean).join(' '), suf: suf.map(clean).join(' '), v: f.value, ph: f.placeholder || '', numeric: /numeric|decimal|tel/.test(f.inputMode || f.type || ''), decimal: f.inputMode === 'decimal' || (f.type === 'number' && /\./.test(f.step || '')), ro: !!(f.readOnly || f.disabled), i: inputs.indexOf(f) });
             return;
           }
           // Stat tiles: <div><b>12</b><small>Pelanggan</small></div> x N.
