@@ -137,7 +137,11 @@ List<Map<String, dynamic>> orderDetailItems(Business b, Order o, DateTime now) {
     {'type': 'entry', 't': 'Rincian Pesanan', 'lines': ['${o.id} · ${o.dur}'], 'compact': true, 'btns': [{'t': '×', 'i': 0}]},
     {
       'type': 'entry', 't': o.name, 'lines': [[o.phone, cust?.address ?? ''].where((e) => e.isNotEmpty).join(' · ')],
-      'btns': [if (o.phone.isNotEmpty || (cust?.phone ?? '').isNotEmpty) {'t': 'Kirim nota WA', 'i': 4}, if (mapsLink(cust).isNotEmpty) {'t': 'Buka Maps', 'i': 5}],
+      'btns': [
+        if (o.phone.isNotEmpty || (cust?.phone ?? '').isNotEmpty) {'t': 'Kirim nota WA', 'i': 4},
+        {'t': 'Cetak Struk', 'i': 6},
+        if (mapsLink(cust).isNotEmpty) {'t': 'Maps', 'i': 5},
+      ],
     },
     if (!o.isCancelled)
       {'type': 'steps', 'steps': [

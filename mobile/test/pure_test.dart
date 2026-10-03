@@ -136,10 +136,58 @@ void main() {
 
   testWidgets('halaman pelanggan, laporan, pengaturan tampil tanpa error', (tester) async {
     final s = await _pump(tester, _store());
-    for (final p in ['customers', 'reports', 'settings', 'home']) {
+    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'home']) {
       s.nav(p);
       await _settle(tester);
       expect(tester.takeException(), isNull, reason: p);
     }
+  });
+
+  testWidgets('kas: kas masuk, pengeluaran, tutup kasir; harga layanan; parfum', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('kas');
+    await _settle(tester);
+    s.fmButton(1); // kas masuk
+    s.fmInput(0, 1); // Modal awal
+    s.fmInput(1, '100000');
+    s.fmButton(10);
+    await _settle(tester);
+    s.fmButton(2); // pengeluaran
+    s.fmInput(0, 3); // Listrik
+    s.fmInput(1, '20000');
+    s.fmButton(10);
+    await _settle(tester);
+    var b = await Business.load(kv);
+    var sh = b.shift();
+    expect(sh.start, 100000);
+    expect(sh.outs, 20000);
+    expect(sh.cashExpected, 100000 + 100000 - 20000, reason: 'modal + kas masuk (modal) − pengeluaran');
+    s.fmButton(3); // tutup kasir
+    s.fmInput(3, '170000');
+    s.fmButton(12);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect((b.kas['hist'] as List), isEmpty, reason: 'selisih tanpa catatan ditolak');
+    s.fmInput(2, 'uang kembalian kurang');
+    s.fmButton(12);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect((b.kas['hist'] as List).single['diff'], -10000);
+    expect(b.shift().sales, 0, reason: 'shift baru dimulai');
+
+    s.nav('services');
+    await _settle(tester);
+    s.fmInput(1, '12000'); // layanan 0, Express
+    s.fmButton(0);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect(b.services.first.priceFor('Express'), 12000);
+
+    s.nav('perfume');
+    s.fmInput(0, 'Melati');
+    s.fmButton(1);
+    await _settle(tester);
+    expect(tester.takeException(), isNull);
   });
 }

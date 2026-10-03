@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'common.dart';
 
@@ -750,6 +751,18 @@ class NativeForm extends StatelessWidget {
                     child: Text(_s(it['btn']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(14, w: FontWeight.w600, c: Colors.white))),
               ),
             ]),
+          ),
+        );
+      case 'qr':
+        // Kode QR digambar Flutter (QRIS dinamis di mode murni).
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xffe8ecf2))),
+              child: QrImageView(data: _s(it['data']), size: ((it['size'] as num?)?.toDouble() ?? 220), backgroundColor: Colors.white),
+            ),
           ),
         );
       case 'labelprev':

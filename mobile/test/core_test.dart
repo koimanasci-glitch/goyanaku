@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/models.dart';
 import 'package:goyana_flutter/core/money.dart';
+import 'package:goyana_flutter/core/qris.dart';
+import 'package:goyana_flutter/core/receipt.dart';
 import 'package:goyana_flutter/core/store.dart';
 
 Map<String, dynamic> _snap() => jsonDecode(File('test/fixtures/core/snapshot.json').readAsStringSync()) as Map<String, dynamic>;
@@ -109,5 +111,29 @@ void main() {
     expect(b.saveCustomer(Customer(name: 'tono', phone: '0813')), isNotNull);
     expect(b.saveCustomer(Customer(name: 'Tono', phone: '0813'), originalName: 'Tono'), isNull);
     expect(b.customerByName('Tono')!.phone, '0813');
+  });
+
+  test('QRIS dinamis identik dengan HTML (CRC16 & tag 54)', () {
+    final q = jsonDecode(File('test/fixtures/core/qris.json').readAsStringSync()) as Map<String, dynamic>;
+    final st = q['static'] as String;
+    expect(qrisValid(st), isTrue);
+    expect(qrisValid(st.substring(0, st.length - 1) + (st.endsWith('0') ? '1' : '0')), isFalse);
+    expect(qrisDynamic(st, 14000), q['dyn14000']);
+    expect(qrisDynamic(st, 23625.4), q['dyn23625']);
+    expect(qrisValid(qrisDynamic(st, 14000)), isTrue);
+    expect(qrisMerchant(st).name, 'TEST LAUNDRY');
+  });
+
+  test('struk 58 mm: lebar 32 kolom, total & status benar', () async {
+    final b = await _load();
+    final o = b.orders.first;
+    final text = receiptText(o, const ReceiptSettings(header: 'Laundry Uji', address: 'Jl. Melati No. 5 Jakarta Timur'));
+    for (final l in text.split('\n')) {
+      expect(l.length, lessThanOrEqualTo(32), reason: l);
+    }
+    expect(text, contains('GY-261003-0133'));
+    expect(text, contains('TOTAL'));
+    expect(text, contains('Rp14.000'));
+    expect(text, contains('BELUM BAYAR'));
   });
 }

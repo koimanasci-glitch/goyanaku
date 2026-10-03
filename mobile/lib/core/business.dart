@@ -64,6 +64,56 @@ class Business {
   }
 
   Future<bool> save() => store.set(Keys.business, jsonEncode(raw));
+  Future<bool> saveServices() => store.set(Keys.services, jsonEncode(services.map((e) => e.raw).toList()));
+
+  /// Harga & status aktif layanan per durasi.
+  void setServicePrice(Service s, String dur, int price) => (s.raw.putIfAbsent('prices', () => <String, dynamic>{}) as Map)[dur] = price;
+  void toggleService(Service s, String dur) {
+    final en = s.raw.putIfAbsent('enabled', () => <String, dynamic>{}) as Map;
+    en[dur] = !(en[dur] != false);
+  }
+
+  /// Layanan baru (kategori): harga Express 1,5×, Kilat 2× dari Reguler (sama dengan HTML).
+  String? addService(String name, String unit, int regular) {
+    if (name.trim().isEmpty || regular <= 0) return 'Isi nama dan harga';
+    if (services.any((e) => e.name.toLowerCase() == name.trim().toLowerCase())) return 'Layanan $name sudah ada';
+    services.add(Service({
+      'key': name.trim().toLowerCase(), 'name': name.trim(), 'unit': unit,
+      'prices': {'Reguler': regular, 'Express': (regular * 1.5).round(), 'Kilat': regular * 2},
+      'enabled': {'Reguler': true, 'Express': true, 'Kilat': true}, 'proc': ['Cuci', 'Kering', 'Setrika', 'Packing'],
+    }));
+    return null;
+  }
+
+  // ---------- tutup kasir ----------
+  /// Ringkasan shift berjalan: penjualan per metode, kas masuk/keluar, saldo tunai seharusnya.
+  ShiftSummary shift() {
+    final k = kas;
+    final byMethod = <String, int>{'Tunai': 0, 'QRIS': 0, 'Transfer': 0, 'Deposit': 0};
+    for (final s in (k['sales'] as List? ?? const []).whereType<Map>()) {
+      final m = '${s['m']}';
+      byMethod[m] = (byMethod[m] ?? 0) + parseRupiah(s['a']);
+    }
+    final ins = (k['ins'] as List? ?? const []).whereType<Map>().fold<int>(0, (a, e) => a + parseRupiah(e['a']));
+    final outs = (k['outs'] as List? ?? const []).whereType<Map>().fold<int>(0, (a, e) => a + parseRupiah(e['a']));
+    final start = parseRupiah(k['start']);
+    return ShiftSummary(start: start, byMethod: byMethod, ins: ins, outs: outs, cashExpected: start + (byMethod['Tunai'] ?? 0) + ins - outs);
+  }
+
+  /// Tutup kasir: catat riwayat shift lalu mulai shift baru.
+  void closeShift({required int physical, required String note, required DateTime now, String kasir = 'Kasir'}) {
+    final s = shift();
+    (kas.putIfAbsent('hist', () => <dynamic>[]) as List).insert(0, {
+      'at': isoString(now), 'kasir': kasir, 'start': s.start, 'sales': s.byMethod, 'ins': s.ins, 'outs': s.outs,
+      'expected': s.cashExpected, 'physical': physical, 'diff': physical - s.cashExpected, 'note': note,
+    });
+    kas
+      ..['start'] = 0
+      ..['sales'] = <dynamic>[]
+      ..['ins'] = <dynamic>[]
+      ..['outs'] = <dynamic>[]
+      ..['openAt'] = isoString(now);
+  }
 
   // ---------- pelanggan ----------
   List<Customer> get customers => (raw['customers'] as List).whereType<Map>().map((e) => Customer.fromJson(Map<String, dynamic>.from(e))).toList();
@@ -312,6 +362,13 @@ class Business {
     }
     return DaySummary(income: income, inCount: inCount, ready: ready, process: process, late: late);
   }
+}
+
+class ShiftSummary {
+  const ShiftSummary({required this.start, required this.byMethod, required this.ins, required this.outs, required this.cashExpected});
+  final int start, ins, outs, cashExpected;
+  final Map<String, int> byMethod;
+  int get sales => byMethod.values.fold(0, (a, b) => a + b);
 }
 
 class DaySummary {

@@ -9,6 +9,9 @@ import 'package:flutter/services.dart';
 
 import '../core/business.dart';
 import '../core/models.dart';
+import '../core/qris.dart';
+import '../core/receipt.dart';
+import '../core/settings.dart';
 import '../core/money.dart';
 import '../core/store.dart';
 import '../native/addorder_page.dart';
@@ -17,6 +20,7 @@ import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
+import 'pages.dart';
 import 'views.dart';
 
 /// Kunci penanda mode (dibaca main.dart).
@@ -39,9 +43,37 @@ class _Sheet {
   final bool full;
 }
 
-class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions {
+class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, PureHost {
   static const _device = MethodChannel('id.goyana/device');
   Business? _b;
+  AppSettings? _settings;
+  late final Map<String, PurePage> _pages = {
+    'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
+    'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'kas': KasPage(this),
+  };
+
+  // PureHost
+  @override
+  Business get business => _b!;
+  @override
+  AppSettings get settings => _settings!;
+  @override
+  MethodChannel get device => _device;
+  @override
+  void go(String page) => nav(page);
+  @override
+  void refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Future<void> saveAll() async {
+    await _save();
+    await _settings!.save();
+  }
+
+  @override
+  void exitPure() => widget.onExit?.call();
   String _page = 'home';
   String _toast = '';
   Timer? _toastTimer;
@@ -74,8 +106,13 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void initState() {
     super.initState();
-    Business.load(widget.store).then((b) {
-      if (mounted) setState(() => _b = b);
+    Future.wait([Business.load(widget.store), AppSettings.load(widget.store)]).then((r) {
+      if (mounted) {
+        setState(() {
+          _b = r[0] as Business;
+          _settings = r[1] as AppSettings;
+        });
+      }
     });
   }
 
@@ -106,11 +143,14 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   // ---------------- navigasi ----------------
   @override
-  void nav(String pageId) => setState(() {
-        _sheets.clear();
-        _page = pageId;
-        if (pageId == 'orders') _search = '';
-      });
+  void nav(String pageId) {
+    setState(() {
+      _sheets.clear();
+      _page = pageId;
+      if (pageId == 'orders') _search = '';
+    });
+    _pages[pageId]?.opened();
+  }
   @override
   void scan() => toast('Scan barcode belum tersedia di mode murni');
 
@@ -145,6 +185,29 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void qr() => toast('Scan QR belum tersedia di mode murni');
   @override
   void monthly() => nav('reports');
+
+  // ---------------- Cetak struk ----------------
+  Future<void> _print(Order o) async {
+    final text = receiptText(o, _settings!.receipt, printedAt: now);
+    final addr = _settings!.printerAddress;
+    if (addr.isNotEmpty) {
+      try {
+        final st = await _device.invokeMapMethod<String, dynamic>('GoyanaDevice.printerStatus');
+        if (st?['connected'] != true) await _device.invokeMethod('GoyanaDevice.connectPrinter', {'address': addr});
+        await _device.invokeMethod('GoyanaDevice.printText', {'text': text});
+        return toast('Struk dicetak');
+      } on PlatformException catch (e) {
+        toast(e.message ?? 'Printer tidak terhubung');
+      } catch (_) {}
+    }
+    // Tanpa printer Bluetooth: dialog cetak Android (PDF / printer Wi-Fi).
+    final esc = const HtmlEscape().convert(text);
+    try {
+      await _device.invokeMethod('Print.html', {'html': '<pre style="font:12px monospace">$esc</pre>', 'title': o.id});
+    } catch (_) {
+      toast('Atur printer di Pengaturan → Printer Bluetooth');
+    }
+  }
   @override
   void helpChat() => _device.invokeMethod('App.openUrl', {'url': 'https://wa.me/6281234567890'}).catchError((_) => null);
 
@@ -307,6 +370,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             _sendWa(o);
           case 5:
             openMaps(mapsLink(b.customerByName(o.name)));
+          case 6:
+            _print(o);
         }
       case 'pay':
         if (o == null) return;
@@ -356,18 +421,23 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   // FormActions untuk halaman formulir di mode murni (Pengaturan dll.).
   @override
-  void fmBack() => nav('settings');
+  void fmBack() => nav(_pages[_page]?.back ?? 'home');
   @override
-  void fmInput(int index, Object value) {}
+  void fmInput(int index, Object value) => _pages[_page]?.input(index, value);
   @override
-  void fmToggle(int index) {}
-  @override
-  void fmRadio(int index) {}
-  @override
-  void fmButton(int index) {
-    if (_page == 'settings' && index == 99) widget.onExit?.call();
-    if (_page == 'settings' && index == 1) nav('customers');
+  void fmToggle(int index) {
+    _pages[_page]?.toggle(index);
+    refresh();
   }
+
+  @override
+  void fmRadio(int index) {
+    _pages[_page]?.radio(index);
+    refresh();
+  }
+
+  @override
+  void fmButton(int index) => _pages[_page]?.button(index);
 
   @override
   void fmFile(String inputId) {}
@@ -489,7 +559,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             OrderItem(name: s.name, icon: s.unit == 'kg' ? 'Kiloan' : (s.unit == 'm' ? 'Meteran' : 'Satuan'), unit: s.unit, price: s.priceFor(_aoDur), qty: e.value),
       ];
 
-  static const _perfumesDefault = ['Tanpa Parfum', 'Akasia', 'Junjung Buih', 'Lavender', 'Ocean', 'Sakura'];
   static const _discs = [['Tanpa diskon', '0'], ['Diskon 5%', 'p5'], ['Diskon 10%', 'p10'], ['Potongan Rp5.000', 'n5000'], ['Potongan Rp10.000', 'n10000']];
   static const _hands = ['Datang Langsung', 'Antar ke rumah', 'Jemput & Antar'];
 
@@ -551,13 +620,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     return m;
   }
 
-  List<String> get _perfumes {
-    final names = <String>['Tanpa Parfum'];
-    // Daftar parfum dari pengaturan HTML (goyana-perfumes178) bila ada.
-    return _perfumeCache ?? (names..addAll(_perfumesDefault.skip(1)));
-  }
-
-  List<String>? _perfumeCache;
+  List<String> get _perfumes => ['Tanpa Parfum', for (final p in _settings!.perfumes) p.first];
 
   static const _payMethods = [
     ['Tunai', '💵', 'Bayar di kasir'], ['QRIS', '▦', 'Scan QR'], ['Transfer', '⇄', 'Transfer bank'],
@@ -715,8 +778,15 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   void _confirm(String method, String text) {
     _pendingMethod = method;
+    final qris = _settings!.qrisText;
+    final st = _settings!;
     _open(_Sheet('confirm', [
       {'type': 'title', 't': method == 'QRIS' ? 'Pembayaran QRIS' : (method == 'Transfer' ? 'Transfer Bank' : method), 's': ''},
+      if (method == 'QRIS' && qrisValid(qris)) {'type': 'qr', 'data': qrisDynamic(qris, _cartTotal), 'size': 230},
+      if (method == 'QRIS' && !qrisValid(qris)) {'type': 'hint', 't': 'QRIS outlet belum diatur. Atur di Pengaturan → QRIS Outlet.'},
+      if (method == 'Transfer' && st.bank.isNotEmpty) {'type': 'pair', 't': st.bank, 'v': st.account},
+      if (method == 'Transfer' && st.holder.isNotEmpty) {'type': 'pair', 't': 'Atas nama', 'v': st.holder},
+      if (method == 'Transfer' && st.bank.isEmpty) {'type': 'hint', 't': 'Rekening belum diatur. Atur di Pengaturan → Rekening Transfer.'},
       {'type': 'pair', 't': 'Total Tagihan', 'v': rpSpaced(_cartTotal)},
       {'type': 'hint', 't': text},
       {'type': 'button', 't': method == 'Transfer' ? 'SUDAH DITRANSFER' : 'SUDAH LUNAS', 'primary': true, 'i': 1},
@@ -810,12 +880,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   // ---------------- Pengaturan & Laporan (sementara) ----------------
-  FormModel _settingsModel() => FormModel(page: 'settings', title: 'Pengaturan', items: [
-        {'type': 'entry', 't': 'GOYANA Mode Murni (beta)', 'lines': ['Tanpa WebView · lebih ringan. Menu lain sedang dipindahkan.'], 'avatar': '⚡'},
-        {'type': 'card', 't': 'Pelanggan', 's': '${_b!.customers.length} pelanggan', 'ic': '👥', 'i': 1},
-        {'type': 'card', 't': 'Kembali ke versi lengkap', 's': 'Semua menu (versi lama) · data tetap sama', 'ic': '↩', 'i': 99},
-      ]);
-
   FormModel _reportsModel() {
     final b = _b!;
     final t = b.today(now);
@@ -840,7 +904,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   Widget build(BuildContext context) {
     final b = _b;
-    if (b == null) return const Material(color: Colors.white, child: Center(child: CircularProgressIndicator(color: gBrand)));
+    if (b == null || _settings == null) return const Material(color: Colors.white, child: Center(child: CircularProgressIndicator(color: gBrand)));
     final n = now;
     Widget page;
     switch (_page) {
@@ -850,12 +914,13 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch)), actions: this);
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
-      case 'settings':
-        page = NativeForm(key: const ValueKey('settings'), model: _settingsModel(), actions: this);
       case 'reports':
         page = NativeForm(key: const ValueKey('reports'), model: _reportsModel(), actions: this, navActive: 2);
       default:
-        page = NativeHome(model: HomeModel.fromJson(homeJson(b, n)), actions: this);
+        final pp = _pages[_page];
+        page = pp != null
+            ? NativeForm(key: ValueKey(_page), model: FormModel(page: _page, title: pp.title, items: pp.items()), actions: this, navActive: pp.navActive)
+            : NativeHome(model: HomeModel.fromJson(homeJson(b, n)), actions: this);
     }
     return PopScope(
       canPop: false,
