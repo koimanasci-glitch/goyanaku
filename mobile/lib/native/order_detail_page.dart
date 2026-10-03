@@ -331,8 +331,12 @@ class _Steps extends StatelessWidget {
                 child: Column(children: [
                   _dot(s),
                   const SizedBox(height: 6),
-                  Text(_s(s['t']), textAlign: TextAlign.center,
-                      style: gText(10.5, c: s['done'] == true ? const Color(0xff15885d) : (s['on'] == true ? _ink : const Color(0xff9aa1ad)), h: 14.7)),
+                  // Seperti HTML: kata panjang ("Penjemputan") tidak dipotong, boleh sedikit melewati kolom.
+                  OverflowBox(
+                    minWidth: 0, maxWidth: col + 24, fit: OverflowBoxFit.deferToChild,
+                    child: Text(_s(s['t']), textAlign: TextAlign.center,
+                        style: gText(10.5, c: s['done'] == true ? const Color(0xff15885d) : (s['on'] == true ? _ink : const Color(0xff9aa1ad)), h: 14.7)),
+                  ),
                 ]),
               ),
           ]),
