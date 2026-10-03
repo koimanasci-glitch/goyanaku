@@ -39,6 +39,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.webviewflutter.WebViewFlutterAndroidExternalApi
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -46,8 +47,9 @@ import java.util.UUID
 import java.util.concurrent.Executors
 
 /**
- * Native side of the GOYANA Flutter app: printer, files, notifications, location,
- * SQLite store. Every call arrives from Dart on channel id.goyana/device.
+ * Native side of the GOYANA hybrid app. Ports the old Capacitor plugin
+ * (native/GoyanaDevice.java) and adds what a bare WebView lacks.
+ * Every call arrives from lib/hybrid/bridge.dart on channel id.goyana/device.
  */
 class MainActivity : FlutterActivity() {
     private val main = Handler(Looper.getMainLooper())
@@ -131,6 +133,7 @@ class MainActivity : FlutterActivity() {
 
             "Print.html" -> printHtml(call.argument<String>("html") ?: "", call.argument<String>("title") ?: "GOYANA", result)
             "App.openUrl" -> openUrl(call.argument<String>("url") ?: "", result)
+            "Store.attach" -> attachStore(call, result)
             // Dart (logika murni Flutter) membaca & menulis database yang sama dengan aplikasi HTML.
             "Store.get" -> io.execute { val v = store.get(call.argument<String>("key") ?: ""); main.post { result.success(v) } }
             "Store.set" -> io.execute {
@@ -550,7 +553,21 @@ class MainActivity : FlutterActivity() {
         result.success(null)
     }
 
-    
+    // ---------- SQLite storage for the web app ----------
+    /** Exposes [GoyanaStore] to the app WebView as window.GoyanaStore (must run before the page loads). */
+    @Suppress("DEPRECATION")
+    private fun attachStore(call: MethodCall, result: MethodChannel.Result) {
+        val id = (call.argument<Number>("id"))?.toLong()
+        val engine = flutterEngine
+        val view = if (id != null && engine != null) WebViewFlutterAndroidExternalApi.getWebView(engine, id) else null
+        if (view == null) {
+            result.success(false)
+            return
+        }
+        view.addJavascriptInterface(store, "GoyanaStore")
+        result.success(true)
+    }
+
     // ---------- external links ----------
     private fun openUrl(url: String, result: MethodChannel.Result) {
         try {
