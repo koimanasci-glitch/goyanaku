@@ -69,7 +69,13 @@ jobs:
           # Show each finding as a GitHub annotation (readable from the API without log access).
           awk -F ' • ' '/^ *(info|warning|error) • /{split($3,a,":"); gsub(/^ +/,"",$1); printf "::warning file=mobile/%s,line=%s::%s %s (%s)\n", a[1], a[2], $1, $2, $4}' analyze.txt
           exit $code
-      - run: flutter test --exclude-tags screens
+      - name: Tes unit (logika Dart)
+        run: |
+          set +e
+          flutter test --exclude-tags screens --reporter expanded > unit.txt 2>&1; code=$?
+          cat unit.txt
+          if [ $code -ne 0 ]; then grep -E '\[E\]|Expected:|Actual:|Which:|Error:|error:|\.dart:[0-9]+' unit.txt | head -40 | sed 's/^/::warning::/'; fi
+          exit $code
         working-directory: mobile
       - name: Screenshot halaman Flutter native
         run: |
