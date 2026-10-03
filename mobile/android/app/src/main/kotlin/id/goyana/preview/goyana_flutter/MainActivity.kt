@@ -134,6 +134,13 @@ class MainActivity : FlutterActivity() {
             "Print.html" -> printHtml(call.argument<String>("html") ?: "", call.argument<String>("title") ?: "GOYANA", result)
             "App.openUrl" -> openUrl(call.argument<String>("url") ?: "", result)
             "Store.attach" -> attachStore(call, result)
+            // Dart (logika murni Flutter) membaca & menulis database yang sama dengan aplikasi HTML.
+            "Store.get" -> io.execute { val v = store.get(call.argument<String>("key") ?: ""); main.post { result.success(v) } }
+            "Store.set" -> io.execute {
+                val ok = store.set(call.argument<String>("key") ?: "", call.argument<String>("value") ?: "")
+                main.post { result.success(ok) }
+            }
+            "Store.remove" -> io.execute { store.remove(call.argument<String>("key") ?: ""); main.post { result.success(true) } }
             else -> result.notImplemented()
         }
     }
