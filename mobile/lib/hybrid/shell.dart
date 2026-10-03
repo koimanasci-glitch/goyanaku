@@ -8,6 +8,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
+import '../core/business.dart';
+import '../core/store.dart';
+import '../logic/home.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
 import '../native/cashclose_page.dart';
@@ -203,7 +206,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         if (page == 'cashclose' && model != null) _cashClose = model;
         if (page == 'services' && model != null) _services = ServicesModel.fromJson(model);
         if (_formPages.contains(page) && model != null) _form = FormModel.fromJson(page!, model);
-        if (page == 'home' && model != null) _home = HomeModel.fromJson(model);
+        if (page == 'home' && model != null) {
+          _home = HomeModel.fromJson(model);
+          _homeFromDart(model);
+        }
         if (page == 'orders' && model != null) _orders = OrdersModel.fromJson(model);
         if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
@@ -337,6 +343,38 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   void fmTap(int index) => _formAct('tap', index);
   void _mirror(String kind, int index, [Object? value]) => _web.runJavaScript(
       'window.__goyanaMirror&&__goyanaMirror(${jsonEncode(_nativePage ?? '')},${jsonEncode(kind)},$index,${jsonEncode(value)})');
+
+  // ---------- Logika Dart (tahap peralihan) ----------
+  // Beranda dihitung Dart dari database HP yang sama. Selama HTML masih ada, hasil Dart dipakai bila sama dengan HTML;
+  // bila berbeda, tampilan tetap memakai angka HTML dan perbedaannya dicatat (kunci goyana-parity-log) untuk diperbaiki.
+  int _homeSeq = 0;
+  Future<void> _homeFromDart(Map<String, dynamic> htmlModel) async {
+    final seq = ++_homeSeq;
+    try {
+      const store = DeviceKvStore();
+      final b = await Business.load(store);
+      final dart = homeModel(b, DateTime.now());
+      if (!mounted || seq != _homeSeq) return;
+      final html = jsonDecode(jsonEncode(htmlModel));
+      final same = jsonEncode(_numbers(jsonDecode(jsonEncode(dart)))) == jsonEncode(_numbers(html));
+      if (same) {
+        setState(() => _home = HomeModel.fromJson({...htmlModel, ..._numbers(dart)}));
+      } else {
+        final log = <dynamic>[];
+        try {
+          final old = jsonDecode(await store.get('goyana-parity-log') ?? '[]');
+          if (old is List) log.addAll(old.take(19));
+        } catch (_) {}
+        log.insert(0, {'at': DateTime.now().toIso8601String(), 'page': 'home', 'html': _numbers(html), 'dart': _numbers(dart)});
+        await store.set('goyana-parity-log', jsonEncode(log));
+      }
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
+  static Map<String, dynamic> _numbers(Object? m) {
+    final x = m is Map ? m : const {};
+    return {for (final k in const ['statIn', 'statReady', 'statLate', 'today', 'badge']) k: '${x[k] ?? ''}'};
+  }
 
   @override
   void odButton(int index) => fmScoped('g62-order-detail', 'button', index);
