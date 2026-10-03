@@ -6,36 +6,24 @@
    "t": "Otomasi Pelanggan"
   },
   {
-   "type": "title",
-   "t": "Pesanan diterima"
+   "type": "pair",
+   "t": "Pesanan diterima",
+   "v": "WA"
   },
   {
-   "type": "title",
-   "t": "WA"
+   "type": "pair",
+   "t": "Pesanan siap diambil",
+   "v": "WA"
   },
   {
-   "type": "title",
-   "t": "Pesanan siap diambil"
+   "type": "pair",
+   "t": "Belum diambil 2 hari",
+   "v": "Follow-up"
   },
   {
-   "type": "title",
-   "t": "WA"
-  },
-  {
-   "type": "title",
-   "t": "Belum diambil 2 hari"
-  },
-  {
-   "type": "title",
-   "t": "Follow-up"
-  },
-  {
-   "type": "title",
-   "t": "Chatbot status pesanan"
-  },
-  {
-   "type": "title",
-   "t": "SUPER PRO"
+   "type": "pair",
+   "t": "Chatbot status pesanan",
+   "v": "SUPER PRO"
   },
   {
    "type": "hint",

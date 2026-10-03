@@ -2,76 +2,85 @@
  "title": "PUSAT DATA",
  "items": [
   {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Pelanggan"
-  },
-  {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Transaksi"
-  },
-  {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Backup"
-  },
-  {
-   "type": "entry",
-   "t": "Import Data",
-   "lines": [
-    "Pindah dari aplikasi lama tanpa mengetik ulang."
-   ],
-   "badge": "",
-   "avatar": "",
-   "svg": "",
-   "btns": [
+   "type": "stats",
+   "cells": [
     {
-     "t": "👥Import PelangganCSV / Excel · mapping kolom · cek duplikat›",
-     "i": 0
+     "v": "0",
+     "t": "Pelanggan"
     },
     {
-     "t": "🧺Import Layanan & HargaNama layanan, satuan, harga dan durasi›",
-     "i": 1
+     "v": "0",
+     "t": "Transaksi"
     },
     {
-     "t": "🧾Import Transaksi LamaHistori order dan pembayaran›",
-     "i": 2
+     "v": "0",
+     "t": "Backup"
     }
    ]
   },
   {
-   "type": "entry",
-   "t": "Backup & Export",
-   "lines": [
-    "Amankan dan pindahkan data usaha."
-   ],
-   "badge": "",
-   "avatar": "",
+   "type": "title",
+   "t": "Import Data"
+  },
+  {
+   "type": "hint",
+   "t": "Pindah dari aplikasi lama tanpa mengetik ulang."
+  },
+  {
+   "type": "card",
+   "t": "Import Pelanggan",
+   "s": "CSV / Excel · mapping kolom · cek duplikat",
    "svg": "",
-   "btns": [
-    {
-     "t": "↓Export Semua DataExcel / CSV›",
-     "i": 3
-    },
-    {
-     "t": "☁Backup DatabaseBelum ada backup›",
-     "i": 4
-    },
-    {
-     "t": "↻Restore BackupPilih titik pemulihan›",
-     "i": 5
-    }
-   ]
+   "ic": "👥",
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Import Layanan & Harga",
+   "s": "Nama layanan, satuan, harga dan durasi",
+   "svg": "",
+   "ic": "🧺",
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Import Transaksi Lama",
+   "s": "Histori order dan pembayaran",
+   "svg": "",
+   "ic": "🧾",
+   "i": 2
+  },
+  {
+   "type": "title",
+   "t": "Backup & Export"
+  },
+  {
+   "type": "hint",
+   "t": "Amankan dan pindahkan data usaha."
+  },
+  {
+   "type": "card",
+   "t": "Export Semua Data",
+   "s": "Excel / CSV",
+   "svg": "",
+   "ic": "↓",
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Backup Database",
+   "s": "Belum ada backup",
+   "svg": "",
+   "ic": "☁",
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Restore Backup",
+   "s": "Pilih titik pemulihan",
+   "svg": "",
+   "ic": "↻",
+   "i": 5
   },
   {
    "type": "title",
@@ -82,20 +91,20 @@
    "t": "Pilih jenis import di atas. Sebelum disimpan, GOYANA akan menampilkan preview, mapping kolom, data valid, duplikat dan data gagal."
   },
   {
-   "type": "entry",
-   "t": "Masa Trial",
-   "lines": [
-    "Mulai dari nol sebelum dipakai sungguhan."
-   ],
-   "badge": "",
-   "avatar": "",
+   "type": "title",
+   "t": "Masa Trial"
+  },
+  {
+   "type": "hint",
+   "t": "Mulai dari nol sebelum dipakai sungguhan."
+  },
+  {
+   "type": "card",
+   "t": "Hapus Data Trial",
+   "s": "Hapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.",
    "svg": "",
-   "btns": [
-    {
-     "t": "🗑Hapus Data TrialHapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.›",
-     "i": 6
-    }
-   ]
+   "ic": "🗑",
+   "i": 6
   }
  ]
 }

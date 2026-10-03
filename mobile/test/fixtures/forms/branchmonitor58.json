@@ -13,64 +13,39 @@
    "btns": []
   },
   {
-   "type": "hint",
-   "t": "Omzet Hari Ini"
+   "type": "hero",
+   "t": "Omzet Hari Ini",
+   "v": "Rp0",
+   "s": "Outlet"
   },
   {
-   "type": "title",
-   "t": "Rp0"
-  },
-  {
-   "type": "title",
-   "t": "Outlet"
-  },
-  {
-   "type": "hint",
-   "t": "Diproses"
-  },
-  {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Siap Diambil"
-  },
-  {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Terlambat"
-  },
-  {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Saldo Kas"
-  },
-  {
-   "type": "title",
-   "t": "Rp0"
-  },
-  {
-   "type": "hint",
-   "t": "Belum Lunas"
-  },
-  {
-   "type": "title",
-   "t": "0"
-  },
-  {
-   "type": "hint",
-   "t": "Stok Menipis"
-  },
-  {
-   "type": "title",
-   "t": "0"
+   "type": "stats",
+   "cells": [
+    {
+     "v": "0",
+     "t": "Diproses"
+    },
+    {
+     "v": "0",
+     "t": "Siap Diambil"
+    },
+    {
+     "v": "0",
+     "t": "Terlambat"
+    },
+    {
+     "v": "Rp0",
+     "t": "Saldo Kas"
+    },
+    {
+     "v": "0",
+     "t": "Belum Lunas"
+    },
+    {
+     "v": "0",
+     "t": "Stok Menipis"
+    }
+   ]
   },
   {
    "type": "card",

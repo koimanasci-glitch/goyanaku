@@ -10,36 +10,24 @@
    "t": "Semua perubahan penting tercatat"
   },
   {
-   "type": "title",
-   "t": "Perubahan harga"
+   "type": "pair",
+   "t": "Perubahan harga",
+   "v": "Tercatat"
   },
   {
-   "type": "title",
-   "t": "Tercatat"
+   "type": "pair",
+   "t": "Pembatalan pesanan",
+   "v": "Tercatat"
   },
   {
-   "type": "title",
-   "t": "Pembatalan pesanan"
+   "type": "pair",
+   "t": "Pengeluaran kas",
+   "v": "Tercatat"
   },
   {
-   "type": "title",
-   "t": "Tercatat"
-  },
-  {
-   "type": "title",
-   "t": "Pengeluaran kas"
-  },
-  {
-   "type": "title",
-   "t": "Tercatat"
-  },
-  {
-   "type": "title",
-   "t": "Login pegawai"
-  },
-  {
-   "type": "title",
-   "t": "Tercatat"
+   "type": "pair",
+   "t": "Login pegawai",
+   "v": "Tercatat"
   }
  ]
 }

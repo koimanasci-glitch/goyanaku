@@ -194,7 +194,11 @@ class NativeForm extends StatelessWidget {
                       decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff6f5) : Colors.white, borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
                       child: Row(children: [
-                        Icon(o['on'] == true ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, size: 20, color: o['on'] == true ? gBrand : const Color(0xffb0b4bf)),
+                        Container(
+                          width: 20, height: 20, alignment: Alignment.center,
+                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffb0b4bf), width: 2)),
+                          child: o['on'] == true ? Container(width: 10, height: 10, decoration: const BoxDecoration(color: gBrand, shape: BoxShape.circle)) : null,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -301,6 +305,53 @@ class NativeForm extends StatelessWidget {
               ]),
             ),
           ),
+        );
+      case 'hero':
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xff1e1e1e), Color(0xff2c3e5c)]),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_s(it['t']), style: gText(11.5, c: const Color(0xffaeb8c7))),
+              FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(_s(it['v']), style: gText(26, w: FontWeight.w500, c: Colors.white, h: 36))),
+              if (_s(it['s']).isNotEmpty) Text(_s(it['s']), style: gText(11, c: const Color(0xffc9d1dd))),
+            ]),
+          ),
+        );
+      case 'stats':
+        final cells = _list(it['cells']);
+        final n = cells.length, cols = n <= 3 ? n : (n % 3 == 0 ? 3 : 2);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: LayoutBuilder(builder: (context, box) => Wrap(spacing: 8, runSpacing: 8, children: [
+            for (var k = 0; k < cells.length; k++)
+              SizedBox(
+                width: (box.maxWidth - 8 * (cols - 1)) / cols,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xffe8ecf2))),
+                  child: Column(children: [
+                    FittedBox(fit: BoxFit.scaleDown, child: Text(_s(cells[k]['v']), style: gText(18, w: FontWeight.w600, c: _ink))),
+                    Text(_s(cells[k]['t']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(11, c: const Color(0xff8a8fa3))),
+                  ]),
+                ),
+              ),
+          ])),
+        );
+      case 'pair':
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xfff1f2f5)))),
+          child: Row(children: [
+            Expanded(child: Text(_s(it['t']), style: gText(13.5, c: _ink))),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(color: const Color(0xfffff0ee), borderRadius: BorderRadius.circular(8)),
+                child: Text(_s(it['v']), style: gText(11.5, w: FontWeight.w600, c: gBrand))),
+          ]),
         );
       case 'buttons':
         return Padding(

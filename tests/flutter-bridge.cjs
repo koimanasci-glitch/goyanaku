@@ -262,6 +262,16 @@ try{
   assert.ok(last.model.items.filter(x=>x.type==='toggle').length>=8);
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Outlet, Edit Outlet, Antar-Jemput & QRIS use the generic native form (entries, radio cards, file upload)');
+  for(const id of ['cashier','reminder','expense','printerconnect','aboutgoyana','auditlog','automation','datacenter','wadevices195','whatsappbot','branchmonitor58']){
+    last=await openNative(id);assert.ok(last.model.items.length>0,id+' has content');
+  }
+  last=await openNative('cashier');const perm=last.model.items.find(x=>x.type==='toggle');
+  await p.evaluate(i=>__goyanaForm('cashier','toggle',i),perm.i);await p.waitForTimeout(300);
+  assert.equal((await lastAdd()).model.items.find(x=>x.type==='toggle'&&x.i===perm.i).on,!perm.on,'cashier permission switch runs the HTML logic');
+  last=await openNative('datacenter');assert.equal(last.model.items[0].type,'stats');
+  last=await openNative('branchmonitor58');assert.ok(last.model.items.some(x=>x.type==='hero')&&last.model.items.find(x=>x.type==='stats').cells.length===6);
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS 11 more settings pages (Kasir, Pengingat, Pusat Data, WhatsApp, ...) use the generic native form');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

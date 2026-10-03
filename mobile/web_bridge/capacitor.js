@@ -486,6 +486,23 @@
             items.push({ type: 'input', label: clean(lspan), pre: pre.map(clean).join(' '), suf: suf.map(clean).join(' '), v: f.value, ph: f.placeholder || '', numeric: /numeric|decimal|tel/.test(f.inputMode || f.type || ''), ro: !!(f.readOnly || f.disabled), i: inputs.indexOf(f) });
             return;
           }
+          // Stat tiles: <div><b>12</b><small>Pelanggan</small></div> x N.
+          var tile = function (k) { return k.tagName === 'DIV' && k.children.length === 2 && k.querySelector(':scope > b, :scope > strong') && k.querySelector(':scope > small'); };
+          if (kids.length > 1 && kids.length <= 9 && kids.every(tile)) {
+            items.push({ type: 'stats', cells: kids.map(function (k) { return { v: clean(k.querySelector(':scope > b, :scope > strong')), t: clean(k.querySelector(':scope > small')) }; }) });
+            return;
+          }
+          // Big number card: <small>Omzet Hari Ini</small><strong>Rp0</strong><span>Outlet</span>.
+          var hs = c.querySelector(':scope > strong'), hl = c.querySelector(':scope > small');
+          if (hs && hl && !c.querySelector('button, input') && kids.length <= 3) {
+            items.push({ type: 'hero', t: clean(hl), v: clean(hs), s: clean(c.querySelector(':scope > span')) });
+            return;
+          }
+          // Label + value pair: <span>Pesanan diterima</span><b>WA</b>.
+          if (kids.length === 2 && kids[0].tagName === 'SPAN' && /^(B|STRONG|EM)$/.test(kids[1].tagName) && !kids[0].children.length) {
+            items.push({ type: 'pair', t: clean(kids[0]), v: clean(kids[1]) });
+            return;
+          }
           if (tag === 'LABEL') { items.push({ type: 'label', t: clean(c) }); return; }
           if (tag === 'SUMMARY') { items.push({ type: 'label', t: clean(c) }); return; }
           if (/^H[1-6]$/.test(tag)) { items.push({ type: 'title', t: clean(c) }); return; }
@@ -497,7 +514,8 @@
           var ebox = eb && eb.parentElement;
           var ebtns = Array.prototype.filter.call(c.querySelectorAll('button'), shown);
           var esm = ebox ? Array.prototype.filter.call(ebox.querySelectorAll(':scope > small'), shown) : [];
-          if (eb && esm.length && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span'))) {
+          var simple = ebtns.every(function (x) { return !x.querySelector('small, div'); });
+          if (eb && esm.length && simple && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span'))) {
             var av = c.querySelector(':scope > span');
             items.push({ type: 'entry', t: clean(eb), lines: esm.map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
               btns: ebtns.map(function (x) { return { t: clean(x), i: buttons.indexOf(x) }; }) });
@@ -505,7 +523,7 @@
           }
           // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
           var rb = c.querySelector(':scope > div > b'), rs = c.querySelector(':scope > div > small');
-          if (btn && rb && c.querySelectorAll(':scope > button').length === 1 && !c.querySelector('input')) { items.push({ type: 'row', t: clean(rb), s: clean(rs), btn: clean(btn), svg: svgOf(c.querySelector(':scope > span')), i: buttons.indexOf(btn) }); return; }
+          if (btn && rb && !btn.querySelector('small, div') && c.querySelectorAll(':scope > button').length === 1 && !c.querySelector('input')) { items.push({ type: 'row', t: clean(rb), s: clean(rs), btn: clean(btn), svg: svgOf(c.querySelector(':scope > span')), i: buttons.indexOf(btn) }); return; }
           // A strip of small buttons (e.g. Peta · Lokasi saya · Tempel link).
           if (kids.length > 1 && kids.every(function (k) { return k.tagName === 'BUTTON' && !k.querySelector('small'); })) {
             kids.forEach(function (k) { seen.add(k); });
@@ -673,6 +691,7 @@
   }
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
+  ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
