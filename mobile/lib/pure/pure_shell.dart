@@ -52,7 +52,16 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
   };
+
+  @override
+  KvStore get kv => widget.store;
+
+  /// Kasir yang sedang login (PIN); dicatat di riwayat pesanan.
+  String _kasir = 'Kasir';
+  bool _locked = false;
+  String _pin = '';
 
   @override
   void openOrder(String id) {
@@ -120,6 +129,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         setState(() {
           _b = r[0] as Business;
           _settings = r[1] as AppSettings;
+          _locked = _settings!.raw['pinLock'] == true && (_settings!.raw['employees'] as List? ?? const []).isNotEmpty;
         });
       }
     });
@@ -186,6 +196,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         nav('orders');
       case 3:
         nav('customers');
+      case 2:
+        nav('couriers');
       case 4:
         nav('today');
       default:
@@ -255,7 +267,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void openMaps(String url) => _device.invokeMethod('App.openUrl', {'url': url}).catchError((_) => null);
 
   void _next(Order o) {
-    final n = _b!.advance(o, now: now);
+    final n = _b!.advance(o, now: now, by: _kasir);
     if (n == null) return;
     _save();
     toast(const {
@@ -427,6 +439,20 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void fmScoped(String scope, String kind, int index, [Object? value]) {
     final b = _b;
     if (b == null) return;
+    if (scope == 'pin') {
+      if (kind == 'input') _pin = '${value ?? ''}'.replaceAll(RegExp(r'\D'), '');
+      if (kind == 'button') {
+        final emp = (_settings!.raw['employees'] as List? ?? const []).whereType<Map>().where((e) => e['pin'] == _pin).firstOrNull;
+        if (emp == null) return toast('PIN salah');
+        setState(() {
+          _kasir = '${emp['name']}';
+          _locked = false;
+          _pin = '';
+        });
+        toast('Halo, $_kasir');
+      }
+      return;
+    }
     if (kind == 'close') {
       _close(scope);
       if (scope == 'detail') _detailId = null;
@@ -719,7 +745,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             OrderItem(name: s.name, icon: s.unit == 'kg' ? 'Kiloan' : (s.unit == 'm' ? 'Meteran' : 'Satuan'), unit: s.unit, price: s.priceFor(_aoDur), qty: e.value),
       ];
 
-  static const _discs = [['Tanpa diskon', '0'], ['Diskon 5%', 'p5'], ['Diskon 10%', 'p10'], ['Potongan Rp5.000', 'n5000'], ['Potongan Rp10.000', 'n10000']];
+  static const _baseDiscs = [['Tanpa diskon', '0'], ['Diskon 5%', 'p5'], ['Diskon 10%', 'p10'], ['Potongan Rp5.000', 'n5000'], ['Potongan Rp10.000', 'n10000']];
+  List<List<String>> get _discs => [
+        ..._baseDiscs,
+        for (final d in (_settings!.raw['discounts'] as List? ?? const []))
+          if (d is List && d.length > 1) ['${d[0]}', '${d[1]}'],
+      ];
   static const _hands = ['Datang Langsung', 'Antar ke rumah', 'Jemput & Antar'];
 
   Map<String, dynamic> _addOrderJson() {
@@ -1028,7 +1059,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
       discKey: _discs[(_opt['disc'] as int)][1], perfume: _perfumes[(_opt['perfume'] as int).clamp(0, _perfumes.length - 1)],
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
-      payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, now: now,
+      payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );
     if (method == 'Saldo Deposit') {
       // Saldo deposit dipotong lewat pembayaran (bukan kas tunai).
@@ -1054,6 +1085,15 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final b = _b;
     if (b == null || _settings == null) return const Material(color: Colors.white, child: Center(child: CircularProgressIndicator(color: gBrand)));
     final n = now;
+    if (_locked) {
+      return NativeSheet(id: 'pin', screen: true, actions: this, items: [
+        {'type': 'title', 't': 'GOYANA'},
+        {'type': 'title', 't': 'Masukkan PIN', 's': ''},
+        {'type': 'hint', 't': 'PIN pegawai untuk membuka aplikasi.'},
+        {'type': 'input', 'v': _pin, 'ph': 'PIN', 'numeric': true, 'secret': true, 'i': 0},
+        {'type': 'button', 't': 'Masuk', 'primary': true, 'i': 1},
+      ]);
+    }
     Widget page;
     switch (_page) {
       case 'orders':

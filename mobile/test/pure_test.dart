@@ -141,7 +141,7 @@ void main() {
 
   testWidgets('halaman pelanggan, laporan, pengaturan tampil tanpa error', (tester) async {
     final s = await _pump(tester, _store());
-    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'outlet', 'today', 'data', 'home']) {
+    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'outlet', 'today', 'data', 'stock', 'couriers', 'discounts', 'employees', 'help', 'home']) {
       s.nav(p);
       await _settle(tester);
       expect(tester.takeException(), isNull, reason: p);
@@ -239,6 +239,43 @@ void main() {
     o = (await Business.load(kv)).orders.first;
     expect(o.status, 'antrian');
     expect(o.total, 24500);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stok bahan: tambah, pemakaian, opname; pegawai & PIN', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('stock');
+    await _settle(tester);
+    s.fmButton(1);
+    s.fmInput(0, 'Deterjen');
+    s.fmInput(1, 'liter');
+    s.fmInput(2, '2');
+    s.fmInput(3, '15000');
+    s.fmInput(4, '10');
+    s.fmButton(10);
+    await _settle(tester);
+    s.fmButton(100); // mutasi item 0
+    s.fmButton(21); // pemakaian
+    s.fmInput(5, '3');
+    s.fmButton(12);
+    await _settle(tester);
+    s.fmButton(200); // opname
+    s.fmInput(5, '6');
+    s.fmButton(13);
+    await _settle(tester);
+    final raw = jsonDecode((await kv.get('goyana-stock181'))!) as Map<String, dynamic>;
+    final ledger = (raw['ledger'] as List).cast<Map>();
+    expect(ledger.map((e) => e['type']), ['Stok Awal', 'Pemakaian', 'Stock Opname']);
+    expect(ledger.last['qty'], -1, reason: 'sistem 7, fisik 6');
+
+    s.nav('employees');
+    await _settle(tester);
+    s.fmInput(0, 'Rina');
+    s.fmInput(2, '1234');
+    s.fmButton(1);
+    s.fmToggle(0);
+    await _settle(tester);
     expect(tester.takeException(), isNull);
   });
 }
