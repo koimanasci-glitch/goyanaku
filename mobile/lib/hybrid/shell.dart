@@ -66,7 +66,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   /// HTML pages drawn by the generic native form (formModel in capacitor.js).
   static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter', 'outlets', 'outletedit', 'delivery', 'qris',
     'cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade'};
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   Timer? _toastTimer;
@@ -308,11 +308,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   @override
   void fmRadio(int index) => _formAct('radio', index);
   @override
-  void fmButton(int index) {
-    // Buttons usually open another page or a sheet: show the HTML until it reports back.
-    setState(() => _nativePage = null);
-    _formAct('button', index);
-  }
+  // The page reports back right after the click (new page, sheet, or updated values), so the native view stays
+  // until then instead of flashing the HTML underneath (steppers, tabs and switches tap many times).
+  void fmButton(int index) => _formAct('button', index);
 
   @override
   Future<void> fmFile(String inputId) async {

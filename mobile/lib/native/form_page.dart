@@ -439,6 +439,21 @@ class NativeForm extends StatelessWidget {
                 child: Text(_s(it['v']), style: gText(11.5, w: FontWeight.w600, c: gBrand))),
           ]),
         );
+      case 'stepper':
+        Widget sb(String t, int i) => GestureDetector(
+              onTap: () => a.fmButton(i),
+              child: Container(width: 42, height: 42, alignment: Alignment.center,
+                  decoration: BoxDecoration(color: const Color(0xfff3f4f7), borderRadius: BorderRadius.circular(12)),
+                  child: Text(t, style: gText(20, w: FontWeight.w500, c: _ink))),
+            );
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            sb(_s(it['mt']), _i(it['minus'])),
+            SizedBox(width: 70, child: Text(_s(it['v']), textAlign: TextAlign.center, style: gText(20, w: FontWeight.w600, c: _ink))),
+            sb(_s(it['pt']), _i(it['plus'])),
+          ]),
+        );
       case 'buttons':
         return Padding(
           padding: const EdgeInsets.only(top: 2, bottom: 10),
@@ -447,8 +462,9 @@ class NativeForm extends StatelessWidget {
               GestureDetector(
                 onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _s(o['file']).isNotEmpty ? a.fmFile(_s(o['file'])) : a.fmButton(_i(o['i'])); },
                 child: Container(height: 36, padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xffe1e5ea))),
-                    child: Center(widthFactor: 1, child: Text(_s(o['t']), style: gText(12.5, w: FontWeight.w500, c: _ink)))),
+                    decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff0ee) : const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
+                    child: Center(widthFactor: 1, child: Text(_s(o['t']), style: gText(12.5, w: FontWeight.w500, c: o['on'] == true ? gBrand : _ink)))),
               ),
           ]),
         );

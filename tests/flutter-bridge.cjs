@@ -300,6 +300,13 @@ try{
   assert.equal((await lastAdd()).page,null,'package detail (HTML) covers the native page');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Upgrade Paket: package cards native, detail/checkout stay HTML');
+  last=await openNative('addbot');const step=last.model.items.find(x=>x.type==='stepper');assert.equal(step.v,'1');
+  await p.evaluate(i=>__goyanaForm('addbot','button',i),step.plus);await p.waitForTimeout(300);
+  last=await lastAdd();assert.equal(last.model.items.find(x=>x.type==='stepper').v,'2','stepper runs the HTML logic');
+  assert.equal(last.model.items.find(x=>x.type==='pair'&&x.t==='Total').v,'Rp 60.000');
+  const durs=last.model.items.find(x=>x.type==='buttons'&&x.options.some(o=>/Bulan/.test(o.t)));assert.ok(durs.options[0].on,'chosen duration is marked');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Tambah Nomor Chatbot: stepper, durations and total are native');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

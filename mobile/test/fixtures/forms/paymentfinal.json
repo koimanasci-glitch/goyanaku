@@ -1,0 +1,56 @@
+{
+ "title": "PEMBAYARAN",
+ "items": [
+  {
+   "type": "hero",
+   "t": "ORDER BERHASIL DIBUAT",
+   "v": "GY-260926-0131",
+   "s": "Budi Santoso · Reguler 4 Kg"
+  },
+  {
+   "type": "hero",
+   "t": "Total Pembayaran",
+   "v": "Rp35.000",
+   "s": ""
+  },
+  {
+   "type": "title",
+   "t": "Pilih Pembayaran"
+  },
+  {
+   "type": "card",
+   "t": "Tunai",
+   "s": "Bayar di kasir",
+   "svg": "",
+   "ic": "💵",
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "QRIS",
+   "s": "QR khusus order",
+   "svg": "",
+   "ic": "▦",
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Transfer",
+   "s": "Transfer bank",
+   "svg": "",
+   "ic": "⇄",
+   "i": 2
+  },
+  {
+   "type": "button",
+   "t": "Bayar Nanti",
+   "primary": false,
+   "file": "",
+   "i": 4
+  },
+  {
+   "type": "hint",
+   "t": "Sesudah pembayaran, cetak struk tetap opsional: Cetak Struk + Barcode atau Tanpa Cetak."
+  }
+ ]
+}

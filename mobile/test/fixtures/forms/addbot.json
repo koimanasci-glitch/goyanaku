@@ -1,0 +1,83 @@
+{
+ "title": "TAMBAH NOMOR CHATBOT",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Chatbot WhatsApp GOYANA",
+   "lines": [
+    "Balas otomatis cek status, total tagihan, harga layanan & jam outlet."
+   ],
+   "badge": "",
+   "avatar": "💬",
+   "svg": "",
+   "color": "",
+   "btns": []
+  },
+  {
+   "type": "pair",
+   "t": "Paket saat ini",
+   "v": "FREE"
+  },
+  {
+   "type": "pair",
+   "t": "Nomor chatbot termasuk paket",
+   "v": "0 nomor"
+  },
+  {
+   "type": "pair",
+   "t": "Nomor tambahan aktif",
+   "v": "0 nomor"
+  },
+  {
+   "type": "title",
+   "t": "Jumlah nomor tambahan"
+  },
+  {
+   "type": "stepper",
+   "v": "1",
+   "minus": 0,
+   "plus": 1,
+   "mt": "−",
+   "pt": "+"
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "1 Bulan",
+     "file": "",
+     "on": true,
+     "i": 2
+    },
+    {
+     "t": "3 Bulan −10%",
+     "file": "",
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "12 Bulan −20%",
+     "file": "",
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "pair",
+   "t": "Total",
+   "v": "Rp 30.000"
+  },
+  {
+   "type": "button",
+   "t": "Lanjut ke Pembayaran",
+   "primary": true,
+   "file": "",
+   "i": 5
+  },
+  {
+   "type": "hint",
+   "t": "Rp30.000 per nomor per bulan, berlaku untuk semua paket. Setiap nomor dihubungkan dengan scan QR WhatsApp di menu WhatsApp Chatbot."
+  }
+ ]
+}
