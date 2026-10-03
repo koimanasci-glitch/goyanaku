@@ -1121,7 +1121,7 @@ class CrmPage extends PurePage {
       vouchers.add({'code': code, 'name': vname.isEmpty ? code : vname, 'key': percent ? 'p$n' : 'n$n'});
       code = '';
       vname = '';
-      value = '';
+      amount = '';
       await host.saveAll();
       host.toast('Voucher dibuat');
       return host.refresh();
