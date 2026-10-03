@@ -1,0 +1,28 @@
+{
+ "title": "HUBUNGKAN WHATSAPP",
+ "items": [
+  {
+   "type": "hint",
+   "t": "Kelola beberapa nomor WhatsApp dan pilih cabang untuk setiap perangkat."
+  },
+  {
+   "type": "button",
+   "t": "+ Tambah Device",
+   "primary": true,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Belum ada perangkat"
+  },
+  {
+   "type": "hint",
+   "t": "Ketuk Tambah Device, lalu isi nomor dan pilih cabang."
+  },
+  {
+   "type": "hint",
+   "t": "Perangkat tersimpan di HP ini. QR untuk menautkan WhatsApp akan tersedia setelah layanan WhatsApp dihubungkan."
+  }
+ ]
+}

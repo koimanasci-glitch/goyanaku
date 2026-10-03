@@ -1,0 +1,94 @@
+{
+ "title": "KASIR",
+ "items": [
+  {
+   "type": "button",
+   "t": "+ Tambah Kasir",
+   "primary": true,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "entry",
+   "t": "Pengaturan Kasir",
+   "lines": [
+    "Atur akses yang boleh digunakan kasir"
+   ],
+   "badge": "",
+   "avatar": "⌃",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Aktifkan hanya izin yang memang dibutuhkan kasir. Owner tetap memiliki akses penuh."
+  },
+  {
+   "type": "toggle",
+   "t": "Statistik Harian",
+   "s": "(Nominal & Jumlah)",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Statistik Layanan",
+   "s": "(Kiloan, Satuan, Meteran)",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Menghapus Pelanggan",
+   "s": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Membatalkan Pesanan",
+   "s": "",
+   "on": true,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Lihat Saldo Kas Tunai",
+   "s": "",
+   "on": true,
+   "i": 4
+  },
+  {
+   "type": "toggle",
+   "t": "Lihat Saldo Kas Non-Tunai",
+   "s": "",
+   "on": true,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Mengurangi Kas Tunai",
+   "s": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "toggle",
+   "t": "Mengurangi Kas Non-Tunai",
+   "s": "",
+   "on": false,
+   "i": 7
+  },
+  {
+   "type": "toggle",
+   "t": "Lihat Mutasi Kas",
+   "s": "",
+   "on": true,
+   "i": 8
+  },
+  {
+   "type": "hint",
+   "t": "ID Kasir digunakan untuk login akun kasir. Tambahkan kasir untuk membuat ID dan PIN kasir."
+  }
+ ]
+}

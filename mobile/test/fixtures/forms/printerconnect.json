@@ -1,0 +1,49 @@
+{
+ "title": "PRINTER BLUETOOTH",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Belum terhubung",
+   "lines": [
+    "Nyalakan printer thermal & Bluetooth HP Anda"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "<svg viewBox=\"0 0 24 24\"><path d=\"M7 8V3h10v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"></path><path d=\"M7 15h10v6H7z\"></path></svg>",
+   "btns": []
+  },
+  {
+   "type": "title",
+   "t": "Akses Printer"
+  },
+  {
+   "type": "button",
+   "t": "Pengaturan Bluetooth HP",
+   "primary": true,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Perangkat Ditemukan"
+  },
+  {
+   "type": "hint",
+   "t": "Pasangkan printer di Bluetooth HP, lalu Cari Ulang Printer."
+  },
+  {
+   "type": "button",
+   "t": "↻ Cari Ulang Printer",
+   "primary": false,
+   "file": "",
+   "i": 1
+  },
+  {
+   "type": "button",
+   "t": "Tes Cetak",
+   "primary": true,
+   "file": "",
+   "i": 2
+  }
+ ]
+}

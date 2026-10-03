@@ -1,0 +1,101 @@
+{
+ "title": "PUSAT DATA",
+ "items": [
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Pelanggan"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Transaksi"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Backup"
+  },
+  {
+   "type": "entry",
+   "t": "Import Data",
+   "lines": [
+    "Pindah dari aplikasi lama tanpa mengetik ulang."
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "btns": [
+    {
+     "t": "👥Import PelangganCSV / Excel · mapping kolom · cek duplikat›",
+     "i": 0
+    },
+    {
+     "t": "🧺Import Layanan & HargaNama layanan, satuan, harga dan durasi›",
+     "i": 1
+    },
+    {
+     "t": "🧾Import Transaksi LamaHistori order dan pembayaran›",
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Backup & Export",
+   "lines": [
+    "Amankan dan pindahkan data usaha."
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "btns": [
+    {
+     "t": "↓Export Semua DataExcel / CSV›",
+     "i": 3
+    },
+    {
+     "t": "☁Backup DatabaseBelum ada backup›",
+     "i": 4
+    },
+    {
+     "t": "↻Restore BackupPilih titik pemulihan›",
+     "i": 5
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Preview Import"
+  },
+  {
+   "type": "hint",
+   "t": "Pilih jenis import di atas. Sebelum disimpan, GOYANA akan menampilkan preview, mapping kolom, data valid, duplikat dan data gagal."
+  },
+  {
+   "type": "entry",
+   "t": "Masa Trial",
+   "lines": [
+    "Mulai dari nol sebelum dipakai sungguhan."
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "btns": [
+    {
+     "t": "🗑Hapus Data TrialHapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.›",
+     "i": 6
+    }
+   ]
+  }
+ ]
+}

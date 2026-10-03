@@ -1,0 +1,50 @@
+{
+ "title": "PENGATURAN DISKON",
+ "items": [
+  {
+   "type": "button",
+   "t": "+ Tambah Diskon",
+   "primary": false,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Belum ada diskon. Tekan + Tambah Diskon."
+  },
+  {
+   "type": "title",
+   "t": "Aturan Kasir"
+  },
+  {
+   "type": "hint",
+   "t": "Potongan Rp bebas saat membuat pesanan"
+  },
+  {
+   "type": "toggle",
+   "t": "",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "label": "Maksimal diskon kasirDiskon di atas batas ini harus oleh owner/admin",
+   "pre": "",
+   "suf": "",
+   "v": "20",
+   "ph": "",
+   "numeric": false,
+   "ro": false,
+   "i": 0
+  },
+  {
+   "type": "hint",
+   "t": "Siapa memberi diskon, berapa, di pesanan mana"
+  },
+  {
+   "type": "title",
+   "t": "Aktif"
+  }
+ ]
+}

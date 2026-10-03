@@ -1,0 +1,12 @@
+{
+ "title": "NOTIFIKASI",
+ "items": [
+  {
+   "type": "button",
+   "t": "Tandai semua sudah dibaca",
+   "primary": false,
+   "file": "",
+   "i": 0
+  }
+ ]
+}

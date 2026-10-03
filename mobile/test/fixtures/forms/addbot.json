@@ -1,0 +1,48 @@
+{
+ "title": "TAMBAH NOMOR CHATBOT",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Chatbot WhatsApp GOYANA",
+   "lines": [
+    "Balas otomatis cek status, total tagihan, harga layanan & jam outlet."
+   ],
+   "badge": "",
+   "avatar": "💬",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "title",
+   "t": "Paket saat ini"
+  },
+  {
+   "type": "title",
+   "t": "FREE"
+  },
+  {
+   "type": "title",
+   "t": "Nomor chatbot termasuk paket"
+  },
+  {
+   "type": "title",
+   "t": "0 nomor"
+  },
+  {
+   "type": "title",
+   "t": "Nomor tambahan aktif"
+  },
+  {
+   "type": "title",
+   "t": "0 nomor"
+  },
+  {
+   "type": "row",
+   "t": "Rp 30.000",
+   "s": "",
+   "btn": "Lanjut ke Pembayaran",
+   "svg": "",
+   "i": 5
+  }
+ ]
+}

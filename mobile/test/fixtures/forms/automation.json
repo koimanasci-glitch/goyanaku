@@ -1,0 +1,45 @@
+{
+ "title": "WHATSAPP & OTOMASI",
+ "items": [
+  {
+   "type": "title",
+   "t": "Otomasi Pelanggan"
+  },
+  {
+   "type": "title",
+   "t": "Pesanan diterima"
+  },
+  {
+   "type": "title",
+   "t": "WA"
+  },
+  {
+   "type": "title",
+   "t": "Pesanan siap diambil"
+  },
+  {
+   "type": "title",
+   "t": "WA"
+  },
+  {
+   "type": "title",
+   "t": "Belum diambil 2 hari"
+  },
+  {
+   "type": "title",
+   "t": "Follow-up"
+  },
+  {
+   "type": "title",
+   "t": "Chatbot status pesanan"
+  },
+  {
+   "type": "title",
+   "t": "SUPER PRO"
+  },
+  {
+   "type": "hint",
+   "t": "Chatbot dapat membaca status order, total tagihan, jam outlet dan informasi layanan tanpa mengubah data transaksi."
+  }
+ ]
+}

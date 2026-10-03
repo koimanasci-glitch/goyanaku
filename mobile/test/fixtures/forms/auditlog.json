@@ -1,0 +1,45 @@
+{
+ "title": "AUDIT & KEAMANAN",
+ "items": [
+  {
+   "type": "title",
+   "t": "Aktivitas Sistem"
+  },
+  {
+   "type": "hint",
+   "t": "Semua perubahan penting tercatat"
+  },
+  {
+   "type": "title",
+   "t": "Perubahan harga"
+  },
+  {
+   "type": "title",
+   "t": "Tercatat"
+  },
+  {
+   "type": "title",
+   "t": "Pembatalan pesanan"
+  },
+  {
+   "type": "title",
+   "t": "Tercatat"
+  },
+  {
+   "type": "title",
+   "t": "Pengeluaran kas"
+  },
+  {
+   "type": "title",
+   "t": "Tercatat"
+  },
+  {
+   "type": "title",
+   "t": "Login pegawai"
+  },
+  {
+   "type": "title",
+   "t": "Tercatat"
+  }
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "title": "TAMBAH PENGELUARAN",
+ "items": [
+  {
+   "type": "title",
+   "t": "Tanggal"
+  },
+  {
+   "type": "input",
+   "v": "2026-10-03",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Kategori"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Gaji",
+    "Bonus",
+    "Bahan Baku",
+    "Listrik",
+    "Air",
+    "Sewa",
+    "Lain-Lain"
+   ],
+   "index": 0,
+   "i": 1
+  },
+  {
+   "type": "title",
+   "t": "Total"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Rp",
+   "multiline": false,
+   "numeric": true,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "title",
+   "t": "Keterangan"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Contoh: deterjen 5 liter",
+   "multiline": true,
+   "numeric": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "i": 0
+  }
+ ]
+}

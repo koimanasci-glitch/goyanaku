@@ -685,6 +685,29 @@ void main() {
     });
   }
 
+  // Every real page model captured from the HTML (test/fixtures/forms/*.json) rendered by the generic native form.
+  final fixtures = Directory('test/fixtures/forms').listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList()
+    ..sort((a, b) => a.path.compareTo(b.path));
+  for (final f in fixtures) {
+    final id = f.uri.pathSegments.last.replaceAll('.json', '');
+    testWidgets('Formulir generik fixture $id', (tester) async {
+      tester.view.physicalSize = const Size(390 * 2, 1400 * 2);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final model = FormModel.fromJson(id, Map<String, dynamic>.from(jsonDecode(f.readAsStringSync()) as Map));
+      await tester.pumpWidget(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: RepaintBoundary(key: const Key('screen'), child: NativeForm(model: model, actions: _NoFormActions(), topInset: 0)),
+      ));
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump();
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/form_$id.png'));
+    });
+  }
+
   for (final entry in {'customeradd': _customerAddForm, 'helpcenter': _helpForm, 'delivery': _deliveryForm}.entries) {
     testWidgets('Formulir generik (${entry.key}) at 390 px', (tester) async {
       tester.view.physicalSize = const Size(390 * 2, 900 * 2);

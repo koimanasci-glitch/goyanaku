@@ -1,0 +1,13 @@
+{
+ "title": "HARUS SELESAI HARI INI",
+ "items": [
+  {
+   "type": "hint",
+   "t": "Pesanan outlet aktif yang masih perlu diselesaikan hari ini."
+  },
+  {
+   "type": "hint",
+   "t": "Tidak ada pesanan yang harus diselesaikan hari ini."
+  }
+ ]
+}

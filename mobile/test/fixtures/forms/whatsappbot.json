@@ -1,0 +1,131 @@
+{
+ "title": "WHATSAPP & CHATBOT",
+ "items": [
+  {
+   "type": "title",
+   "t": "Pengaturan & Promo"
+  },
+  {
+   "type": "button",
+   "t": "Balasan Cepat & Trigger ›",
+   "primary": false,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Pengaturan Chatbot AI ›",
+   "primary": false,
+   "file": "",
+   "i": 1
+  },
+  {
+   "type": "button",
+   "t": "WhatsApp Blast ›",
+   "primary": false,
+   "file": "",
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Gambar balasan / promo"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "hint",
+   "t": "Gambar default untuk balasan cepat tanpa gambar khusus. Maksimal 1 MB."
+  },
+  {
+   "type": "title",
+   "t": "Perangkat WhatsApp per Cabang"
+  },
+  {
+   "type": "hint",
+   "t": "Tambah nomor dan pilih cabang untuk setiap perangkat."
+  },
+  {
+   "type": "button",
+   "t": "Kelola Perangkat WhatsApp",
+   "primary": false,
+   "file": "",
+   "i": 3
+  },
+  {
+   "type": "title",
+   "t": "Fitur otomatis"
+  },
+  {
+   "type": "hint",
+   "t": "Aktif otomatis setelah upgrade paket chatbot."
+  },
+  {
+   "type": "entry",
+   "t": "Pesanan diterima",
+   "lines": [
+    "Konfirmasi order + nota elektronik saat transaksi dibuat"
+   ],
+   "badge": "",
+   "avatar": "🧾",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "entry",
+   "t": "Siap ambil otomatis",
+   "lines": [
+    "Pelanggan dikabari begitu status jadi Siap Ambil"
+   ],
+   "badge": "",
+   "avatar": "✅",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "entry",
+   "t": "Pengingat telat ambil",
+   "lines": [
+    "Otomatis kirim saat cucian 7 hari belum diambil"
+   ],
+   "badge": "",
+   "avatar": "⏰",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "entry",
+   "t": "Chatbot AI 24 jam",
+   "lines": [
+    "Membalas pertanyaan pelanggan dari nomor outlet"
+   ],
+   "badge": "",
+   "avatar": "🤖",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "entry",
+   "t": "Balas cepat & trigger",
+   "lines": [
+    "Jawaban template berdasarkan kata kunci"
+   ],
+   "badge": "",
+   "avatar": "⚡",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "title",
+   "t": "Layanan WhatsApp belum terhubung"
+  }
+ ]
+}

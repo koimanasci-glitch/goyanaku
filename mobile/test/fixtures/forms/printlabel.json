@@ -1,0 +1,113 @@
+{
+ "title": "CETAK LABEL CUCIAN",
+ "items": [
+  {
+   "type": "title",
+   "t": "🏷️"
+  },
+  {
+   "type": "title",
+   "t": "Anti tertukar."
+  },
+  {
+   "type": "title",
+   "t": "1Pilih pesanan"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Nama / Order ID…",
+   "multiline": false,
+   "numeric": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Scan",
+   "primary": false,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Pesanan tidak ditemukan"
+  },
+  {
+   "type": "title",
+   "t": "2Jumlah kantong"
+  },
+  {
+   "type": "entry",
+   "t": "1 kantong",
+   "lines": [
+    "Saran otomatis dari berat cucian"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "btns": [
+    {
+     "t": "−",
+     "i": 1
+    },
+    {
+     "t": "+",
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "50×30 mm",
+     "file": "",
+     "i": 3
+    },
+    {
+     "t": "40×30 mm",
+     "file": "",
+     "i": 4
+    },
+    {
+     "t": "Struk 58 mm",
+     "file": "",
+     "i": 5
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "3Pratinjau label geser →"
+  },
+  {
+   "type": "title",
+   "t": "Pilih pesanan dulu"
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "✓ Cek Kantong",
+     "file": "",
+     "i": 6
+    },
+    {
+     "t": "🖨 Cetak Label",
+     "file": "",
+     "i": 7
+    }
+   ]
+  },
+  {
+   "type": "button",
+   "t": "Lewati, kembali ke pesanan",
+   "primary": false,
+   "file": "",
+   "i": 8
+  }
+ ]
+}

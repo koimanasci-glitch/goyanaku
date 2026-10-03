@@ -1,0 +1,124 @@
+{
+ "title": "MONITOR CABANG",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Mode Monitoring",
+   "lines": [
+    "Anda sedang melihat data cabang. Transaksi outlet aktif tidak berpindah."
+   ],
+   "badge": "",
+   "avatar": "👁",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Omzet Hari Ini"
+  },
+  {
+   "type": "title",
+   "t": "Rp0"
+  },
+  {
+   "type": "title",
+   "t": "Outlet"
+  },
+  {
+   "type": "hint",
+   "t": "Diproses"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Siap Diambil"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Terlambat"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Saldo Kas"
+  },
+  {
+   "type": "title",
+   "t": "Rp0"
+  },
+  {
+   "type": "hint",
+   "t": "Belum Lunas"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "hint",
+   "t": "Stok Menipis"
+  },
+  {
+   "type": "title",
+   "t": "0"
+  },
+  {
+   "type": "card",
+   "t": "Pesanan Cabang",
+   "s": "Lihat order dan status produksi",
+   "svg": "",
+   "ic": "🧾",
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Kas Cabang",
+   "s": "Saldo, pemasukan dan pengeluaran",
+   "svg": "",
+   "ic": "💰",
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Laporan Cabang",
+   "s": "Omzet dan performa cabang",
+   "svg": "",
+   "ic": "▥",
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Stok Cabang",
+   "s": "Bahan dan stok minimum",
+   "svg": "",
+   "ic": "📦",
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Pegawai Cabang",
+   "s": "Kasir dan pegawai aktif",
+   "svg": "",
+   "ic": "👥",
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Audit Aktivitas",
+   "s": "Riwayat aktivitas cabang",
+   "svg": "",
+   "ic": "✓",
+   "i": 5
+  }
+ ]
+}
