@@ -140,3 +140,12 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Sheet serbaguna HTML (`#gs107`: Tambah Kurir/Durasi/Kategori, konfirmasi hapus, dll) kini digambar native di atas halaman native.
   - **Rincian Pesanan** (detail order) kini sheet native penuh: langkah status, item, info, tombol aksi, bar total & Bayar. Popup lanjutan (⋯, QRIS, struk) tetap HTML.
   - Popup pembayaran kini sheet native: Tunai (kembalian dihitung HTML), Transfer, QRIS (gambar QR dinamis dikirim sebagai gambar), Upload QRIS, DP, Deposit, Foto (kamera/galeri lewat pemilih file Android), Struk.
+
+
+## Mode Murni Flutter (tanpa WebView) — Claude, 3 Oktober 2026 siang
+- Tujuan: aplikasi murni Flutter (lebih ringan). Logika dipindah ke Dart: `mobile/lib/core/` (models, business, money, qris, receipt, settings, store).
+  Data tetap disimpan dengan format HTML lama (`goyana-business177`, `goyana-services158`, deposit `phone:62…`) di SQLite yang sama → data lama terbaca, dan versi lengkap (hybrid) tetap bisa dipakai bergantian.
+- Paritas dengan HTML dites: `mobile/test/core_test.dart` (hitung total/diskon dari `api115.calc`, QRIS dinamis/CRC, struk, status, bayar/DP/deposit, batal, kas, pelanggan) + `mobile/test/pure_test.dart` (alur kasir lengkap di layar).
+- Mode murni (`mobile/lib/pure/`): Beranda, Tambah Transaksi (pelanggan, durasi, layanan, jumlah, opsi, Tunai/QRIS+QR/Transfer/DP/Deposit/Bayar Nanti, pesanan jemput), Pesanan (tab, cari, rincian, status, bayar, batal, edit, riwayat, isi layanan, cetak struk, WA, Maps), Scan barcode kamera, Pelanggan (+ isi saldo deposit), Laporan, Kas & Tutup Kasir, Hari Ini, Pengaturan (Profil Struk, Printer Bluetooth, QRIS, Rekening, Layanan & Harga, Parfum, Outlet, Pusat Data ekspor/backup).
+- Masuk: Pengaturan (versi lengkap) → "⚡ Coba Mode Murni (beta)". Keluar: Pengaturan mode murni → "Kembali ke versi lengkap". Penanda mode: kunci `goyana-pure-mode`.
+- Belum di mode murni: Pegawai & hak akses/PIN, Kurir, Label kantong, Stok, CRM/voucher, Diskon master, WhatsApp (chatbot/otomasi/blast), Multi-outlet monitoring, Upgrade paket, Notifikasi, Pusat Bantuan.
