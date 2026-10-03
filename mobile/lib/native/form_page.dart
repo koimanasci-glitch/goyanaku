@@ -46,7 +46,34 @@ class NativeSheet extends StatelessWidget {
               child: ListView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.fromLTRB(24, 32, 24, 24 + bottom),
-                children: [for (final it in items) form._item(context, it)],
+                children: [
+                  for (final it in items)
+                    if (it['type'] == 'title' && _s(it['t']) == 'GOYANA')
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 18),
+                        child: Row(children: [
+                          Container(width: 44, height: 44, alignment: Alignment.center,
+                              decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(13)),
+                              child: Text('G', style: gText(22, w: FontWeight.w700, c: Colors.white))),
+                          const SizedBox(width: 12),
+                          Text('GOYANA', style: gText(24, w: FontWeight.w700, c: gBrand, ls: 1)),
+                        ]),
+                      )
+                    else if (it['type'] == 'title' && _s(it['t']).toLowerCase() == 'atau')
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(children: [
+                          const Expanded(child: Divider(color: Color(0xffe6e8ec))),
+                          Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text('atau', style: gText(12, c: const Color(0xff9aa0ac)))),
+                          const Expanded(child: Divider(color: Color(0xffe6e8ec))),
+                        ]),
+                      )
+                    else if (it['type'] == 'title' && it.containsKey('s'))
+                      Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(_s(it['t']), style: gText(22, w: FontWeight.w700, c: _ink)))
+                    // Password fields have their own show/hide eye.
+                    else if (!(it['type'] == 'button' && _s(it['t']).toLowerCase().startsWith('tampilkan password')))
+                      form._item(context, it),
+                ],
               ),
             ),
           ),
@@ -812,6 +839,7 @@ class _FormInput extends StatefulWidget {
 class _FormInputState extends State<_FormInput> {
   late final _c = TextEditingController(text: _s(widget.item['v']));
   final _focus = FocusNode();
+  bool _show = false;
 
   @override
   void didUpdateWidget(_FormInput old) {
@@ -863,14 +891,22 @@ class _FormInputState extends State<_FormInput> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(color: ro ? const Color(0xfff6f7f9) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffdfe3e8))),
-      child: _text(it, multi, ro),
+      child: it['secret'] == true
+          ? Row(children: [
+              Expanded(child: _text(it, multi, ro)),
+              GestureDetector(
+                onTap: () => setState(() => _show = !_show),
+                child: Icon(_show ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 20, color: const Color(0xff8a8fa3)),
+              ),
+            ])
+          : _text(it, multi, ro),
     );
   }
 
   Widget _text(Map<String, dynamic> it, bool multi, bool ro) {
     return TextField(
         controller: _c, focusNode: _focus, readOnly: ro, onChanged: widget.onChanged, cursorColor: gBrand,
-        obscureText: it['secret'] == true, enableSuggestions: it['secret'] != true, autocorrect: it['secret'] != true,
+        obscureText: it['secret'] == true && !_show, enableSuggestions: it['secret'] != true, autocorrect: it['secret'] != true,
         minLines: multi ? 2 : 1, maxLines: multi ? 5 : 1,
         keyboardType: it['numeric'] == true ? TextInputType.number : (it['email'] == true ? TextInputType.emailAddress : (multi ? TextInputType.multiline : TextInputType.text)),
         style: gText(13.5, c: ro ? const Color(0xff8a8fa3) : _ink, h: 19),
