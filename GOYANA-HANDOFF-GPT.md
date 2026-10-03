@@ -5,6 +5,16 @@ Dokumen produk: `GOYANA-ROADMAP.md`, `GOYANA-SISTEM-PUSAT.md` (§38–§40 terba
 
 ---
 
+## ⚠️ UPDATE 3 Oktober 2026 siang (Claude) — formulir & sheet native generik
+
+- **55 dari 66 halaman** sudah native. Sebagian besar lewat **formulir generik**: `formModel(id)` + `formItems(root)` di `mobile/web_bridge/capacitor.js` membaca DOM berurutan → item (`title`, `hint`, `input`, `date`, `select`, `toggle`, `choice`, `button(s)`, `card`, `entry`, `stats`, `hero`, `pair`, `steps`, `total`, `stepper`, `plan`, `bars`, `hbars`, `table`, `image`, `labelprev`) → digambar `mobile/lib/native/form_page.dart`.
+- Menambah halaman: masukkan id ke daftar `NATIVE[...] = formModel(id)` (capacitor.js) **dan** `_formPages` (shell.dart), lalu tambah tes di `tests/flutter-bridge.cjs`. Jika susunan HTML baru tidak terbaca, tambah aturan di `formItems`, bukan model khusus.
+- Aksi: `__goyanaForm(id, kind, i, value)` — kind `input|toggle|radio|button|tap|close`; indeks dihitung per jenis di dalam root (halaman: `.content`; sheet: `.sheet91-box`/`.g62-sheet`).
+- **Sheet native**: id di `GENERIC_SHEETS` (gs107, cancel91, pay91, act115, edit115, pay115, Rincian Pesanan `g62-order-detail`, dll.) digambar `NativeSheet` di atas halaman native mana pun (event `sheet`). Popup pembayaran (QRIS, DP, deposit, struk, kamera) **sengaja masih HTML**.
+- Upload file dari halaman native: tombol yang memanggil `getElementById('x').click()` atau input file terlihat → Flutter memilih file (`Files.pick` + `Files.read`) lalu `__goyanaFile`.
+- Golden: setiap `mobile/test/fixtures/forms/*.json` (model nyata dari DOM) dirender CI ke branch `ci-screens` (`form_<id>.png`). Golden yang meluap (overflow) menggagalkan build APK — cek anotasi CI.
+- Halaman yang masih HTML: Scan kamera (`orderscan`), Administrator dalam app (`adm175`), Detail/Checkout/Invoice paket (`plan111`, `checkout111`, `invoice111`), `pickservice` lama, dan halaman lama yang tak dibuka lagi (`pickup`, `qrstatus`, `waautomation`, `transport183`, `billing`).
+
 ## ⚠️ UPDATE 3 Oktober 2026, 03.00 WIB (Claude) — BACA DULU
 
 Claude melanjutkan sendiri saat kuota GPT habis. Branch `flutter/native` **sudah jauh lebih maju** dari branch lokal GPT (`flutter/native-transaksi` dibuat dari commit lama `2b7ee9b`).
