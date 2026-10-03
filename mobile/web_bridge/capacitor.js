@@ -642,7 +642,7 @@
             var eps = ebox ? Array.prototype.filter.call(ebox.querySelectorAll(':scope > p'), shown) : [];
             items.push({ type: 'entry', t: clean(eb), lines: esm.concat(eps).map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
               color: dot ? getComputedStyle(dot).backgroundColor : '', amount: clean(c.querySelector(':scope > strong')),
-              btns: ebtns.map(function (x) { return { t: blab(x), i: buttons.indexOf(x) }; }) });
+              btns: ebtns.map(function (x) { return { t: blab(x), on: /\bon\b/.test(x.className || ''), i: buttons.indexOf(x) }; }) });
             return;
           }
           // Row with title + subtitle and one button (e.g. avatar "Pria · Ganti").
@@ -660,6 +660,12 @@
             return;
           }
           if (!c.children.length && clean(c)) { items.push({ type: clean(c).length > 45 ? 'hint' : 'title', t: clean(c) }); return; }
+          // Running text with inline markup: "<b>Data tidak pernah dihapus.</b> Setiap ralat …" stays one paragraph.
+          var ownText = Array.prototype.some.call(c.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+          if (ownText && Array.prototype.every.call(c.children, function (k) { return /^(B|STRONG|EM|I|SMALL|SPAN|A|BR|U|CODE)$/.test(k.tagName) && !k.querySelector('button, input'); })) {
+            items.push({ type: 'hint', t: clean(c) });
+            return;
+          }
           walk(c);
         });
       })(root);
@@ -821,7 +827,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling', 'courier181', 'ralat139', 'txhist111'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

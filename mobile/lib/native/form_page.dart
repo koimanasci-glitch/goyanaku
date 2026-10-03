@@ -498,15 +498,19 @@ class NativeForm extends StatelessWidget {
                 Row(children: [
                   for (var k = 0; k < btns.length; k++) ...[
                     if (k > 0) const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => a.fmButton(_i(btns[k]['i'])),
-                        child: Container(height: 36, alignment: Alignment.center,
-                            decoration: BoxDecoration(color: k == btns.length - 1 ? gBrand : Colors.white, borderRadius: BorderRadius.circular(10),
-                                border: k == btns.length - 1 ? null : Border.all(color: const Color(0xffe1e5ea))),
-                            child: Text(_s(btns[k]['t']), style: gText(12.5, w: FontWeight.w500, c: k == btns.length - 1 ? Colors.white : _ink))),
-                      ),
-                    ),
+                    Builder(builder: (_) {
+                      // Segmented choices mark the chosen one; otherwise the last button is the main action.
+                      final hl = btns.any((b) => b['on'] == true) ? btns[k]['on'] == true : k == btns.length - 1;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => a.fmButton(_i(btns[k]['i'])),
+                          child: Container(height: 36, alignment: Alignment.center,
+                              decoration: BoxDecoration(color: hl ? gBrand : Colors.white, borderRadius: BorderRadius.circular(10),
+                                  border: hl ? null : Border.all(color: const Color(0xffe1e5ea))),
+                              child: Text(_s(btns[k]['t']), style: gText(12.5, w: FontWeight.w500, c: hl ? Colors.white : _ink))),
+                        ),
+                      );
+                    }),
                   ],
                 ]),
               ],

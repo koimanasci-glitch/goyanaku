@@ -1,0 +1,64 @@
+{
+ "title": "RALAT & LOG KOREKSI",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Login: Koko (Admin Utama)",
+   "lines": [
+    "Bisa meralat langsung"
+   ],
+   "badge": "",
+   "avatar": "👑",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Admin Utama",
+     "on": true,
+     "i": 0
+    },
+    {
+     "t": "Kasir",
+     "on": false,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "🔒"
+  },
+  {
+   "type": "hint",
+   "t": "Data tidak pernah dihapus. Setiap ralat menyimpan nilai lama → baru, alasan, siapa & jam. Hanya Admin Utama yang bisa meralat; kasir butuh PIN owner."
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Pembayaran",
+     "file": "",
+     "on": true,
+     "i": 2
+    },
+    {
+     "t": "Pengeluaran",
+     "file": "",
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Log",
+     "file": "",
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Belum ada pembayaran di shift ini"
+  }
+ ]
+}
