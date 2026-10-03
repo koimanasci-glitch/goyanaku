@@ -20,8 +20,10 @@ import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/home_page.dart';
 import '../native/orders_page.dart';
+import '../native/settings_page.dart';
 import 'pages.dart';
 import 'scan_page.dart';
+import 'settings_menu.dart';
 import 'views.dart';
 
 /// Kunci penanda mode (dibaca main.dart).
@@ -44,7 +46,7 @@ class _Sheet {
   final bool full;
 }
 
-class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, PureHost {
+class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, PureHost {
   static const _device = MethodChannel('id.goyana/device');
   Business? _b;
   AppSettings? _settings;
@@ -214,6 +216,58 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void qr() => scan();
   @override
   void monthly() => nav('reports');
+
+  // ---------------- Pengaturan (menu sama persis dengan HTML) ----------------
+  final Set<int> _stOpen = {};
+  Map<String, dynamic> _settingsJson() {
+    final m = jsonDecode(settingsMenuJson) as Map<String, dynamic>;
+    for (final g in (m['groups'] as List).cast<Map<String, dynamic>>()) {
+      final i = (g['i'] as num).toInt();
+      g['open'] = _stOpen.contains(i);
+      if (!_stOpen.contains(i)) g['items'] = <dynamic>[];
+    }
+    return m;
+  }
+
+  /// Item menu HTML → halaman mode murni. null = belum dipindah.
+  static const Map<String, String> _stRoutes = {
+    '0/0': 'outlet', '1/0': 'outlet', '1/1': 'outlets',
+    '2/0': 'services', '2/1': 'services', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'couriers',
+    '3/0': 'employees', '3/1': 'employees', '3/3': 'couriers',
+    '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
+    '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
+    '9/0': 'qris', '9/1': 'kas', '9/3': 'stock', '9/4': 'notif', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
+    '10/0': 'printer', '10/1': 'receipt', '11': 'data', '12/0': 'help', '12/1': 'help',
+  };
+  void _stGo(String key) {
+    final r = _stRoutes[key];
+    if (r == null) return toast('Halaman ini sedang dipindahkan');
+    nav(r);
+  }
+
+  @override
+  void stGroup(int index, bool accordion) {
+    if (!accordion) return _stGo('$index');
+    setState(() => _stOpen.contains(index) ? _stOpen.remove(index) : _stOpen.add(index));
+  }
+  @override
+  void stItem(int group, int item) => _stGo('$group/$item');
+  @override
+  void stSyncUrl(String url) {}
+  @override
+  void stSyncSave() => toast('Server GOYANA belum aktif');
+  @override
+  void stSyncNow() => toast('Server GOYANA belum aktif');
+  @override
+  void stAcctGo() => nav('plan');
+  @override
+  void stAcctAction(int index) => nav('plan');
+  @override
+  void stAcctLink() => nav('plan');
+  @override
+  void stLogout() => toast('Akun server belum aktif');
+  @override
+  void stTutorial() => nav('help');
 
   // ---------------- Cetak struk ----------------
   Future<void> _print(Order o) => _printRaw(receiptText(o, _settings!.receipt, printedAt: now), o.id, 'Struk dicetak');
@@ -1171,6 +1225,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch)), actions: this);
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
+      case 'settings':
+        page = NativeSettings(model: SettingsModel.fromJson(_settingsJson()), actions: this);
       default:
         final pp = _pages[_page];
         page = pp != null

@@ -74,5 +74,9 @@ void main() {
     await shot('customers');
     s.nav('reports');
     await shot('reports');
+    s.nav('settings');
+    await shot('settings');
+    s.stGroup(4, true);
+    await shot('settings_pelanggan');
   });
 }
