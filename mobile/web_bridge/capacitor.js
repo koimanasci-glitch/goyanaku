@@ -668,7 +668,7 @@
             var ic = c.querySelector(':scope > span'), dt = c.querySelector(':scope > [class*="dot"]');
             var extraLine = rowInfo ? clean(rowInfo.querySelector(':scope > strong, :scope > small, :scope > span')) : '';
             items.push({ type: 'entry', t: clean(rowB), lines: extraLine ? [extraLine] : [], badge: '', avatar: ic && !svgOf(ic) ? clean(ic) : '', svg: ic ? svgOf(ic) : '',
-              color: dt ? getComputedStyle(dt).backgroundColor : '', compact: true, btns: rowBtns.map(function (x) { return { t: blab(x), i: buttons.indexOf(x) }; }) });
+              color: dt ? getComputedStyle(dt).backgroundColor : '', compact: true, btns: rowBtns.map(function (x) { return { t: blab(x), on: /\bon\b/.test(x.className || ''), i: buttons.indexOf(x) }; }) });
             return;
           }
           // List entry: name, detail lines, status badge and action buttons (outlet, kurir, ...).

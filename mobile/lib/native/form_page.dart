@@ -465,8 +465,8 @@ class NativeForm extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => a.fmButton(_i(b['i'])),
                       child: Container(constraints: const BoxConstraints(minWidth: 34), height: 34, padding: const EdgeInsets.symmetric(horizontal: 8), alignment: Alignment.center,
-                          decoration: BoxDecoration(color: const Color(0xfff3f4f7), borderRadius: BorderRadius.circular(10)),
-                          child: Text(_s(b['t']), style: gText(14, w: FontWeight.w500, c: _ink))),
+                          decoration: BoxDecoration(color: b['on'] == true ? gBrand : const Color(0xfff3f4f7), borderRadius: BorderRadius.circular(10)),
+                          child: Text(_s(b['t']), style: gText(14, w: FontWeight.w500, c: b['on'] == true ? Colors.white : _ink))),
                     ),
                   ),
               ]),
