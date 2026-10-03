@@ -258,7 +258,7 @@ try{
   last=await lastAdd();assert.equal(last.page,'helpcenter');
   const cards=last.model.items.filter(x=>x.type==='card');assert.ok(cards.length>=5&&cards[0].ic,'help topics with emoji icons');
   await p.evaluate(i=>__goyanaForm('helpcenter','button',i),cards[0].i);await p.waitForTimeout(400);
-  assert.equal((await lastAdd()).page,null,'help article (HTML) covers the native page');
+  {const h=await lastAdd();assert.equal(h.page,'helpcenter');assert.equal(h.sheet&&h.sheet.id,'guide135','help article (Panduan) is a native sheet');assert.ok(h.sheet.mirror&&h.sheet.mirror.box&&h.sheet.mirror.box.ch.length,'Panduan drawn from the HTML mirror (same sizes and colours)');}
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Tambah Pelanggan & Pusat Bantuan use the generic native form');
 

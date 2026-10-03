@@ -14,6 +14,7 @@ import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/home_page.dart';
+import '../native/mirror_sheet.dart';
 import '../native/order_detail_page.dart';
 import '../native/orders_page.dart';
 import '../native/reports_page.dart';
@@ -74,6 +75,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   bool _sheetFull = false, _sheetScreen = false;
   List<Map<String, dynamic>> _sheetItems = const [];
   Map<String, dynamic>? _sheetOd; // Rincian Pesanan: model khusus (tampilan sama dengan HTML)
+  Map<String, dynamic>? _sheetMirror; // Popup yang digambar dari cermin HTML (ukuran & warna dari CSS)
   Timer? _toastTimer;
   bool _loginBar = false;
   String? _loadError;
@@ -210,6 +212,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         _sheetFull = sheet?['full'] == true;
         _sheetScreen = sheet?['screen'] == true;
         _sheetOd = sheet?['od'] is Map ? Map<String, dynamic>.from(sheet!['od'] as Map) : null;
+        _sheetMirror = sheet?['mirror'] is Map ? Map<String, dynamic>.from(sheet!['mirror'] as Map) : null;
         _sheetItems = sheet == null || sheet['items'] is! List
             ? const []
             : (sheet['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
@@ -623,6 +626,16 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
             if (_nativePage != null && _sheetId == 'g62-order-detail' && _sheetOd != null && !_loading)
               Positioned.fill(child: NativeOrderDetail(model: _sheetOd!, actions: this))
+            else if (_nativePage != null && _sheetMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeMirrorSheet(
+                  key: ValueKey('mirror-$_sheetId'), model: _sheetMirror!,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i, v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0),
+                ),
+              )
             else if (_nativePage != null && _sheetItems.isNotEmpty && !_loading)
               Positioned.fill(child: NativeSheet(key: ValueKey('sheet-$_sheetId'), id: _sheetId, items: _sheetItems, actions: this, full: _sheetFull, screen: _sheetScreen)),
             if (_nativePage != null && _toast.isNotEmpty && !_loading)

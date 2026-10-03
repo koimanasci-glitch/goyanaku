@@ -432,7 +432,8 @@
   var FILE_AFTER = { 'qris193-upload': 'qris-file', 'photochoose178-camera': 'ph115-file', 'photochoose178-gallery': 'ph115-file' };
   var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'act115', 'qr160-menu',
     'gy154-cash', 'gy154-transfer', 'f61-qris', 'qris193-setup', 'dp178', 'depositpay178', 'dp91', 'photochoose178', 'rc106',
-    'f61-duration', 'qty116', 'gp128', 'gy154-edit', 'pin139', 'wf141', 'au133s', 'bg137', 'cat99', 'qr135', 'outlet-selector-v56', 'customer-modal', 'qty-modal', 'g62-order-detail'], FORM_PAGES = {};
+    'f61-duration', 'qty116', 'gp128', 'gy154-edit', 'pin139', 'wf141', 'au133s', 'bg137', 'cat99', 'qr135', 'outlet-selector-v56', 'customer-modal', 'qty-modal', 'g62-order-detail',
+    'f61-print', 'hist115', 'photo115', 'wa131', 'wa138', 'rm138s', 'rs139', 'contacts178', 'guide135', 'api135', 'pay111', 'upgrade-pay-modal', 'g181-modal', 'td175'], FORM_PAGES = {};
   function sheetRoot(sh) {
     var box = sh.querySelector('.sheet91-box, .g62-sheet, [role="dialog"]');
     if (box) return box;
@@ -462,9 +463,139 @@
     var items = formItems(sheetRoot(top), top.id);
     if (!items.length) return null;
     var out = { id: top.id, items: items, full: top.id === 'g62-order-detail' };
+    // Sheets still open underneath the top one (e.g. Nota WA over the receipt) must not hand the screen back to HTML.
+    out.under = GENERIC_SHEETS.filter(function (sid) { var e = document.getElementById(sid); return sid !== top.id && e && e.classList.contains('show'); });
     if (top.id === 'g62-order-detail') { try { out.od = orderDetailModel(sheetRoot(top)); } catch (e) { out.od = null; } }
+    if (MIRROR_SHEETS.indexOf(top.id) >= 0) { try { out.mirror = mirrorSheet(top); } catch (e) { out.mirror = null; } }
     return out;
   }
+  // Popup yang digambar Flutter dengan ukuran, warna, jarak dan huruf yang dibaca langsung dari HTML (computed style).
+  var MIRROR_SHEETS = ['f61-print', 'hist115', 'photo115', 'wa131', 'wa138', 'rm138s', 'rs139', 'contacts178', 'guide135', 'api135', 'pay111', 'upgrade-pay-modal', 'g181-modal', 'td175'];
+  function mirrorSheet(host) {
+    var root = sheetRoot(host);
+    var ctx = {
+      buttons: Array.prototype.slice.call(root.querySelectorAll('button')),
+      taps: Array.prototype.slice.call(root.querySelectorAll('[onclick]:not(button)')),
+      inputs: Array.prototype.slice.call(root.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select'))
+    };
+    var hs = getComputedStyle(host);
+    var kind = /flow-modal/.test(host.className) ? 'center' : 'bottom';
+    return { kind: kind, scrim: hs.backgroundColor, box: mirrorNode(root, ctx, 0) };
+  }
+  function px(v) { return Math.round((parseFloat(v) || 0) * 100) / 100; }
+  function sides(cs, prop) { return [px(cs[prop + 'Top']), px(cs[prop + 'Right']), px(cs[prop + 'Bottom']), px(cs[prop + 'Left'])]; }
+  var INLINE = /^(inline|contents)$/;
+  function mirrorStyle(el, cs) {
+    var st = { m: sides(cs, 'margin'), p: sides(cs, 'padding'), fs: px(cs.fontSize), fw: parseInt(cs.fontWeight, 10) || 400, lh: px(cs.lineHeight) || 0, c: cs.color };
+    if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') st.bg = cs.backgroundColor;
+    if (cs.backgroundImage && /gradient\(/.test(cs.backgroundImage)) {
+      var gc = cs.backgroundImage.match(/rgba?\([^)]*\)|#[0-9a-f]{3,8}/gi) || [];
+      if (/repeating-linear/.test(cs.backgroundImage) && gc.length >= 2) {
+        var deg = /(-?\d+)deg/.exec(cs.backgroundImage), stops = cs.backgroundImage.match(/(\d+(?:\.\d+)?)px/g) || [];
+        var uc = gc.filter(function (x, i) { return gc.indexOf(x) === i; });
+        if (uc.length >= 2) st.stripe = { deg: deg ? +deg[1] : 0, c: uc.slice(0, 2), w: stops.length >= 2 ? parseFloat(stops[1]) : 8 };
+      } else if (gc.length && !st.bg) st.bg = gc[0];
+    }
+    var bw = px(cs.borderTopWidth);
+    if (bw && cs.borderTopStyle !== 'none') { st.bw = bw; st.bc = cs.borderTopColor; if (cs.borderTopStyle === 'dashed') st.dash = 1; }
+    var r = [px(cs.borderTopLeftRadius), px(cs.borderTopRightRadius), px(cs.borderBottomRightRadius), px(cs.borderBottomLeftRadius)];
+    if (/%/.test(cs.borderTopLeftRadius)) { var w = el.getBoundingClientRect().width; r = r.map(function () { return w / 2; }); }
+    if (r.some(Boolean)) st.br = r;
+    if (cs.letterSpacing && cs.letterSpacing !== 'normal') st.ls = px(cs.letterSpacing);
+    if (cs.textTransform === 'uppercase') st.up = 1;
+    if (/center|right|left/.test(cs.textAlign)) st.ta = cs.textAlign;
+    if (/pre/.test(cs.whiteSpace)) st.pre = 1;
+    if (/nowrap/.test(cs.whiteSpace)) st.nowrap = 1;
+    if (cs.boxShadow && cs.boxShadow !== 'none') st.sh = 1;
+    return st;
+  }
+  function mirrorNode(el, ctx, depth) {
+    var cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || depth > 12) return null;
+    var tag = el.tagName, rect = el.getBoundingClientRect();
+    var n = { s: mirrorStyle(el, cs), w: px(rect.width), h: px(rect.height) };
+    var bi = ctx.buttons.indexOf(el), ti = ctx.taps.indexOf(el);
+    if (bi >= 0) n.b = bi;
+    if (ti >= 0) n.tap = ti;
+    if (tag === 'svg') { n.svg = el.outerHTML; return n; }
+    if (tag === 'IMG') { n.img = el.src && el.src.length < 1500000 ? el.src : ''; return n; }
+    if (tag === 'CANVAS') { try { n.img = el.toDataURL('image/png'); } catch (e) { n.img = ''; } return n; }
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+      n.input = { i: ctx.inputs.indexOf(el), v: el.value, ph: el.placeholder || '', multi: tag === 'TEXTAREA', numeric: /numeric|decimal|tel|number/.test(el.inputMode || el.type || ''),
+        decimal: el.inputMode === 'decimal', secret: el.type === 'password', ro: !!(el.readOnly || el.disabled),
+        options: tag === 'SELECT' ? Array.prototype.map.call(el.options, function (o) { return o.textContent.trim(); }) : null, index: tag === 'SELECT' ? el.selectedIndex : -1 };
+      return n;
+    }
+    if (tag === 'BR') return { br: 1 };
+    var disp = cs.display;
+    if (/flex/.test(disp)) { n.row = !/column/.test(cs.flexDirection); if (cs.flexWrap === 'wrap') n.wrap = 1; }
+    if (/grid/.test(disp)) {
+      var cols = cs.gridTemplateColumns.split(' ').filter(function (x) { return x && x !== 'none'; }).length;
+      if (cols > 1) { n.grid = cols; n.colw = cs.gridTemplateColumns.split(' ').map(px); }
+      else n.center = cs.placeItems && /center/.test(cs.placeItems) ? 1 : 0;
+    }
+    if (n.row) { n.jc = cs.justifyContent; n.ai = cs.alignItems; }
+    var gap = px(cs.columnGap) || px(cs.gap); if (gap) n.gap = gap;
+    var rgap = px(cs.rowGap); if (rgap) n.rgap = rgap;
+    if (parseFloat(cs.flexGrow) > 0) n.grow = 1;
+    // Lebar/tinggi tetap untuk kotak kecil (ikon, lencana, foto, tombol bulat): ukurannya dari CSS, bukan dari isi.
+    var textLen = (el.innerText || '').trim().length;
+    if ((rect.width <= 160 && rect.height <= 160 && textLen <= 10 && (n.s.bg || n.s.bw || !textLen)) || (tag === 'I' && rect.width > 0)) n.fixed = 1;
+    if (/inline/.test(disp) && !/inline-(block|flex|grid)/.test(disp)) n.inline = 1;
+    var kids = [];
+    var allInline = true;
+    Array.prototype.forEach.call(el.childNodes, function (c) {
+      if (c.nodeType === 3) {
+        var t = n.s.pre ? c.textContent : c.textContent.replace(/\s+/g, ' ');
+        if (t.trim() || (n.s.pre && t.length)) kids.push({ t: t });
+        return;
+      }
+      if (c.nodeType !== 1) return;
+      var k = mirrorNode(c, ctx, depth + 1);
+      if (!k) return;
+      if (!k.inline && !k.br) allInline = false;
+      kids.push(k);
+    });
+    // Hanya teks (dan elemen sebaris seperti <b>, <a>): satu paragraf.
+    if (allInline && kids.length && !n.row && !n.grid) {
+      n.spans = kids.map(function (k) {
+        if (k.br) return { t: '\n' };
+        if (k.t != null && !k.s) return { t: k.t };
+        return { t: spanText(k), fw: k.s.fw, c: k.s.c, fs: k.s.fs, tap: k.tap, b: k.b, bg: k.s.bg };
+      });
+      var first = n.spans[0], last = n.spans[n.spans.length - 1];
+      if (!n.s.pre) { first.t = first.t.replace(/^\s+/, ''); last.t = last.t.replace(/\s+$/, ''); }
+      return n;
+    }
+    var anon = function () { return { s: { m: [0, 0, 0, 0], p: [0, 0, 0, 0], fs: n.s.fs, fw: n.s.fw, lh: n.s.lh, c: n.s.c, ta: n.s.ta, up: n.s.up, ls: n.s.ls, nowrap: n.s.nowrap, pre: n.s.pre }, spans: [], anon: 1 }; };
+    if (n.row || n.grid) {
+      n.ch = kids.filter(function (k) { return !(k.t != null && !k.s && !k.t.trim()); }).map(function (k) {
+        if (k.t != null && !k.s) { var a = anon(); a.spans.push({ t: k.t.trim() }); return a; }
+        return k;
+      });
+      return n;
+    }
+    // Blok berisi campuran teks dan elemen sebaris (<b>, <a>, …) dengan blok lain: teks sebaris digabung jadi satu paragraf.
+    n.ch = [];
+    var run = null;
+    function flush() {
+      if (!run) return;
+      if (!n.s.pre) { run.spans[0].t = run.spans[0].t.replace(/^\s+/, ''); var l = run.spans[run.spans.length - 1]; l.t = l.t.replace(/\s+$/, ''); }
+      if (run.spans.map(function (x) { return x.t; }).join('').trim()) n.ch.push(run);
+      run = null;
+    }
+    kids.forEach(function (k) {
+      var isInline = (k.t != null && !k.s) || k.inline || k.br;
+      if (!isInline) { flush(); n.ch.push(k); return; }
+      if (!run) run = anon();
+      if (k.br) run.spans.push({ t: '\n' });
+      else if (k.t != null && !k.s) run.spans.push({ t: k.t });
+      else run.spans.push({ t: spanText(k), fw: k.s.fw, c: k.s.c, fs: k.s.fs, tap: k.tap, b: k.b, bg: k.s.bg });
+    });
+    flush();
+    return n;
+  }
+  function spanText(k) { return k.spans ? k.spans.map(function (x) { return x.t; }).join('') : (k.ch ? k.ch.map(spanText).join('') : ''); }
   // Rincian Pesanan: digambar Flutter persis seperti HTML. Tombol memakai indeks yang sama dengan __goyanaForm (button / tap).
   function orderDetailModel(root) {
     var buttons = Array.prototype.slice.call(root.querySelectorAll('button')), taps = Array.prototype.slice.call(root.querySelectorAll('[onclick]:not(button)'));
@@ -944,7 +1075,7 @@
       if (smsg !== lastPage) { lastPage = smsg; try { window.GoyanaNative.postMessage(smsg); } catch (e) {} }
       return;
     }
-    var skip = (NATIVE_SHEETS[id] || []).concat(sheet ? [sheet.id] : []);
+    var skip = (NATIVE_SHEETS[id] || []).concat(sheet ? [sheet.id].concat(sheet.under || []) : []);
     var native = !!id && NATIVE.hasOwnProperty(id) && !coveringOverlay(skip);
     var model = null;
     // A model error must never break the app: fall back to the HTML page.
