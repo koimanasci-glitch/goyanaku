@@ -272,6 +272,19 @@ try{
   last=await openNative('branchmonitor58');assert.ok(last.model.items.some(x=>x.type==='hero')&&last.model.items.find(x=>x.type==='stats').cells.length===6);
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS 11 more settings pages (Kasir, Pengingat, Pusat Data, WhatsApp, ...) use the generic native form');
+  // Paid-plan pages (Pegawai, Stok, CRM, Chatbot AI, ...): unlock Platinum, check content and a save through the HTML.
+  await p.evaluate(()=>{window.__planBackup=goyanaPlan111.plan;goyanaPlan111.plan={...goyanaPlan111.plan,id:'PLATINUM',paid:true,until:new Date(Date.now()+86400000)}});
+  for(const id of ['employees','inventory','crm','ai191','blast191','quickreply','triggers191','audit','integrations']){
+    last=await openNative(id);assert.ok(last.model.items.length>0,id+' has content');
+  }
+  last=await openNative('employees');const empIn=last.model.items.filter(x=>x.type==='input');
+  assert.deepEqual(empIn.map(x=>x.ph.split(' ')[1]),['Nama','No','Alamat','Password'],'employee fields wrapped in labels are found');
+  assert.ok(empIn[3].secret);assert.ok(last.model.items.filter(x=>x.type==='toggle').length>=10,'access rights');
+  last=await openNative('ai191');assert.ok(last.model.items.some(x=>x.type==='toggle'&&x.t==='Aktifkan Chatbot AI'));
+  assert.ok(last.model.items.some(x=>x.type==='button'&&x.file==='ai-image191'),'visible file field becomes a native picker button');
+  last=await openNative('crm');assert.ok(last.model.items.filter(x=>x.type==='toggle').every(x=>x.t),'every CRM switch has a label');
+  await p.evaluate(()=>{goyanaPlan111.plan=window.__planBackup;document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Pegawai, Stok, CRM, Chatbot AI, Blast, Balasan Cepat, Trigger, Audit, Integrasi use the generic native form');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

@@ -1,0 +1,189 @@
+{
+ "title": "CRM PELANGGAN",
+ "items": [
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Pengingat",
+     "file": "",
+     "i": 0
+    },
+    {
+     "t": "Poin Member",
+     "file": "",
+     "i": 1
+    },
+    {
+     "t": "Voucher",
+     "file": "",
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "0 pesanan"
+  },
+  {
+   "type": "toggle",
+   "t": "Pengingat otomatis",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Kirim pengingat pada hari ke-"
+  },
+  {
+   "type": "hint",
+   "t": "Dihitung sejak status Siap Ambil"
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "H+1",
+     "file": "",
+     "i": 3
+    },
+    {
+     "t": "H+2",
+     "file": "",
+     "i": 4
+    },
+    {
+     "t": "H+3",
+     "file": "",
+     "i": 5
+    },
+    {
+     "t": "H+5",
+     "file": "",
+     "i": 6
+    },
+    {
+     "t": "H+7",
+     "file": "",
+     "i": 7
+    },
+    {
+     "t": "H+10",
+     "file": "",
+     "i": 8
+    }
+   ]
+  },
+  {
+   "type": "input",
+   "label": "H+",
+   "pre": "",
+   "suf": "",
+   "v": "14",
+   "ph": "",
+   "numeric": false,
+   "ro": false,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "label": "hari",
+   "pre": "",
+   "suf": "",
+   "v": "30",
+   "ph": "",
+   "numeric": false,
+   "ro": false,
+   "i": 1
+  },
+  {
+   "type": "title",
+   "t": "Tindakan"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Biaya simpan",
+    "Disumbangkan",
+    "Tidak ada"
+   ],
+   "index": 0,
+   "i": 2
+  },
+  {
+   "type": "input",
+   "label": "Rp",
+   "pre": "",
+   "suf": "",
+   "v": "1000",
+   "ph": "",
+   "numeric": false,
+   "ro": false,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Cetak aturan di nota",
+   "s": "Jadi dasar yang jelas bila pelanggan protes",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "hint",
+   "t": "Teks di nota: \"Cucian yang tidak diambil lebih dari 30 hari dikenakan biaya simpan Rp1.000/hari.\""
+  },
+  {
+   "type": "title",
+   "t": "Template pesan pengingat"
+  },
+  {
+   "type": "input",
+   "v": "Halo {nama}, cucian Anda ({kode}) sudah siap sejak {hari} hari lalu. Total {total}. Silakan diambil di {outlet} ya 🙏",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 4
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "{nama}",
+     "file": "",
+     "i": 9
+    },
+    {
+     "t": "{kode}",
+     "file": "",
+     "i": 10
+    },
+    {
+     "t": "{hari}",
+     "file": "",
+     "i": 11
+    },
+    {
+     "t": "{total}",
+     "file": "",
+     "i": 12
+    },
+    {
+     "t": "{outlet}",
+     "file": "",
+     "i": 13
+    }
+   ]
+  },
+  {
+   "type": "button",
+   "t": "Simpan Template",
+   "primary": false,
+   "file": "",
+   "i": 14
+  }
+ ]
+}

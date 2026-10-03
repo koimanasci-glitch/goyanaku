@@ -1,0 +1,31 @@
+{
+ "title": "BALAS CEPAT & TRIGGER",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Fitur Chatbot",
+   "lines": [
+    "Tersedia di PRO CHATBOT (Rp100.000), PLATINUM, atau dengan Tambah Nomor Chatbot Rp30.000/bulan."
+   ],
+   "badge": "",
+   "avatar": "✦",
+   "svg": "",
+   "btns": []
+  },
+  {
+   "type": "button",
+   "t": "+ Tambah Balasan",
+   "primary": true,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Trigger aktif"
+  },
+  {
+   "type": "title",
+   "t": "0 balasan"
+  }
+ ]
+}

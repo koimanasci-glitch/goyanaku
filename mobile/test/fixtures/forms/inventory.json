@@ -1,0 +1,106 @@
+{
+ "title": "STOK & BAHAN",
+ "items": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "0",
+     "t": "Jenis bahan"
+    },
+    {
+     "v": "0",
+     "t": "Stok menipis"
+    },
+    {
+     "v": "Rp0",
+     "t": "Nilai stok"
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "t": "＋ Tambah Bahan",
+   "s": "Stok awal, minimum, harga",
+   "svg": "",
+   "ic": "",
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "↕ Mutasi Stok",
+   "s": "Masuk / pemakaian",
+   "svg": "",
+   "ic": "",
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "✓ Stock Opname",
+   "s": "Fisik vs sistem",
+   "svg": "",
+   "ic": "",
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "⇄ Transfer Cabang",
+   "s": "Antar outlet",
+   "svg": "",
+   "ic": "",
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "🏭 Supplier",
+   "s": "Tambah pemasok",
+   "svg": "",
+   "ic": "",
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "🛒 Pembelian",
+   "s": "Lunas / hutang supplier",
+   "svg": "",
+   "ic": "",
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "🫧 Resep HPP",
+   "s": "Pemakaian saat mulai produksi",
+   "svg": "",
+   "ic": "",
+   "i": 6
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Stok",
+     "file": "",
+     "i": 7
+    },
+    {
+     "t": "Hutang",
+     "file": "",
+     "i": 8
+    },
+    {
+     "t": "Riwayat",
+     "file": "",
+     "i": 9
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Belum ada bahan."
+  },
+  {
+   "type": "hint",
+   "t": "Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama."
+  }
+ ]
+}

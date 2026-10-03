@@ -435,6 +435,16 @@
         var f = m && document.getElementById(m[1]);
         return f && f.type === 'file' ? m[1] : '';
       }
+      function fieldItem(c) {
+        var tag = c.tagName;
+        if (tag === 'SELECT') return { type: 'select', options: Array.prototype.map.call(c.options, function (o) { return o.textContent.trim(); }), index: c.selectedIndex, i: inputs.indexOf(c) };
+        if (c.type === 'file') {
+          // Visible file field: Flutter picks the file (a script click has no user gesture).
+          if (!c.id) c.id = 'gyfile-' + id + '-' + inputs.indexOf(c);
+          return { type: 'button', t: c.files && c.files[0] ? '📎 ' + c.files[0].name : 'Pilih Gambar', primary: false, file: c.id, i: -1 };
+        }
+        return { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), secret: c.type === 'password', email: c.type === 'email', i: inputs.indexOf(c) };
+      }
       function sub(el) { var sm = el && el.querySelector('small'); return sm && shown(sm) ? clean(sm) : ''; }
       function image(el) {
         var img = el.querySelector('img');
@@ -449,9 +459,23 @@
           var kids = Array.prototype.filter.call(c.children, shown);
           var cb = c.querySelector(':scope > input[type=checkbox]');
           if (tag === 'LABEL' && cb) {
-            var txtEl = c.querySelector(':scope > span') || c.querySelector(':scope > div > b');
+            var txtEl = c.querySelector(':scope > span') || c.querySelector(':scope > div > b') || c;
             var subEl = c.querySelector(':scope > span') || c.querySelector(':scope > div');
-            items.push({ type: 'toggle', t: main(txtEl), s: sub(subEl), on: cb.checked, i: boxes.indexOf(cb) });
+            var tt = main(txtEl), ss = sub(subEl);
+            if (!tt && c.parentElement) {
+              // Bare switch inside a titled row: <b>Pengingat otomatis <label>…</label></b>.
+              var host = c.parentElement.cloneNode(true), me = host.querySelector('label');
+              if (me) me.remove();
+              ss = sub(host); tt = main(host);
+            }
+            items.push({ type: 'toggle', t: tt, s: ss, on: cb.checked, i: boxes.indexOf(cb) });
+            return;
+          }
+          // Label wrapping its field: <label>Nama Pegawai<input></label>.
+          var inner = tag === 'LABEL' ? c.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select') : [];
+          if (inner.length === 1) {
+            items.push({ type: 'label', t: main(c) });
+            items.push(fieldItem(inner[0]));
             return;
           }
           // Title + subtitle with a bare switch beside it (e.g. "Layanan Antar-Jemput").
@@ -475,11 +499,7 @@
               : { type: 'button', t: clean(c), primary: /save|primary|submit|main|go/.test(cls), file: fileOf(c), i: buttons.indexOf(c) });
             return;
           }
-          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-            items.push(tag === 'SELECT' ? { type: 'select', options: Array.prototype.map.call(c.options, function (o) { return o.textContent.trim(); }), index: c.selectedIndex, i: inputs.indexOf(c) }
-              : { type: 'input', v: c.value, ph: c.placeholder || '', multiline: tag === 'TEXTAREA', numeric: /numeric|decimal|tel/.test(c.inputMode || c.type || ''), ro: !!(c.readOnly || c.disabled), secret: c.type === 'password', email: c.type === 'email', i: inputs.indexOf(c) });
-            return;
-          }
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') { items.push(fieldItem(c)); return; }
           // Labelled field: "<span>Jemput</span><div><em>Rp</em><input></div>".
           var fin = c.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea, select');
           var lspan = c.querySelector(':scope > span');
@@ -697,7 +717,8 @@
   }
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
-  ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58'].forEach(function (id) { NATIVE[id] = formModel(id); });
+  ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

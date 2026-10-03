@@ -1,0 +1,20 @@
+{
+ "title": "BALASAN CEPAT & TRIGGER",
+ "items": [
+  {
+   "type": "hint",
+   "t": "Pengaturan tersimpan di perangkat ini. Pengiriman WhatsApp dan AI belum terhubung ke server."
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Balasan",
+   "primary": true,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "hint",
+   "t": "Belum ada balasan. Tambahkan kata pemicu dan jawabannya."
+  }
+ ]
+}

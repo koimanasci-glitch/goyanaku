@@ -31,15 +31,11 @@
    "t": "Gambar balasan / promo"
   },
   {
-   "type": "input",
-   "v": "",
-   "ph": "",
-   "multiline": false,
-   "numeric": false,
-   "ro": false,
-   "secret": false,
-   "email": false,
-   "i": 0
+   "type": "button",
+   "t": "Pilih Gambar",
+   "primary": false,
+   "file": "chat-image191",
+   "i": -1
   },
   {
    "type": "hint",
@@ -66,62 +62,107 @@
   },
   {
    "type": "hint",
-   "t": "Aktif otomatis setelah upgrade paket chatbot."
+   "t": "Menyala otomatis saat upgrade · bisa dimatikan per fitur."
   },
   {
-   "type": "entry",
+   "type": "toggle",
    "t": "Pesanan diterima",
-   "lines": [
-    "Konfirmasi order + nota elektronik saat transaksi dibuat"
-   ],
-   "badge": "",
-   "avatar": "🧾",
-   "svg": "",
-   "btns": []
+   "s": "Konfirmasi order + nota elektronik saat transaksi dibuat",
+   "on": true,
+   "i": 0
   },
   {
-   "type": "entry",
+   "type": "toggle",
    "t": "Siap ambil otomatis",
-   "lines": [
-    "Pelanggan dikabari begitu status jadi Siap Ambil"
-   ],
-   "badge": "",
-   "avatar": "✅",
-   "svg": "",
-   "btns": []
+   "s": "Pelanggan dikabari begitu status jadi Siap Ambil",
+   "on": true,
+   "i": 1
   },
   {
-   "type": "entry",
+   "type": "toggle",
    "t": "Pengingat telat ambil",
-   "lines": [
-    "Otomatis kirim saat cucian 7 hari belum diambil"
-   ],
-   "badge": "",
-   "avatar": "⏰",
-   "svg": "",
-   "btns": []
+   "s": "Otomatis kirim saat cucian 7 hari belum diambil",
+   "on": true,
+   "i": 2
   },
   {
-   "type": "entry",
+   "type": "toggle",
    "t": "Chatbot AI 24 jam",
-   "lines": [
-    "Membalas pertanyaan pelanggan dari nomor outlet"
-   ],
-   "badge": "",
-   "avatar": "🤖",
-   "svg": "",
-   "btns": []
+   "s": "Membalas pertanyaan pelanggan dari nomor outlet",
+   "on": false,
+   "i": 3
   },
   {
-   "type": "entry",
+   "type": "toggle",
    "t": "Balas cepat & trigger",
-   "lines": [
-    "Jawaban template berdasarkan kata kunci"
-   ],
-   "badge": "",
-   "avatar": "⚡",
-   "svg": "",
-   "btns": []
+   "s": "Jawaban template berdasarkan kata kunci",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "title",
+   "t": "Chatbot bisa menjawab"
+  },
+  {
+   "type": "hint",
+   "t": "Bot hanya membaca data, tidak bisa mengubah transaksi."
+  },
+  {
+   "type": "toggle",
+   "t": "Cek status cucian",
+   "s": "",
+   "on": true,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Cek total tagihan",
+   "s": "",
+   "on": true,
+   "i": 6
+  },
+  {
+   "type": "toggle",
+   "t": "Info harga & layanan",
+   "s": "",
+   "on": true,
+   "i": 7
+  },
+  {
+   "type": "toggle",
+   "t": "Jam buka & alamat outlet",
+   "s": "",
+   "on": true,
+   "i": 8
+  },
+  {
+   "type": "toggle",
+   "t": "Pesan antar-jemput",
+   "s": "",
+   "on": true,
+   "i": 9
+  },
+  {
+   "type": "toggle",
+   "t": "Teruskan ke admin (CS manusia)",
+   "s": "",
+   "on": true,
+   "i": 10
+  },
+  {
+   "type": "button",
+   "t": "Atur balas cepat & trigger ›",
+   "primary": false,
+   "file": "",
+   "i": 4
+  },
+  {
+   "type": "title",
+   "t": "Riwayat pesan"
+  },
+  {
+   "type": "hint",
+   "t": "Pesan otomatis dari nomor outlet."
   },
   {
    "type": "title",
