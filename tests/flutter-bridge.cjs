@@ -289,6 +289,10 @@ try{
   await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='perfume'&&m.model.items.some(x=>x.type==='entry')},null,{timeout:4000});
   last=await lastAdd();const pf=last.model.items.find(x=>x.type==='entry');assert.ok(pf.compact&&pf.color&&pf.btns.length===2,'perfume rows with colour and edit/delete');
   console.log('PASS Parfum list rows (colour dot, edit/delete) are native');
+  for(const id of ['finance','duration','discount']){last=await openNative(id);assert.ok(last.model.items.length>0,id)}
+  last=await openNative('discount');assert.ok(last.model.items.some(x=>x.type==='input'&&x.sub),'labelled field keeps its explanation');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
+  console.log('PASS Keuangan (kategori), Durasi, Diskon are native');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

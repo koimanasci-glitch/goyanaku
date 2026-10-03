@@ -20,58 +20,58 @@
   },
   {
    "type": "card",
-   "t": "＋ Tambah Bahan",
+   "t": "Tambah Bahan",
    "s": "Stok awal, minimum, harga",
    "svg": "",
-   "ic": "",
+   "ic": "＋",
    "i": 0
   },
   {
    "type": "card",
-   "t": "↕ Mutasi Stok",
+   "t": "Mutasi Stok",
    "s": "Masuk / pemakaian",
    "svg": "",
-   "ic": "",
+   "ic": "↕",
    "i": 1
   },
   {
    "type": "card",
-   "t": "✓ Stock Opname",
+   "t": "Stock Opname",
    "s": "Fisik vs sistem",
    "svg": "",
-   "ic": "",
+   "ic": "✓",
    "i": 2
   },
   {
    "type": "card",
-   "t": "⇄ Transfer Cabang",
+   "t": "Transfer Cabang",
    "s": "Antar outlet",
    "svg": "",
-   "ic": "",
+   "ic": "⇄",
    "i": 3
   },
   {
    "type": "card",
-   "t": "🏭 Supplier",
+   "t": "Supplier",
    "s": "Tambah pemasok",
    "svg": "",
-   "ic": "",
+   "ic": "🏭",
    "i": 4
   },
   {
    "type": "card",
-   "t": "🛒 Pembelian",
+   "t": "Pembelian",
    "s": "Lunas / hutang supplier",
    "svg": "",
-   "ic": "",
+   "ic": "🛒",
    "i": 5
   },
   {
    "type": "card",
-   "t": "🫧 Resep HPP",
+   "t": "Resep HPP",
    "s": "Pemakaian saat mulai produksi",
    "svg": "",
-   "ic": "",
+   "ic": "🫧",
    "i": 6
   },
   {

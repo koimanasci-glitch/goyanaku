@@ -92,7 +92,9 @@ class NativeForm extends StatelessWidget {
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13)),
                     child: _s(it['svg']).isNotEmpty
                         ? gSvg(_s(it['svg']), 26)
-                        : (_s(it['ic']).isNotEmpty ? Text(_s(it['ic']), style: gText(19, c: gBrand)) : const Icon(Icons.print_rounded, color: gBrand))),
+                        : (_s(it['ic']).isNotEmpty
+                            ? Text(_s(it['ic']), style: gText(19, c: gBrand))
+                            : Icon(_s(it['t']).contains('rinter') ? Icons.print_rounded : Icons.apps_rounded, color: gBrand))),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -246,7 +248,12 @@ class NativeForm extends StatelessWidget {
               child: Row(children: [
                 if (_s(it['svg']).isNotEmpty) ...[gSvg(_s(it['svg']), 28), const SizedBox(width: 10)]
                 else if (_s(it['avatar']).isNotEmpty) ...[Text(_s(it['avatar']), style: gText(18, c: gBrand)), const SizedBox(width: 10)],
-                Expanded(child: Text(_s(it['t']), style: gText(14, w: FontWeight.w500, c: _ink))),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_s(it['t']), style: gText(14, w: FontWeight.w500, c: _ink)),
+                    for (final l in (it['lines'] as List? ?? const [])) Text(_s(l), style: gText(11.5, c: const Color(0xff8a8fa3))),
+                  ]),
+                ),
                 if (_s(it['color']).isNotEmpty) ...[
                   Container(width: 14, height: 14, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
                   const SizedBox(width: 10),
@@ -444,7 +451,17 @@ class _FormInputState extends State<_FormInput> {
     final label = _s(it['label']), pre = _s(it['pre']), suf = _s(it['suf']);
     if (label.isEmpty && pre.isEmpty && suf.isEmpty) return _field(it, multi, ro);
     return Row(children: [
-      if (label.isNotEmpty) Expanded(flex: 5, child: Padding(padding: const EdgeInsets.only(right: 10), child: Text(label, style: gText(13, c: _ink)))),
+      if (label.isNotEmpty)
+        Expanded(
+          flex: 5,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label, style: gText(13, c: _ink)),
+              if (_s(it['sub']).isNotEmpty) Text(_s(it['sub']), style: gText(10.5, c: const Color(0xff8a8fa3))),
+            ]),
+          ),
+        ),
       Expanded(
         flex: 5,
         child: Container(
