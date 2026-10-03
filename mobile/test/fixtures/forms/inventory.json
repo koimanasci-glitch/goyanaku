@@ -6,15 +6,21 @@
    "cells": [
     {
      "v": "0",
-     "t": "Jenis bahan"
+     "t": "Jenis bahan",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Stok menipis"
+     "t": "Stok menipis",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "Rp0",
-     "t": "Nilai stok"
+     "t": "Nilai stok",
+     "n": "",
+     "tone": ""
     }
    ]
   },
@@ -24,6 +30,9 @@
    "s": "Stok awal, minimum, harga",
    "svg": "",
    "ic": "＋",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 0
   },
   {
@@ -32,6 +41,9 @@
    "s": "Masuk / pemakaian",
    "svg": "",
    "ic": "↕",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 1
   },
   {
@@ -40,6 +52,9 @@
    "s": "Fisik vs sistem",
    "svg": "",
    "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 2
   },
   {
@@ -48,6 +63,9 @@
    "s": "Antar outlet",
    "svg": "",
    "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 3
   },
   {
@@ -56,6 +74,9 @@
    "s": "Tambah pemasok",
    "svg": "",
    "ic": "🏭",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 4
   },
   {
@@ -64,6 +85,9 @@
    "s": "Lunas / hutang supplier",
    "svg": "",
    "ic": "🛒",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 5
   },
   {
@@ -72,6 +96,9 @@
    "s": "Pemakaian saat mulai produksi",
    "svg": "",
    "ic": "🫧",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 6
   },
   {
@@ -80,16 +107,19 @@
     {
      "t": "Stok",
      "file": "",
+     "on": true,
      "i": 7
     },
     {
      "t": "Hutang",
      "file": "",
+     "on": false,
      "i": 8
     },
     {
      "t": "Riwayat",
      "file": "",
+     "on": false,
      "i": 9
     }
    ]

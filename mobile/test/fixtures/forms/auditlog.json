@@ -12,22 +12,30 @@
   {
    "type": "pair",
    "t": "Perubahan harga",
-   "v": "Tercatat"
+   "v": "Tercatat",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Pembatalan pesanan",
-   "v": "Tercatat"
+   "v": "Tercatat",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Pengeluaran kas",
-   "v": "Tercatat"
+   "v": "Tercatat",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Login pegawai",
-   "v": "Tercatat"
+   "v": "Tercatat",
+   "tone": "",
+   "tap": -1
   }
  ]
 }

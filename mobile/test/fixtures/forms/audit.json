@@ -29,21 +29,25 @@
     {
      "t": "Semua",
      "file": "",
+     "on": true,
      "i": 1
     },
     {
      "t": "Transaksi",
      "file": "",
+     "on": false,
      "i": 2
     },
     {
      "t": "Kas",
      "file": "",
+     "on": false,
      "i": 3
     },
     {
      "t": "Login",
      "file": "",
+     "on": false,
      "i": 4
     }
    ]

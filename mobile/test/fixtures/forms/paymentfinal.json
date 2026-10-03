@@ -23,6 +23,9 @@
    "s": "Bayar di kasir",
    "svg": "",
    "ic": "💵",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 0
   },
   {
@@ -31,6 +34,9 @@
    "s": "QR khusus order",
    "svg": "",
    "ic": "▦",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 1
   },
   {
@@ -39,6 +45,9 @@
    "s": "Transfer bank",
    "svg": "",
    "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 2
   },
   {

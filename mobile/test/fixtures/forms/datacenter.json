@@ -6,15 +6,21 @@
    "cells": [
     {
      "v": "0",
-     "t": "Pelanggan"
+     "t": "Pelanggan",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Transaksi"
+     "t": "Transaksi",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Backup"
+     "t": "Backup",
+     "n": "",
+     "tone": ""
     }
    ]
   },
@@ -32,6 +38,9 @@
    "s": "CSV / Excel · mapping kolom · cek duplikat",
    "svg": "",
    "ic": "👥",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 0
   },
   {
@@ -40,6 +49,9 @@
    "s": "Nama layanan, satuan, harga dan durasi",
    "svg": "",
    "ic": "🧺",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 1
   },
   {
@@ -48,6 +60,9 @@
    "s": "Histori order dan pembayaran",
    "svg": "",
    "ic": "🧾",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 2
   },
   {
@@ -64,6 +79,9 @@
    "s": "Excel / CSV",
    "svg": "",
    "ic": "↓",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 3
   },
   {
@@ -72,6 +90,9 @@
    "s": "Belum ada backup",
    "svg": "",
    "ic": "☁",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 4
   },
   {
@@ -80,6 +101,9 @@
    "s": "Pilih titik pemulihan",
    "svg": "",
    "ic": "↻",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 5
   },
   {
@@ -91,19 +115,11 @@
    "t": "Pilih jenis import di atas. Sebelum disimpan, GOYANA akan menampilkan preview, mapping kolom, data valid, duplikat dan data gagal."
   },
   {
-   "type": "title",
-   "t": "Masa Trial"
-  },
-  {
-   "type": "hint",
-   "t": "Mulai dari nol sebelum dipakai sungguhan."
-  },
-  {
-   "type": "card",
-   "t": "Hapus Data Trial",
-   "s": "Hapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.",
-   "svg": "",
-   "ic": "🗑",
+   "type": "total",
+   "t": "Mulai dari nol sebelum dipakai sungguhan.",
+   "v": "Masa Trial",
+   "s": "",
+   "btn": "🗑Hapus Data TrialHapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.›",
    "i": 6
   }
  ]

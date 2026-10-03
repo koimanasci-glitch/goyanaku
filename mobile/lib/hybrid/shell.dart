@@ -66,7 +66,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   /// HTML pages drawn by the generic native form (formModel in capacitor.js).
   static const _formPages = {'printer', 'profile', 'customeradd', 'helpcenter', 'outlets', 'outletedit', 'delivery', 'qris',
     'cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187'};
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling'};
   Map<String, dynamic> _cashClose = {};
   String _toast = ''; // HTML toast shown natively while a native page covers the WebView
   String _sheetId = ''; // simple HTML sheet drawn natively over the native page

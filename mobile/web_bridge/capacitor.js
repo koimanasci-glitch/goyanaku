@@ -557,9 +557,10 @@
             return;
           }
           // Stat tiles: <div><b>12</b><small>Pelanggan</small></div> x N.
-          var tile = function (k) { return k.tagName === 'DIV' && (k.children.length === 2 || (k.children.length === 3 && k.querySelector(':scope > em'))) && k.querySelector(':scope > b, :scope > strong') && k.querySelector(':scope > small'); };
+          var tval = function (k) { return k.querySelector(':scope > b, :scope > strong') || (k.children[0] && k.children[0].tagName === 'SPAN' ? k.children[0] : null); };
+          var tile = function (k) { return k.tagName === 'DIV' && (k.children.length === 2 || (k.children.length === 3 && k.querySelector(':scope > em'))) && tval(k) && k.querySelector(':scope > small'); };
           if (kids.length > 1 && kids.length <= 9 && kids.every(tile)) {
-            items.push({ type: 'stats', cells: kids.map(function (k) { return { v: clean(k.querySelector(':scope > b, :scope > strong')), t: clean(k.querySelector(':scope > small')), n: clean(k.querySelector(':scope > em')),
+            items.push({ type: 'stats', cells: kids.map(function (k) { return { v: clean(tval(k)), t: clean(k.querySelector(':scope > small')), n: clean(k.querySelector(':scope > em')),
               tone: /\bg\b/.test(k.className) ? 'g' : (/\br\b/.test(k.className) ? 'r' : '') }; }) });
             return;
           }
@@ -638,7 +639,8 @@
           var simple = ebtns.every(function (x) { return !x.querySelector('small, div'); });
           if (eb && esm.length && simple && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span, :scope > strong'))) {
             var av = c.querySelector(':scope > span'), dot = c.querySelector(':scope > [class*="dot"]');
-            items.push({ type: 'entry', t: clean(eb), lines: esm.map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
+            var eps = ebox ? Array.prototype.filter.call(ebox.querySelectorAll(':scope > p'), shown) : [];
+            items.push({ type: 'entry', t: clean(eb), lines: esm.concat(eps).map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
               color: dot ? getComputedStyle(dot).backgroundColor : '', amount: clean(c.querySelector(':scope > strong')),
               btns: ebtns.map(function (x) { return { t: blab(x), i: buttons.indexOf(x) }; }) });
             return;
@@ -819,7 +821,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume', 'finance', 'duration', 'discount', 'upgrade', 'addbot', 'paymentfinal', 'rp170d', 'barcode', 'notif', 'today187', 'superbilling'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';

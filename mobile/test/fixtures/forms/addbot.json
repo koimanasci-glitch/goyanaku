@@ -11,22 +11,29 @@
    "avatar": "💬",
    "svg": "",
    "color": "",
+   "amount": "",
    "btns": []
   },
   {
    "type": "pair",
    "t": "Paket saat ini",
-   "v": "FREE"
+   "v": "FREE",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Nomor chatbot termasuk paket",
-   "v": "0 nomor"
+   "v": "0 nomor",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Nomor tambahan aktif",
-   "v": "0 nomor"
+   "v": "0 nomor",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "title",
@@ -66,7 +73,9 @@
   {
    "type": "pair",
    "t": "Total",
-   "v": "Rp 30.000"
+   "v": "Rp 30.000",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "button",

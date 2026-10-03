@@ -1,0 +1,67 @@
+{
+ "title": "MANAJEMEN CABANG",
+ "items": [
+  {
+   "type": "entry",
+   "t": "Belum ada outlet",
+   "lines": [
+    "OUTLET OPERASIONAL",
+    "Akun ini selalu bekerja di outlet ini. Cabang lain hanya bisa dimonitor, tidak bisa dipindah."
+   ],
+   "badge": "",
+   "avatar": "🔒",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hero",
+   "t": "Outlet tersimpan",
+   "v": "0",
+   "s": "Tambahkan dan kelola outlet usaha"
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Cabang",
+   "primary": false,
+   "file": "",
+   "i": 0
+  },
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "Rp0",
+     "t": "Total Omzet Hari Ini",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Order Aktif",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Terlambat",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Monitoring Cabang"
+  },
+  {
+   "type": "hint",
+   "t": "Pilih cabang untuk melihat kondisi operasionalnya"
+  },
+  {
+   "type": "title",
+   "t": "Tambahkan outlet untuk mulai monitoring."
+  }
+ ]
+}

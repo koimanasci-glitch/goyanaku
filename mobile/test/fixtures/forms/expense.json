@@ -6,14 +6,8 @@
    "t": "Tanggal"
   },
   {
-   "type": "input",
+   "type": "date",
    "v": "2026-10-03",
-   "ph": "",
-   "multiline": false,
-   "numeric": false,
-   "ro": false,
-   "secret": false,
-   "email": false,
    "i": 0
   },
   {

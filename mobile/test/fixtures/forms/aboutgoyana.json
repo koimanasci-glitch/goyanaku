@@ -19,7 +19,8 @@
   },
   {
    "type": "title",
-   "t": "PT Alkansa Putra Indonesia"
+   "t": "PT Alkansa Putra Indonesia",
+   "s": ""
   },
   {
    "type": "hint",
@@ -28,16 +29,21 @@
   {
    "type": "pair",
    "t": "Pengembang",
-   "v": "Koiman Maruf"
+   "v": "Koiman Maruf",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Berdiri sejak",
-   "v": "2015"
+   "v": "2015",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "title",
-   "t": "Tentang GOYANA"
+   "t": "Tentang GOYANA",
+   "s": ""
   },
   {
    "type": "hint",
@@ -61,7 +67,8 @@
   },
   {
    "type": "title",
-   "t": "Komitmen Kami"
+   "t": "Komitmen Kami",
+   "s": ""
   },
   {
    "type": "hint",

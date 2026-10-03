@@ -7,16 +7,19 @@
     {
      "t": "Pengingat",
      "file": "",
+     "on": true,
      "i": 0
     },
     {
      "t": "Poin Member",
      "file": "",
+     "on": false,
      "i": 1
     },
     {
      "t": "Voucher",
      "file": "",
+     "on": false,
      "i": 2
     }
    ]
@@ -46,31 +49,37 @@
     {
      "t": "H+1",
      "file": "",
+     "on": false,
      "i": 3
     },
     {
      "t": "H+2",
      "file": "",
+     "on": false,
      "i": 4
     },
     {
      "t": "H+3",
      "file": "",
+     "on": true,
      "i": 5
     },
     {
      "t": "H+5",
      "file": "",
+     "on": false,
      "i": 6
     },
     {
      "t": "H+7",
      "file": "",
+     "on": true,
      "i": 7
     },
     {
      "t": "H+10",
      "file": "",
+     "on": false,
      "i": 8
     }
    ]
@@ -78,6 +87,7 @@
   {
    "type": "input",
    "label": "H+",
+   "sub": "",
    "pre": "",
    "suf": "",
    "v": "14",
@@ -89,6 +99,7 @@
   {
    "type": "input",
    "label": "hari",
+   "sub": "",
    "pre": "",
    "suf": "",
    "v": "30",
@@ -114,6 +125,7 @@
   {
    "type": "input",
    "label": "Rp",
+   "sub": "",
    "pre": "",
    "suf": "",
    "v": "1000",
@@ -154,26 +166,31 @@
     {
      "t": "{nama}",
      "file": "",
+     "on": false,
      "i": 9
     },
     {
      "t": "{kode}",
      "file": "",
+     "on": false,
      "i": 10
     },
     {
      "t": "{hari}",
      "file": "",
+     "on": false,
      "i": 11
     },
     {
      "t": "{total}",
      "file": "",
+     "on": false,
      "i": 12
     },
     {
      "t": "{outlet}",
      "file": "",
+     "on": false,
      "i": 13
     }
    ]

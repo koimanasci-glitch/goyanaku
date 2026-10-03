@@ -11,6 +11,7 @@
    "avatar": "👁",
    "svg": "",
    "color": "",
+   "amount": "",
    "btns": []
   },
   {
@@ -24,27 +25,39 @@
    "cells": [
     {
      "v": "0",
-     "t": "Diproses"
+     "t": "Diproses",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Siap Diambil"
+     "t": "Siap Diambil",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Terlambat"
+     "t": "Terlambat",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "Rp0",
-     "t": "Saldo Kas"
+     "t": "Saldo Kas",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Belum Lunas"
+     "t": "Belum Lunas",
+     "n": "",
+     "tone": ""
     },
     {
      "v": "0",
-     "t": "Stok Menipis"
+     "t": "Stok Menipis",
+     "n": "",
+     "tone": ""
     }
    ]
   },
@@ -54,6 +67,9 @@
    "s": "Lihat order dan status produksi",
    "svg": "",
    "ic": "🧾",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 0
   },
   {
@@ -62,6 +78,9 @@
    "s": "Saldo, pemasukan dan pengeluaran",
    "svg": "",
    "ic": "💰",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 1
   },
   {
@@ -70,6 +89,9 @@
    "s": "Omzet dan performa cabang",
    "svg": "",
    "ic": "▥",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 2
   },
   {
@@ -78,6 +100,9 @@
    "s": "Bahan dan stok minimum",
    "svg": "",
    "ic": "📦",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 3
   },
   {
@@ -86,6 +111,9 @@
    "s": "Kasir dan pegawai aktif",
    "svg": "",
    "ic": "👥",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 4
   },
   {
@@ -94,6 +122,9 @@
    "s": "Riwayat aktivitas cabang",
    "svg": "",
    "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
    "i": 5
   }
  ]

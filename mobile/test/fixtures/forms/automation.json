@@ -8,22 +8,30 @@
   {
    "type": "pair",
    "t": "Pesanan diterima",
-   "v": "WA"
+   "v": "WA",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Pesanan siap diambil",
-   "v": "WA"
+   "v": "WA",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Belum diambil 2 hari",
-   "v": "Follow-up"
+   "v": "Follow-up",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "pair",
    "t": "Chatbot status pesanan",
-   "v": "SUPER PRO"
+   "v": "SUPER PRO",
+   "tone": "",
+   "tap": -1
   },
   {
    "type": "hint",

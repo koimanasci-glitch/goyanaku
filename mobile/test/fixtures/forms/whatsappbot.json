@@ -58,7 +58,8 @@
   },
   {
    "type": "title",
-   "t": "Fitur otomatis"
+   "t": "Fitur otomatis",
+   "s": ""
   },
   {
    "type": "hint",
@@ -101,7 +102,8 @@
   },
   {
    "type": "title",
-   "t": "Chatbot bisa menjawab"
+   "t": "Chatbot bisa menjawab",
+   "s": ""
   },
   {
    "type": "hint",
@@ -158,7 +160,8 @@
   },
   {
    "type": "title",
-   "t": "Riwayat pesan"
+   "t": "Riwayat pesan",
+   "s": ""
   },
   {
    "type": "hint",

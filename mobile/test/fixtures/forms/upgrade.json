@@ -90,6 +90,7 @@
    "avatar": "",
    "svg": "",
    "color": "",
+   "amount": "",
    "btns": [
     {
      "t": "Tambah",
@@ -107,6 +108,7 @@
    "avatar": "",
    "svg": "",
    "color": "",
+   "amount": "",
    "btns": [
     {
      "t": "Tambah",
