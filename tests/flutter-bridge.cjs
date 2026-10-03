@@ -24,7 +24,7 @@ try{
   await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home')});await p.waitForTimeout(300);
   const natives=()=>p.evaluate(()=>(window.GoyanaNative.__events||[]).map(m=>JSON.parse(m)).filter(m=>m.event==='native'));
   let last=(await natives()).at(-1);assert.equal(last.page,'home');assert.equal(last.model.today,'Rp 0');assert.equal(last.model.labelReady,'Siap diambil');assert.equal(last.model.slides.length,3);
-  await p.evaluate(()=>openPage('perfume'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
+  await p.evaluate(()=>openPage('finreport'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,null,'HTML pages are not covered');
   await p.evaluate(()=>__goyanaTap('#nav-home'));await p.waitForTimeout(300);assert.equal((await natives()).at(-1).page,'home');
   await p.evaluate(()=>__goyanaTap('#home .gy155-receipt-wrap button'));await p.waitForTimeout(400);
   assert.equal((await natives()).at(-1).page,null,'a sheet opened from Beranda hides the native page');
@@ -285,6 +285,10 @@ try{
   last=await openNative('crm');assert.ok(last.model.items.filter(x=>x.type==='toggle').every(x=>x.t),'every CRM switch has a label');
   await p.evaluate(()=>{goyanaPlan111.plan=window.__planBackup;document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Pegawai, Stok, CRM, Chatbot AI, Blast, Balasan Cepat, Trigger, Audit, Integrasi use the generic native form');
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('perfume')});
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='perfume'&&m.model.items.some(x=>x.type==='entry')},null,{timeout:4000});
+  last=await lastAdd();const pf=last.model.items.find(x=>x.type==='entry');assert.ok(pf.compact&&pf.color&&pf.btns.length===2,'perfume rows with colour and edit/delete');
+  console.log('PASS Parfum list rows (colour dot, edit/delete) are native');
 
   fs.mkdirSync(path.join(root,'mobile/test/screens'),{recursive:true});
   // Tutup Kasir: all arithmetic and validation must remain in the original HTML.

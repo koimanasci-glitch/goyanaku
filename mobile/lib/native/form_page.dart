@@ -236,6 +236,35 @@ class NativeForm extends StatelessWidget {
       case 'entry':
         final btns = _list(it['btns']);
         final badge = _s(it['badge']);
+        if (it['compact'] == true) {
+          final dot = cssColor(_s(it['color']), Colors.transparent);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xffe8ecf2))),
+              child: Row(children: [
+                if (_s(it['svg']).isNotEmpty) ...[gSvg(_s(it['svg']), 28), const SizedBox(width: 10)]
+                else if (_s(it['avatar']).isNotEmpty) ...[Text(_s(it['avatar']), style: gText(18, c: gBrand)), const SizedBox(width: 10)],
+                Expanded(child: Text(_s(it['t']), style: gText(14, w: FontWeight.w500, c: _ink))),
+                if (_s(it['color']).isNotEmpty) ...[
+                  Container(width: 14, height: 14, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+                  const SizedBox(width: 10),
+                ],
+                for (final b in btns)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: GestureDetector(
+                      onTap: () => a.fmButton(_i(b['i'])),
+                      child: Container(constraints: const BoxConstraints(minWidth: 34), height: 34, padding: const EdgeInsets.symmetric(horizontal: 8), alignment: Alignment.center,
+                          decoration: BoxDecoration(color: const Color(0xfff3f4f7), borderRadius: BorderRadius.circular(10)),
+                          child: Text(_s(b['t']), style: gText(14, w: FontWeight.w500, c: _ink))),
+                    ),
+                  ),
+              ]),
+            ),
+          );
+        }
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Container(

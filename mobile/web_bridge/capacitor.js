@@ -533,6 +533,22 @@
           if (tag === 'P' || tag === 'SMALL') { items.push({ type: 'hint', t: clean(c) }); return; }
           var btn = c.querySelector(':scope > button'), span = c.querySelector(':scope > span');
           if (btn && span && c.children.length === 2) { items.push({ type: 'row', t: clean(span), btn: clean(btn), i: buttons.indexOf(btn) }); return; }
+          // Simple list row: [icon] <b>Name</b> [colour dot] [✎ ×] (parfum, kategori, ...).
+          var rowB = c.querySelector(':scope > b');
+          var rowOk = rowB && kids.length <= 5 && kids.every(function (k) {
+            if (k === rowB) return true;
+            if (k.tagName === 'SPAN') return clean(k).length <= 3;
+            if (k.tagName === 'BUTTON') return !k.querySelector('small, div');
+            if (k.tagName === 'DIV') { var bs = Array.prototype.filter.call(k.children, shown); return bs.length && bs.length <= 3 && bs.every(function (x) { return x.tagName === 'BUTTON' && !x.querySelector('small, div'); }); }
+            return false;
+          });
+          var rowBtns = rowOk ? Array.prototype.filter.call(c.querySelectorAll('button'), shown) : [];
+          if (rowOk && rowBtns.length) {
+            var ic = c.querySelector(':scope > span'), dt = c.querySelector(':scope > [class*="dot"]');
+            items.push({ type: 'entry', t: clean(rowB), lines: [], badge: '', avatar: ic && !svgOf(ic) ? clean(ic) : '', svg: ic ? svgOf(ic) : '',
+              color: dt ? getComputedStyle(dt).backgroundColor : '', compact: true, btns: rowBtns.map(function (x) { return { t: clean(x), i: buttons.indexOf(x) }; }) });
+            return;
+          }
           // List entry: name, detail lines, status badge and action buttons (outlet, kurir, ...).
           var eb = c.querySelector(':scope > b') || c.querySelector(':scope > div > b');
           var ebox = eb && eb.parentElement;
@@ -540,8 +556,9 @@
           var esm = ebox ? Array.prototype.filter.call(ebox.querySelectorAll(':scope > small'), shown) : [];
           var simple = ebtns.every(function (x) { return !x.querySelector('small, div'); });
           if (eb && esm.length && simple && !c.querySelector('input, textarea, select') && ebtns.length <= 3 && (ebtns.length || c.querySelector(':scope > em, :scope > span'))) {
-            var av = c.querySelector(':scope > span');
+            var av = c.querySelector(':scope > span'), dot = c.querySelector(':scope > [class*="dot"]');
             items.push({ type: 'entry', t: clean(eb), lines: esm.map(clean), badge: clean(c.querySelector(':scope > em')), avatar: av ? (svgOf(av) ? '' : clean(av).slice(0, 2)) : '', svg: av ? svgOf(av) : '',
+              color: dot ? getComputedStyle(dot).backgroundColor : '',
               btns: ebtns.map(function (x) { return { t: clean(x), i: buttons.indexOf(x) }; }) });
             return;
           }
@@ -718,7 +735,7 @@
   window.__goyanaCovering = coveringOverlay;
   var NATIVE = { home: homeModel, orders: ordersModel, addorder: addorderModel, customers: customersModel, reports: reportsModel, settings: settingsModel, cashclose: cashcloseModel, cashin: cashModel('cashin'), cashout: cashModel('cashout'), services: servicesModel, printer: formModel('printer'), profile: formModel('profile'), customeradd: formModel('customeradd'), helpcenter: formModel('helpcenter'), outlets: formModel('outlets'), outletedit: formModel('outletedit'), delivery: formModel('delivery'), qris: formModel('qris') };
   ['cashier', 'reminder', 'expense', 'printerconnect', 'aboutgoyana', 'auditlog', 'automation', 'datacenter', 'wadevices195', 'whatsappbot', 'branchmonitor58',
-    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations'].forEach(function (id) { NATIVE[id] = formModel(id); });
+    'employees', 'inventory', 'crm', 'ai191', 'blast191', 'quickreply', 'triggers191', 'audit', 'integrations', 'perfume'].forEach(function (id) { NATIVE[id] = formModel(id); });
   // Sheets that Flutter draws natively on top of its page (any other overlay still hands over to HTML).
   var NATIVE_SHEETS = { addorder: ['f61-options', 'f61-payment'] };
   var pageTimer = 0, lastPage = '';
