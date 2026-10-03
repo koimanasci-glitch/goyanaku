@@ -154,6 +154,7 @@ List<Map<String, dynamic>> orderDetailItems(Business b, Order o, DateTime now) {
     for (final it in o.items)
       {'type': 'entry', 't': '${it.name} (${o.dur})', 'lines': ['${qtyText(it.qty)} ${it.unit} × ${rpSpaced(it.price)}'], 'amount': rpSpaced(it.subtotal), 'avatar': '🧺'},
     if (o.items.isEmpty) {'type': 'hint', 't': 'Belum ditimbang · layanan diisi setelah cucian dijemput'},
+    if (!o.isCancelled && o.status != 'diambil') {'type': 'button', 't': o.items.isEmpty ? 'Isi Layanan & Berat' : 'Ubah Layanan & Berat', 'primary': o.items.isEmpty, 'i': 9},
     if (t.disc > 0) {'type': 'pair', 't': 'Diskon', 'v': '-${rpSpaced(t.disc)}'},
     if (o.ongkir > 0) {'type': 'pair', 't': 'Ongkos kirim', 'v': rpSpaced(o.ongkir)},
     {'type': 'pair', 't': 'Status', 'v': statusLabel[o.status] ?? o.status, 'tone': 'p'},

@@ -141,7 +141,7 @@ void main() {
 
   testWidgets('halaman pelanggan, laporan, pengaturan tampil tanpa error', (tester) async {
     final s = await _pump(tester, _store());
-    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'home']) {
+    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'outlet', 'today', 'data', 'home']) {
       s.nav(p);
       await _settle(tester);
       expect(tester.takeException(), isNull, reason: p);
@@ -213,6 +213,32 @@ void main() {
     expect(o.note, 'rak B2');
     expect(o.total, 9000);
     expect(o.due!.difference(o.masuk!).inDays, 5);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pesanan jemput tanpa layanan, lalu isi layanan setelah ditimbang', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.tile(0);
+    s.aoPickCustomer(0);
+    s.fmScoped('dur', 'button', 0);
+    await _settle(tester);
+    s.aoNext();
+    await _settle(tester);
+    s.fmScoped('pickup', 'button', 1);
+    await _settle(tester);
+    var o = (await Business.load(kv)).orders.first;
+    expect(o.status, 'jemput');
+    expect(o.total, 0);
+    s.fmScoped('detail', 'button', 1); // Sudah dijemput
+    s.fmScoped('detail', 'button', 9); // Isi layanan
+    await _settle(tester);
+    s.fmScoped('items', 'input', 0, '3,5');
+    s.fmScoped('items', 'button', 1001);
+    await _settle(tester);
+    o = (await Business.load(kv)).orders.first;
+    expect(o.status, 'antrian');
+    expect(o.total, 24500);
     expect(tester.takeException(), isNull);
   });
 }

@@ -51,8 +51,14 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   late final Map<String, PurePage> _pages = {
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'kas': KasPage(this),
-    'reports': ReportsPage(this), 'outlet': OutletPage(this),
+    'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
   };
+
+  @override
+  void openOrder(String id) {
+    nav('orders');
+    _showDetail(id);
+  }
 
   // PureHost
   @override
@@ -181,12 +187,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       case 3:
         nav('customers');
       case 4:
-        setState(() {
-          _sheets.clear();
-          _page = 'orders';
-          _tab = 1;
-          _search = '';
-        });
+        nav('today');
       default:
         toast('Menu ini sedang dipindahkan ke mode murni');
     }
@@ -345,6 +346,45 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     ]));
   }
 
+  final Map<int, String> _itemQty = {};
+
+  void _openItems(Order o) {
+    _itemQty.clear();
+    for (final it in o.items) {
+      final k = _b!.services.indexWhere((s) => s.name == it.name);
+      if (k >= 0) _itemQty[k] = qtyText(it.qty);
+    }
+    _open(_Sheet('items', _itemsList(o)));
+  }
+
+  List<Map<String, dynamic>> _itemsList(Order o) => [
+        {'type': 'title', 't': 'Isi Layanan & Berat', 's': '${o.id} · ${o.dur}'},
+        for (var k = 0; k < _b!.services.length; k++)
+          if (_b!.services[k].enabledFor(o.dur))
+            {'type': 'input', 'label': '${_b!.services[k].name} · ${rp(_b!.services[k].priceFor(o.dur))}', 'suf': _b!.services[k].unit, 'v': _itemQty[k] ?? '', 'ph': '0', 'numeric': true, 'i': k},
+        {'type': 'button', 't': 'Simpan Layanan', 'primary': true, 'i': 1001},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1002},
+      ];
+
+  void _itemsButton(int index) {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o == null || index != 1001) return _close('items');
+    final items = <OrderItem>[];
+    _itemQty.forEach((k, v) {
+      final q = parseQty(v);
+      if (q > 0 && k < _b!.services.length) {
+        final sv = _b!.services[k];
+        items.add(OrderItem(name: sv.name, icon: sv.unit == 'kg' ? 'Kiloan' : (sv.unit == 'm' ? 'Meteran' : 'Satuan'), unit: sv.unit, price: sv.priceFor(o.dur), qty: q));
+      }
+    });
+    if (items.isEmpty) return toast('Isi jumlah minimal satu layanan');
+    _b!.setItems(o, items);
+    _save();
+    _close('items');
+    toast('Layanan tersimpan · total ${rp(o.total)}');
+    _refreshDetail();
+  }
+
   void _openHistory(Order o) {
     String fmt(Object? v) {
       final d = DateTime.tryParse('${v ?? ''}')?.toLocal();
@@ -397,9 +437,11 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         'custform' => const ['name', 'phone', 'address'][index.clamp(0, 2)],
         'cancel' => index == 0 ? 'reason' : 'note',
         'edit' => const ['note', 'perfume', 'disc', 'dueDays'][index.clamp(0, 3)],
+        'items' => 'item$index',
         _ => 'amount',
       };
       _form[key] = value ?? '';
+      if (scope == 'items') _itemQty[index] = '${value ?? ''}';
       // Lembar yang menampilkan hitungan (kembalian, subtotal, sisa) ikut diperbarui.
       if (scope == 'cash') _open(_Sheet('cash', _cashItems()));
       if (scope == 'qty' && _qtyService != null) _open(_Sheet('qty', _qtyItems()));
@@ -430,6 +472,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             _openEdit(o);
           case 8:
             _openHistory(o);
+          case 9:
+            _openItems(o);
         }
       case 'pay':
         if (o == null) return;
@@ -502,6 +546,14 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         } else {
           _close('topup');
         }
+      case 'pickup':
+        _close('pickup');
+        if (index == 1) {
+          _opt['hand'] = 2; // Jemput & Antar
+          _finishOrder('Bayar Nanti');
+        }
+      case 'items':
+        _itemsButton(index);
       case 'confirm':
         if (index == 1) _finishOrder(_pendingMethod);
         _close('confirm');
@@ -837,7 +889,15 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   @override
   void aoNext() {
-    if (_cart.isEmpty) return toast('Pilih minimal satu layanan');
+    if (_cart.isEmpty) {
+      // Tanpa layanan: pesanan jemput, ditimbang setelah cucian diambil kurir.
+      return _open(_Sheet('pickup', [
+        {'type': 'title', 't': 'Belum ada layanan', 's': ''},
+        {'type': 'hint', 't': 'Buat pesanan Jemput? Layanan & berat diisi setelah cucian dijemput dan ditimbang.'},
+        {'type': 'button', 't': 'Buat Pesanan Jemput', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Pilih layanan dulu', 'primary': false, 'i': 2},
+      ]));
+    }
     setState(() => _aoSheet = 'options');
   }
 

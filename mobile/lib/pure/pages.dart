@@ -1,6 +1,8 @@
 // Halaman formulir mode murni: Pengaturan, Profil Struk, Printer, QRIS, Rekening, Layanan, Parfum, Kas, Tutup Kasir.
 // Tiap halaman membangun butir formulir (NativeForm) dan menangani aksinya sendiri dengan logika Dart.
 
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
 import '../core/business.dart';
@@ -11,6 +13,7 @@ import '../core/settings.dart';
 
 /// Yang dibutuhkan halaman dari shell.
 abstract class PureHost {
+  void openOrder(String id);
   Business get business;
   AppSettings get settings;
   DateTime get now;
@@ -44,7 +47,7 @@ class SettingsPage extends PurePage {
   String get title => 'Pengaturan';
   @override
   String get back => 'home';
-  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers', 'outlet'];
+  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers', 'outlet', 'data'];
   @override
   List<Map<String, dynamic>> items() {
     final s = host.settings;
@@ -62,6 +65,7 @@ class SettingsPage extends PurePage {
       card('Parfum', '${s.perfumes.length} parfum', '🌸', 5),
       card('Kas & Tutup Kasir', 'Kas masuk, pengeluaran, tutup shift', '💰', 6),
       card('Pelanggan', '${host.business.customers.length} pelanggan', '👥', 7),
+      card('Pusat Data', 'Ekspor Excel/CSV & cadangan data', '☁', 9),
       {'type': 'title', 't': 'Lainnya'},
       card('Kembali ke versi lengkap', 'Menu yang belum dipindahkan · data tetap sama', '↩', 99),
     ];
@@ -609,5 +613,99 @@ class OutletPage extends PurePage {
     await host.business.saveOutlet(name: f[0], address: f[1], phone: f[2]);
     host.toast('Outlet tersimpan');
     host.go('settings');
+  }
+}
+
+
+class TodayPage extends PurePage {
+  TodayPage(super.host);
+  @override
+  String get title => 'Harus Selesai Hari Ini';
+  @override
+  String get back => 'home';
+  @override
+  int get navActive => 1;
+  List<String> ids = [];
+  @override
+  List<Map<String, dynamic>> items() {
+    final n = host.now;
+    final list = host.business.orders.where((o) => !o.isCancelled && !['siap', 'diantar', 'diambil'].contains(o.status) && o.due != null &&
+        !o.due!.isAfter(DateTime(n.year, n.month, n.day, 23, 59, 59))).toList()
+      ..sort((a, b) => a.due!.compareTo(b.due!));
+    ids = list.map((o) => o.id).toList();
+    String hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    return [
+      {'type': 'hint', 't': 'Pesanan yang masih perlu diselesaikan hari ini (termasuk yang terlambat).'},
+      if (list.isEmpty) {'type': 'hint', 't': 'Tidak ada pesanan yang harus diselesaikan hari ini.'},
+      for (var k = 0; k < list.length; k++)
+        {'type': 'card', 't': list[k].name, 's': '${list[k].id} · ${list[k].isLate(n) ? 'terlambat sejak' : 'estimasi'} ${hm(list[k].due!)}',
+          'badge': list[k].isLate(n) ? 'Terlambat' : (list[k].status == 'antrian' ? 'Antrian' : 'Proses'), 'ic': '🧺', 'i': k},
+    ];
+  }
+
+  @override
+  void button(int i) {
+    if (i >= 0 && i < ids.length) host.openOrder(ids[i]);
+  }
+}
+
+class DataPage extends PurePage {
+  DataPage(super.host);
+  @override
+  String get title => 'Pusat Data';
+  @override
+  List<Map<String, dynamic>> items() {
+    final b = host.business;
+    return [
+      {'type': 'stats', 'cells': [
+        {'v': '${b.customers.length}', 't': 'Pelanggan'}, {'v': '${b.orders.length}', 't': 'Transaksi'}, {'v': '${b.services.length}', 't': 'Layanan'},
+      ]},
+      {'type': 'title', 't': 'Ekspor'},
+      card('Export Pesanan', 'CSV · bisa dibuka di Excel / Google Sheets', '↓', 0),
+      card('Export Pelanggan', 'CSV · nama, telepon, alamat, saldo', '↓', 1),
+      {'type': 'title', 't': 'Cadangan'},
+      card('Backup Database', 'Simpan semua data ke folder Download/GOYANA', '☁', 2),
+      card('Bagikan Backup', 'Kirim file cadangan ke WA / Drive', '⇪', 3),
+      {'type': 'hint', 't': 'File cadangan berisi seluruh data usaha. Simpan di tempat aman.'},
+    ];
+  }
+
+  Future<void> _save(String name, String mime, String text) async {
+    try {
+      final r = await host.device.invokeMethod<dynamic>('Files.save', {'name': name, 'mime': mime, 'data': base64Encode(utf8.encode(text))});
+      host.toast('Tersimpan di ${r is Map ? r['path'] ?? 'Download/GOYANA' : 'Download/GOYANA'}');
+    } on PlatformException catch (e) {
+      host.toast(e.message ?? 'Gagal menyimpan file');
+    } catch (_) {
+      host.toast('Gagal menyimpan file');
+    }
+  }
+
+  String _backup() => jsonEncode({
+        'app': 'GOYANA', 'version': 1, 'at': host.now.toIso8601String(),
+        'business': host.business.raw, 'services': host.business.services.map((e) => e.raw).toList(),
+        'outlets': host.business.outlets.map((e) => e.raw).toList(), 'settings': host.settings.raw, 'perfumes': host.settings.perfumes,
+      });
+
+  @override
+  void button(int i) async {
+    final d = host.now.toIso8601String().substring(0, 10);
+    switch (i) {
+      case 0:
+        return _save('goyana-pesanan-$d.csv', 'text/csv', '\uFEFF${host.business.ordersCsv()}');
+      case 1:
+        return _save('goyana-pelanggan-$d.csv', 'text/csv', '\uFEFF${host.business.customersCsv()}');
+      case 2:
+        return _save('goyana-backup-$d.json', 'application/json', _backup());
+      case 3:
+        try {
+          await host.device.invokeMethod('Files.share', {
+            'title': 'Backup GOYANA',
+            'files': [{'name': 'goyana-backup-$d.json', 'mime': 'application/json', 'data': base64Encode(utf8.encode(_backup()))}],
+          });
+        } catch (_) {
+          host.toast('Gagal membagikan file');
+        }
+    }
   }
 }

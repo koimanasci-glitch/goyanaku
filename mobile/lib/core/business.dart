@@ -366,6 +366,32 @@ class Business {
     _syncCard(o);
   }
 
+  /// Isi layanan & berat setelah cucian dijemput/ditimbang.
+  void setItems(Order o, List<OrderItem> items) {
+    o.detail['items'] = items.map((e) => e.toJson()).toList();
+    _syncCard(o);
+  }
+
+  /// CSV pesanan (dibuka di Excel/Sheets).
+  String ordersCsv() {
+    String q(Object? v) => '"${'$v'.replaceAll('"', '""')}"';
+    final rows = <String>['ID,Tanggal,Pelanggan,Telepon,Durasi,Layanan,Subtotal,Diskon,Total,Dibayar,Status,Pembayaran'];
+    for (final o in orders) {
+      final t = o.totals;
+      rows.add([
+        q(o.id), q(o.created == null ? '' : isoString(o.created!)), q(o.name), q(o.phone), q(o.dur),
+        q(o.items.map((e) => '${e.name} ${qtyText(e.qty)}${e.unit}').join('; ')), t.sub, t.disc, t.total, o.paid,
+        q(statusLabel[o.status] ?? o.status), q(o.paymentLabel),
+      ].join(','));
+    }
+    return rows.join('\n');
+  }
+
+  String customersCsv() {
+    String q(Object? v) => '"${'$v'.replaceAll('"', '""')}"';
+    return ['Nama,Telepon,Alamat,Saldo Deposit', for (final c in customers) [q(c.name), q(c.phone), q(c.address), depositOf(c.name)].join(',')].join('\n');
+  }
+
   /// Kartu daftar mengikuti rincian (total, label bayar, estimasi, diskon).
   void _syncCard(Order o) {
     final t = o.totals;
