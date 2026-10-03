@@ -160,3 +160,12 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - 14 popup (MIRROR_SHEETS) dan 9 halaman sisa (MIRROR_PAGES: pickservice, pickup, orderscan + kamera native mobile_scanner, qrstatus, plan111, checkout111, billing, invoice111, waautomation).
 - Revisi Koko: berat cucian desimal. 3 Okt: keyboard angka desimal. 4 Okt: Koko lapor masih tidak bisa koma/titik → keyboard diganti `numberWithOptions(decimal: true, signed: true)` (keyboard Samsung baru menampilkan tombol titik/koma dengan signed:true).
 - Aturan dari Koko: kerjakan hanya yang diminta, jangan ubah bagian lain; tampilan harus sama dengan patokan HTML.
+
+## Keputusan Koko — 4 Okt 2026 pagi (WAJIB diikuti semua AI yang mengerjakan repo ini)
+- Semua penghitungan/logika pindah MURNI ke Dart. Tampilan aplikasi sekarang sudah FIX: jangan diubah sama sekali.
+- Catat dulu, lalu konsultasi ke Koko sebelum mengerjakan. Kerjakan hanya yang diminta; jangan menyentuh bagian lain.
+- Cara kerja yang dipakai: per bagian, hasil Dart dicek sama persis dengan HTML (tes paritas `mobile/test/parity_test.dart`, fixture `test/fixtures/parity/`), baru dipasang. HTML jadi pengaman sampai semua bagian selesai.
+- Selesai: Beranda (`lib/logic/home.dart`).
+- Menunggu keputusan Koko:
+  1. "Omset hari ini" di HTML = jumlah penjualan sejak tutup kasir terakhir (bukan per tanggal). Ikuti HTML atau ganti per tanggal?
+  2. Pilihan Kilat/Express di Tambah Transaksi tidak mengubah estimasi selesai (selalu +3 hari). Ikuti HTML atau perbaiki (Kilat 6 jam, Express 24 jam)?
