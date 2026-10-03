@@ -335,7 +335,7 @@ class _Steps extends StatelessWidget {
                   SizedBox(
                     height: 29.4,
                     child: OverflowBox(
-                    minWidth: 0, maxWidth: col + 24, alignment: Alignment.topCenter,
+                    minWidth: 0, maxWidth: _wordWidth(_s(s['t']), col), alignment: Alignment.topCenter,
                     child: Text(_s(s['t']), textAlign: TextAlign.center, maxLines: 2,
                         style: gText(10.5, c: s['done'] == true ? const Color(0xff15885d) : (s['on'] == true ? _ink : const Color(0xff9aa1ad)), h: 14.7)),
                     ),
@@ -346,6 +346,16 @@ class _Steps extends StatelessWidget {
         ]);
       }),
     );
+  }
+
+  /// Lebar kolom label: kata terpanjang tidak boleh terpotong (HTML membiarkannya melewati kolom).
+  static double _wordWidth(String text, double col) {
+    var w = col;
+    for (final word in text.split(' ')) {
+      final tp = TextPainter(text: TextSpan(text: word, style: gText(10.5, h: 14.7)), textDirection: TextDirection.ltr)..layout();
+      if (tp.width + 2 > w) w = tp.width + 2;
+    }
+    return w;
   }
 
   Widget _dot(Map<String, dynamic> s) {
