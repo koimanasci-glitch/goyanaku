@@ -53,6 +53,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
+    'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
   @override
@@ -200,28 +201,31 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         nav('couriers');
       case 4:
         nav('today');
+      case 5:
+        nav('whatsapp');
       default:
         toast('Menu ini sedang dipindahkan ke mode murni');
     }
   }
 
   @override
-  void manageOutlet() => toast('Kelola outlet menyusul di mode murni');
+  void manageOutlet() => nav('outlets');
   @override
   void qr() => scan();
   @override
   void monthly() => nav('reports');
 
   // ---------------- Cetak struk ----------------
-  Future<void> _print(Order o) async {
-    final text = receiptText(o, _settings!.receipt, printedAt: now);
+  Future<void> _print(Order o) => _printRaw(receiptText(o, _settings!.receipt, printedAt: now), o.id, 'Struk dicetak');
+
+  Future<void> _printRaw(String text, String title, String done) async {
     final addr = _settings!.printerAddress;
     if (addr.isNotEmpty) {
       try {
         final st = await _device.invokeMapMethod<String, dynamic>('GoyanaDevice.printerStatus');
         if (st?['connected'] != true) await _device.invokeMethod('GoyanaDevice.connectPrinter', {'address': addr});
         await _device.invokeMethod('GoyanaDevice.printText', {'text': text});
-        return toast('Struk dicetak');
+        return toast(done);
       } on PlatformException catch (e) {
         toast(e.message ?? 'Printer tidak terhubung');
       } catch (_) {}
@@ -229,7 +233,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     // Tanpa printer Bluetooth: dialog cetak Android (PDF / printer Wi-Fi).
     final esc = const HtmlEscape().convert(text);
     try {
-      await _device.invokeMethod('Print.html', {'html': '<pre style="font:12px monospace">$esc</pre>', 'title': o.id});
+      await _device.invokeMethod('Print.html', {'html': '<pre style="font:12px monospace">$esc</pre>', 'title': title});
     } catch (_) {
       toast('Atur printer di Pengaturan → Printer Bluetooth');
     }
@@ -413,10 +417,27 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     ]));
   }
 
+  String _phoneOf(Order o) => o.phone.isNotEmpty ? o.phone : (_b!.customerByName(o.name)?.phone ?? '');
+
+  List<Map<String, dynamic>> _labelItems(Order o) => [
+        {'type': 'title', 't': 'Cetak Label Kantong', 's': '${o.id} · ${o.name}'},
+        {'type': 'input', 'label': 'Jumlah kantong', 'v': '${_form['labels']}', 'numeric': true, 'i': 0},
+        {'type': 'hint', 't': 'Satu label per kantong, berisi kode pesanan, nama, dan nomor kantong.'},
+        {'type': 'button', 't': 'Cetak Label', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 0},
+      ];
+
   void _sendWa(Order o) {
-    final cust = _b!.customerByName(o.name);
-    var phone = (o.phone.isNotEmpty ? o.phone : cust?.phone ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+    var phone = _phoneOf(o).replaceAll(RegExp(r'[^0-9]'), '');
     if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
+    final tpl = _settings!.raw['notaTpl'];
+    if (tpl is String && tpl.trim().isNotEmpty) {
+      final d = o.due;
+      return openMaps('https://wa.me/$phone?text=${Uri.encodeComponent(fillTemplate(tpl, {
+        'nama': o.name, 'kode': o.id, 'total': rp(o.total), 'bayar': o.paymentLabel, 'outlet': _outletName(),
+        'estimasi': d == null ? '-' : '${d.day}/${d.month}/${d.year}',
+      }))}');
+    }
     final lines = [
       'Halo ${o.name}, terima kasih sudah laundry di ${_outletName()}.',
       'No. pesanan: ${o.id}',
@@ -464,6 +485,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         'cancel' => index == 0 ? 'reason' : 'note',
         'edit' => const ['note', 'perfume', 'disc', 'dueDays'][index.clamp(0, 3)],
         'items' => 'item$index',
+        'label' => 'labels',
+        'setup' => const ['oname', 'oaddr', 'ophone'][index.clamp(0, 2)],
         _ => 'amount',
       };
       _form[key] = value ?? '';
@@ -500,6 +523,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             _openHistory(o);
           case 9:
             _openItems(o);
+          case 10:
+            _form['labels'] = '${o.items.isEmpty ? 1 : o.items.length}';
+            _open(_Sheet('label', _labelItems(o)));
         }
       case 'pay':
         if (o == null) return;
@@ -572,6 +598,26 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         } else {
           _close('topup');
         }
+      case 'setup':
+        final name = '${_form['oname'] ?? ''}'.trim();
+        if (name.isEmpty) return toast('Isi nama outlet');
+        b.saveOutlet(name: name, address: '${_form['oaddr'] ?? ''}'.trim(), phone: '${_form['ophone'] ?? ''}'.trim()).then((_) {
+          if (!mounted) return;
+          _settings!.receipt = ReceiptSettings(header: name, address: '${_form['oaddr'] ?? ''}'.trim(), phone: '${_form['ophone'] ?? ''}'.trim());
+          _settings!.save();
+          _form.clear();
+          setState(() {});
+          toast('Outlet siap. Selamat bekerja!');
+        });
+      case 'label':
+        _close('label');
+        if (index == 1 && o != null) {
+          final n = (int.tryParse('${_form['labels']}') ?? 1).clamp(1, 20);
+          _printRaw(labelText(o, _settings!.receipt, n), '${o.id} label', '$n label dicetak');
+        }
+      case 'nota':
+        _close('nota');
+        if (index == 1 && o != null) _sendWa(o);
       case 'pickup':
         _close('pickup');
         if (index == 1) {
@@ -654,9 +700,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void cuPage(int delta) {}
   @override
-  void cuRank() => toast('Peringkat pelanggan menyusul');
+  void cuRank() {
+    (_pages['crm'] as CrmPage).tab = 1;
+    nav('crm');
+  }
   @override
-  void cuCrm() => toast('CRM menyusul di mode murni');
+  void cuCrm() => nav('crm');
 
   String? _editingCustomer;
   bool _custForOrder = false;
@@ -750,6 +799,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         ..._baseDiscs,
         for (final d in (_settings!.raw['discounts'] as List? ?? const []))
           if (d is List && d.length > 1) ['${d[0]}', '${d[1]}'],
+        for (final v in (_settings!.raw['vouchers'] as List? ?? const []))
+          if (v is Map && v['key'] != null) ['Voucher ${v['code']}', '${v['key']}'],
       ];
   static const _hands = ['Datang Langsung', 'Antar ke rumah', 'Jemput & Antar'];
 
@@ -1076,6 +1127,14 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     });
     toast(method == 'Bayar Nanti' ? 'Pesanan tersimpan · Belum dibayar' : (change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pesanan tersimpan · ${o.paymentLabel}'));
     _showDetail(o.id);
+    if (_settings!.raw['autoNota'] != false && _phoneOf(o).isNotEmpty) {
+      _open(_Sheet('nota', [
+        {'type': 'title', 't': 'Kirim nota ke pelanggan?', 's': '${o.name} · ${_phoneOf(o)}'},
+        {'type': 'hint', 't': 'WhatsApp akan terbuka dengan nota terisi. Tinggal tekan Kirim.'},
+        {'type': 'button', 't': 'Kirim Nota WA', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Nanti saja', 'primary': false, 'i': 0},
+      ]));
+    }
   }
 
   // ---------------- Pengaturan & Laporan (sementara) ----------------
@@ -1085,6 +1144,16 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final b = _b;
     if (b == null || _settings == null) return const Material(color: Colors.white, child: Center(child: CircularProgressIndicator(color: gBrand)));
     final n = now;
+    if (b.outlets.isEmpty) {
+      return NativeSheet(id: 'setup', screen: true, actions: this, items: [
+        {'type': 'title', 't': 'Selamat datang di GOYANA', 's': 'Isi data outlet untuk mulai'},
+        {'type': 'input', 'label': 'Nama outlet', 'v': '${_form['oname'] ?? ''}', 'ph': 'Contoh: Goyana Laundry Cibubur', 'i': 0},
+        {'type': 'input', 'label': 'Alamat', 'v': '${_form['oaddr'] ?? ''}', 'ph': 'Alamat outlet (tampil di struk)', 'i': 1},
+        {'type': 'input', 'label': 'Nomor WhatsApp outlet', 'v': '${_form['ophone'] ?? ''}', 'ph': '08…', 'numeric': true, 'i': 2},
+        {'type': 'button', 't': 'Mulai', 'primary': true, 'i': 1},
+        {'type': 'hint', 't': 'Bisa diubah nanti di Pengaturan → Profil Outlet.'},
+      ]);
+    }
     if (_locked) {
       return NativeSheet(id: 'pin', screen: true, actions: this, items: [
         {'type': 'title', 't': 'GOYANA'},

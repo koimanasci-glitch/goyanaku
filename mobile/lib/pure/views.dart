@@ -144,6 +144,7 @@ List<Map<String, dynamic>> orderDetailItems(Business b, Order o, DateTime now) {
       'btns': [
         if (o.phone.isNotEmpty || (cust?.phone ?? '').isNotEmpty) {'t': 'Kirim nota WA', 'i': 4},
         {'t': 'Cetak Struk', 'i': 6},
+        if (!o.isCancelled) {'t': 'Label', 'i': 10},
         if (mapsLink(cust).isNotEmpty) {'t': 'Maps', 'i': 5},
       ],
     },

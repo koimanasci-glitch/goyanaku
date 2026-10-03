@@ -80,6 +80,18 @@ class Business {
     return store.set(Keys.outlets, jsonEncode(outlets.map((e) => e.raw).toList()));
   }
 
+  Future<void> setActiveOutlet(String id) async {
+    activeOutlet = id;
+    await store.set(Keys.activeOutlet, jsonEncode(id));
+  }
+
+  Future<void> addOutlet(String name) async {
+    final o = Outlet({'id': 'outlet180-${DateTime.now().microsecondsSinceEpoch}', 'name': name, 'address': '', 'phone': '', 'logo': ''});
+    outlets.add(o);
+    await store.set(Keys.outlets, jsonEncode(outlets.map((e) => e.raw).toList()));
+    if (activeOutlet.isEmpty) await setActiveOutlet(o.id);
+  }
+
   /// Isi saldo deposit pelanggan (dicatat juga sebagai kas masuk).
   String? topUpDeposit(String name, int amount, {required String method, required DateTime now}) {
     if (amount <= 0) return 'Isi nominal';

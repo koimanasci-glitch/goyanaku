@@ -93,3 +93,24 @@ String receiptText(Order o, ReceiptSettings s, {DateTime? printedAt}) {
   ];
   return lines.join('\n');
 }
+
+/// Label kantong: satu label per kantong ("1/3", "2/3", ...), ditempel di plastik cucian.
+String labelText(Order o, ReceiptSettings s, int count) {
+  final w = s.width, rule = '=' * w;
+  final n = count.clamp(1, 20);
+  final out = <String>[];
+  for (var k = 1; k <= n; k++) {
+    out.addAll([
+      rule,
+      _center(o.id, w),
+      _center(o.name.length > w ? o.name.substring(0, w) : o.name, w),
+      _center('${o.dur} · Kantong $k/$n', w),
+      if (o.due != null) _center('Selesai ${o.due!.day}/${o.due!.month} ${o.due!.hour.toString().padLeft(2, '0')}:${o.due!.minute.toString().padLeft(2, '0')}', w),
+      if (o.perfume.isNotEmpty && o.perfume != '-') _center('Parfum: ${o.perfume}', w),
+      rule,
+      '',
+      '',
+    ]);
+  }
+  return out.join('\n');
+}

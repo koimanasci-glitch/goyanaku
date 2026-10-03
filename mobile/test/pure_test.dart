@@ -141,7 +141,7 @@ void main() {
 
   testWidgets('halaman pelanggan, laporan, pengaturan tampil tanpa error', (tester) async {
     final s = await _pump(tester, _store());
-    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'outlet', 'today', 'data', 'stock', 'couriers', 'discounts', 'employees', 'help', 'home']) {
+    for (final p in ['customers', 'reports', 'settings', 'receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'outlet', 'today', 'data', 'stock', 'couriers', 'discounts', 'employees', 'help', 'crm', 'whatsapp', 'outlets', 'notif', 'plan', 'home']) {
       s.nav(p);
       await _settle(tester);
       expect(tester.takeException(), isNull, reason: p);
@@ -276,6 +276,61 @@ void main() {
     s.fmButton(1);
     s.fmToggle(0);
     await _settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pertama kali: isi profil outlet', (tester) async {
+    final kv = MemoryKvStore({});
+    final s = await _pump(tester, kv);
+    expect(find.text('Selamat datang di GOYANA'), findsOneWidget);
+    s.fmScoped('setup', 'button', 1);
+    await _settle(tester);
+    expect(find.text('Selamat datang di GOYANA'), findsOneWidget, reason: 'nama wajib');
+    s.fmScoped('setup', 'input', 0, 'Goyana Cibubur');
+    s.fmScoped('setup', 'button', 1);
+    await _settle(tester);
+    expect(find.text('Selamat datang di GOYANA'), findsNothing);
+    expect((await Business.load(kv)).outlets.single.name, 'Goyana Cibubur');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('voucher CRM masuk pilihan diskon; label kantong; cabang', (tester) async {
+    final kv2 = _store();
+    final t = await _pump(tester, kv2);
+    t.nav('crm');
+    await _settle(tester);
+    t.fmButton(2); // tab voucher
+    await _settle(tester);
+    t.fmInput(2, 'kangen 15');
+    t.fmInput(4, '15');
+    t.fmButton(11);
+    await _settle(tester);
+    t.nav('orders');
+    t.openCard(0);
+    await _settle(tester);
+    t.fmScoped('detail', 'button', 7); // edit
+    await _settle(tester);
+    expect(find.text('Voucher KANGEN15'), findsNothing, reason: 'dropdown tertutup');
+    t.fmScoped('edit', 'input', 2, 5); // voucher = indeks setelah 5 diskon dasar
+    t.fmScoped('edit', 'button', 1);
+    await _settle(tester);
+    final o = (await Business.load(kv2)).orders.first;
+    expect(o.discKey, 'p15');
+    t.fmScoped('detail', 'button', 10);
+    await _settle(tester);
+    expect(find.text('Cetak Label Kantong'), findsOneWidget);
+    t.fmScoped('label', 'input', 0, '3');
+    t.fmScoped('label', 'button', 1);
+    await _settle(tester);
+    for (final p in ['outlets', 'notif', 'whatsapp', 'plan']) {
+      t.nav(p);
+      await _settle(tester);
+    }
+    t.nav('outlets');
+    t.fmInput(0, 'Cabang 2');
+    t.fmButton(1);
+    await _settle(tester);
+    expect((await Business.load(kv2)).outlets.length, 2);
     expect(tester.takeException(), isNull);
   });
 }

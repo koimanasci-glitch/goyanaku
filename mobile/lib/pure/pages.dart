@@ -50,7 +50,8 @@ class SettingsPage extends PurePage {
   String get title => 'Pengaturan';
   @override
   String get back => 'home';
-  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers', 'outlet', 'data', 'stock', 'couriers', 'discounts', 'employees', 'help'];
+  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers', 'outlet', 'data', 'stock', 'couriers', 'discounts', 'employees', 'help',
+    'crm', 'whatsapp', 'outlets', 'notif', 'plan'];
   @override
   List<Map<String, dynamic>> items() {
     final s = host.settings;
@@ -73,9 +74,14 @@ class SettingsPage extends PurePage {
       card('Kurir', 'Tugas antar-jemput & data kurir', '🛵', 11),
       card('Diskon', 'Potongan yang bisa dipilih kasir', '🏷', 12),
       card('Pegawai & PIN', 'Kunci aplikasi, nama kasir di riwayat', '👤', 13),
+      card('CRM Pelanggan', 'Pengingat cucian, poin member, voucher', '💌', 15),
+      card('WhatsApp', 'Template nota & pengingat', '💬', 16),
+      card('Cabang & Monitoring', '${host.business.outlets.length} outlet', '🏬', 17),
+      card('Notifikasi', 'Terlambat, siap diambil, piutang', '🔔', 18),
+      card('Paket GOYANA', 'Lihat & aktifkan paket', '⭐', 19),
       card('Pusat Bantuan', 'Panduan & hubungi support', '❓', 14),
       {'type': 'title', 't': 'Lainnya'},
-      card('Kembali ke versi lengkap', 'Menu yang belum dipindahkan · data tetap sama', '↩', 99),
+      card('Versi lama (HTML)', 'Cadangan sementara · data tetap sama', '↩', 99),
     ];
   }
 
@@ -994,4 +1000,273 @@ class HelpPage extends PurePage {
       host.toast(const ['Tambah Transaksi ada di Beranda', 'Tombol merah di kartu = tahap berikutnya', 'Pengaturan → QRIS Outlet / Rekening', 'Pengaturan → Printer Bluetooth'][i.clamp(0, 3)]);
     }
   }
+}
+
+/// Kirim pesan WA lewat aplikasi WhatsApp HP (tanpa server).
+void openWa(PureHost host, String phone, String text) {
+  var p = phone.replaceAll(RegExp(r'\D'), '');
+  if (p.startsWith('0')) p = '62${p.substring(1)}';
+  host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/$p?text=${Uri.encodeComponent(text)}'}).catchError((_) => null);
+}
+
+String fillTemplate(String t, Map<String, String> v) => t.replaceAllMapped(RegExp(r'\{(\w+)\}'), (m) => v[m.group(1)] ?? m.group(0)!);
+
+const defaultReminder = 'Halo {nama}, cucian Anda ({kode}) sudah siap sejak {hari} hari lalu. Total {total}. Silakan diambil di {outlet} ya 🙏';
+const defaultNota = 'Halo {nama}, terima kasih sudah laundry di {outlet}.\nNo. pesanan: {kode}\nTotal: {total} ({bayar})\nEstimasi selesai: {estimasi}';
+
+class CrmPage extends PurePage {
+  CrmPage(super.host);
+  int tab = 0; // 0 pengingat, 1 poin member, 2 voucher
+  String code = '', vname = '', amount = '';
+  bool percent = true;
+  @override
+  String get title => 'CRM Pelanggan';
+  @override
+  String get back => 'customers';
+  @override
+  int get navActive => 0;
+  Map<String, dynamic> get raw => host.settings.raw;
+  int get remindDays => (raw['remindDays'] as num?)?.toInt() ?? 3;
+  String get template => '${raw['remindTpl'] ?? defaultReminder}';
+  List<dynamic> get vouchers => (raw['vouchers'] as List?) ?? (raw['vouchers'] = <dynamic>[]);
+
+  List<dynamic> _unpicked() {
+    final n = host.now;
+    return host.business.orders.where((o) => o.status == 'siap' && o.due != null && n.difference(o.due!).inDays >= remindDays).toList();
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = <Map<String, dynamic>>[
+      {'type': 'buttons', 'options': [for (final (k, t) in const ['Pengingat', 'Poin Member', 'Voucher'].indexed) {'t': t, 'on': tab == k, 'i': k}]},
+    ];
+    if (tab == 0) {
+      final list = _unpicked();
+      out.addAll([
+        {'type': 'title', 't': 'Cucian belum diambil', 's': '${list.length} pesanan'},
+        for (var k = 0; k < list.length; k++)
+          {'type': 'entry', 't': list[k].name, 'lines': ['${list[k].id} · siap ${host.now.difference(list[k].due!).inDays} hari · ${rp(list[k].total)}'], 'btns': [{'t': 'Kirim WA', 'i': 100 + k}]},
+        if (list.isEmpty) {'type': 'hint', 't': 'Tidak ada cucian yang terlambat diambil.'},
+        {'type': 'input', 'label': 'Ingatkan setelah', 'suf': 'hari', 'v': '$remindDays', 'numeric': true, 'i': 0},
+        {'type': 'label', 't': 'Template pesan pengingat'},
+        {'type': 'input', 'v': template, 'multiline': true, 'i': 1},
+        {'type': 'hint', 't': 'Kata kunci: {nama} {kode} {hari} {total} {outlet}'},
+        {'type': 'button', 't': 'Simpan Template', 'primary': false, 'i': 10},
+      ]);
+    } else if (tab == 1) {
+      // 1 poin tiap Rp10.000 belanja (pesanan tidak batal).
+      final pts = <String, int>{};
+      for (final o in host.business.orders.where((o) => !o.isCancelled)) {
+        pts[o.name] = (pts[o.name] ?? 0) + o.total ~/ 10000;
+      }
+      final top = pts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+      out.addAll([
+        {'type': 'hint', 't': '1 poin setiap belanja Rp10.000. Tukarkan poin dengan diskon/voucher sesuai kebijakan outlet.'},
+        {'type': 'table', 'rows': [
+          [{'t': 'Pelanggan', 'h': true, 'b': true}, {'t': 'Poin', 'h': true, 'b': true, 'n': true}],
+          for (final e in top.take(50)) [{'t': e.key}, {'t': '${e.value}', 'n': true}],
+        ]},
+      ]);
+    } else {
+      out.addAll([
+        for (var k = 0; k < vouchers.length; k++)
+          {'type': 'entry', 't': '${(vouchers[k] as Map)['code']}', 'lines': ['${(vouchers[k] as Map)['name']}'], 'compact': true, 'btns': [{'t': '×', 'i': 200 + k}]},
+        if (vouchers.isEmpty) {'type': 'hint', 't': 'Belum ada voucher.'},
+        {'type': 'title', 't': 'Buat voucher'},
+        {'type': 'input', 'v': code, 'ph': 'Kode, contoh: KANGEN15', 'i': 2},
+        {'type': 'input', 'v': vname, 'ph': 'Nama voucher', 'i': 3},
+        {'type': 'buttons', 'options': [{'t': 'Persen (%)', 'on': percent, 'i': 20}, {'t': 'Nominal (Rp)', 'on': !percent, 'i': 21}]},
+        {'type': 'input', 'label': 'Besar potongan', 'pre': percent ? '' : 'Rp', 'suf': percent ? '%' : '', 'v': amount, 'numeric': true, 'i': 4},
+        {'type': 'button', 't': 'Buat Voucher', 'primary': true, 'i': 11},
+        {'type': 'hint', 't': 'Voucher aktif bisa dipilih kasir di pilihan Diskon saat membuat pesanan.'},
+      ]);
+    }
+    return out;
+  }
+
+  @override
+  void input(int i, Object value) {
+    switch (i) {
+      case 0:
+        raw['remindDays'] = int.tryParse('$value') ?? 3;
+      case 1:
+        raw['remindTpl'] = '$value';
+      case 2:
+        code = '$value'.toUpperCase().replaceAll(' ', '');
+      case 3:
+        vname = '$value';
+      case 4:
+        amount = '$value';
+    }
+  }
+
+  @override
+  void button(int i) async {
+    if (i < 3) {
+      tab = i;
+      return host.refresh();
+    }
+    if (i == 20 || i == 21) {
+      percent = i == 20;
+      return host.refresh();
+    }
+    if (i == 10) {
+      await host.saveAll();
+      return host.toast('Template tersimpan');
+    }
+    if (i == 11) {
+      final n = parseRupiah(amount);
+      if (code.isEmpty || n <= 0 || (percent && n > 100)) return host.toast('Isi kode dan besar potongan');
+      if (vouchers.any((e) => e is Map && e['code'] == code)) return host.toast('Kode sudah ada');
+      vouchers.add({'code': code, 'name': vname.isEmpty ? code : vname, 'key': percent ? 'p$n' : 'n$n'});
+      code = '';
+      vname = '';
+      value = '';
+      await host.saveAll();
+      host.toast('Voucher dibuat');
+      return host.refresh();
+    }
+    if (i >= 200) {
+      if (i - 200 < vouchers.length) vouchers.removeAt(i - 200);
+      await host.saveAll();
+      return host.refresh();
+    }
+    if (i >= 100) {
+      final list = _unpicked();
+      if (i - 100 >= list.length) return;
+      final o = list[i - 100];
+      final c = host.business.customerByName(o.name);
+      final outlet = host.business.outlets.isEmpty ? 'GOYANA' : host.business.outlets.first.name;
+      openWa(host, o.phone.isNotEmpty ? o.phone : (c?.phone ?? ''), fillTemplate(template, {
+        'nama': o.name, 'kode': o.id, 'hari': '${host.now.difference(o.due!).inDays}', 'total': rp(o.total), 'outlet': outlet,
+      }));
+    }
+  }
+}
+
+class WhatsAppPage extends PurePage {
+  WhatsAppPage(super.host);
+  @override
+  String get title => 'WhatsApp';
+  Map<String, dynamic> get raw => host.settings.raw;
+  @override
+  List<Map<String, dynamic>> items() => [
+        {'type': 'entry', 't': 'Kirim lewat WhatsApp HP', 'lines': ['Nota & pengingat dibuka di aplikasi WhatsApp, kasir tinggal tekan Kirim.'], 'avatar': '💬'},
+        {'type': 'toggle', 't': 'Tawarkan kirim nota setelah transaksi', 'on': raw['autoNota'] != false, 'i': 0},
+        {'type': 'label', 't': 'Template nota'},
+        {'type': 'input', 'v': '${raw['notaTpl'] ?? defaultNota}', 'multiline': true, 'i': 0},
+        {'type': 'hint', 't': 'Kata kunci: {nama} {kode} {total} {bayar} {estimasi} {outlet}'},
+        {'type': 'button', 't': 'Simpan', 'primary': true, 'i': 0},
+        {'type': 'title', 't': 'Otomatis tanpa kasir (chatbot, nota otomatis, blast)'},
+        {'type': 'hint', 't': 'Butuh nomor WhatsApp terhubung ke server GOYANA (CHATKU). Akan aktif setelah server online.'},
+      ];
+  @override
+  void input(int i, Object value) => raw['notaTpl'] = '$value';
+  @override
+  void toggle(int i) => raw['autoNota'] = raw['autoNota'] == false;
+  @override
+  void button(int i) async {
+    await host.saveAll();
+    host.toast('Pengaturan WhatsApp tersimpan');
+    host.go('settings');
+  }
+}
+
+class OutletsPage extends PurePage {
+  OutletsPage(super.host);
+  String name = '';
+  @override
+  String get title => 'Cabang & Monitoring';
+  @override
+  List<Map<String, dynamic>> items() {
+    final b = host.business, n = host.now;
+    bool today(DateTime? d) => d != null && d.year == n.year && d.month == n.month && d.day == n.day;
+    final list = b.outlets;
+    return [
+      {'type': 'hint', 't': 'Order baru masuk ke outlet aktif. Ganti outlet aktif untuk bekerja di cabang lain.'},
+      for (var k = 0; k < list.length; k++) ...[
+        () {
+          final orders = b.orders.where((o) => !o.isCancelled && (o.outlet == list[k].id || (o.outlet.isEmpty && k == 0))).toList();
+          final omzet = orders.where((o) => today(o.created)).fold<int>(0, (a, o) => a + o.total);
+          final active = orders.where((o) => !['diambil', 'batal'].contains(o.status)).length;
+          final late = orders.where((o) => o.isLate(n)).length;
+          return {
+            'type': 'entry', 't': list[k].name, 'lines': ['Omzet hari ini ${rp(omzet)} · $active aktif · $late terlambat', if (list[k].address.isNotEmpty) list[k].address],
+            'badge': list[k].id == b.activeOutlet ? 'Aktif' : '',
+            'btns': [if (list[k].id != b.activeOutlet) {'t': 'Jadikan Aktif', 'i': 100 + k}],
+          };
+        }(),
+      ],
+      {'type': 'input', 'v': name, 'ph': 'Nama cabang baru', 'i': 0},
+      {'type': 'button', 't': '+ Tambah Cabang', 'primary': true, 'i': 1},
+    ];
+  }
+
+  @override
+  void input(int i, Object value) => name = '$value'.trim();
+  @override
+  void button(int i) async {
+    final b = host.business;
+    if (i >= 100) {
+      if (i - 100 < b.outlets.length) await b.setActiveOutlet(b.outlets[i - 100].id);
+      host.toast('Outlet aktif diganti');
+    } else {
+      if (name.isEmpty) return host.toast('Isi nama cabang');
+      await b.addOutlet(name);
+      name = '';
+      host.toast('Cabang ditambahkan');
+    }
+    host.refresh();
+  }
+}
+
+class NotifPage extends PurePage {
+  NotifPage(super.host);
+  List<String> ids = [];
+  @override
+  String get title => 'Notifikasi';
+  @override
+  String get back => 'home';
+  @override
+  int get navActive => 0;
+  @override
+  List<Map<String, dynamic>> items() {
+    final n = host.now;
+    final late = host.business.orders.where((o) => o.isLate(n)).toList();
+    final ready = host.business.orders.where((o) => o.status == 'siap').toList();
+    final unpaid = host.business.orders.where((o) => !o.isCancelled && o.status == 'diambil' && !o.isPaid).toList();
+    ids = [...late.map((o) => o.id), ...ready.map((o) => o.id), ...unpaid.map((o) => o.id)];
+    var k = 0;
+    return [
+      if (ids.isEmpty) {'type': 'hint', 't': 'Tidak ada notifikasi.'},
+      for (final o in late) {'type': 'card', 't': 'Pesanan terlambat', 's': '${o.id} · ${o.name}', 'ic': '!', 'badge': 'Terlambat', 'i': k++},
+      for (final o in ready) {'type': 'card', 't': 'Siap diambil', 's': '${o.id} · ${o.name}', 'ic': '✓', 'i': k++},
+      for (final o in unpaid) {'type': 'card', 't': 'Sudah diambil, belum lunas', 's': '${o.id} · ${o.name} · sisa ${rp(o.remaining)}', 'ic': 'Rp', 'badge': 'Piutang', 'i': k++},
+    ];
+  }
+
+  @override
+  void button(int i) {
+    if (i >= 0 && i < ids.length) host.openOrder(ids[i]);
+  }
+}
+
+class PlanPage extends PurePage {
+  PlanPage(super.host);
+  @override
+  String get title => 'Paket GOYANA';
+  static const plans = [
+    ['FREE', 'Gratis', '2 bulan', 'Trial seluruh fitur Basic selama 2 bulan'],
+    ['BASIC', 'Rp30.000', '/bulan', 'Kasir harian, kurir, peta pelanggan dan monitoring cabang'],
+    ['SILVER', 'Rp65.000', '/bulan', 'Operasional lengkap, stok, HPP dan Balasan Cepat & Trigger'],
+    ['GOLD', 'Rp100.000', '/bulan', 'Nota WhatsApp otomatis dan Chatbot AI dengan top-up terpisah'],
+    ['PLATINUM', 'Rp350.000', '/bulan', 'Seluruh fitur Goyana, termasuk WhatsApp Blast & Promo'],
+  ];
+  @override
+  List<Map<String, dynamic>> items() => [
+        for (var k = 0; k < plans.length; k++) {'type': 'plan', 't': plans[k][0], 'price': plans[k][1], 'per': plans[k][2], 's': plans[k][3], 'more': 'Pilih', 'i': k},
+        {'type': 'hint', 't': 'Pembayaran paket online menunggu server akun. Sementara aktivasi lewat admin GOYANA.'},
+      ];
+  @override
+  void button(int i) => openWa(host, '6281234567890', 'Halo GOYANA, saya ingin aktifkan paket ${plans[i.clamp(0, plans.length - 1)][0]}');
 }
