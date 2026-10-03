@@ -230,7 +230,9 @@
       // Sheets drawn by Flutter itself (and everything inside them) do not hide the native page.
       if (skip && skip.some(function (id) { return el.id === id || el.closest('#' + id); })) continue;
       var s = getComputedStyle(el);
-      if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') continue;
+      // A sheet that is fading in (class .show, opacity still 0) already counts: otherwise the check can run before the
+      // animation ends and never again, leaving the popup hidden under the native page.
+      if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden' || (s.opacity === '0' && !el.classList.contains('show'))) continue;
       var r = el.getBoundingClientRect();
       if (r.width >= innerWidth * 0.9 && r.height >= innerHeight * 0.5) return el;
     }
@@ -242,7 +244,36 @@
     return { t: (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim(), bg: s.backgroundColor, c: s.color };
   }
   function shown(el) { return !!el && visible(el) && getComputedStyle(el).display !== 'none'; }
+  /** Customer location by name (maps link, coordinates or address) for the Maps button on order cards. */
+  function customerPlaces() {
+    var out = {};
+    placeText = {};
+    function add(name, maps, addr) {
+      var key = String(name || '').trim().toLowerCase();
+      if (!key) return;
+      maps = String(maps || '').trim(); addr = String(addr || '').trim();
+      if (addr && !placeText[key]) placeText[key] = addr;
+      var url = /^https?:\/\//.test(maps) ? maps : (maps || addr ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(maps || addr) : '');
+      if (url && !out[key]) out[key] = url;
+    }
+    // The customer database rows carry the map link (data-maps) and "phone · address".
+    document.querySelectorAll('#cust59-db .cust59-row').forEach(function (r) {
+      var small = r.querySelector('div small'), parts = small ? small.textContent.split(' · ') : [];
+      add(((r.querySelector('div b')) || {}).textContent, r.dataset.maps || r.dataset.loc || '', parts.slice(1).join(' · '));
+    });
+    try {
+      var b = JSON.parse(localStorage.getItem('goyana-business177') || '{}');
+      (b.customers || []).forEach(function (c) {
+        if (!c) return;
+        var addr = c.address || (/ · /.test(String(c.phone || '')) ? String(c.phone).split(' · ').slice(1).join(' · ') : '');
+        add(c.name, c.maps, addr);
+      });
+    } catch (e) {}
+    return out;
+  }
+  var placeText = {};
   function ordersModel() {
+    var places = customerPlaces();
     var search = document.getElementById('g62-order-search'), auto = document.getElementById('au133btn');
     var cards = document.querySelectorAll('#orders .g62-ordercard'), list = [];
     for (var i = 0; i < cards.length && list.length < 300; i++) {
@@ -262,7 +293,9 @@
         amount: amount, pay: shown(em) ? colors(em) : null, gender: gender,
         auto: shown(row && row.querySelector('.auto133')) ? colors(row.querySelector('.auto133')) : null,
         chips: Array.prototype.filter.call(row ? row.querySelectorAll('.chip91') : [], shown).map(colors),
-        action: shown(next) ? colors(next) : null
+        action: shown(next) ? colors(next) : null,
+        maps: places[(((body && body.querySelector('div b')) || {}).textContent || '').trim().toLowerCase()] || '',
+        st: c.dataset.st || '', addr: placeText[(((body && body.querySelector('div b')) || {}).textContent || '').trim().toLowerCase()] || ''
       });
     }
     var empty = document.querySelector('#orders .g62-orderlist .empty176, #orders .empty108, #orders .g62-empty');
@@ -637,6 +670,9 @@
   };
   function watchHome() {
     new MutationObserver(scheduleHome).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'], characterData: true });
+    // Sheets that appear/disappear with CSS animations change visibility without a DOM mutation at the end.
+    document.addEventListener('transitionend', scheduleHome, true);
+    document.addEventListener('animationend', scheduleHome, true);
     scheduleHome();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchHome); else watchHome();

@@ -23,7 +23,7 @@ class OrderCardModel {
   const OrderCardModel({
     required this.index, required this.id, required this.name, required this.amount,
     this.dur, this.status, this.pay, this.auto, this.action,
-    this.lines = const [], this.chips = const [], this.female = false,
+    this.lines = const [], this.chips = const [], this.female = false, this.maps = '', this.st = '', this.address = '',
   });
   final int index;
   final String id, name, amount;
@@ -31,6 +31,10 @@ class OrderCardModel {
   final List<String> lines;
   final List<Chip62> chips;
   final bool female;
+  /// Customer location link (Google Maps); empty when the customer has no address/location.
+  final String maps;
+  /// HTML order status (jemput, antrian, …, siap, diantar) and customer address.
+  final String st, address;
 
   factory OrderCardModel.fromJson(Map<String, dynamic> j) => OrderCardModel(
         index: (j['i'] as num?)?.toInt() ?? 0,
@@ -39,7 +43,8 @@ class OrderCardModel {
         auto: Chip62.from(j['auto']), action: Chip62.from(j['action']),
         lines: (j['lines'] is List) ? (j['lines'] as List).map((e) => '$e').where((e) => e.trim().isNotEmpty).toList() : const [],
         chips: (j['chips'] is List) ? (j['chips'] as List).map(Chip62.from).whereType<Chip62>().toList() : const [],
-        female: j['gender'] == 'female',
+        female: j['gender'] == 'female', maps: '${j['maps'] ?? ''}'.trim(),
+        st: '${j['st'] ?? ''}', address: '${j['addr'] ?? ''}'.trim(),
       );
 }
 
@@ -86,6 +91,7 @@ abstract class OrdersActions {
   void tab(int index);
   void openCard(int index);
   void cardAction(int index);
+  void openMaps(String url);
 }
 
 const _muted = Color(0xff8a8fa3);
@@ -136,6 +142,76 @@ class _NativeOrdersState extends State<NativeOrders> {
     _debounce = Timer(const Duration(milliseconds: 180), () => widget.actions.search(v));
   }
 
+  /// Pickup ("Sudah Dijemput") and delivery ("Diterima") ask for confirmation first, with a Maps shortcut
+  /// to the customer's location. Other status buttons act immediately, as in the HTML app.
+  void _onAction(OrderCardModel c) {
+    final a = widget.actions;
+    final pickup = c.st == 'jemput', delivered = c.st == 'diantar';
+    if (!pickup && !delivered) {
+      a.cardAction(c.index);
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 16),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(child: Container(width: 38, height: 4, decoration: BoxDecoration(color: const Color(0xffd9dde2), borderRadius: BorderRadius.circular(9)))),
+            const SizedBox(height: 14),
+            Text(pickup ? 'Konfirmasi Penjemputan' : 'Konfirmasi Diterima', textAlign: TextAlign.center, style: gText(17, w: FontWeight.w500, c: const Color(0xff1e1e1e))),
+            const SizedBox(height: 4),
+            Text(pickup ? 'Pastikan cucian sudah diambil dari pelanggan.' : 'Pastikan cucian sudah diterima pelanggan.',
+                textAlign: TextAlign.center, style: gText(12.5, c: _muted)),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xfff7f8fa), borderRadius: BorderRadius.circular(14)),
+              child: Row(children: [
+                const Icon(Icons.person_pin_circle_rounded, color: gBrand, size: 30),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(c.name, style: gText(14.5, w: FontWeight.w500, c: const Color(0xff1e1e1e))),
+                    Text(c.id, style: gText(11.5, c: _muted)),
+                    if (c.address.isNotEmpty) Text(c.address, maxLines: 2, overflow: TextOverflow.ellipsis, style: gText(12, c: const Color(0xff5b5f6e))),
+                  ]),
+                ),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            if (c.maps.isNotEmpty) ...[
+              OutlinedButton.icon(
+                onPressed: () => a.openMaps(c.maps),
+                icon: const Icon(Icons.map_rounded, color: Color(0xff2b6aa6)),
+                label: Text('Buka Maps', style: gText(14, w: FontWeight.w500, c: const Color(0xff2b6aa6))),
+                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), side: const BorderSide(color: Color(0xffd6e4fb)),
+                    backgroundColor: const Color(0xffeef4ff), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+              const SizedBox(height: 10),
+            ] else ...[
+              Text('Lokasi pelanggan belum diisi. Tambahkan alamat/titik peta di data pelanggan.', textAlign: TextAlign.center, style: gText(11.5, c: _muted)),
+              const SizedBox(height: 10),
+            ],
+            FilledButton(
+              onPressed: () { Navigator.pop(ctx); a.cardAction(c.index); },
+              style: FilledButton.styleFrom(backgroundColor: gBrand, minimumSize: const Size.fromHeight(50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: Text(pickup ? 'Ya, sudah dijemput' : 'Ya, sudah diterima', style: gText(14.5, w: FontWeight.w600, c: Colors.white)),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: TextButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+              child: Text('Batal', style: gText(14, c: const Color(0xff5b5f6e))),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final m = widget.model, a = widget.actions;
@@ -159,7 +235,7 @@ class _NativeOrdersState extends State<NativeOrders> {
                       child: _OrderCard(
                         card: m.cards[i],
                         onTap: () => a.openCard(m.cards[i].index),
-                        onAction: () => a.cardAction(m.cards[i].index),
+                        onAction: () => _onAction(m.cards[i]),
                       ),
                     ),
                   ),

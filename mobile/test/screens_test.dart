@@ -65,6 +65,8 @@ class _NoOrderActions implements OrdersActions {
   void openCard(int index) {}
   @override
   void cardAction(int index) {}
+  @override
+  void openMaps(String url) {}
 }
 
 Map<String, dynamic> _card(int i, String id, String name, String status, String sbg, String sc, String action, {String? auto, List<String> chips = const [], String gender = 'male', String pay = 'Belum Bayar'}) => {
@@ -88,7 +90,7 @@ final _orders = OrdersModel.fromJson({
   ],
   'cards': [
     _card(0, 'GY-261002-0135', 'Andi Wijaya', 'Antrian', 'rgb(255, 240, 241)', 'rgb(232, 73, 63)', 'Proses', auto: '⏱ 1j'),
-    _card(1, 'GY-261002-0134', 'Sari Dewi', 'Proses', 'rgb(238, 244, 255)', 'rgb(43, 106, 166)', 'Tandai Siap ›', chips: ['Antar'], gender: 'female'),
+    {..._card(1, 'GY-261002-0134', 'Sari Dewi', 'Proses', 'rgb(238, 244, 255)', 'rgb(43, 106, 166)', 'Tandai Siap ›', chips: ['Antar'], gender: 'female'), 'maps': 'https://www.google.com/maps/search/?api=1&query=Bekasi'},
     _card(2, 'GY-261002-0133', 'Budi Santoso Pratama Wijayakusuma', 'Antrian', 'rgb(255, 240, 241)', 'rgb(232, 73, 63)', 'Proses', auto: '⏱ 1j', pay: 'Lunas'),
   ],
 });

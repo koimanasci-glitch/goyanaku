@@ -39,7 +39,7 @@ try{
   await p.evaluate(()=>{if(window.g62CloseDetail)g62CloseDetail();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});
   await p.waitForTimeout(400);last=(await natives()).at(-1);
   assert.equal(last.page,'orders');assert.equal(last.model.cards.length,2);assert.equal(last.model.cards[0].amount,'Rp14.000');
-  assert.equal(last.model.cards[0].action.t,'Proses');assert.ok(last.model.tabs.find(t=>t.on).t==='Antrian');
+  assert.equal(last.model.cards[0].action.t,'Proses');assert.match(last.model.cards[0].maps,/google\.com\/maps/,'order card links to the customer location');assert.ok(last.model.tabs.find(t=>t.on).t==='Antrian');
   await p.evaluate(()=>__goyanaSearch('#g62-order-search','Sari'));await p.waitForTimeout(400);
   last=(await natives()).at(-1);assert.deepEqual(last.model.cards.map(c=>c.name),['Sari Native'],'search filters through the HTML logic');
   await p.evaluate(()=>__goyanaSearch('#g62-order-search',''));await p.waitForTimeout(300);
@@ -99,6 +99,16 @@ try{
   if(await p.evaluate(()=>typeof window.cancelPayment154==='function'))await p.evaluate(()=>cancelPayment154());
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(!['lg167','f61-payment'].includes(e.id))e.classList.remove('show')})});await p.waitForTimeout(400);
   const back=await lastAdd();assert.equal(back.page,'addorder');assert.equal(back.model.sheet&&back.model.sheet.kind,'payment','closing the popup returns to the native payment sheet');
+  // DP, deposit and QRIS popups fade in: the native page must still step aside (bug seen on a real phone).
+  for(const name of ['DP / Uang Muka','Saldo Deposit','QRIS']){
+    const m=(await lastAdd()).model.sheet.methods.find(x=>x.t===name);
+    await p.evaluate(i=>__goyanaTap('#f61-payment .f61-paygrid button',i),m.i);
+    await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(x=>JSON.parse(x)).filter(x=>x.event==='native').at(-1);return e&&e.page===null},null,{timeout:4000}).catch(()=>{});
+    assert.equal((await lastAdd()).page,null,name+' popup is shown (HTML) above the native sheet');
+    await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(!['lg167','f61-payment'].includes(e.id))e.classList.remove('show')})});
+    await p.waitForFunction(()=>{const e=(window.GoyanaNative.__events||[]).map(x=>JSON.parse(x)).filter(x=>x.event==='native').at(-1);return e&&e.page==='addorder'},null,{timeout:4000}).catch(()=>{});
+    assert.equal((await lastAdd()).page,'addorder');
+  }
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Atur Pesanan & Pembayaran sheets are native; selects, switch, note and payment buttons use the HTML logic');
 

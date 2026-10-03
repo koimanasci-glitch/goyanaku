@@ -231,7 +231,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   @override
   void nav(String pageId) {
     if (pageId == _nativePage) return;
-    _tap('#nav-$pageId');
+    // Tabs are native pages: keep the current native page until the next one reports, so the HTML never flashes in between.
+    _tap('#nav-$pageId', 0, null, !const {'home', 'orders', 'reports', 'settings'}.contains(pageId));
   }
 
   // Pesanan
@@ -248,6 +249,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements ShellHost, HomeAct
   void openCard(int index) => _tap('#orders .g62-ordercard', index);
   @override
   void cardAction(int index) => _tap('#orders .g62-ordercard', index, '.next91', false);
+  @override
+  void openMaps(String url) {
+    if (url.startsWith('http')) _device.invokeMethod('App.openUrl', {'url': url});
+  }
 
   // Tambah Transaksi
   void _type(String selector, String text) =>
