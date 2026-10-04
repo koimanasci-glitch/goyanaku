@@ -245,8 +245,8 @@ List<Map<String, dynamic>> _innerSteps(int level) => [
   for (var i = 0; i < 4; i++)
     {
       'n': '${i + 1}',
-      't': const ['Diterima', 'Proses', 'Siap', 'Diambil'][i],
-      'on': level >= 0 && i == level,
+      't': const ['Diterima', 'Proses', 'Siap Ambil', 'Diambil'][i],
+      'on': level >= 0 && level < 3 && i == level,
       'done': level >= 0 && i < level || level == 3,
     },
 ];
@@ -255,7 +255,7 @@ List<Map<String, dynamic>> _outerSteps(int level) => [
   for (var i = 0; i < 4; i++)
     {
       'n': '${i + 1}',
-      't': const ['Diterima', 'Proses', 'Siap', 'Diambil'][i],
+      't': const ['Diterima', 'Proses', 'Siap Ambil', 'Diambil'][i],
       'on': level >= i && level >= 0,
     },
 ];
