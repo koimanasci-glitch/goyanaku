@@ -10,7 +10,7 @@ module.exports=async function captureAddOrder3b(p){
       if(!event?.model?.sheet||event.model.sheet.kind!=='payment')throw Error('payment model missing: '+name);
       const store={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith('goyana-'))store[k]=localStorage.getItem(k)}
       const ds=document.querySelectorAll('#f61-options select')[2];
-      return {name,now:new Date().toISOString(),store,draft:{cart:JSON.parse(JSON.stringify(f61.cart||[])),catalog:JSON.parse(JSON.stringify(catalog158)),duration:f61.dur,handover:String(document.getElementById('f61-handover')?.value||''),discount:{value:String(ds?.value||''),manual:String(ds?.dataset.manual||''),definitions:JSON.parse(JSON.stringify(window.DISC127||[]))}},htmlModel:{total:event.model.sheet.total,discount:window.disc127?{amt:Number(disc127.amt)||0,pct:Number(disc127.pct)||0,name:String(disc127.name||'')}:null,transport:{fee:Number(f61._transport183)||0,type:String(f61._transportType183||'none')}}};
+      return {name,now:new Date().toISOString(),store,draft:{cart:JSON.parse(JSON.stringify(f61.cart||[])),duration:f61.dur,handover:String(document.getElementById('f61-handover')?.value||''),discount:{value:String(ds?.value||''),manual:String(ds?.dataset.manual||''),definitions:JSON.parse(JSON.stringify(window.DISC127||[]))}},htmlModel:{total:event.model.sheet.total,discount:window.disc127?{amt:Number(disc127.amt)||0,pct:Number(disc127.pct)||0,name:String(disc127.name||'')}:null,transport:{fee:Number(f61._transport183)||0,type:String(f61._transportType183||'none')}}};
     },name));
   }
   async function run(s){
@@ -24,7 +24,7 @@ module.exports=async function captureAddOrder3b(p){
       const cfg={};cfg[active]=Object.assign({mode:'free',fixed:0,pickup:0,delivery:0,roundtrip:0,perKm:0,freeRadius:0,manual:false},s.transport||{});localStorage.setItem('goyana-transport183',JSON.stringify(cfg));
       openPage('addorder');delete f61._transport183;delete f61._transportBase183;delete f61._transportType183;
       const person=[...document.querySelectorAll('#f61-customer .f61-person')].find(e=>e.textContent.includes('Paritas Transaksi'));if(!person)throw Error('customer missing');person.querySelector('button').click();f61ChooseDuration('Reguler');
-      const flat=catalog158.flatMap(c=>c.items);function add(unit,qty){const item=flat.find(x=>x.unit===unit);openQty116(item.id);document.getElementById('qty116-in').value=String(qty);saveQty116()}add('kg',2);if(s.mixed)add('pcs',1);
+      const flat=catalog158.flatMap(c=>c.items);function add(unit,qty){const item=flat.find(x=>x.unit===unit);if(!item)throw Error('service missing '+unit);openQty116(item.id);document.getElementById('qty116-in').value=String(qty);saveQty116()}add('kg',2);if(s.mixed)add('pcs',1);
       f61OrderOptions();document.getElementById('f61-handover').value=s.handover;
       const ds=document.querySelectorAll('#f61-options select')[2];if(s.discount?.kind==='defined')ds.value='d901';else if(s.discount?.kind==='manual'){ds.value='manual';ds.dataset.manual=String(s.discount.val)}else ds.value='';f61Payment();
     },s);
