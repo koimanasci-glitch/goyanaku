@@ -49,10 +49,10 @@ Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di a
 | A3a | Tambah Transaksi: keranjang | SELESAI, terpasang; input berat salah ketik ditolak (4 Okt) |
 | A3b | Tambah Transaksi: diskon, ongkir | SELESAI, terpasang (sesi 1, d6601f8); ongkir tidak ikut didiskon |
 | A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SIAP, belum dipasang. Fixture save_orders.json diperbarui 4 Okt: details.due kini ikut jam durasi (dulu selalu +72 jam). Sesuaikan Dart lalu pasang |
-| A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum |
-| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum |
+| A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum. PATOKAN SIAP: `fixtures/parity/flows_a4_a5_a7.json` (langkah part=A4) dari `tests/parity/flows.cjs` |
+| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum. PATOKAN SIAP untuk DP, pelunasan transfer, lunas QRIS (part=A5). Deposit & ralat: minta Claude tambah skenario |
 | A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
-| A7 | Kas & Tutup Kasir | belum |
+| A7 | Kas & Tutup Kasir | belum. PATOKAN SIAP: tutup kasir (part=A7), termasuk model layar Tutup Kasir & Beranda sebelum/sesudah |
 | A8 | Laporan (±40) | belum |
 | A9 | Pelanggan, CRM, poin, voucher | belum |
 | A10 | Pengaturan (layanan/harga, parfum, durasi, diskon, outlet, pegawai, kurir, stok, printer, template WA) | belum |
@@ -92,6 +92,13 @@ Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
 | CERMIN | perfume, duration, pickservice, pickup, orderscan, qrstatus, plan111 (Harga Paket), checkout111, billing, invoice111, waautomation + 16 popup di `MIRROR_SHEETS` (capacitor.js) | HTML/CSS tersembunyi, digambar `mirror_sheet.dart` | JANGAN ubah lewat CSS. Kalau perlu desain baru, tulis ulang jadi widget Flutter asli (Jalur B) sekaligus dengan desain barunya |
 
 ## 5. Langkah wajib untuk setiap bagian
+**CARA CEPAT (keputusan Koko 4 Okt): TES BESAR, JANGAN BOLAK-BALIK.**
+- Patokan HTML (fixture) disiapkan Claude lebih dulu untuk beberapa bagian sekaligus. Jangan menangkap sendiri.
+- Tulis Dart untuk SATU BAGIAN UTUH (contoh seluruh A4), tanpa push/CI di tiap langkah kecil.
+- Push dan jalankan CI SEKALI di akhir bagian. Kalau gagal, perbaiki semua yang gagal sekaligus, lalu CI sekali lagi.
+- Maksimal 2 kali CI per bagian. Kalau masih gagal setelah 2 kali, lapor (mentok di mana, kenapa).
+- Kode yang BELUM dipasang ke aplikasi boleh menumpuk dulu. Yang TIDAK boleh: memasang ke aplikasi (shell.dart) sebelum tes bagian itu lulus.
+
 1. **Tangkap hasil HTML** dengan `tests/parity/capture.cjs` (jam palsu, skenario nyata).
 2. **Buat fixture** di `mobile/test/fixtures/parity/` berisi `{now, store, model HTML}`.
 3. **Tulis Dart** di `mobile/lib/logic/<bagian>.dart`. Output harus **sama persis** dengan model HTML.
