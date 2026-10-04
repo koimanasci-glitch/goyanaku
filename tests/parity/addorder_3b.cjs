@@ -1,6 +1,7 @@
 // Capture Tambah Transaksi 3b from the real HTML runtime. This file does not calculate expected amounts.
 module.exports=async function captureAddOrder3b(p){
   const out=[];
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});document.getElementById('v88-name').value='Paritas Transaksi';document.getElementById('v88-phone').value='081200000099';document.getElementById('v88-address').value='Jakarta';saveCustomerV88();});
   async function settle(){await p.clock.runFor(450)}
   async function capture(name){
     await settle();
