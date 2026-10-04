@@ -14,7 +14,7 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [],
           "ins": [],
           "outs": [],
@@ -55,7 +55,7 @@
         "durationLabel": "Reguler",
         "method": "Bayar Nanti",
         "total": 17500,
-        "payamount": "Rp 20.000",
+        "payamount": "Rp 17.500",
         "priority": false,
         "handover": "Datang Langsung",
         "perfume": "Tanpa Parfum"
@@ -73,7 +73,8 @@
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
-              "payments178": "[]"
+              "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
             },
             "fields": [
               [
@@ -92,7 +93,7 @@
               [],
               []
             ],
-            "total": 20000,
+            "total": 17500,
             "payment": "Belum Bayar",
             "paid": false,
             "chips": [
@@ -148,7 +149,7 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [],
           "ins": [],
           "outs": [],
@@ -191,6 +192,7 @@
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800020",
               "w138": "1",
@@ -269,7 +271,7 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [],
           "ins": [],
           "outs": [],
@@ -317,7 +319,7 @@
         "durationLabel": "Express",
         "method": "Tunai",
         "total": 17500,
-        "payamount": "Rp 20.000",
+        "payamount": "Rp 17.500",
         "priority": false,
         "handover": "Datang Langsung",
         "perfume": "Tanpa Parfum"
@@ -335,7 +337,8 @@
               "method177": "Tunai",
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
-              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]"
+              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
             },
             "fields": [
               [
@@ -354,7 +357,7 @@
               [],
               []
             ],
-            "total": 20000,
+            "total": 17500,
             "payment": "Lunas",
             "paid": true,
             "chips": [
@@ -379,6 +382,7 @@
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800020",
               "w138": "1",
@@ -491,11 +495,11 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [
             {
               "m": "Tunai",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0134",
               "at": "2026-10-04T03:00:00.000Z"
             }
@@ -548,6 +552,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -595,6 +600,7 @@
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800020",
               "w138": "1",
@@ -707,11 +713,11 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [
             {
               "m": "Tunai",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0134",
               "at": "2026-10-04T03:00:00.000Z"
             }
@@ -769,7 +775,7 @@
         "durationLabel": "Kilat",
         "method": "QRIS",
         "total": 17500,
-        "payamount": "Rp 20.000",
+        "payamount": "Rp 17.500",
         "priority": false,
         "handover": "Datang Langsung",
         "perfume": "Tanpa Parfum"
@@ -787,7 +793,8 @@
               "method177": "QRIS",
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
-              "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]"
+              "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
             },
             "fields": [
               [
@@ -806,7 +813,7 @@
               [],
               []
             ],
-            "total": 20000,
+            "total": 17500,
             "payment": "Lunas",
             "paid": true,
             "chips": [
@@ -831,6 +838,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -878,6 +886,7 @@
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800020",
               "w138": "1",
@@ -1024,17 +1033,17 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [
             {
               "m": "Tunai",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0134",
               "at": "2026-10-04T03:00:00.000Z"
             },
             {
               "m": "QRIS",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0135",
               "at": "2026-10-04T03:00:00.000Z"
             }
@@ -1094,6 +1103,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1141,6 +1151,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1188,6 +1199,7 @@
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800020",
               "w138": "1",
@@ -1334,17 +1346,17 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [
             {
               "m": "Tunai",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0134",
               "at": "2026-10-04T03:00:00.000Z"
             },
             {
               "m": "QRIS",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0135",
               "at": "2026-10-04T03:00:00.000Z"
             }
@@ -1409,7 +1421,7 @@
         "durationLabel": "Express",
         "method": "Transfer",
         "total": 17500,
-        "payamount": "Rp 20.000",
+        "payamount": "Rp 17.500",
         "priority": false,
         "handover": "Datang Langsung",
         "perfume": "Tanpa Parfum"
@@ -1427,7 +1439,8 @@
               "method177": "Transfer",
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
-              "payments178": "[{\"m\":\"Transfer\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]"
+              "payments178": "[{\"m\":\"Transfer\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
             },
             "fields": [
               [
@@ -1446,7 +1459,7 @@
               [],
               []
             ],
-            "total": 20000,
+            "total": 17500,
             "payment": "Lunas",
             "paid": true,
             "chips": [
@@ -1471,6 +1484,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1518,6 +1532,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1565,6 +1580,7 @@
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
+              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
               "w133": "1",
               "ts133": "1791082800020",
               "w138": "1",
@@ -1745,23 +1761,23 @@
           "start": 0,
           "openAt": "",
           "kasir": "",
-          "outlet": "",
+          "outlet": "Uji",
           "sales": [
             {
               "m": "Tunai",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0134",
               "at": "2026-10-04T03:00:00.000Z"
             },
             {
               "m": "QRIS",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0135",
               "at": "2026-10-04T03:00:00.000Z"
             },
             {
               "m": "Transfer",
-              "a": 20000,
+              "a": 17500,
               "id": "GY-261004-0136",
               "at": "2026-10-04T03:00:00.000Z"
             }

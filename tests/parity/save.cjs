@@ -12,7 +12,9 @@ async function main(){
  await p.clock.install({time:new Date('2026-10-04T03:00:00Z')});
  await p.addInitScript(()=>{window.GoyanaNative={__events:[],postMessage(raw){if(raw.startsWith('{"event"'))return;const m=JSON.parse(raw);setTimeout(()=>window.__goyanaNative.finish(m.id,true,{}),5)}}});
  await p.goto(require('url').pathToFileURL(path.join(root,'mobile/assets/web/index.html')).href);await p.clock.runFor(3500);
- await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home');document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});});
+ await p.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('home');
+  // Outlet wajib ada; tanpa outlet HTML menolak menghitung dan menyimpan angka bawaan Rp 20.000.
+  addBranch96();const f=document.querySelector('#outletedit');f.querySelector('input.profile-input').value='Uji';f.querySelector('textarea').value='Jakarta';f.querySelector('input[inputmode=tel]').value='081234567890';saveOutlet158();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});});
  const cases=[];
  for(const [i,config] of [
   {method:'Bayar Nanti',dur:'Reguler'},
