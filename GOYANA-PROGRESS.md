@@ -222,3 +222,13 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Jam disimpan di `goyana-durations199` (SQLite HP). Dipakai untuk label sheet "Pilih Durasi", tab durasi di daftar layanan, label varian di Layanan & Harga, dan estimasi selesai pesanan baru (masuk + jam).
 - File: `index.html` (blok v199 + 3 baris pemakai jam), `tests/flutter-bridge.cjs`, fixture `mirror_pages/duration.json`, `GOYANA-HANDOFF-DART.md` (catatan untuk GPT).
 - Tes: uji jembatan 31 PASS (termasuk edit Express via Flutter); uji browser: Express diubah ke 12 jam, tetap tersimpan setelah aplikasi dibuka ulang, dan estimasi pesanan Express = masuk + 12 jam.
+
+### [GPT] Dart — 3a Tambah Transaksi: keranjang — 4 Oktober 2026 13.27 WIB
+- Status: SELESAI
+- Sudah dikerjakan: jumlah, subtotal, total keranjang, dan harga per durasi dihitung Dart; harga layanan dibaca dari database HP (`Business.services`), sedangkan WebView hanya memasok draft pilihan/jumlah/durasi yang belum tersimpan. `_addorderFromDart` dipasang dengan pengaman: Dart dipakai hanya bila modelnya sama persis dengan HTML; bila beda/error, layar tetap memakai HTML dan selisih dicatat ke `goyana-parity-log`. Tidak ada perubahan widget/tampilan.
+- File diubah: `mobile/lib/logic/addorder.dart`, `mobile/test/parity_test.dart`, `mobile/lib/hybrid/shell.dart`, `GOYANA-PROGRESS.md`.
+- Tes paritas: 37/37 lulus; fixture: `mobile/test/fixtures/parity/addorder_cart.json`. Tes Beranda 5/5 dan Pesanan 18/18 tetap lulus.
+- Uji jembatan: 31 PASS; screenshot Flutter/native berubah: TIDAK. Delapan screenshot Tambah Transaksi 320/390 dan screenshot Flutter lain byte-identik dengan patokan; dua referensi HTML lama `cashclose_html_320/390.png` di `ci-screens` dibuat dinamis oleh CI dan berubah sendiri, bukan widget Flutter atau bagian 3a.
+- Commit: `c8ee173a86d75a22ccdebb58a0f0a303498c9510`; CI: lulus, run `37182400625` (bridge, analyze, unit, screenshot, APK, publikasi `flutter-uji` semua sukses).
+- Langkah berikutnya: BERHENTI sesuai instruksi Koko. Bagian 3b (diskon, ongkir, nomor pesanan, simpan) belum dikerjakan; tunggu Koko mengatakan "lanjut".
+- Pertanyaan untuk Koko: tidak ada temuan baru pada bagian 3a. Perilaku input `1,2,3` dan `-2,5` tetap mengikuti HTML seperti keputusan/catatan sebelumnya.
