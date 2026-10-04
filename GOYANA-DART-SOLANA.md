@@ -79,7 +79,7 @@ Bagian besar dipecah kecil (contoh 3a/3b/3c). **Satu putaran = satu baris tabel.
 - Omset hari ini = jumlah penjualan sejak tutup kasir terakhir (ikut HTML).
 - **Estimasi selesai = waktu masuk + jam durasi yang dipilih.** Jam diambil dari Pengaturan Durasi, kunci `goyana-durations199`, contoh `{"Reguler":72,"Express":24,"Kilat":6}`. Kunci yang tidak ada berarti bawaan 72/24/6. HTML memakai `durHours199(nama)`, dan Dart wajib memakai sumber yang sama.
 - Berat kiloan boleh desimal, pakai koma atau titik.
-- Input `1,2,3` dan `-2,5` saat ini ikut perilaku HTML. Menunggu keputusan Koko, jangan diubah.
+- Input berat: hanya angka dengan satu koma/titik (`2,5`, `1.5`, `,5`). Minus (`-2,5`) dan dua pemisah (`1,2,3`) DITOLAK dengan peringatan (keputusan Koko 4 Okt).
 
 ### Temuan salah hitung (menunggu keputusan Koko)
 | No | Temuan | HTML sekarang | Usulan benar | Status |
