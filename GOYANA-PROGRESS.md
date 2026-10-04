@@ -176,3 +176,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   3. Management Kurir: belum ada tombol Hapus kurir; tombol "+ Tambah Kurir" jangan di setiap kartu kurir, cukup satu di atas.
   4. Tambah Pelanggan: saat mengisi, kolom tertutup keyboard → halaman bisa digulir sampai kolom yang diisi kelihatan.
   Pelaksanaan: popup gp128 di tengah (form_page.dart); keyboard tidak lagi dihitung dua kali (shell: MediaQuery.removeViewInsets) sehingga popup isian tampil penuh di atas keyboard; menu bawah disembunyikan saat mengetik (GBottomNav); kurir: tombol Tambah di atas, tombol Hapus (konfirmasi, data diberi `deleted:true` agar riwayat tetap).
+- 4 Okt 08.22 — Koko: "alihkan semua tanpa ganti tampilan, cukup alihkan perhitungannya saja". Artinya: urutan disetujui; aturan hitung IKUT HTML apa adanya (Omset = sejak tutup kasir; Kilat/Express tidak mengubah estimasi) kecuali Koko minta lain; HTML jadi pengaman sampai semua selesai.
