@@ -11,6 +11,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import '../core/business.dart';
 import '../core/store.dart';
 import '../logic/home.dart';
+import '../logic/orders.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
 import '../native/cashclose_page.dart';
@@ -210,7 +211,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
           _home = HomeModel.fromJson(model);
           _homeFromDart(model);
         }
-        if (page == 'orders' && model != null) _orders = OrdersModel.fromJson(model);
+        if (page == 'orders' && model != null) {
+          _orders = OrdersModel.fromJson(model);
+          _ordersFromDart(model);
+        }
         if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
@@ -369,6 +373,45 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         await store.set('goyana-parity-log', jsonEncode(log));
       }
     } catch (_) {/* tetap memakai HTML */}
+  }
+
+  // Pesanan dihitung Dart (tab & kata pencarian dari layar yang sama). Bila hasilnya beda dengan HTML, layar tetap memakai HTML
+  // dan perbedaannya dicatat; bila sama, layar memakai hasil Dart.
+  int _ordersSeq = 0;
+  Future<void> _ordersFromDart(Map<String, dynamic> htmlModel) async {
+    final seq = ++_ordersSeq;
+    try {
+      const store = DeviceKvStore();
+      final b = await Business.load(store);
+      final tabs = (htmlModel['tabs'] as List? ?? const []);
+      final tab = tabs.indexWhere((t) => t is Map && t['on'] == true);
+      final dart = ordersModel(b, tab: tab < 0 ? 1 : tab, search: '${htmlModel['search'] ?? ''}', now: DateTime.now());
+      if (!mounted || seq != _ordersSeq) return;
+      final html = jsonDecode(jsonEncode(htmlModel));
+      final d = jsonDecode(jsonEncode(dart));
+      if (jsonEncode(_stable(d)) == jsonEncode(_stable(html))) {
+        setState(() => _orders = OrdersModel.fromJson(Map<String, dynamic>.from(d as Map)));
+      } else {
+        await _parityLog(store, 'orders', _stable(html), _stable(d));
+      }
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
+  /// Bagian yang dibandingkan: semuanya kecuali hitung mundur otomatis (berubah tiap menit).
+  static Object? _stable(Object? m) {
+    if (m is Map) return {for (final e in m.entries) '${e.key}': (e.key == 'auto' && m.containsKey('id')) ? null : _stable(e.value)};
+    if (m is List) return [for (final x in m) _stable(x)];
+    return m;
+  }
+
+  Future<void> _parityLog(KvStore store, String page, Object? html, Object? dart) async {
+    final log = <dynamic>[];
+    try {
+      final old = jsonDecode(await store.get('goyana-parity-log') ?? '[]');
+      if (old is List) log.addAll(old.take(19));
+    } catch (_) {}
+    log.insert(0, {'at': DateTime.now().toIso8601String(), 'page': page, 'html': html, 'dart': dart});
+    await store.set('goyana-parity-log', jsonEncode(log));
   }
 
   static Map<String, dynamic> _numbers(Object? m) {
