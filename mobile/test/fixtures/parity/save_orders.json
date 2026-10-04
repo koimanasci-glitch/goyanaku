@@ -2,9 +2,11 @@
   "cases": [
     {
       "name": "Bayar Nanti Reguler",
-      "now": "2026-10-04T03:00:00.020Z",
+      "now": "2026-10-04T03:00:00.000Z",
       "store": {
-        "goyana-durations199": "{}"
+        "goyana-durations199": "{}",
+        "goyana-active-outlet180": "\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\"",
+        "goyana-outlets180": "[{\"id\":\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\",\"name\":\"Uji\",\"address\":\"Jakarta\",\"phone\":\"081234567890\",\"logo\":\"\"}]"
       },
       "before": {
         "orders": [],
@@ -69,12 +71,12 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368"
             },
             "fields": [
               [
@@ -129,8 +131,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -138,7 +140,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
@@ -177,7 +179,9 @@
       "name": "Tunai Express",
       "now": "2026-10-04T03:00:00.000Z",
       "store": {
-        "goyana-durations199": "{}"
+        "goyana-durations199": "{}",
+        "goyana-active-outlet180": "\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\"",
+        "goyana-outlets180": "[{\"id\":\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\",\"name\":\"Uji\",\"address\":\"Jakarta\",\"phone\":\"081234567890\",\"logo\":\"\"}]"
       },
       "before": {
         "orders": [
@@ -187,14 +191,14 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
-              "ts133": "1791082800020",
+              "ts133": "1791082800000",
               "w138": "1",
               "w141": "1"
             },
@@ -251,8 +255,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -260,7 +264,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
@@ -338,7 +342,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368"
             },
             "fields": [
               [
@@ -377,14 +381,14 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
-              "ts133": "1791082800020",
+              "ts133": "1791082800000",
               "w138": "1",
               "w141": "1"
             },
@@ -441,8 +445,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -450,7 +454,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
@@ -537,7 +541,9 @@
       "name": "QRIS Kilat",
       "now": "2026-10-04T03:00:00.000Z",
       "store": {
-        "goyana-durations199": "{}"
+        "goyana-durations199": "{}",
+        "goyana-active-outlet180": "\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\"",
+        "goyana-outlets180": "[{\"id\":\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\",\"name\":\"Uji\",\"address\":\"Jakarta\",\"phone\":\"081234567890\",\"logo\":\"\"}]"
       },
       "before": {
         "orders": [
@@ -552,7 +558,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -595,14 +601,14 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
-              "ts133": "1791082800020",
+              "ts133": "1791082800000",
               "w138": "1",
               "w141": "1"
             },
@@ -659,8 +665,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -668,7 +674,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
@@ -794,7 +800,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368"
             },
             "fields": [
               [
@@ -838,7 +844,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -881,14 +887,14 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
-              "ts133": "1791082800020",
+              "ts133": "1791082800000",
               "w138": "1",
               "w141": "1"
             },
@@ -945,8 +951,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -954,7 +960,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
@@ -1088,7 +1094,9 @@
       "name": "Transfer Express",
       "now": "2026-10-04T03:00:00.000Z",
       "store": {
-        "goyana-durations199": "{\"Express\":12}"
+        "goyana-durations199": "{\"Express\":12}",
+        "goyana-active-outlet180": "\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\"",
+        "goyana-outlets180": "[{\"id\":\"outlet180-0fe2788e-ef38-4a07-9429-04569781b368\",\"name\":\"Uji\",\"address\":\"Jakarta\",\"phone\":\"081234567890\",\"logo\":\"\"}]"
       },
       "before": {
         "orders": [
@@ -1103,7 +1111,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1151,7 +1159,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1194,14 +1202,14 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
-              "ts133": "1791082800020",
+              "ts133": "1791082800000",
               "w138": "1",
               "w141": "1"
             },
@@ -1258,8 +1266,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -1267,7 +1275,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
@@ -1440,7 +1448,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Transfer\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8"
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368"
             },
             "fields": [
               [
@@ -1484,7 +1492,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1532,7 +1540,7 @@
               "paid177": "17500",
               "perfume178": "Tanpa Parfum",
               "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
               "ts133": "1791082800000",
               "w138": "1",
@@ -1575,14 +1583,14 @@
               "st": "antrian",
               "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
               "v136": "1",
-              "created177": "2026-10-04T03:00:00.020Z",
+              "created177": "2026-10-04T03:00:00.000Z",
               "method177": "Tunai",
               "paid177": "0",
               "perfume178": "Tanpa Parfum",
               "payments178": "[]",
-              "outlet180": "outlet180-df82614d-a74d-4427-83e3-a93e2fa126c8",
+              "outlet180": "outlet180-0fe2788e-ef38-4a07-9429-04569781b368",
               "w133": "1",
-              "ts133": "1791082800020",
+              "ts133": "1791082800000",
               "w138": "1",
               "w141": "1"
             },
@@ -1639,8 +1647,8 @@
             "perfume": "Tanpa Parfum",
             "note": "-",
             "handover": "Datang Langsung",
-            "masuk": "2026-10-04T03:00:00.020Z",
-            "due": "2026-10-07T03:00:00.020Z",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
             "photos": {
               "in": [],
               "out": []
@@ -1648,7 +1656,7 @@
             "hist": [
               {
                 "st": "antrian",
-                "at": "2026-10-04T03:00:00.020Z",
+                "at": "2026-10-04T03:00:00.000Z",
                 "by": "Kasir"
               }
             ]
