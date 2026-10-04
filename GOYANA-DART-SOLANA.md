@@ -67,7 +67,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B3 | Pilih Layanan (`pickservice`) | SELESAI |
 | B4 | Jemput (`pickup`) | SELESAI |
 | B5 | Scan Pesanan (`orderscan`) | SELESAI |
-| B6 | Status QR (`qrstatus`) | MENTOK — paritas 254 piksel, CI 2/2 habis |
+| B6 | Status QR (`qrstatus`) | SELESAI |
 | B7 | Harga Paket (`plan111`) | SELESAI |
 | B8 | Checkout Paket (`checkout111`) | belum |
 | B9 | Tagihan (`billing`) | belum |
