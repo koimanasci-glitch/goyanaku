@@ -55,6 +55,22 @@ void main() {
       final changed = jsonDecode(jsonEncode(shot['htmlModel'])) as Map<String, dynamic>;
       (changed['footer'] as Map<String, dynamic>).addAll(<String, dynamic>{'total': 'SALAH', 'sum': 'SALAH'});
       expect(addorderModel(b, Map<String, dynamic>.from(shot['draft'] as Map), changed), shot['htmlModel']);
+      // Harga draft/katalog sementara juga bukan sumber harga: Dart wajib membaca harga dari database HP.
+      final poisoned = jsonDecode(jsonEncode(shot['draft'])) as Map<String, dynamic>;
+      for (final item in (poisoned['cart'] as List? ?? const []).whereType<Map>()) {
+        item['price'] = 1;
+      }
+      for (final cat in (poisoned['catalog'] as List? ?? const []).whereType<Map>()) {
+        for (final item in (cat['items'] as List? ?? const []).whereType<Map>()) {
+          final prices = item['prices158'];
+          if (prices is Map) {
+            for (final key in List<dynamic>.from(prices.keys)) {
+              prices[key] = 1;
+            }
+          }
+        }
+      }
+      expect(addorderModel(b, poisoned, changed), shot['htmlModel']);
     });
   }
   for (final q in draftFixture['quantities'] as List) {
