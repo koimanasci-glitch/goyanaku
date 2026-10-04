@@ -78,6 +78,52 @@ class _NativeOrderscanPageState extends State<NativeOrderscanPage> {
         ? () => widget.onButton(index.toInt()) : null;
   }
 
+  Widget _results(Map<String, dynamic> node) {
+    final raw = node['ch'];
+    final rows = raw is List ? raw.whereType<Map>().map(_map).toList() : <Map<String, dynamic>>[];
+    final s = _map(node['s']);
+    double side(Object? values, int index, double fallback) => values is List && values.length > index
+        ? _num(values[index], fallback).clamp(0, 1000).toDouble() : fallback;
+    return Center(child: ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: _size(node, 'w', 320) + 1),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(side(s['p'], 3, 8), side(s['p'], 0, 8),
+          side(s['p'], 1, 8), side(s['p'], 2, 8)),
+        decoration: BoxDecoration(color: _color(node, 'bg', 'rgb(255, 255, 255)'),
+          borderRadius: BorderRadius.circular(side(s['br'], 0, 12))),
+        child: Column(mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          for (var i = 0; i < rows.length; i++)
+            GestureDetector(key: Key('orderscan-result-$i'), behavior: HitTestBehavior.opaque,
+              onTap: _action(rows[i]),
+              child: Builder(builder: (_) {
+                final rs = _map(rows[i]['s']);
+                final bw = _num(rs['bw'], 0).clamp(0, 100).toDouble();
+                final radius = side(rs['br'], 0, 0);
+                BorderSide border(int index) {
+                  final width = side(rs['bs'], index, bw);
+                  return width > 0 ? BorderSide(width: width,
+                    color: _color(rows[i], 'bc', 'rgb(238, 238, 238)')) : BorderSide.none;
+                }
+                return Container(
+                  padding: EdgeInsets.fromLTRB(side(rs['p'], 3, 12), side(rs['p'], 0, 12),
+                    side(rs['p'], 1, 12), side(rs['p'], 2, 12)),
+                  decoration: BoxDecoration(color: _color(rows[i], 'bg', 'rgb(255, 255, 255)'),
+                    borderRadius: radius > 0 ? BorderRadius.circular(radius) : null,
+                    border: bw > 0
+                        ? (radius > 0
+                            ? (side(rs['bs'], 0, bw) > 0
+                                ? Border.all(width: bw, color: _color(rows[i], 'bc', 'rgb(238, 238, 238)')) : null)
+                            : Border(top: border(0), right: border(1), bottom: border(2), left: border(3)))
+                        : null),
+                  child: _text(rows[i], '', 13, 18.2, 400, 'rgb(34, 34, 34)'),
+                );
+              })),
+        ]),
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final body = _map(widget.model['body']);
@@ -143,6 +189,10 @@ class _NativeOrderscanPageState extends State<NativeOrderscanPage> {
                           borderRadius: BorderRadius.circular(12)),
                         child: _text(find, 'Cari', 14, 19.6, 500, 'rgb(255, 255, 255)', center: true))),
                   ]))),
+                if (_child(overlay, 5).isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _results(_child(overlay, 5)),
+                ],
               ])),
               Positioned(top: _num(_map(close['abs'])['t'], 22), left: _num(_map(close['abs'])['l'], 18),
                 child: GestureDetector(key: const Key('orderscan-close'), behavior: HitTestBehavior.opaque,

@@ -87,6 +87,47 @@ void main() {
 
     });
   }
+  for (final width in [390, 320]) {
+  testWidgets('Scan Pesanan pilihan hasil meneruskan indeks HTML $width', (tester) async {
+    final model = Map<String, dynamic>.from(
+      jsonDecode(File('test/fixtures/mirror_pages/orderscan.json').readAsStringSync()) as Map,
+    );
+    final overlay = (model['body'] as Map)['ch'][1] as Map;
+    (overlay['ch'] as List).add({
+      'w': 320, 's': {'m': [8, 0, 0, 0], 'p': [8, 8, 8, 8], 'bg': 'rgb(255, 255, 255)', 'br': [12, 12, 12, 12]},
+      'ch': [for (var i = 0; i < 2; i++) {
+        'b': 3 + i, 's': {'p': [12, 12, 12, 12], 'fs': 13, 'fw': 400, 'lh': 18.2,
+          'c': 'rgb(34, 34, 34)', 'bg': 'rgb(255, 255, 255)', 'bw': 1,
+          'bc': 'rgb(238, 238, 238)', 'bs': [0, 0, 1, 0]},
+        'spans': [{'t': 'Pilihan $i'}],
+      }],
+    });
+    tester.view.physicalSize = Size(width * 2.0, 844 * 2);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    final taps = <int>[];
+    await tester.pumpWidget(MaterialApp(home: RepaintBoundary(key: const Key('results-screen'),
+      child: NativeMirrorPage(model: model, topInset: 31, onNav: (_) {}, onHeaderScan: () {},
+        env: MirrorEnv(onButton: (_) {}, onTap: (_) {}, onInput: (_, _) {},
+          video: (_) => const ColoredBox(color: Color(0xff080a0d)))))));
+    await tester.pump();
+    final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const Key('results-screen')));
+    final reference = await tester.runAsync(() => boundary.toImage(pixelRatio: 1));
+    expect(reference, isNotNull);
+    addTearDown(reference!.dispose);
+    await tester.pumpWidget(MaterialApp(home: RepaintBoundary(key: const Key('results-screen'),
+      child: NativeOrderscanPage(
+      model: model, topInset: 31, onButton: taps.add, onInput: (_, _) {},
+      cameraBuilder: (_) => const ColoredBox(color: Color(0xff080a0d)),
+    ))));
+    expect(tester.takeException(), isNull);
+    await tester.pump();
+    await expectLater(find.byKey(const Key('results-screen')), matchesReferenceImage(reference));
+    expect(find.text('Pilihan 0'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('orderscan-result-1')));
+    expect(taps, [4]);
+  });
+  }
   testWidgets('Scan Pesanan model kosong tidak crash', (tester) async {
     await tester.pumpWidget(MaterialApp(home: NativeOrderscanPage(
       model: const {}, topInset: 31, onButton: (_) {}, onInput: (_, _) {},
