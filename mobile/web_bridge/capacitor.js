@@ -576,6 +576,7 @@
     if (/center|right|left/.test(cs.textAlign)) st.ta = cs.textAlign;
     if (/pre/.test(cs.whiteSpace)) st.pre = 1;
     if (/nowrap/.test(cs.whiteSpace)) st.nowrap = 1;
+    if (/px$/.test(cs.minWidth) && parseFloat(cs.minWidth) > 0) st.minw = px(cs.minWidth);
     if (cs.boxShadow && cs.boxShadow !== 'none') st.sh = 1;
     if (cs.outlineStyle && cs.outlineStyle !== 'none' && px(cs.outlineWidth)) st.ring = { c: cs.outlineColor, w: px(cs.outlineWidth) + px(cs.outlineOffset) };
     else if (cs.boxShadow && cs.boxShadow !== 'none') {

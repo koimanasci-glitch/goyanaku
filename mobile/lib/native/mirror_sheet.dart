@@ -126,6 +126,10 @@ class _Node {
         if (i > 0 && gap > 0) kids.add(SizedBox(width: gap));
         final c = ch[i];
         final cm = _q(_m(c['s'])['m']);
+        // Item flex di dalam baris selebar isinya (seperti CSS): baris anak yang rata kiri & tanpa latar tidak melebar,
+        // supaya justify-content (contoh space-between di baris Durasi) membagi sisa ruang seperti HTML.
+        final cs = _m(c['s']);
+        if (c['row'] == true && c['grow'] != 1 && c['wrap'] != 1 && cs['bg'] == null && _d(cs['bw']) == 0 && RegExp(r'^(normal|flex-start|start|)$').hasMatch('${c['jc'] ?? ''}')) c['_min'] = 1;
         Widget w = build(sheet, c, color, inRow: true);
         if (cm[0] > 0 || cm[2] > 0) w = Padding(padding: EdgeInsets.only(top: cm[0], bottom: cm[2]), child: w);
         final inner = _d(n['w']) - _q(s['p'])[1] - _q(s['p'])[3];
@@ -138,6 +142,7 @@ class _Node {
         }
       }
       return Row(
+        mainAxisSize: n['_min'] == 1 ? MainAxisSize.min : MainAxisSize.max,
         mainAxisAlignment: jc.contains('space-between') ? MainAxisAlignment.spaceBetween : (jc.contains('center') ? MainAxisAlignment.center : (jc.contains('end') ? MainAxisAlignment.end : MainAxisAlignment.start)),
         crossAxisAlignment: ai.contains('center') ? CrossAxisAlignment.center : (ai.contains('end') ? CrossAxisAlignment.end : CrossAxisAlignment.start),
         children: kids,
@@ -279,6 +284,8 @@ class _Node {
       final centered = ((m[1] - m[3]).abs() < 2 && m[1] > 0) || parentTa == 'center';
       return Align(alignment: centered ? Alignment.center : Alignment.centerLeft, child: child);
     }
+    // min-width dari CSS (contoh kolom nama Durasi 92px).
+    if (_d(s['minw']) > 0) child = ConstrainedBox(constraints: BoxConstraints(minWidth: _d(s['minw'])), child: child);
     if (m[1] > 0 || m[3] > 0) child = Padding(padding: EdgeInsets.only(left: m[3], right: m[1]), child: child);
     return child;
   }
