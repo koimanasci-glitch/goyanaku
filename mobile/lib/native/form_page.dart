@@ -83,6 +83,27 @@ class NativeSheet extends StatelessWidget {
     }
     // Popup tanpa kolom isian selalu menempel di bawah (tidak ikut terdorong keyboard).
     final hasInput = items.any((it) => it['type'] == 'input');
+    // Popup pilih Pria/Wanita: di tengah layar (permintaan Koko).
+    if (id == 'gp128') {
+      return Material(
+        color: const Color(0x80141b26),
+        child: Stack(children: [
+          Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: sa.fmBack)),
+          Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              constraints: const BoxConstraints(maxWidth: 440),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22)),
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(17, 20, 17, 20),
+                children: [for (final it in items) form._item(context, it)],
+              ),
+            ),
+          ),
+        ]),
+      );
+    }
     return Material(
       color: const Color(0x80141b26),
       child: Column(children: [

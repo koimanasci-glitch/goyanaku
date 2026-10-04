@@ -131,7 +131,13 @@ class GBottomNav extends StatelessWidget {
   final int active;
   static const _items = [['home', 'Beranda'], ['orders', 'Pesanan'], ['reports', 'Laporan'], ['settings', 'Pengaturan']];
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    // Saat mengetik (keyboard terbuka) menu bawah disembunyikan supaya kolom isian punya ruang penuh.
+    if (View.of(context).viewInsets.bottom > 0) return const SizedBox.shrink();
+    return _bar();
+  }
+
+  Widget _bar() => Container(
         height: 76,
         decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Color(0xffeef0f3)))),
         child: Row(children: [

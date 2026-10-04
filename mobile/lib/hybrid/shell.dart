@@ -634,7 +634,12 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
             left: media.viewPadding.left,
             right: media.viewPadding.right,
           ),
-          child: Stack(children: [
+          // Ruang keyboard sudah diberikan oleh padding di atas: layar & popup di dalamnya tidak menambahkannya lagi
+          // (dulu terhitung dua kali sehingga popup terpotong di atas).
+          child: MediaQuery.removeViewInsets(
+            context: context,
+            removeBottom: true,
+            child: Stack(children: [
             // While the native Beranda covers the screen, the WebView is taken out of the
             // frame (kept alive, scripts keep running). Drawing Flutter on top of a visible
             // Android WebView forces two layers per frame and makes scrolling heavy.
@@ -744,6 +749,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                 ),
               ),
           ]),
+          ),
         ),
       ),
     );
