@@ -93,7 +93,7 @@ void main() {
     });
   }
 
-  test('CAPTURE 3b HTML v2: diskon dan ongkir', () async {
+  test('CAPTURE 3b HTML v3: diskon dan ongkir', () async {
     final tmp = File('${Directory.systemTemp.path}/goyana-addorder-3b.json');
     final result = await Process.run('node', ['../tests/parity/capture.cjs', tmp.path, '[["pricing"]]']);
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
