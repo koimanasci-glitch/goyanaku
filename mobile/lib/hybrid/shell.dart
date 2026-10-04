@@ -28,6 +28,7 @@ import '../native/duration_page.dart';
 import '../native/pickservice_page.dart';
 import '../native/pickup_page.dart';
 import '../native/orderscan_page.dart';
+import '../native/qrstatus_page.dart';
 import '../native/perfume_page.dart';
 import '../native/plan_page.dart';
 import '../native/orders_page.dart';
@@ -1082,7 +1083,21 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                     }),
                 ),
               ),
-            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'perfume' && _nativePage != 'duration' && _nativePage != 'pickservice' && _nativePage != 'pickup' && _nativePage != 'orderscan' && _pageMirror != null && !_loading)
+            if (_nativePage == 'qrstatus' && _pageMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeQrstatusPage(
+                  key: const ValueKey('native-qrstatus'),
+                  model: _pageMirror!,
+                  onButton: (i) => _mirror('button', i),
+                  onInput: (i, v) => _mirror('input', i, v),
+                  onNav: nav,
+                  onHeaderScan: () {
+                    final i = (_pageMirror?['scan'] as num?)?.toInt() ?? -1;
+                    if (i >= 0) _mirror('button', i);
+                  },
+                ),
+              ),
+            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'perfume' && _nativePage != 'duration' && _nativePage != 'pickservice' && _nativePage != 'pickup' && _nativePage != 'orderscan' && _nativePage != 'qrstatus' && _pageMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorPage(
                   key: ValueKey('mirror-page-$_nativePage'), model: _pageMirror!,
