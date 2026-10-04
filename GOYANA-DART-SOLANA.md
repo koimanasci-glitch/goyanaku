@@ -49,7 +49,7 @@ Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di a
 | A3a | Tambah Transaksi: keranjang | SELESAI, terpasang; input berat salah ketik ditolak (4 Okt) |
 | A3b | Tambah Transaksi: diskon, ongkir | SELESAI, terpasang (sesi 1, d6601f8); ongkir tidak ikut didiskon |
 | A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SIAP, belum dipasang. Fixture save_orders.json diperbarui 4 Okt: details.due kini ikut jam durasi (dulu selalu +72 jam). Sesuaikan Dart lalu pasang |
-| A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum. PATOKAN SIAP: `fixtures/parity/flows_a4_a5_a7.json` (langkah part=A4) dari `tests/parity/flows.cjs` |
+| A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | SELESAI, terpasang dengan pengaman (5 Okt, CI 37223205196) |
 | A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum. PATOKAN SIAP untuk DP, pelunasan transfer, lunas QRIS (part=A5). Deposit & ralat: minta Claude tambah skenario |
 | A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
 | A7 | Kas & Tutup Kasir | belum. PATOKAN SIAP: tutup kasir (part=A7), termasuk model layar Tutup Kasir & Beranda sebelum/sesudah |

@@ -361,3 +361,14 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - CI pertama/final: run `37220876008`, job `111490781273`, SUCCESS. Bridge 31 PASS; `flutter analyze` tanpa temuan; unit 113/113 PASS; screenshot 102/102 PASS; build APK release, artifact `GOYANA-Flutter-Uji`, dan publikasi release `flutter-uji` sukses. Workflow APK lama pada push yang sama juga SUCCESS, run `37220875938`.
 - Jatah CI: 1/2 percobaan publikasi kode terpakai; tidak ada CI kedua atau rerun. Laporan dibuat dalam commit terpisah `[GPT tampilan] B4 Jemput + cadangan B3` dengan penanda skip CI, agar dokumentasi tidak menambah percobaan CI.
 - Tidak mengubah hitungan/logic, `index.html`, JS/CSS, `capacitor.js`, fixture, workflow CI, `mobile/lib/pure/`, atau halaman lainnya. Flutter lokal tidak tersedia; hasil Flutter dan bridge diverifikasi melalui CI. Pertanyaan patokan B4 sudah dijawab Paduka; tidak ada keputusan desain tambahan. Tidak lanjut B5.
+
+
+### [Claude] Gabung A4 Rincian Pesanan ke flutter/native — 5 Okt 2026 01.25 WIB
+- Sumber: branch `flutter/a4` dari GPT sesi 1 (d5c3911 + laporan c2cb7bc, basis lama 370df2a). Digabung ke `flutter/native` setelah B4 (1944e19) tanpa konflik; sambungan B1–B4 di `shell.dart` tetap utuh.
+- Diuji di branch `flutter/a4-gabung`. Tiga perbaikan agar Dart sama persis dengan patokan HTML (hitungan tidak berubah):
+  1. Tes: jumlah tab "Belum Bayar" ditulis sebagai teks seperti HTML/Dart (bukan angka).
+  2. Label tombol rincian: "Kirim nota WA" dan "Cetak struk" (bukan "WhatsApp"/"Cetak"); label tombol di kartu pelanggan kosong seperti HTML.
+  3. Langkah status: "Siap Ambil" (bukan "Siap"); pada status Diambil semua langkah selesai dan tidak ada langkah aktif.
+- CI: 37222330239 dan 37222602672 dan 37222893292 gagal di tes unit A4 (perbedaan di atas, satu per putaran); final 37223205196 SUCCESS: jembatan, analyze, unit, screenshot dan APK.
+- Pengaman tetap: Dart hanya dipakai di layar bila hasilnya sama dengan HTML; beda → tetap HTML dan dicatat di goyana-parity-log. HTML tetap yang menyimpan data.
+- Langkah berikutnya: sesi tampilan boleh mulai B5 dari `flutter/native` terbaru; sesi Dart menunggu perintah A5.
