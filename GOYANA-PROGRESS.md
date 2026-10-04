@@ -178,3 +178,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   Pelaksanaan: popup gp128 di tengah (form_page.dart); keyboard tidak lagi dihitung dua kali (shell: MediaQuery.removeViewInsets) sehingga popup isian tampil penuh di atas keyboard; menu bawah disembunyikan saat mengetik (GBottomNav); kurir: tombol Tambah di atas, tombol Hapus (konfirmasi, data diberi `deleted:true` agar riwayat tetap).
 - 4 Okt 08.22 — Koko: "alihkan semua tanpa ganti tampilan, cukup alihkan perhitungannya saja". Artinya: urutan disetujui; aturan hitung IKUT HTML apa adanya (Omset = sejak tutup kasir; Kilat/Express tidak mengubah estimasi) kecuali Koko minta lain; HTML jadi pengaman sampai semua selesai.
 - Pesanan: `lib/logic/orders.dart` lulus paritas (8 tab + pencarian, 2 skenario: jemput, antar, proses, siap, telat 9 hari, diantar, diambil, batal). Dipasang di shell (`_ordersFromDart`) dengan HTML sebagai pengaman. Perbaikan data: alamat pelanggan kini ikut tersimpan (dulu hilang setelah aplikasi dibuka ulang).
+
+## Keputusan & laporan Koko — 4 Okt 2026 09.24 WIB (untuk SEMUA AI)
+- KEPUTUSAN ESTIMASI: estimasi selesai langsung mengikuti durasi yang dipilih (Reguler / Express / Kilat sesuai jam di Pengaturan Durasi). Ini MENGGANTI aturan HTML lama yang selalu +3 hari. Berlaku untuk logika Dart Tambah Transaksi.
+- Laporan masalah (belum dikerjakan, tampilan tetap patokan HTML):
+  1. Pengaturan → Durasi: tidak ada cara untuk mengedit durasi (jam/nama).
+  2. Ikon logo berubah (perlu dipastikan: ikon aplikasi di layar HP atau logo GOYANA di atas).
+  3. Pengaturan → Parfum: ikon parfum dan pilihan ikon parfum hilang.
