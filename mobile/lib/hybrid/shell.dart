@@ -13,6 +13,7 @@ import '../core/store.dart';
 import '../logic/addorder.dart';
 import '../logic/addorder_save.dart';
 import '../logic/home.dart';
+import '../logic/order_detail.dart';
 import '../logic/orders.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
@@ -90,6 +91,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   bool _loginBar = false;
   String? _loadError;
   DateTime? _lastBack;
+  String? _orderDetailA4BeforeRaw;
+  String _orderDetailA4Id = '';
+  int _orderDetailA4Seq = 0;
 
   @override
   void dispose() {
@@ -246,6 +250,17 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       });
       if (page == 'orders' && _addorderSavePending != null) {
         unawaited(_addorderSaveFromDart());
+      }
+      final rawSheet = data['sheet'];
+      if (page == 'orders' && model != null && rawSheet is Map &&
+          rawSheet['id'] == 'g62-order-detail' && rawSheet['od'] is Map) {
+        unawaited(_orderDetailA4FromDart(
+          Map<String, dynamic>.from(rawSheet),
+          model,
+        ));
+      } else if (page != 'orders') {
+        _orderDetailA4BeforeRaw = null;
+        _orderDetailA4Id = '';
       }
     } catch (_) {/* ignore malformed events */}
   }
@@ -573,6 +588,90 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     } catch (_) {/* tetap memakai HTML */}
   }
 
+  Future<void> _orderDetailA4FromDart(
+      Map<String, dynamic> htmlDetail, Map<String, dynamic> htmlOrders) async {
+    final seq = ++_orderDetailA4Seq;
+    try {
+      final od = htmlDetail['od'];
+      if (od is! Map) return;
+      final sub = '${od['sub'] ?? ''}';
+      final split = sub.indexOf(' · ');
+      final id = (split < 0 ? sub : sub.substring(0, split)).trim();
+      if (id.isEmpty) return;
+
+      const store = DeviceKvStore();
+      final current = await store.get(Keys.business);
+      if (current == null || !mounted || seq != _orderDetailA4Seq) return;
+
+      var candidateRaw = current;
+      final beforeRaw = _orderDetailA4BeforeRaw;
+      final sameOrder = _orderDetailA4Id == id;
+      if (beforeRaw != null && sameOrder && beforeRaw != current) {
+        final before = <String, dynamic>{Keys.business: beforeRaw};
+        final after = <String, dynamic>{Keys.business: current};
+        final action = inferOrderDetailA4Action(
+          before: before,
+          after: after,
+          orderId: id,
+        );
+        if (action == null) {
+          // Perubahan bukan A4 (misalnya pembayaran A5); jangan menilai sebagai mismatch A4.
+          _orderDetailA4BeforeRaw = current;
+          _orderDetailA4Id = id;
+          return;
+        }
+        final candidate = applyOrderDetailA4(before: before, action: action);
+        candidateRaw = candidate[Keys.business] as String;
+        final hStore = jsonDecode(current);
+        final dStore = jsonDecode(candidateRaw);
+        if (jsonEncode(_canonical(hStore)) != jsonEncode(_canonical(dStore))) {
+          await _parityLog(store, 'order-detail-a4',
+              {'store': _canonical(hStore)}, {'store': _canonical(dStore)});
+          _orderDetailA4BeforeRaw = current;
+          _orderDetailA4Id = id;
+          return;
+        }
+      }
+
+      final dartDetail = orderDetailA4Model(
+        store: <String, dynamic>{Keys.business: candidateRaw},
+        orderId: id,
+        presentation: htmlDetail,
+      );
+      final business = await Business.load(store);
+      final tabs = htmlOrders['tabs'] as List? ?? const [];
+      final selected = tabs.indexWhere((t) => t is Map && t['on'] == true);
+      final dartOrders = ordersModel(
+        business,
+        tab: selected < 0 ? 1 : selected,
+        search: '${htmlOrders['search'] ?? ''}',
+        now: DateTime.now(),
+      );
+      if (!mounted || seq != _orderDetailA4Seq) return;
+
+      final hDetail = jsonDecode(jsonEncode(htmlDetail));
+      final dDetail = jsonDecode(jsonEncode(dartDetail));
+      final hOrders = jsonDecode(jsonEncode(htmlOrders));
+      final dOrders = jsonDecode(jsonEncode(dartOrders));
+      final sameDetail = jsonEncode(_canonical(dDetail)) == jsonEncode(_canonical(hDetail));
+      final sameOrders = jsonEncode(_stable(dOrders)) == jsonEncode(_stable(hOrders));
+      if (sameDetail && sameOrders) {
+        setState(() {
+          _sheetOd = Map<String, dynamic>.from(dartDetail['od'] as Map);
+          _orders = OrdersModel.fromJson(Map<String, dynamic>.from(dartOrders));
+        });
+      } else {
+        await _parityLog(store, 'order-detail-a4',
+            {'detail': _canonical(hDetail), 'orders': _stable(hOrders)},
+            {'detail': _canonical(dDetail), 'orders': _stable(dOrders)});
+      }
+      _orderDetailA4BeforeRaw = current;
+      _orderDetailA4Id = id;
+    } on UnsupportedError catch (_) {
+      // Status di luar patokan A4 tetap memakai HTML.
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
   static Object? _canonical(Object? value) {
     if (value is Map) {
       final entries = value.entries.toList()
@@ -610,7 +709,11 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   @override
   void odTap(int index) => fmScoped('g62-order-detail', 'tap', index);
   @override
-  void odClose() => fmScoped('g62-order-detail', 'close', 0);
+  void odClose() {
+    _orderDetailA4BeforeRaw = null;
+    _orderDetailA4Id = '';
+    fmScoped('g62-order-detail', 'close', 0);
+  }
 
   @override
   void fmScoped(String scope, String kind, int index, [Object? value]) => _web.runJavaScript(
