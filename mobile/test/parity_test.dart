@@ -93,15 +93,17 @@ void main() {
     });
   }
 
-  test('CAPTURE 3b HTML: diskon dan ongkir', () async {
+  test('CAPTURE 3b HTML v2: diskon dan ongkir', () async {
     final tmp = File('${Directory.systemTemp.path}/goyana-addorder-3b.json');
     final result = await Process.run('node', ['../tests/parity/capture.cjs', tmp.path, '[["pricing"]]']);
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
     final captured = jsonDecode(tmp.readAsStringSync()) as Map<String, dynamic>;
     final pricing = captured['addorderPricing'] as List;
     expect(pricing.length, 11);
-    final compact = pricing.map((e) => {'name': e['name'], 'total': e['htmlModel']['total'], 'discount': e['htmlModel']['discount'], 'transport': e['htmlModel']['transport']}).toList();
-    // Satu baris sengaja ditulis agar oracle HTML bisa disalin menjadi fixture statis; test ini dihapus sesudahnya.
-    stdout.writeln('GOYANA_CAPTURE_3B=${jsonEncode(compact)}');
+    final fixture = <String, dynamic>{
+      'store': pricing.first['store'],
+      'cases': pricing.map((e) => {'name': e['name'], 'draft': e['draft'], 'htmlModel': e['htmlModel']}).toList(),
+    };
+    stdout.writeln('GOYANA_FIXTURE_3B=${jsonEncode(fixture)}');
   });
 }
