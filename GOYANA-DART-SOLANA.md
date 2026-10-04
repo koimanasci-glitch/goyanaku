@@ -1,9 +1,10 @@
-# GOYANA: perintah kerja Dart (mode SOLANA, satu per satu)
+# GOYANA: perintah kerja (satu bagian per putaran)
 
 Untuk AI yang melanjutkan migrasi logika ke Dart. Baca sampai habis sebelum mulai.
 
-## 0. Mode kerja: SOLANA, bukan ASTRA
-- Pakai **Solana**. **Jangan pakai Astra** (jangan mengerjakan banyak bagian sekaligus atau paralel).
+## 0. Mode kerja
+- Mode Solana atau Astra boleh, ikut setelan yang dipakai Koko (contoh: mode work = Astra).
+- Apa pun modenya: **jangan mengerjakan banyak bagian sekaligus atau paralel dalam satu sesi.**
 - **Satu bagian per putaran kerja.** Selesaikan, tes, commit, tulis laporan, lalu BERHENTI dan tunggu Koko bilang "lanjut".
 - Jangan menyentuh bagian lain "sekalian". Kalau menemukan masalah di luar bagian yang dikerjakan, cukup **catat** di laporan.
 
