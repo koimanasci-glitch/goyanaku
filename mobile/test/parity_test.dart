@@ -8,6 +8,7 @@ import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/logic/home.dart';
 import 'package:goyana_flutter/logic/orders.dart';
+import 'package:goyana_flutter/logic/addorder.dart';
 
 void main() {
   final files = Directory('test/fixtures/parity').listSync().whereType<File>().where((f) => f.path.contains('home_')).toList()
@@ -43,4 +44,37 @@ void main() {
       expect(jsonDecode(jsonEncode(got)), s['model']);
     });
   }
+  final draftFixture = jsonDecode(File('test/fixtures/parity/addorder_cart.json').readAsStringSync()) as Map<String, dynamic>;
+  for (final shot in draftFixture['shots'] as List) {
+    test('Tambah Transaksi sama dengan HTML: ${shot['name']}', () async {
+      final store = MemoryKvStore(Map<String, String>.from(shot['store'] as Map));
+      final b = await Business.load(store);
+      final got = addorderModel(b, Map<String, dynamic>.from(shot['draft'] as Map), Map<String, dynamic>.from(shot['htmlModel'] as Map));
+      expect(got, shot['htmlModel']);
+      // Angka yang salah di presentasi tidak boleh menjadi sumber perhitungan.
+      final changed = jsonDecode(jsonEncode(shot['htmlModel'])) as Map<String, dynamic>;
+      (changed['footer'] as Map).addAll({'total': 'SALAH', 'sum': 'SALAH'});
+      expect(addorderModel(b, Map<String, dynamic>.from(shot['draft'] as Map), changed), shot['htmlModel']);
+    });
+  }
+  for (final q in draftFixture['quantities'] as List) {
+    test('Jumlah HTML ${q['unit']}: ${q['input']}', () {
+      expect(transactionSubtotal(q['input'] as String, q['price'] as num), q['subtotal']);
+      final error = transactionQuantityError(transactionQuantity(q['input'] as String), q['unit'] as String);
+      expect(error != null, q['rejected']);
+      if (error != null) expect(error, q['toast']);
+    });
+  }
+  final shots = draftFixture['shots'] as List;
+  for (var i = 1; i < shots.length; i++) {
+    final shot = shots[i] as Map;
+    if (!'${shot['name']}'.startsWith('duration_')) continue;
+    test('Ganti durasi persis HTML: ${shot['name']}', () {
+      final before = shots[i - 1]['draft'] as Map;
+      final after = shot['draft'] as Map;
+      final got = transactionChangeDuration((before['cart'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList(), (after['catalog'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList(), after['duration'] as String);
+      expect(got, after['cart']);
+    });
+  }
+
 }

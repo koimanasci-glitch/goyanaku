@@ -185,3 +185,12 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   1. Pengaturan → Durasi: tidak ada cara untuk mengedit durasi (jam/nama).
   2. Ikon logo berubah (perlu dipastikan: ikon aplikasi di layar HP atau logo GOYANA di atas).
   3. Pengaturan → Parfum: ikon parfum dan pilihan ikon parfum hilang.
+
+### [GPT] Dart — Tambah Transaksi: patokan keranjang — 4 Oktober 2026 09.25 WIB
+- Status: SETENGAH JALAN
+- Sudah dikerjakan: mulai ulang dari flutter/native eccfc2d; arsip lokal lama tidak dipasang. Capture dijalankan dari lokasi repo; 20 model HTML nyata + 14 kasus input jumlah. Ditulis kalkulasi jumlah/subtotal/keranjang/harga katalog dan transisi durasi Dart, belum dipasang ke shell sebelum CI paritas lulus. Tidak ada perubahan widget/tampilan, HTML, atau mobile/lib/pure/.
+- File diubah: tests/parity/capture.cjs, tests/parity/addorder.cjs, mobile/test/fixtures/parity/addorder_cart.json, mobile/lib/logic/addorder.dart, mobile/test/parity_test.dart.
+- Tes paritas: 0/37 terverifikasi untuk bagian baru (menunggu CI); fixture: addorder_cart.json. Capture Chromium lulus. Tes jembatan 31/31 PASS lulus. Flutter lokal tidak digunakan: pemeriksaan otomatis memblokir setup SDK yang mengakses metadata cloud; tes Dart lewat CI.
+- Commit: checkpoint ini (lihat git log); hasil CI: menunggu, belum diklaim lulus.
+- Belum selesai / langkah berikutnya: cek CI paritas/analyze, pasang model keranjang dengan snapshot draft satu event dan fallback HTML; lanjut diskon/ongkir/nomor pesanan/penyimpanan format HTML. Fungsi jumlah dan transisi durasi baru diuji, aksi runtime masih HTML. Estimasi simpan belum disentuh. Ada catatan keputusan baru Koko 09.24 WIB tentang estimasi mengikuti jam Pengaturan Durasi; lanjutkan pada tahap simpan sesuai keputusan tersebut, jangan mengubah UI.
+- Temuan aturan HTML yang perlu ditanyakan ke Koko: input `1,2,3` diterima sebagai 1,2; tanda minus pada `-2,5` dibuang sehingga menjadi 2,5. Keduanya ditiru apa adanya; belum diperketat. Apakah nantinya ingin ditolak? Sampai ada persetujuan, perilaku tetap HTML.

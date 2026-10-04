@@ -25,7 +25,9 @@ const adv=async(name,target)=>{for(let k=0;k<8;k++){const st=await p.evaluate(n=
  await p.evaluate(n=>{const cs=[...document.querySelectorAll('#orders .g62-ordercard')];const i=cs.findIndex(c=>(c.querySelector('.g62-order-body div b')||{}).textContent===n);if(i>=0)__goyanaTap('#orders .g62-ordercard',i,'.next91')},name);await p.clock.runFor(600);
  await p.evaluate(()=>{if(window.g62CloseDetail)g62CloseDetail();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});await p.clock.runFor(300);}};
 const steps=JSON.parse(process.argv[3]||'[]');
+let addorder=null;
 for(const st of steps){
+ if(st[0]==='drafts'){addorder=await require('./addorder.cjs')(p);}
  if(st[0]==='adv'){await p.evaluate(()=>openPage('orders'));await p.clock.runFor(500);console.error('adv',st[1],await adv(st[1],st[2]));}
  if(st[0]==='mk'){await mk(st[1],st[2],st[3],st[4],st[5]);}
  if(st[0]==='cancel'){await p.evaluate(()=>openPage('orders'));await p.clock.runFor(400);await p.evaluate(n=>{const c=[...document.querySelectorAll('#orders .g62-ordercard')].find(c=>(c.querySelector('.g62-order-body div b')||{}).textContent===n);c.click()},st[1]);await p.clock.runFor(500);await p.evaluate(()=>{openSheet91('cancel91');const r=document.getElementById('cancel91-reason');r.selectedIndex=1;confirmCancel91()});await p.clock.runFor(600);await p.evaluate(()=>{if(window.g62CloseDetail)g62CloseDetail();document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});await p.clock.runFor(300);}
@@ -43,6 +45,7 @@ await p.evaluate(()=>__goyanaSearch('#g62-order-search',''));await p.clock.runFo
 await p.evaluate(()=>openPage('home'));await p.clock.runFor(900);
 const out=await p.evaluate(()=>{const ev=GoyanaNative.__events.map(JSON.parse).filter(x=>x.page==='home');const st={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^goyana-/.test(k))st[k]=localStorage.getItem(k)}
  return {now:new Date().toISOString(),home:ev[ev.length-1].model,store:st,cards:[...document.querySelectorAll('#orders .g62-ordercard')].map(c=>c.dataset.st+':'+c.textContent.replace(/\s+/g,' ').slice(0,40))}});
+if(addorder)out.addorder=addorder;
 out.ordersTabs=ordersTabs;out.ordersSearch=ordersSearch;fs.writeFileSync(process.argv[2],JSON.stringify(out,null,1));
 console.log(JSON.stringify({now:out.now,home:{statIn:out.home.statIn,statReady:out.home.statReady,statLate:out.home.statLate,today:out.home.today},cards:out.cards,keys:Object.keys(out.store)}));
-await b.close()})();
+await b.close()})().catch(e=>{console.error(e);process.exit(1)});
