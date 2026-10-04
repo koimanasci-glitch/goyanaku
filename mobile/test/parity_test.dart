@@ -53,7 +53,7 @@ void main() {
       expect(got, shot['htmlModel']);
       // Angka yang salah di presentasi tidak boleh menjadi sumber perhitungan.
       final changed = jsonDecode(jsonEncode(shot['htmlModel'])) as Map<String, dynamic>;
-      (changed['footer'] as Map).addAll({'total': 'SALAH', 'sum': 'SALAH'});
+      (changed['footer'] as Map<String, dynamic>).addAll(<String, dynamic>{'total': 'SALAH', 'sum': 'SALAH'});
       expect(addorderModel(b, Map<String, dynamic>.from(shot['draft'] as Map), changed), shot['htmlModel']);
     });
   }

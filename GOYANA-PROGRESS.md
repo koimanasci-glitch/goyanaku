@@ -195,3 +195,11 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Belum selesai / langkah berikutnya: cek CI paritas/analyze, pasang model keranjang dengan snapshot draft satu event dan fallback HTML; lanjut diskon/ongkir/nomor pesanan/penyimpanan format HTML. Fungsi jumlah dan transisi durasi baru diuji, aksi runtime masih HTML. Estimasi simpan belum disentuh. Ada catatan keputusan baru Koko 09.24 WIB tentang estimasi mengikuti jam Pengaturan Durasi; lanjutkan pada tahap simpan sesuai keputusan tersebut, jangan mengubah UI.
 - Temuan aturan HTML yang perlu ditanyakan ke Koko: input `1,2,3` diterima sebagai 1,2; tanda minus pada `-2,5` dibuang sehingga menjadi 2,5. Keduanya ditiru apa adanya; belum diperketat. Apakah nantinya ingin ditolak? Sampai ada persetujuan, perilaku tetap HTML.
 - [Claude] 4 Okt: Parfum & Durasi digambar dari cermin HTML (ikon botol parfum, tombol edit/hapus, baris durasi sama seperti HTML); popup form bersama `gs107` (Tambah/Edit Parfum dengan pilihan warna ikon, Tambah Durasi, dll) dan `cat99` (Kategori Baru dengan pilihan ikon layanan) juga dari cermin HTML. Hanya tampilan, logika tetap HTML.
+
+### [GPT] Dart — Tambah Transaksi: koreksi tes keranjang — 4 Oktober 2026
+- Status: SETENGAH JALAN; belum dipasang ke runtime.
+- Dikerjakan: memperjelas tipe Map pada tes perubahan nilai presentasi; tidak mengubah perhitungan atau tampilan.
+- File: `mobile/test/parity_test.dart`.
+- Tes: CI 37171106155: bridge lulus, analyze lulus; 17 tes jumlah/durasi baru lulus. Dua puluh tes model melewati perbandingan awal, lalu gagal karena Map dinamis pada baris pengubahan fixture. Perbaikan ini menunggu CI berikutnya.
+- Belum diuji: APK/HP dan fallback runtime.
+- Berikutnya: pastikan semua 37 tes baru lulus, lalu pasang perhitungan keranjang dengan pengaman HTML.
