@@ -9,7 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/native/mirror_sheet.dart';
-import 'package:goyana_flutter/native/pickservice_page.dart';
+import 'package:goyana_flutter/native/pickup_page.dart';
 
 Future<void> _loadFonts() async {
   final loader = FontLoader('Poppins');
@@ -25,12 +25,12 @@ void main() {
   setUpAll(_loadFonts);
 
   for (final width in [390, 320]) {
-    testWidgets('Pilih Layanan native identik dengan cermin $width', (tester) async {
+    testWidgets('Jemput native identik dengan cermin $width', (tester) async {
       tester.view.physicalSize = Size(width * 2.0, 844 * 2);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
       final model = Map<String, dynamic>.from(
-        jsonDecode(File('test/fixtures/mirror_pages/pickservice.json').readAsStringSync()) as Map,
+        jsonDecode(File('test/fixtures/mirror_pages/pickup.json').readAsStringSync()) as Map,
       );
       final taps = <int>[];
       final nav = <String>[];
@@ -59,41 +59,43 @@ void main() {
       expect(reference, isNotNull);
       addTearDown(reference!.dispose);
 
-      await show(NativePickservicePage(
+      await show(NativePickupPage(
         model: model,
         topInset: 31,
         onButton: taps.add,
         onNav: nav.add,
         onHeaderScan: () => taps.add((model['scan'] as num).toInt()),
       ));
-      expect(find.text('PILIH LAYANAN'), findsOneWidget);
-      expect(find.text('Belum ada layanan.'), findsOneWidget);
+      expect(find.text('PENGAMBILAN PESANAN'), findsOneWidget);
+      expect(find.text('Pesanan ditemukan'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       await expectLater(find.byKey(const Key('screen')), matchesReferenceImage(reference));
       if (width == 390) {
-        final previous = autoUpdateGoldenFiles;
-        autoUpdateGoldenFiles = false;
-        try {
-          await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/pickservice_native.png'));
-        } finally {
-          autoUpdateGoldenFiles = previous;
-        }
+        await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/pickup_native.png'));
       }
-      await tester.tap(find.byKey(const Key('pickservice-back')));
+      await tester.tap(find.byKey(const Key('pickup-back')));
       expect(taps, [1]);
+      await tester.tap(find.byKey(const Key('pickup-pay')));
+      await tester.tap(find.byKey(const Key('pickup-done')));
+      expect(taps, [1, 2, 3]);
       await tester.tap(find.text('Pesanan'));
       expect(nav, ['orders']);
     });
   }
-  testWidgets('Pilih Layanan model kosong tidak crash', (tester) async {
-    await tester.pumpWidget(MaterialApp(home: NativePickservicePage(
+  testWidgets('Jemput model kosong tidak crash', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: NativePickupPage(
       model: const {}, topInset: 31, onButton: (_) {},
       onNav: (_) {}, onHeaderScan: () {},
     )));
     expect(tester.takeException(), isNull);
-    expect(find.text('PILIH LAYANAN'), findsOneWidget);
-    expect(find.text('Belum ada layanan.'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('pickservice-back')));
+    expect(find.text('PENGAMBILAN PESANAN'), findsOneWidget);
+    expect(find.text('Pesanan ditemukan'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('pickup-back')));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(MaterialApp(home: NativePickupPage(
+      model: const {'body': {'ch': [null, {'ch': 'changed'}]}, 'nav': 'changed', 'bg': 42},
+      topInset: 31, onButton: (_) {}, onNav: (_) {}, onHeaderScan: () {},
+    )));
     expect(tester.takeException(), isNull);
   });
 
