@@ -27,6 +27,7 @@ import '../native/order_detail_page.dart';
 import '../native/duration_page.dart';
 import '../native/pickservice_page.dart';
 import '../native/pickup_page.dart';
+import '../native/orderscan_page.dart';
 import '../native/perfume_page.dart';
 import '../native/plan_page.dart';
 import '../native/orders_page.dart';
@@ -1066,7 +1067,22 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   },
                 ),
               ),
-            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'perfume' && _nativePage != 'duration' && _nativePage != 'pickservice' && _nativePage != 'pickup' && _pageMirror != null && !_loading)
+            if (_nativePage == 'orderscan' && _pageMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeOrderscanPage(
+                  key: const ValueKey('native-orderscan'),
+                  model: _pageMirror!,
+                  onButton: (i) => _mirror('button', i),
+                  onInput: (i, v) => _mirror('input', i, v),
+                  cameraBuilder: (_) => MobileScanner(onDetect: (capture) {
+                      final code = capture.barcodes.map((b) => b.rawValue).whereType<String>().firstOrNull;
+                      if (code == null || _scanned) return;
+                      _scanned = true;
+                      _mirror('scan', 0, code);
+                    }),
+                ),
+              ),
+            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'perfume' && _nativePage != 'duration' && _nativePage != 'pickservice' && _nativePage != 'pickup' && _nativePage != 'orderscan' && _pageMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorPage(
                   key: ValueKey('mirror-page-$_nativePage'), model: _pageMirror!,
