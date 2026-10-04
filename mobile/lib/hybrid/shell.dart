@@ -562,10 +562,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       );
       final h = jsonDecode(jsonEncode(html));
       final d = jsonDecode(jsonEncode(dart));
-      if (jsonEncode(_canonical(d)) == jsonEncode(_canonical(h))) {
-        // Replacement satu key, bukan append kedua: order/ledger tidak mungkin dobel dari guard ini.
-        await store.set('goyana-business177', jsonEncode(dart));
-      } else {
+      // Sama: tidak menulis apa pun (isinya identik; menulis ulang bisa menimpa perubahan HTML sesaat sesudahnya,
+      // contoh penanda hitung mundur w133/ts133). Beda: catat ke goyana-parity-log, HTML tetap dipakai.
+      if (jsonEncode(_canonical(d)) != jsonEncode(_canonical(h))) {
         await _parityLog(store, 'addorder-3c', _canonical(h), _canonical(d));
       }
     } on UnsupportedError {
