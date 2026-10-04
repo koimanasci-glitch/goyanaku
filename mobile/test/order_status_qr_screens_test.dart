@@ -3,7 +3,9 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,6 +23,21 @@ class _Actions implements OrderDetailActions {
   void odTap(int index) {}
   @override
   void odClose() {}
+}
+
+Future<List<int>> _qrPixels(QrPainter painter) async {
+  final recorder = ui.PictureRecorder();
+  painter.paint(Canvas(recorder), const Size(208, 208));
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(208, 208);
+  try {
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (bytes == null) throw StateError('QR tidak dapat diraster');
+    return bytes.buffer.asUint8List();
+  } finally {
+    image.dispose();
+    picture.dispose();
+  }
 }
 
 void main() {
@@ -65,8 +82,19 @@ void main() {
       expect(actions.buttons, [(model['actions'] as List).firstWhere((a) => a['green'] == true)['b']]);
       await tester.tap(find.byKey(const Key('order-detail-status-qr')));
       await tester.pumpAndSettle();
-      final qr = tester.widget<QrImageView>(find.byKey(const Key('order-status-qr-image')));
-      expect(qr.data, 'https://goyana.id/s/GY-261003-0133');
+      final sheet = tester.widget<NativeOrderStatusQr>(find.byType(NativeOrderStatusQr));
+      expect(sheet.orderId, 'GY-261003-0133');
+      final painters = tester.widgetList<CustomPaint>(find.descendant(
+        of: find.byKey(const Key('order-status-qr-image')), matching: find.byType(CustomPaint),
+      )).map((w) => w.painter).whereType<QrPainter>().toList();
+      expect(painters, hasLength(1));
+      final expected = QrPainter(data: 'https://goyana.id/s/GY-261003-0133',
+        version: QrVersions.auto, errorCorrectionLevel: QrErrorCorrectLevel.M, gapless: true,
+        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square),
+        dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square));
+      final sameQr = await tester.runAsync(() async => listEquals(
+        await _qrPixels(painters.first), await _qrPixels(expected)));
+      expect(sameQr, isTrue, reason: 'QR yang dilukis harus berisi URL pesanan aktif, sama dengan nota');
       expect(tester.takeException(), isNull);
       await expectLater(find.byType(NativeOrderStatusQr), matchesGoldenFile('screens/order_status_qr_native_$width.png'));
       await tester.tap(find.text('Tutup'));
