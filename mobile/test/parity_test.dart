@@ -93,17 +93,23 @@ void main() {
     });
   }
 
-  test('CAPTURE 3b HTML v3: diskon dan ongkir', () async {
-    final tmp = File('${Directory.systemTemp.path}/goyana-addorder-3b.json');
-    final result = await Process.run('node', ['../tests/parity/capture.cjs', tmp.path, '[["pricing"]]']);
-    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
-    final captured = jsonDecode(tmp.readAsStringSync()) as Map<String, dynamic>;
-    final pricing = captured['addorderPricing'] as List;
-    expect(pricing.length, 11);
-    final fixture = <String, dynamic>{
-      'store': pricing.first['store'],
-      'cases': pricing.map((e) => {'name': e['name'], 'draft': e['draft'], 'htmlModel': e['htmlModel']}).toList(),
-    };
-    stdout.writeln('GOYANA_FIXTURE_3B=${jsonEncode(fixture)}');
-  });
+  final pricingFixture = jsonDecode(File('test/fixtures/parity/addorder_pricing.json').readAsStringSync()) as Map<String, dynamic>;
+  final pricingCases = pricingFixture['cases'] as List;
+  expect(pricingCases.length, 11);
+  for (final row in pricingCases.whereType<Map>()) {
+    test('Tambah Transaksi 3b sama dengan HTML: ${row['name']}', () async {
+      final store = MemoryKvStore(Map<String, String>.from(row['store'] as Map));
+      final b = await Business.load(store);
+      final draft = Map<String, dynamic>.from(row['draft'] as Map);
+      final expected = row['htmlModel'];
+      expect(jsonDecode(jsonEncode(await transactionPricingModel(b, draft))), expected);
+
+      // Harga yang ikut terbawa di draft tidak dipercaya. Sumber harga tetap database HP.
+      final poisoned = jsonDecode(jsonEncode(draft)) as Map<String, dynamic>;
+      for (final item in (poisoned['cart'] as List? ?? const []).whereType<Map>()) {
+        item['price'] = 1;
+      }
+      expect(jsonDecode(jsonEncode(await transactionPricingModel(b, poisoned))), expected);
+    });
+  }
 }
