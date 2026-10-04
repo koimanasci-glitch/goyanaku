@@ -66,7 +66,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B2 | Durasi (`duration`) | SELESAI |
 | B3 | Pilih Layanan (`pickservice`) | SELESAI |
 | B4 | Jemput (`pickup`) | SELESAI |
-| B5 | Scan Pesanan (`orderscan`) | belum |
+| B5 | Scan Pesanan (`orderscan`) | SELESAI |
 | B6 | Status QR (`qrstatus`) | belum |
 | B7 | Harga Paket (`plan111`) | SELESAI |
 | B8 | Checkout Paket (`checkout111`) | belum |

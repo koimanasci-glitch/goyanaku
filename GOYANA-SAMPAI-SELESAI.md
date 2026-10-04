@@ -74,7 +74,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | No | Halaman | Status |
 |---|---|---|
 | B1–B4, B7 | Parfum, Durasi, Pilih Layanan, Jemput, Harga Paket | SELESAI |
-| B5 | Scan Pesanan (`orderscan`) — **jangan ubah bagian kamera `mobile_scanner`**, hanya tampilan | belum, fixture siap |
+| B5 | Scan Pesanan (`orderscan`) — **jangan ubah bagian kamera `mobile_scanner`**, hanya tampilan | SELESAI |
 | B6 | Status QR (`qrstatus`) | belum, fixture siap |
 | B8 | Checkout Paket (`checkout111`) | belum, tangkap fixture dulu |
 | B9 | Tagihan (`billing`) | belum, tangkap fixture dulu |
