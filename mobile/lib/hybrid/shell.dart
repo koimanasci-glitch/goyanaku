@@ -23,6 +23,7 @@ import '../native/form_page.dart';
 import '../native/home_page.dart';
 import '../native/mirror_sheet.dart';
 import '../native/order_detail_page.dart';
+import '../native/plan_page.dart';
 import '../native/orders_page.dart';
 import '../native/reports_page.dart';
 import '../native/services_page.dart';
@@ -889,7 +890,24 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
               Positioned.fill(child: NativeOrders(model: _orders, actions: this)),
             if ((_nativePage == 'cashin' || _nativePage == 'cashout') && !_loading)
               Positioned.fill(child: NativeCash(key: ValueKey(_nativePage), model: _cash, actions: this)),
-            if (_nativePage != null && _pageMirror != null && !_loading)
+            if (_nativePage == 'plan111' && _pageMirror != null && !_loading)
+              Positioned.fill(
+                child: NativePlanPage(
+                  key: const ValueKey('native-plan111'),
+                  model: _pageMirror!,
+                  pricingItems: _form.page == 'upgrade' ? _form.items : const [],
+                  onButton: (i) => _mirror('button', i),
+                  onPricingButton: (i) {
+                    if (_form.page == 'upgrade') _formAct('button', i);
+                  },
+                  onNav: nav,
+                  onHeaderScan: () {
+                    final i = (_pageMirror?['scan'] as num?)?.toInt() ?? -1;
+                    if (i >= 0) _mirror('button', i);
+                  },
+                ),
+              ),
+            if (_nativePage != null && _nativePage != 'plan111' && _pageMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorPage(
                   key: ValueKey('mirror-page-$_nativePage'), model: _pageMirror!,
