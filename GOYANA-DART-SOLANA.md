@@ -18,7 +18,11 @@ Untuk AI yang melanjutkan migrasi logika ke Dart. Baca sampai habis sebelum mula
    - `mobile/web_bridge/capacitor.js`, `index.html`, `goyana-v*.js`, file CSS;
    - golden/screenshot.
 2. Jangan sentuh `mobile/lib/pure/` (mode lama, tidak dipakai).
-3. Jangan ubah hasil hitung jadi "lebih benar" menurut AI sendiri. Patokannya **hasil HTML apa adanya**. Kalau terasa salah, catat dan tanya Koko.
+3. **Hitungan harus BENAR, bukan sekadar sama dengan HTML** (keputusan Koko 4 Okt). Patokan awalnya tetap hasil HTML. Kalau ketemu hitungan HTML yang SALAH:
+   - JANGAN ditiru dan JANGAN dibetulkan diam-diam;
+   - catat di laporan bagian "Temuan salah hitung": contoh angka HTML, angka yang benar, dan usulan aturan;
+   - tunggu Koko setuju;
+   - setelah disetujui, aturan yang benar dipasang di Dart DAN di HTML (HTML masih jalan di aplikasi), lalu fixture ditangkap ulang. HTML diubah oleh Claude, bukan GPT.
 4. Jangan klaim "sudah jalan" sebelum CI lulus.
 5. Jangan menulis password atau rahasia ke repo.
 
@@ -76,6 +80,13 @@ Bagian besar dipecah kecil (contoh 3a/3b/3c). **Satu putaran = satu baris tabel.
 - **Estimasi selesai = waktu masuk + jam durasi yang dipilih.** Jam diambil dari Pengaturan Durasi, kunci `goyana-durations199`, contoh `{"Reguler":72,"Express":24,"Kilat":6}`. Kunci yang tidak ada berarti bawaan 72/24/6. HTML memakai `durHours199(nama)`, dan Dart wajib memakai sumber yang sama.
 - Berat kiloan boleh desimal, pakai koma atau titik.
 - Input `1,2,3` dan `-2,5` saat ini ikut perilaku HTML. Menunggu keputusan Koko, jangan diubah.
+
+### Temuan salah hitung (menunggu keputusan Koko)
+| No | Temuan | HTML sekarang | Usulan benar | Status |
+|---|---|---|---|---|
+| 1 | Diskon persen "Semua layanan" ikut memotong ongkir | Rp14.000 + ongkir Rp6.000, diskon 10% → potong Rp2.000 | Diskon hanya dari layanan → potong Rp1.400, ongkir tetap Rp6.000 | menunggu Koko |
+| 2 | Input berat `1,2,3` | diterima sebagai 1,2 | ditolak, minta isi ulang | menunggu Koko |
+| 3 | Input berat `-2,5` | minus dibuang jadi 2,5 | ditolak (berat tidak boleh minus) | menunggu Koko |
 
 ## 7. Revisi Koko yang sudah selesai (JANGAN dirusak)
 - Berat bisa koma/titik sejak ketikan pertama.
