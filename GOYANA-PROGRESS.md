@@ -278,3 +278,15 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Commit kode: `d0729417286a651804161d4f8ca9f24210959082` (dasar diskon tanpa ongkir) dan `d6601f83db0b1d1d2f77140d9b45463c16076e8f` (guard runtime 3b). CI final guard: run `37199538437`, SUCCESS pada percobaan pertama.
 - Belum selesai / langkah berikutnya: BERHENTI sesuai instruksi Koko. Jangan lanjut atau memasang bagian 3c sampai Claude selesai mengecek A3b dan Koko memberi perintah berikutnya.
 - Temuan aturan HTML yang perlu ditanyakan ke Koko: tidak ada temuan baru pada A3b; keputusan diskon/voucher tidak memotong ongkir sudah menjadi patokan final.
+
+### [GPT] A3c — 4 Oktober 2026
+- Status: SELESAI; BERHENTI menunggu pemeriksaan Claude.
+- Basis kerja: mulai dari `df4aaef` (fixture `save_orders.json` baru), lalu direbase bersih ke `17b610d` karena Claude menambah patokan A4/A5/A7 saat sesi berjalan. Commit Claude tidak menyentuh file A3c.
+- Sudah dikerjakan: `details.due` dan teks estimasi kartu sama-sama mengikuti jam `goyana-durations199` (Reguler 72, Express 24, Kilat 6, termasuk nilai kustom seperti Express 12 jam). Nomor pesanan tetap mengikuti `nextCode136` dari fixture.
+- Pengaman runtime A3c dipasang di `shell.dart`: snapshot `goyana-business177` sebelum simpan + draft transaksi disiapkan setelah guard A3b sudah sama. HTML tetap melakukan satu kali simpan. Setelah kembali ke Pesanan, Dart menyusun snapshot penuh dari timestamp yang benar-benar ditulis HTML dan membandingkan seluruh data simpanan. Jika identik, Dart mengganti key `goyana-business177` dengan snapshot yang sama, bukan menambah order/ledger kedua. Jika beda, hasil HTML tetap dipakai dan mismatch dicatat ke `goyana-parity-log` dengan page `addorder-3c`. Jalur di luar empat fixture yang belum dicapture tetap HTML.
+- File kode yang diubah: `mobile/lib/logic/addorder_save.dart`, `mobile/test/addorder_save_test.dart`, `mobile/lib/hybrid/shell.dart`. Fixture `save_orders.json` milik Claude tidak diubah. Tidak menyentuh tampilan, `index.html`/JS, `capacitor.js`, workflow CI, `mobile/lib/pure/`, atau bagian lain.
+- Tes A3c: 12 pemeriksaan (4 snapshot penuh + 4 nomor/estimasi + 4 `details.due` sesuai durasi). Seluruh tes unit CI: 111/111 PASS. `flutter analyze`: tanpa temuan. Uji jembatan: 31 PASS.
+- Screenshot: 93/93 PASS. Delapan screenshot Tambah Transaksi 320/390 dan seluruh screenshot native byte-identik dengan baseline. Perbandingan seluruh tree menemukan hanya `cashclose_html_390.png` berubah; itu capture HTML Tutup Kasir yang dinamis dan tidak terkait A3c, bukan perubahan widget/tampilan.
+- Commit kode A3c: `0eafeb65be016cf8d36455e2b3818f9ed5cc7c2e`. CI utama: run `37201634493`, SUCCESS pada percobaan pertama; build APK, artifact, dan publikasi `flutter-uji` juga sukses.
+- Temuan HTML yang terasa salah: tidak ada temuan baru pada cakupan fixture A3c. Tidak ada perilaku baru yang disalin diam-diam di luar hasil fixture.
+- Langkah berikutnya: jangan lanjut A4 dari sesi ini. Claude memeriksa A3c terlebih dahulu.
