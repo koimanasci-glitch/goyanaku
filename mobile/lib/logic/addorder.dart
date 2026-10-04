@@ -1,11 +1,13 @@
-// Tambah Transaksi: aturan v116, tanpa mengubah widget atau penyimpanan pesanan.
+// Tambah Transaksi: aturan v116/v127/v183, tanpa mengubah widget atau penyimpanan pesanan.
 import 'dart:convert';
 import '../core/business.dart';
+import '../core/models.dart';
 import '../core/money.dart';
 
 List<Map<String, dynamic>> _rows(Object? v) => (v is List ? v : const []).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
 num _num(Object? v) => v is num ? v : num.tryParse('$v') ?? 0;
 int _round(num n) => (n + .5).floor(); // Math.round, termasuk aturan seri negatif JS.
+num _plainNum(num n) => n == n.roundToDouble() ? n.round() : n;
 
 String _quantityText(num value) {
   final cents = _round(value * 100);
@@ -66,6 +68,128 @@ List<Map<String, dynamic>> transactionChangeDuration(List<Map<String, dynamic>> 
 num _storedServicePrice(Business business, Map<String, dynamic> item, String duration) {
   final key = '${item['key158'] ?? ''}';
   return business.services.firstWhere((s) => s.key == key).priceFor(duration);
+}
+
+Service _storedCartService(Business business, Map<String, dynamic> item, Map<String, dynamic> draft) {
+  final id = '${item['id'] ?? ''}';
+  final catalog = _rows(draft['catalog']).expand((c) => _rows(c['items']));
+  final source = catalog.where((c) => '${c['id'] ?? ''}' == id).firstOrNull;
+  final key = '${source?['key158'] ?? ''}';
+  if (key.isNotEmpty) {
+    final byKey = business.services.where((s) => s.key == key).firstOrNull;
+    if (byKey != null) return byKey;
+  }
+  final rawName = '${item['name'] ?? item['n'] ?? ''}'.trim();
+  final name = rawName.replaceFirst(RegExp(r'\s*\((?:Reguler|Express|Ekspres|Kilat)\)\s*$'), '').trim();
+  final unit = '${item['unit'] ?? ''}';
+  return business.services.firstWhere((s) => s.name == name && (unit.isEmpty || s.unit == unit));
+}
+
+List<Map<String, dynamic>> _pricedCart(Business business, Map<String, dynamic> draft) {
+  final duration = '${draft['duration'] ?? 'Reguler'}';
+  return [
+    for (final old in _rows(draft['cart']))
+      {...old, 'price': _storedCartService(business, old, draft).priceFor(duration)},
+  ];
+}
+
+Map<String, dynamic> _transportDefaults() => <String, dynamic>{
+      'mode': 'free', 'fixed': 0, 'pickup': 0, 'delivery': 0,
+      'roundtrip': 0, 'perKm': 0, 'freeRadius': 0, 'manual': false,
+    };
+
+String _transportType(String handover) {
+  final pick = RegExp('jemput', caseSensitive: false).hasMatch(handover);
+  final delivery = RegExp('antar|diantar', caseSensitive: false).hasMatch(handover);
+  if (pick && delivery) return 'roundtrip';
+  if (pick) return 'pickup';
+  if (delivery) return 'delivery';
+  return 'none';
+}
+
+Future<Map<String, dynamic>> _transportConfig(Business business) async {
+  final defaults = _transportDefaults();
+  try {
+    final decoded = jsonDecode(await business.store.get('goyana-transport183') ?? '{}');
+    if (decoded is! Map) return defaults;
+    var id = business.activeOutlet;
+    if (id.isEmpty && business.outlets.isNotEmpty) id = business.outlets.first.id;
+    if (id.isEmpty) id = 'default';
+    final value = decoded[id];
+    if (value is Map) defaults.addAll(Map<String, dynamic>.from(value));
+  } catch (_) {}
+  return defaults;
+}
+
+num _transportFee(String type, Map<String, dynamic> cfg) {
+  final mode = '${cfg['mode'] ?? 'free'}';
+  if (type == 'none' || mode == 'free') return 0;
+  if (mode == 'fixed') return _plainNum(_num(cfg['fixed']).clamp(0, double.infinity));
+  if (mode == 'split') {
+    if (type == 'pickup') return _plainNum(_num(cfg['pickup']).clamp(0, double.infinity));
+    if (type == 'delivery') return _plainNum(_num(cfg['delivery']).clamp(0, double.infinity));
+    return _plainNum((_num(cfg['pickup']) + _num(cfg['delivery'])).clamp(0, double.infinity));
+  }
+  if (mode == 'roundtrip') {
+    if (type == 'roundtrip') return _plainNum(_num(cfg['roundtrip']).clamp(0, double.infinity));
+    if (type == 'pickup') return _plainNum(_num(cfg['pickup']).clamp(0, double.infinity));
+    return _plainNum(_num(cfg['delivery']).clamp(0, double.infinity));
+  }
+  // v183: mode jarak belum dihitung otomatis pada prototype offline.
+  return 0;
+}
+
+/// Diskon v127 + ongkir v183. Urutan sengaja mengikuti HTML apa adanya:
+/// ongkir masuk ke f61.total lebih dulu, sehingga diskon "Semua layanan" juga
+/// memotong ongkir. Diskon kategori hanya memakai subtotal unit kategorinya.
+Future<Map<String, dynamic>> transactionPricingModel(Business business, Map<String, dynamic> draft) async {
+  final cart = _pricedCart(business, draft);
+  final serviceSubtotal = cart.fold<int>(0, (sum, item) => sum + _round(_num(item['qty']) * _num(item['price'])));
+  final handover = '${draft['handover'] ?? ''}';
+  final transportType = _transportType(handover);
+  final cfg = await _transportConfig(business);
+  final fee = _transportFee(transportType, cfg);
+  final gross = serviceSubtotal + fee;
+
+  final discountDraft = draft['discount'] is Map ? Map<String, dynamic>.from(draft['discount'] as Map) : <String, dynamic>{};
+  final selected = '${discountDraft['value'] ?? ''}';
+  Map<String, dynamic>? discount;
+  if (selected.isNotEmpty) {
+    Map<String, dynamic>? definition;
+    if (selected == 'manual') {
+      definition = <String, dynamic>{
+        'name': 'Manual', 'type': 'n', 'val': _num(discountDraft['manual']), 'scope': 'Semua layanan',
+      };
+    } else if (selected.startsWith('d')) {
+      final id = selected.substring(1);
+      definition = _rows(discountDraft['definitions']).where((d) => '${d['id']}' == id).firstOrNull;
+    }
+    if (definition != null) {
+      final scope = '${definition['scope'] ?? 'Semua layanan'}';
+      final unit = const {'Kiloan': 'kg', 'Satuan': 'pcs', 'Meteran': 'm'}[scope];
+      final base = scope == 'Semua layanan' || cart.isEmpty
+          ? gross
+          : cart.where((item) => item['unit'] == unit).fold<num>(0, (sum, item) => sum + _round(_num(item['qty']) * _num(item['price'])));
+      final value = _num(definition['val']);
+      final amount = definition['type'] == 'p' ? _round(base * value / 100) : (value < base ? value : base);
+      final cleanAmount = _plainNum(amount.clamp(0, double.infinity));
+      if (cleanAmount > 0) {
+        discount = <String, dynamic>{
+          'amt': cleanAmount,
+          'pct': definition['type'] == 'p' && scope == 'Semua layanan' ? _plainNum(value) : 0,
+          'name': '${definition['name'] ?? ''}',
+        };
+      }
+    }
+  }
+
+  final amount = _num(discount?['amt']);
+  final total = (gross - amount).clamp(0, double.infinity);
+  return <String, dynamic>{
+    'total': rpSpaced(total),
+    'discount': discount,
+    'transport': <String, dynamic>{'fee': _plainNum(fee), 'type': transportType},
+  };
 }
 
 /// Pertahankan seluruh teks/ikon/tata letak dari model presentasi. Hanya nilai
