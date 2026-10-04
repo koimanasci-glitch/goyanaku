@@ -1,7 +1,6 @@
 // Capture Tambah Transaksi 3b from the real HTML runtime. This file does not calculate expected amounts.
 module.exports=async function captureAddOrder3b(p){
   const out=[];
-  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});document.getElementById('v88-name').value='Paritas Transaksi';document.getElementById('v88-phone').value='081200000099';document.getElementById('v88-address').value='Jakarta';saveCustomerV88();});
   async function settle(){await p.clock.runFor(450)}
   async function capture(name){
     await settle();
@@ -23,7 +22,10 @@ module.exports=async function captureAddOrder3b(p){
       active=active||(outlets[0]?.id)||'default';
       const cfg={};cfg[active]=Object.assign({mode:'free',fixed:0,pickup:0,delivery:0,roundtrip:0,perKm:0,freeRadius:0,manual:false},s.transport||{});localStorage.setItem('goyana-transport183',JSON.stringify(cfg));
       openPage('addorder');delete f61._transport183;delete f61._transportBase183;delete f61._transportType183;
-      const person=[...document.querySelectorAll('#f61-customer .f61-person')].find(e=>e.textContent.includes('Paritas Transaksi'));if(!person)throw Error('customer missing');person.querySelector('button').click();f61ChooseDuration('Reguler');
+      const name='Paritas Transaksi';
+      const customer=document.querySelector('#f61-services .f61-customerbar div b');if(customer)customer.textContent=name;
+      window.pickedName136=name;
+      f61ChooseDuration('Reguler');
       const flat=catalog158.flatMap(c=>c.items);function add(unit,qty){const item=flat.find(x=>x.unit===unit);if(!item)throw Error('service missing '+unit);openQty116(item.id);document.getElementById('qty116-in').value=String(qty);saveQty116()}add('kg',2);if(s.mixed)add('pcs',1);
       f61OrderOptions();document.getElementById('f61-handover').value=s.handover;
       const ds=document.querySelectorAll('#f61-options select')[2];if(s.discount?.kind==='defined')ds.value='d901';else if(s.discount?.kind==='manual'){ds.value='manual';ds.dataset.manual=String(s.discount.val)}else ds.value='';f61Payment();
