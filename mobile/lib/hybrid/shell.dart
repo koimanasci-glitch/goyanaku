@@ -723,7 +723,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   onHeaderScan: () { final i = (_pageMirror?['scan'] as num?)?.toInt() ?? -1; if (i >= 0) _mirror('button', i); },
                 ),
               ),
-            if (_formPages.contains(_nativePage) && !_loading)
+            if (_formPages.contains(_nativePage) && _pageMirror == null && !_loading)
               Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2, 'customeradd': 0, 'crm': 0, 'today187': 1, 'notif': 0, 'printlabel': 1}[_nativePage] ?? 3)),
             if (_nativePage == 'services' && !_loading)
               Positioned.fill(child: NativeServices(model: _services, actions: this)),

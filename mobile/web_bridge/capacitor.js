@@ -470,7 +470,7 @@
     return out;
   }
   // Popup yang digambar Flutter dengan ukuran, warna, jarak dan huruf yang dibaca langsung dari HTML (computed style).
-  var MIRROR_SHEETS = ['f61-print', 'hist115', 'photo115', 'wa131', 'wa138', 'rm138s', 'rs139', 'contacts178', 'guide135', 'api135', 'pay111', 'upgrade-pay-modal', 'g181-modal', 'td175'];
+  var MIRROR_SHEETS = ['gs107', 'cat99', 'f61-print', 'hist115', 'photo115', 'wa131', 'wa138', 'rm138s', 'rs139', 'contacts178', 'guide135', 'api135', 'pay111', 'upgrade-pay-modal', 'g181-modal', 'td175'];
   function mirrorSheet(host) {
     var root = sheetRoot(host);
     var ctx = {
@@ -484,7 +484,7 @@
   }
   function px(v) { return Math.round((parseFloat(v) || 0) * 100) / 100; }
   // Halaman HTML yang digambar Flutter dari cermin HTML (bentuk sama persis, logika tetap HTML).
-  var MIRROR_PAGES = ['pickservice', 'pickup', 'orderscan', 'qrstatus', 'plan111', 'checkout111', 'billing', 'invoice111', 'waautomation'];
+  var MIRROR_PAGES = ['perfume', 'duration', 'pickservice', 'pickup', 'orderscan', 'qrstatus', 'plan111', 'checkout111', 'billing', 'invoice111', 'waautomation'];
   function mirrorPage(id) {
     var host = document.getElementById(id);
     if (!host) return null;

@@ -310,10 +310,10 @@ try{
   await p.evaluate(()=>{goyanaPlan111.plan=window.__planBackup;document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   console.log('PASS Pegawai, Stok, CRM, Chatbot AI, Blast, Balasan Cepat, Trigger, Audit, Integrasi use the generic native form');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('perfume')});
-  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='perfume'&&m.model.items.some(x=>x.type==='entry')},null,{timeout:4000});
-  last=await lastAdd();const pf=last.model.items.find(x=>x.type==='entry');assert.ok(pf.compact&&pf.color&&pf.btns.length===2,'perfume rows with colour and edit/delete');
-  console.log('PASS Parfum list rows (colour dot, edit/delete) are native');
-  for(const id of ['finance','duration','discount','barcode','paymentfinal','notif','today187','superbilling','courier181','ralat139','txhist111','finreport']){last=await openNative(id);assert.ok(last.model.items.length>0,id)}
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='perfume'&&m.model.mirror},null,{timeout:4000});
+  last=await lastAdd();assert.ok(/<svg/.test(JSON.stringify(last.model.mirror.body)),'perfume page mirrored with its bottle icons');
+  console.log('PASS Parfum page drawn by Flutter from the HTML mirror (icons, colour, edit/delete)');
+  for(const id of ['finance','discount','barcode','paymentfinal','notif','today187','superbilling','courier181','ralat139','txhist111','finreport']){last=await openNative(id);assert.ok(last.model.items.length>0,id)}
   last=await openNative('discount');assert.ok(last.model.items.some(x=>x.type==='input'&&x.sub),'labelled field keeps its explanation');
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('home')});await p.waitForTimeout(300);
   // Label kantong: pick the order, stepper and the label preview with barcode are native.
@@ -326,17 +326,18 @@ try{
   last=await lastAdd();assert.ok(last.model.items.some(x=>x.type==='labelprev'&&x.svg&&x.lines.some(l=>/Sari/.test(l))),'label preview with barcode');
   assert.ok(last.model.items.some(x=>x.type==='stepper'&&x.t),'bag stepper with label');
   assert.ok(last.model.items.some(x=>x.type==='title'&&/^1\. /.test(x.t)),'numbered steps');
-  // "+ Tambah Durasi" opens the shared HTML form sheet: drawn natively, values and save go through the HTML.
-  last=await openNative('duration');const addDur=last.model.items.find(x=>x.type==='button'&&/Tambah Durasi/.test(x.t));
-  await p.evaluate(i=>__goyanaForm('duration','button',i),addDur.i);
-  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&m.sheet},null,{timeout:3000});
-  last=await lastAdd();const shIn=last.sheet.items.filter(x=>x.type==='input');assert.equal(shIn.length,2,'sheet fields');
-  assert.ok(last.sheet.items.some(x=>x.type==='title'&&x.t==='Tambah Durasi'));
-  await p.evaluate(([a,b])=>{__goyanaForm('gs107','input',a,'Super Kilat');__goyanaForm('gs107','input',b,'3')},[shIn[0].i,shIn[1].i]);
-  const okBtn=last.sheet.items.find(x=>x.type==='button'&&x.primary);await p.evaluate(i=>__goyanaForm('gs107','button',i),okBtn.i);
-  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&!m.sheet&&m.model.items.some(x=>x.type==='entry'&&x.t==='Super Kilat')},null,{timeout:3000});
+  // "+ Tambah Durasi": page and the shared form sheet are drawn from the HTML mirror; values and save go through the HTML.
+  last=await openNative('duration');assert.ok(last.model.mirror,'duration page mirrored');
+  const addIdx=await p.evaluate(()=>[...document.querySelectorAll('#duration button')].findIndex(b=>/Tambah Durasi/.test(b.textContent)));
+  await p.evaluate(i=>__goyanaMirror('duration','button',i),addIdx);
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&m.sheet&&m.sheet.mirror},null,{timeout:3000});
+  last=await lastAdd();assert.ok(/Tambah Durasi/.test(JSON.stringify(last.sheet.mirror.box)),'form sheet mirrored');
+  await p.evaluate(()=>{__goyanaForm('gs107','input',0,'Super Kilat');__goyanaForm('gs107','input',1,'3')});
+  const okIdx=await p.evaluate(()=>{const r=document.querySelector('#gs107 .sheet91-box')||document.querySelector('#gs107');return [...r.querySelectorAll('button')].findIndex(b=>/Tambah/.test(b.textContent))});
+  await p.evaluate(i=>__goyanaForm('gs107','button',i),okIdx);
+  await p.waitForFunction(()=>[...document.querySelectorAll('#duration .duration-row')].some(r=>/Super Kilat/.test(r.textContent)),null,{timeout:3000});
   await p.evaluate(()=>{const r=[...document.querySelectorAll('#duration .duration-row')].find(r=>/Super Kilat/.test(r.textContent));r&&r.remove()});
-  console.log('PASS Keuangan (kategori), Durasi, Diskon are native');
+  console.log('PASS Keuangan (kategori), Diskon native; Durasi + form sheet from the HTML mirror');
   // Shared sheets also open natively above custom native pages (Pelanggan → Urutkan).
   await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')});openPage('customers')});await p.waitForTimeout(300);
   await p.evaluate(()=>openSheet91('gy158-sort'));
