@@ -63,25 +63,39 @@ List<Map<String, dynamic>> transactionChangeDuration(List<Map<String, dynamic>> 
   return result;
 }
 
+num _storedServicePrice(Business business, Map<String, dynamic> item, String duration) {
+  final key = '${item['key158'] ?? ''}';
+  return business.services.firstWhere((s) => s.key == key).priceFor(duration);
+}
+
 /// Pertahankan seluruh teks/ikon/tata letak dari model presentasi. Hanya nilai
-/// keranjang & harga dihitung ulang. Harga katalog dibaca dari database HP.
-/// Draft belum tersimpan: item/kuantitas datang dalam event yang sama dengan model.
+/// keranjang & harga dihitung ulang. Harga selalu dibaca dari database HP,
+/// sedangkan draft hanya membawa pilihan item/jumlah yang belum tersimpan.
 Map<String, dynamic> addorderModel(Business business, Map<String, dynamic> draft, Map<String, dynamic> presentation) {
   final model = jsonDecode(jsonEncode(presentation)) as Map<String, dynamic>;
   if (model['stage'] != 'services') return model;
   final cart = _rows(draft['cart']);
   final duration = '${draft['duration'] ?? 'Reguler'}';
   final catalog = _rows(draft['catalog']).expand((c) => _rows(c['items'])).toList();
+  final catalogById = <String, Map<String, dynamic>>{for (final item in catalog) '${item['id']}': item};
+  final pricedCart = <Map<String, dynamic>>[
+    for (final old in cart)
+      {...old, 'price': _storedServicePrice(business, catalogById['${old['id']}']!, duration)},
+  ];
   final footer = model['footer'];
-  if (footer is Map) footer.addAll(transactionCartTotals(cart));
-  const hours = {'Reguler': '72 Jam', 'Express': '24 Jam', 'Kilat': '6 Jam'};
+  if (footer is Map) footer.addAll(transactionCartTotals(pricedCart));
+  final durationRows = _rows(model['durations']);
+  final durationRow = durationRows.where((d) => '${d['t']}' == duration).firstOrNull;
+  final durationLabel = '${durationRow?['s'] ?? ''}'.trim();
   for (final row in (model['items'] as List? ?? const []).whereType<Map>()) {
     if (row['h'] == 1) continue;
     final item = catalog.firstWhere((i) => i['n'] == row['t']);
-    final service = business.services.firstWhere((s) => s.key == item['key158']);
-    final price = _num((service.raw['prices'] as Map)[duration]);
-    final selected = cart.where((c) => c['id'] == item['id']).firstOrNull;
-    row['s'] = '${rpSpaced(price)} / ${item['unit']} · ${hours[duration]}';
+    final price = _storedServicePrice(business, item, duration);
+    final selected = pricedCart.where((c) => c['id'] == item['id']).firstOrNull;
+    final oldText = '${row['s'] ?? ''}';
+    final dot = oldText.indexOf('·');
+    final suffix = durationLabel.isNotEmpty ? durationLabel : (dot < 0 ? '' : oldText.substring(dot + 1).trim());
+    row['s'] = '${rpSpaced(price)} / ${item['unit']}${suffix.isEmpty ? '' : ' · $suffix'}';
     row['on'] = selected != null;
     row['btn'] = selected == null ? 'Pilih' : '${_quantityText(_num(selected['qty']))} ${item['unit']}';
   }
