@@ -10,6 +10,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../core/business.dart';
 import '../core/store.dart';
+import '../logic/addorder.dart';
 import '../logic/home.dart';
 import '../logic/orders.dart';
 import '../native/addorder_page.dart';
@@ -215,7 +216,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
           _orders = OrdersModel.fromJson(model);
           _ordersFromDart(model);
         }
-        if (page == 'addorder' && model != null) _addOrder = AddOrderModel.fromJson(model);
+        if (page == 'addorder' && model != null) {
+          _addOrder = AddOrderModel.fromJson(model);
+          _addorderFromDart(model);
+        }
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
@@ -393,6 +397,35 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         setState(() => _orders = OrdersModel.fromJson(Map<String, dynamic>.from(d as Map)));
       } else {
         await _parityLog(store, 'orders', _stable(html), _stable(d));
+      }
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
+  int _addorderSeq = 0;
+  Future<void> _addorderFromDart(Map<String, dynamic> htmlModel) async {
+    final seq = ++_addorderSeq;
+    if (htmlModel['stage'] != 'services') return;
+    try {
+      const store = DeviceKvStore();
+      final b = await Business.load(store);
+      final raw = await _web.runJavaScriptReturningResult(
+          'JSON.stringify({cart:(typeof f61!=="undefined"&&Array.isArray(f61.cart)?f61.cart:[]),catalog:(typeof catalog158!=="undefined"?catalog158:[]),duration:(typeof f61!=="undefined"&&f61.dur)||"Reguler"})');
+      if (!mounted || seq != _addorderSeq) return;
+      var text = raw.toString();
+      try {
+        final outer = jsonDecode(text);
+        if (outer is String) text = outer;
+      } catch (_) {}
+      final value = jsonDecode(text);
+      if (value is! Map) return;
+      final draft = Map<String, dynamic>.from(value);
+      final dart = addorderModel(b, draft, htmlModel);
+      final html = jsonDecode(jsonEncode(htmlModel));
+      final d = jsonDecode(jsonEncode(dart));
+      if (jsonEncode(_stable(d)) == jsonEncode(_stable(html))) {
+        setState(() => _addOrder = AddOrderModel.fromJson(Map<String, dynamic>.from(d as Map)));
+      } else {
+        await _parityLog(store, 'addorder', _stable(html), _stable(d));
       }
     } catch (_) {/* tetap memakai HTML */}
   }
