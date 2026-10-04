@@ -1,0 +1,1813 @@
+{
+  "cases": [
+    {
+      "name": "Bayar Nanti Reguler",
+      "now": "2026-10-04T03:00:00.020Z",
+      "store": {
+        "goyana-durations199": "{}"
+      },
+      "before": {
+        "orders": [],
+        "details": {},
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      },
+      "draft": {
+        "name": "Uji Save 0",
+        "phone": "08123456780",
+        "cart": [
+          {
+            "id": "t",
+            "n": "Cuci Baju",
+            "name": "Cuci Baju",
+            "ic": "Kiloan",
+            "unit": "kg",
+            "price": 7000,
+            "qty": 2.5
+          }
+        ],
+        "dur": "Reguler",
+        "durationLabel": "Reguler",
+        "method": "Bayar Nanti",
+        "total": 17500,
+        "payamount": "Rp 20.000",
+        "priority": false,
+        "handover": "Datang Langsung",
+        "perfume": "Tanpa Parfum"
+      },
+      "code": "GY-261004-0133",
+      "htmlModel": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 20000,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tunai Express",
+      "now": "2026-10-04T03:00:00.000Z",
+      "store": {
+        "goyana-durations199": "{}"
+      },
+      "before": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]",
+              "w133": "1",
+              "ts133": "1791082800020",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "628123456780",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 1",
+            "phone": "08123456781 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      },
+      "draft": {
+        "name": "Uji Save 1",
+        "phone": "08123456781",
+        "cart": [
+          {
+            "id": "t",
+            "n": "Cuci Baju",
+            "name": "Cuci Baju",
+            "ic": "Kiloan",
+            "unit": "kg",
+            "price": 7000,
+            "qty": 2.5
+          }
+        ],
+        "dur": "Express",
+        "durationLabel": "Express",
+        "method": "Tunai",
+        "total": 17500,
+        "payamount": "Rp 20.000",
+        "priority": false,
+        "handover": "Datang Langsung",
+        "perfume": "Tanpa Parfum"
+      },
+      "code": "GY-261004-0134",
+      "htmlModel": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "Tunai",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]"
+            },
+            "fields": [
+              [
+                "Express"
+              ],
+              [
+                "GY-261004-0134"
+              ],
+              [
+                "Uji Save 1"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 05/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 20000,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]",
+              "w133": "1",
+              "ts133": "1791082800020",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "628123456780",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0134": {
+            "id": "GY-261004-0134",
+            "name": "Uji Save 1",
+            "phone": "",
+            "dur": "Express",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [
+            {
+              "m": "Tunai",
+              "a": 20000,
+              "id": "GY-261004-0134",
+              "at": "2026-10-04T03:00:00.000Z"
+            }
+          ],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 1",
+            "phone": "08123456781 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      }
+    },
+    {
+      "name": "QRIS Kilat",
+      "now": "2026-10-04T03:00:00.000Z",
+      "store": {
+        "goyana-durations199": "{}"
+      },
+      "before": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "Tunai",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "w133": "1",
+              "ts133": "1791082800000",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Express"
+              ],
+              [
+                "GY-261004-0134"
+              ],
+              [
+                "Uji Save 1"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 05/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]",
+              "w133": "1",
+              "ts133": "1791082800020",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "628123456780",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0134": {
+            "id": "GY-261004-0134",
+            "name": "Uji Save 1",
+            "phone": "628123456781",
+            "dur": "Express",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [
+            {
+              "m": "Tunai",
+              "a": 20000,
+              "id": "GY-261004-0134",
+              "at": "2026-10-04T03:00:00.000Z"
+            }
+          ],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 1",
+            "phone": "08123456781",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 2",
+            "phone": "08123456782 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      },
+      "draft": {
+        "name": "Uji Save 2",
+        "phone": "08123456782",
+        "cart": [
+          {
+            "id": "t",
+            "n": "Cuci Baju",
+            "name": "Cuci Baju",
+            "ic": "Kiloan",
+            "unit": "kg",
+            "price": 7000,
+            "qty": 2.5
+          }
+        ],
+        "dur": "Kilat",
+        "durationLabel": "Kilat",
+        "method": "QRIS",
+        "total": 17500,
+        "payamount": "Rp 20.000",
+        "priority": false,
+        "handover": "Datang Langsung",
+        "perfume": "Tanpa Parfum"
+      },
+      "code": "GY-261004-0135",
+      "htmlModel": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "QRIS",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]"
+            },
+            "fields": [
+              [
+                "Kilat"
+              ],
+              [
+                "GY-261004-0135"
+              ],
+              [
+                "Uji Save 2"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 04/10/2026 · 16:00"
+              ],
+              [],
+              []
+            ],
+            "total": 20000,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "Tunai",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "w133": "1",
+              "ts133": "1791082800000",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Express"
+              ],
+              [
+                "GY-261004-0134"
+              ],
+              [
+                "Uji Save 1"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 05/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]",
+              "w133": "1",
+              "ts133": "1791082800020",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "628123456780",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0134": {
+            "id": "GY-261004-0134",
+            "name": "Uji Save 1",
+            "phone": "628123456781",
+            "dur": "Express",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0135": {
+            "id": "GY-261004-0135",
+            "name": "Uji Save 2",
+            "phone": "",
+            "dur": "Kilat",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [
+            {
+              "m": "Tunai",
+              "a": 20000,
+              "id": "GY-261004-0134",
+              "at": "2026-10-04T03:00:00.000Z"
+            },
+            {
+              "m": "QRIS",
+              "a": 20000,
+              "id": "GY-261004-0135",
+              "at": "2026-10-04T03:00:00.000Z"
+            }
+          ],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 1",
+            "phone": "08123456781",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 2",
+            "phone": "08123456782 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      }
+    },
+    {
+      "name": "Transfer Express",
+      "now": "2026-10-04T03:00:00.000Z",
+      "store": {
+        "goyana-durations199": "{\"Express\":12}"
+      },
+      "before": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "QRIS",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "w133": "1",
+              "ts133": "1791082800000",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Kilat"
+              ],
+              [
+                "GY-261004-0135"
+              ],
+              [
+                "Uji Save 2"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 04/10/2026 · 16:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "Tunai",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "w133": "1",
+              "ts133": "1791082800000",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Express"
+              ],
+              [
+                "GY-261004-0134"
+              ],
+              [
+                "Uji Save 1"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 05/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]",
+              "w133": "1",
+              "ts133": "1791082800020",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "628123456780",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0134": {
+            "id": "GY-261004-0134",
+            "name": "Uji Save 1",
+            "phone": "628123456781",
+            "dur": "Express",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0135": {
+            "id": "GY-261004-0135",
+            "name": "Uji Save 2",
+            "phone": "628123456782",
+            "dur": "Kilat",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [
+            {
+              "m": "Tunai",
+              "a": 20000,
+              "id": "GY-261004-0134",
+              "at": "2026-10-04T03:00:00.000Z"
+            },
+            {
+              "m": "QRIS",
+              "a": 20000,
+              "id": "GY-261004-0135",
+              "at": "2026-10-04T03:00:00.000Z"
+            }
+          ],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 1",
+            "phone": "08123456781",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 2",
+            "phone": "08123456782",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 3",
+            "phone": "08123456783 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      },
+      "draft": {
+        "name": "Uji Save 3",
+        "phone": "08123456783",
+        "cart": [
+          {
+            "id": "t",
+            "n": "Cuci Baju",
+            "name": "Cuci Baju",
+            "ic": "Kiloan",
+            "unit": "kg",
+            "price": 7000,
+            "qty": 2.5
+          }
+        ],
+        "dur": "Express",
+        "durationLabel": "Express",
+        "method": "Transfer",
+        "total": 17500,
+        "payamount": "Rp 20.000",
+        "priority": false,
+        "handover": "Datang Langsung",
+        "perfume": "Tanpa Parfum"
+      },
+      "code": "GY-261004-0136",
+      "htmlModel": {
+        "orders": [
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "Transfer",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"Transfer\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]"
+            },
+            "fields": [
+              [
+                "Express"
+              ],
+              [
+                "GY-261004-0136"
+              ],
+              [
+                "Uji Save 3"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 04/10/2026 · 22:00"
+              ],
+              [],
+              []
+            ],
+            "total": 20000,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "QRIS",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"QRIS\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "w133": "1",
+              "ts133": "1791082800000",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Kilat"
+              ],
+              [
+                "GY-261004-0135"
+              ],
+              [
+                "Uji Save 2"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 04/10/2026 · 16:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.000Z",
+              "method177": "Tunai",
+              "paid177": "17500",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[{\"m\":\"Tunai\",\"a\":17500,\"at\":\"2026-10-04T03:00:00.000Z\"}]",
+              "w133": "1",
+              "ts133": "1791082800000",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Express"
+              ],
+              [
+                "GY-261004-0134"
+              ],
+              [
+                "Uji Save 1"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 05/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Lunas",
+            "paid": true,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          },
+          {
+            "dataset": {
+              "v108": "1",
+              "st": "antrian",
+              "items": "[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}]",
+              "v136": "1",
+              "created177": "2026-10-04T03:00:00.020Z",
+              "method177": "Tunai",
+              "paid177": "0",
+              "perfume178": "Tanpa Parfum",
+              "payments178": "[]",
+              "w133": "1",
+              "ts133": "1791082800020",
+              "w138": "1",
+              "w141": "1"
+            },
+            "fields": [
+              [
+                "Reguler"
+              ],
+              [
+                "GY-261004-0133"
+              ],
+              [
+                "Uji Save 0"
+              ],
+              [
+                "Masuk · baru saja",
+                "Estimasi · 07/10/2026 · 10:00"
+              ],
+              [],
+              []
+            ],
+            "total": 17500,
+            "payment": "Belum Bayar",
+            "paid": false,
+            "chips": [
+              {
+                "text": "Prioritas",
+                "hidden": true
+              },
+              {
+                "text": "Datang Langsung",
+                "hidden": false
+              }
+            ]
+          }
+        ],
+        "details": {
+          "GY-261004-0133": {
+            "id": "GY-261004-0133",
+            "name": "Uji Save 0",
+            "phone": "628123456780",
+            "dur": "Reguler",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 0,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.020Z",
+            "due": "2026-10-07T03:00:00.020Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.020Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0134": {
+            "id": "GY-261004-0134",
+            "name": "Uji Save 1",
+            "phone": "628123456781",
+            "dur": "Express",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0135": {
+            "id": "GY-261004-0135",
+            "name": "Uji Save 2",
+            "phone": "628123456782",
+            "dur": "Kilat",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          },
+          "GY-261004-0136": {
+            "id": "GY-261004-0136",
+            "name": "Uji Save 3",
+            "phone": "",
+            "dur": "Express",
+            "items": [
+              {
+                "n": "Cuci Baju",
+                "ic": "Kiloan",
+                "unit": "kg",
+                "price": 7000,
+                "qty": 2.5
+              }
+            ],
+            "discKey": "0",
+            "ongkir": 0,
+            "paid": 17500,
+            "perfume": "Tanpa Parfum",
+            "note": "-",
+            "handover": "Datang Langsung",
+            "masuk": "2026-10-04T03:00:00.000Z",
+            "due": "2026-10-07T03:00:00.000Z",
+            "photos": {
+              "in": [],
+              "out": []
+            },
+            "hist": [
+              {
+                "st": "antrian",
+                "at": "2026-10-04T03:00:00.000Z",
+                "by": "Kasir"
+              }
+            ]
+          }
+        },
+        "deposits178": {},
+        "kas": {
+          "start": 0,
+          "openAt": "",
+          "kasir": "",
+          "outlet": "",
+          "sales": [
+            {
+              "m": "Tunai",
+              "a": 20000,
+              "id": "GY-261004-0134",
+              "at": "2026-10-04T03:00:00.000Z"
+            },
+            {
+              "m": "QRIS",
+              "a": 20000,
+              "id": "GY-261004-0135",
+              "at": "2026-10-04T03:00:00.000Z"
+            },
+            {
+              "m": "Transfer",
+              "a": 20000,
+              "id": "GY-261004-0136",
+              "at": "2026-10-04T03:00:00.000Z"
+            }
+          ],
+          "ins": [],
+          "outs": [],
+          "hist": [],
+          "den": {},
+          "phys": null,
+          "qrisReal": "",
+          "tfReal": "",
+          "setor": null,
+          "voided": [],
+          "outsVoid": []
+        },
+        "customers": [
+          {
+            "name": "Uji Save 0",
+            "phone": "08123456780",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 1",
+            "phone": "08123456781",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 2",
+            "phone": "08123456782",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          },
+          {
+            "name": "Uji Save 3",
+            "phone": "08123456783 · Jakarta",
+            "address": "Jakarta",
+            "gender": "male",
+            "maps": ""
+          }
+        ]
+      }
+    }
+  ]
+}
