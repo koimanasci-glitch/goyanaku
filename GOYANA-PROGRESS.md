@@ -170,3 +170,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   1. "Omset hari ini" di HTML = jumlah penjualan sejak tutup kasir terakhir (bukan per tanggal). Ikuti HTML atau ganti per tanggal?
   2. Pilihan Kilat/Express di Tambah Transaksi tidak mengubah estimasi selesai (selalu +3 hari). Ikuti HTML atau perbaiki (Kilat 6 jam, Express 24 jam)?
 - 4 Okt (revisi Koko): koma/titik berat baru bisa setelah keyboard ditutup-buka → penyebab: kolom HTML tersembunyi mengambil fokus (keyboard WebView), ketikan masuk HTML. Perbaikan: saat layar Flutter tampil, kolom HTML tidak boleh fokus (capacitor.js `blurHidden`/focusin). Popup terlalu ke atas → popup tanpa kolom isian selalu di bawah, tidak terdorong keyboard.
+- 4 Okt 07.41 — revisi Koko (dicatat, menunggu konfirmasi sebelum dikerjakan):
+  1. Popup pilih Pria/Wanita: posisi di tengah layar (khusus popup ini).
+  2. Popup Tambah/Edit Kurir: saat mengetik, isi terpotong & tombol Simpan tertutup keyboard → popup dibuat tinggi penuh, tombol Simpan tetap terlihat di atas keyboard.
+  3. Management Kurir: belum ada tombol Hapus kurir; tombol "+ Tambah Kurir" jangan di setiap kartu kurir, cukup satu di atas.
+  4. Tambah Pelanggan: saat mengisi, kolom tertutup keyboard → halaman bisa digulir sampai kolom yang diisi kelihatan.
