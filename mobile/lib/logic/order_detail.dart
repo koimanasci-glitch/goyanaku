@@ -322,8 +322,8 @@ Map<String, dynamic> orderDetailA4Model({
   if (od['customer'] is Map) {
     final customer = Map<String, dynamic>.from(od['customer'] as Map);
     od['customer'] = customer;
-    customer['wa'] = {'t': 'WhatsApp', 'b': 4 + shift};
-    customer['print'] = {'t': 'Cetak', 'b': 5 + shift};
+    customer['wa'] = {'t': '', 'b': 4 + shift};
+    customer['print'] = {'t': '', 'b': 5 + shift};
   }
   od['edit'] = {'t': 'Edit', 'b': 7 + shift};
 
@@ -379,8 +379,8 @@ Map<String, dynamic> orderDetailA4Model({
   for (final entry in items) {
     if (entry['type'] == 'entry' && entry['btns'] is List && '${entry['t']}' != 'Detail Order' && !'${entry['t']}'.toLowerCase().contains('rincian pesanan')) {
       entry['btns'] = [
-        {'t': 'WhatsApp', 'i': 4 + shift, 'on': false},
-        {'t': 'Cetak', 'i': 5 + shift, 'on': false},
+        {'t': 'Kirim nota WA', 'i': 4 + shift, 'on': false},
+        {'t': 'Cetak struk', 'i': 5 + shift, 'on': false},
       ];
       break;
     }
