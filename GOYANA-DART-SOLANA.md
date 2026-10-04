@@ -84,6 +84,13 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 
 Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
 
+## 4b. Peta halaman: NATIVE atau CERMIN (cek ini sebelum mengubah tampilan apa pun)
+| Jenis | Halaman | Bentuk diatur di | Cara mengubah tampilan |
+|---|---|---|---|
+| Native khusus | Beranda, Pesanan, Tambah Transaksi, Pelanggan, Laporan, Pengaturan, Kas, Tutup Kasir, Layanan, Rincian Pesanan | `mobile/lib/native/*_page.dart` | ubah widget Dart di file itu |
+| Native formulir | ±49 halaman di `_formPages` (shell.dart): Printer, Profil, Pegawai, Stok, CRM, Kurir, dll. | `mobile/lib/native/form_page.dart` (isi dari HTML) | ubah `form_page.dart` (berlaku ke semua formulir) |
+| CERMIN | perfume, duration, pickservice, pickup, orderscan, qrstatus, plan111 (Harga Paket), checkout111, billing, invoice111, waautomation + 16 popup di `MIRROR_SHEETS` (capacitor.js) | HTML/CSS tersembunyi, digambar `mirror_sheet.dart` | JANGAN ubah lewat CSS. Kalau perlu desain baru, tulis ulang jadi widget Flutter asli (Jalur B) sekaligus dengan desain barunya |
+
 ## 5. Langkah wajib untuk setiap bagian
 1. **Tangkap hasil HTML** dengan `tests/parity/capture.cjs` (jam palsu, skenario nyata).
 2. **Buat fixture** di `mobile/test/fixtures/parity/` berisi `{now, store, model HTML}`.
