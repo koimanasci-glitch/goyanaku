@@ -203,3 +203,14 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Tes: CI 37171106155: bridge lulus, analyze lulus; 17 tes jumlah/durasi baru lulus. Dua puluh tes model melewati perbandingan awal, lalu gagal karena Map dinamis pada baris pengubahan fixture. Perbaikan ini menunggu CI berikutnya.
 - Belum diuji: APK/HP dan fallback runtime.
 - Berikutnya: pastikan semua 37 tes baru lulus, lalu pasang perhitungan keranjang dengan pengaman HTML.
+
+### [Claude] Tampilan — Parfum & Durasi (ikon edit/hapus) — 4 Okt 2026 10.50 WIB
+- Status: SELESAI (tampilan saja, tidak menyentuh logika Dart GPT)
+- Permintaan Koko: ikon parfum & pilihan ikon hilang; di Pengaturan Durasi tidak ketemu cara edit.
+- Sudah dikerjakan (cermin HTML, `capacitor.js` + `mirror_sheet.dart`):
+  - Ikon pensil/sampah yang di HTML digambar lewat `::after` (mask SVG) sekarang ikut tampil, sehingga tombol Edit/Hapus di Parfum dan Durasi terlihat. Edit Durasi membuka form "Edit Durasi" milik HTML.
+  - Cincin warna terpilih di popup Tambah/Edit Parfum.
+  - Baris Durasi: urutan CSS `order`, garis pemisah "|", min-width kolom nama, tombol rata kanan; garis tepi per sisi (pemisah antar baris).
+- Tes: uji jembatan 31 PASS (ditambah cek ikon & Edit Durasi); CI lulus; golden halaman/popup lain tidak berubah.
+- Commit: bc755e0, 2ae3ee1, 18c23e8, fda8e6b.
+- Temuan aturan HTML (tanya Koko, BELUM diubah): daftar Durasi di HTML tidak disimpan. Saat aplikasi dibuka daftarnya kosong ("Belum ada data"), dan durasi yang ditambah hilang setelah aplikasi dibuka ulang. Pilihan Reguler/Express/Kilat di Tambah Transaksi berasal dari tempat lain, bukan dari daftar ini.
