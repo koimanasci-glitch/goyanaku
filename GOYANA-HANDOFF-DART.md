@@ -1,6 +1,16 @@
 # Serah terima ke GPT: pindahkan SEMUA perhitungan aplikasi Android ke Dart
 
-Branch: `flutter/native` (jangan push ke `main`). Pemilik: Koko.
+Branch: **`flutter/native`** (jangan push ke `main`). Pemilik: Koko.
+
+## PASTIKAN mengerjakan versi terbaru yang benar
+- Kerjakan HANYA branch **`flutter/native`**. Selalu `git pull` dulu.
+- Commit terbaru saat serah terima: `c5eed46` (4 Okt 2026 09.13 WIB) atau sesudahnya.
+- Yang BUKAN tempat kerja, jangan disentuh:
+  - `flutter-uji` adalah **Release tempat APK uji** diunggah otomatis oleh CI. Ini bukan kode.
+  - `ci-screens` hanya berisi screenshot hasil CI.
+  - `flutter/hybrid`, `flutter/native-kasir`, `flutter/fix-lokasi`, `main` adalah versi LAMA. Isinya sudah tergabung di `flutter/native` atau tertinggal.
+  - `backend/akses-paket`, `backend/laravel-foundation` adalah backend Laravel, bukan bagian tugas ini.
+- Folder `mobile/lib/pure/` (mode murni lama) TIDAK dipakai aplikasi. Jangan dikerjakan atau dipasang.
 
 ## Aturan dari Koko (wajib)
 1. **Tampilan sudah FIX. Jangan ubah tampilan apa pun.** Yang dipindah hanya perhitungan/logika, dari HTML/JS ke Dart.
