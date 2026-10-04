@@ -26,10 +26,11 @@ abstract class OrderDetailActions {
 }
 
 class NativeOrderDetail extends StatelessWidget {
-  const NativeOrderDetail({super.key, required this.model, required this.actions, this.topInset});
+  const NativeOrderDetail({super.key, required this.model, required this.actions, this.topInset, this.onQrStatus});
   final Map<String, dynamic> model;
   final OrderDetailActions actions;
   final double? topInset;
+  final VoidCallback? onQrStatus;
 
   void _press(Object? btn) {
     final i = _b(btn);
@@ -58,7 +59,25 @@ class NativeOrderDetail extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Column(children: [for (final a in acts) _action(a)]),
+                child: Column(children: [
+                  for (final a in acts) _action(a),
+                  if (onQrStatus != null)
+                    Padding(padding: const EdgeInsets.only(bottom: 16),
+                      child: SizedBox(width: double.infinity, height: 46,
+                        child: OutlinedButton.icon(
+                          key: const Key('order-detail-status-qr'),
+                          onPressed: onQrStatus,
+                          icon: const Icon(Icons.qr_code_2_rounded, size: 20),
+                          label: Text('QR Status', style: gText(12.5, w: FontWeight.w500, c: _ink)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _ink, backgroundColor: Colors.white,
+                            side: const BorderSide(color: Color(0xffe4e7ec)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ),
+                ]),
               ),
             ),
           ]),

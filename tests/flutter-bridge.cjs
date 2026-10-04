@@ -478,4 +478,5 @@ try{
   const n=await b.newPage();await n.goto(require('url').pathToFileURL(path.join(web,'index.html')).href);await n.waitForTimeout(1500);
   assert.equal(await n.evaluate(()=>!!window.__goyanaNative),false);
   console.log('PASS bridge is inert outside the Flutter app');
+  await require('./customer-status.cjs')(b);
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});

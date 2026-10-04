@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Status Cucian · GOYANA</title>
+  <style>
+    @font-face{font-family:Poppins;src:url('../mobile/assets/fonts/Poppins-Regular.ttf');font-weight:400;font-display:swap}
+    @font-face{font-family:Poppins;src:url('../mobile/assets/fonts/Poppins-Medium.ttf');font-weight:500;font-display:swap}
+    @font-face{font-family:Poppins;src:url('../mobile/assets/fonts/Poppins-SemiBold.ttf');font-weight:600;font-display:swap}
+    :root{color-scheme:light;--brand:#e8493f;--ink:#242831;--muted:#858d9c;--line:#e8ebf0}
+    *{box-sizing:border-box}body{margin:0;background:#f7f8fa;color:var(--ink);font:12px/1.6 Poppins,system-ui,sans-serif}
+    button,a{-webkit-tap-highlight-color:transparent}a:focus-visible{outline:3px solid #e8493f;outline-offset:4px}
+    [hidden]{display:none!important}.page{max-width:460px;margin:auto;padding:24px 20px 28px}
+    header{display:flex;align-items:center;gap:10px;margin-bottom:26px}.mark{width:34px;height:34px;background:var(--brand);color:white;border-radius:11px;display:grid;place-items:center;font-size:21px;font-weight:600}
+    .brand{font-size:16px;font-weight:600;letter-spacing:.5px}.preview{margin-left:auto;color:#a76812;background:#fff2d9;padding:4px 9px;border-radius:7px;font-size:10px}
+    .eyebrow{font-size:10px;color:var(--muted);letter-spacing:1.1px;text-transform:uppercase;margin:0 0 5px}h1{font-size:23px;line-height:1.4;letter-spacing:-.6px;font-weight:600;margin:0 0 4px}
+    .intro{margin:0 0 22px;color:var(--muted)}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin-top:12px}
+    .order-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.order-head strong{font-size:13px;font-weight:500;overflow-wrap:anywhere}.pill{font-size:10px;border-radius:7px;padding:4px 8px;white-space:nowrap;background:#fff0ee;color:#d94a40}.pill.ready{background:#eaf5ef;color:#328958}
+    .outlet{color:var(--muted);font-size:11px;margin:4px 0 17px}.hero{background:#fff6f4;border-radius:13px;padding:17px 16px}.hero h2{font-size:18px;line-height:1.4;font-weight:600;margin:0 0 5px}.hero p{font-size:11px;color:#9a6a65;margin:0}.hero.ready{background:#f0f8f3}.hero.ready p{color:#698575}
+    .estimate{display:flex;align-items:flex-start;gap:10px;margin-top:17px}.clock{border:1.5px solid #9299a6;border-radius:50%;width:17px;height:17px;flex:none;margin-top:3px;position:relative}.clock:before{content:'';position:absolute;left:7px;top:3px;width:1px;height:5px;background:#9299a6}.clock:after{content:'';position:absolute;left:7px;top:7px;width:4px;height:1px;background:#9299a6}
+    .estimate small{display:block;color:var(--muted);font-size:10px}.estimate b{display:block;font-size:12px;font-weight:500}.section-label{margin:0 0 15px;font-size:12px;font-weight:500}
+    .timeline{list-style:none;margin:0;padding:0}.timeline li{display:flex;gap:12px;position:relative;padding-bottom:18px}.timeline li:last-child{padding-bottom:0}.timeline li:not(:last-child):before{content:'';position:absolute;width:1px;background:var(--line);left:10px;top:23px;bottom:3px}
+    .dot{width:21px;height:21px;flex:none;display:grid;place-items:center;background:#f2f4f7;color:#aab0ba;border-radius:50%;font-size:10px;margin-top:1px}.timeline b{font-weight:400;color:#9ba2ae;font-size:11px}.timeline small{display:block;font-size:10px;color:var(--muted)}.timeline .done .dot{background:#eaf5ef;color:#39885b}.timeline .done b{color:#586671}.timeline .active .dot{background:var(--brand);color:white}.timeline .active b{color:var(--ink);font-weight:500}
+    .service-list{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.service{background:#f5f6f8;border-radius:7px;padding:5px 8px;color:#727b8b;font-size:10px}.row{display:flex;justify-content:space-between;gap:14px;margin:8px 0;font-size:11px}.row span{color:var(--muted)}.row b{font-weight:500;text-align:right;overflow-wrap:anywhere}.row.total{border-top:1px solid var(--line);padding-top:13px;margin-top:13px}.row.total b{font-size:15px}.payment{display:inline-block;color:#a97720;background:#fff7e7;font-size:10px;padding:4px 8px;border-radius:7px}.payment.paid{background:#eaf5ef;color:#328958}
+    .contact{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:20px;border:1px solid #dce2e9;border-radius:12px;background:#fff;min-height:46px;padding:10px 12px;color:var(--ink);font-size:12px;font-weight:500;text-decoration:none}.contact svg{width:17px;height:17px}
+    .updated{text-align:center;color:#9299a6;font-size:9px;margin:14px 0 0}footer{text-align:center;color:#a1a7b2;font-size:10px;margin-top:25px}footer strong{color:#7e8797;font-weight:500}.empty{text-align:center;padding:34px 22px}.empty h2{font-size:17px;margin:0 0 8px}.empty p{color:var(--muted);margin:0;font-size:11px}
+    @media(min-width:600px){.page{padding-top:44px}}@media(max-width:340px){.page{padding:20px 16px}.card{padding:17px}.order-head{flex-direction:column;gap:5px}}
+    @media print{body{background:white}.contact,.preview{display:none}.page{max-width:460px}.card{break-inside:avoid}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <header><span class="mark" aria-hidden="true">G</span><span class="brand">GOYANA</span><span id="preview" class="preview" hidden>Pratinjau</span></header>
+  <p class="eyebrow">Status pesanan</p><h1>Cek progres cucian</h1><p class="intro">Informasi cucian Anda dalam satu halaman.</p>
+  <section id="empty" class="card empty" role="status"><h2>Status belum tersedia</h2><p>Gunakan tautan pada nota pesanan Anda atau hubungi outlet laundry.</p></section>
+  <div id="order" hidden>
+    <section class="card" aria-label="Status cucian">
+      <div class="order-head"><strong id="order-id"></strong><span class="pill" id="status-pill"></span></div><p class="outlet" id="outlet"></p>
+      <div class="hero" id="hero"><h2 id="status-title"></h2><p id="status-note"></p></div>
+      <div class="estimate" id="estimate" hidden><i class="clock" aria-hidden="true"></i><div><small>Estimasi selesai</small><b id="estimate-value"></b></div></div>
+    </section>
+    <section class="card" id="progress-card"><h2 class="section-label">Progres cucian</h2><ol class="timeline" id="timeline"></ol></section>
+    <section class="card"><h2 class="section-label">Ringkasan pesanan</h2><div class="service-list" id="services"></div><div class="row" id="customer-row" hidden><span>Pelanggan</span><b id="customer"></b></div><div class="row total" id="total-row" hidden><span>Total pesanan</span><b id="total"></b></div><div id="payment-row" hidden><span class="payment" id="payment"></span></div><div class="row" id="remaining-row" hidden><span>Sisa pembayaran</span><b id="remaining"></b></div></section>
+    <a id="contact" class="contact" hidden target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-1 2V11.5a8.5 8.5 0 1 1 18 0Z"/><path d="M7 10h10M7 14h6"/></svg>Hubungi Outlet</a>
+    <p id="updated" class="updated" hidden></p>
+  </div>
+  <footer>Dikelola dengan <strong>GOYANA</strong></footer>
+</main>
+<script>
+(function(){
+  'use strict';
+  var $=function(id){return document.getElementById(id)};
+  var states={jemput:[0,'Menunggu penjemputan','Kurir akan menjemput cucian Anda.'],antrian:[0,'Pesanan diterima','Cucian Anda menunggu giliran proses.'],cuci:[1,'Sedang dicuci','Cucian Anda sedang dalam proses pencucian.'],kering:[1,'Sedang dikeringkan','Cucian Anda sedang dalam proses pengeringan.'],setrika:[1,'Sedang disetrika','Cucian Anda sedang dirapikan.'],packing:[2,'Sedang dikemas','Cucian Anda sedang disiapkan untuk pengambilan.'],siap:[3,'Siap diambil','Cucian Anda sudah siap. Silakan hubungi outlet.'],diambil:[4,'Sudah diambil','Terima kasih telah mempercayakan cucian Anda.'],batal:[-1,'Pesanan dibatalkan','Hubungi outlet untuk informasi lebih lanjut.']};
+  var steps=['Pesanan diterima','Cucian diproses','Cucian dikemas','Siap diambil','Sudah diambil'];
+  function money(n){return typeof n==='number'&&Number.isFinite(n)&&n>=0?'Rp '+Math.round(n).toLocaleString('id-ID'):''}
+  function date(v){if(typeof v!=='string')return '';var d=new Date(v);return Number.isNaN(d.getTime())?'':new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'}).format(d)+' WIB'}
+  function show(id,value){$(id).hidden=!value}
+  function render(o){
+    var valid=o&&typeof o==='object'&&!Array.isArray(o)&&typeof o.id==='string'&&o.id.trim();
+    show('order',valid);show('empty',!valid);if(!valid)return;
+    var outlet=o.outlet&&typeof o.outlet==='object'?o.outlet:{};
+    var state=Object.prototype.hasOwnProperty.call(states,o.status)?states[o.status]:[-1,'Status belum tersedia','Hubungi outlet untuk informasi lebih lanjut.'];
+    $('order-id').textContent=o.id;$('outlet').textContent=typeof outlet.name==='string'?outlet.name:'Outlet laundry';
+    $('status-title').textContent=state[1];$('status-pill').textContent=state[1];$('status-note').textContent=state[2];
+    $('hero').classList.toggle('ready',state[0]>=3);$('status-pill').classList.toggle('ready',state[0]>=3);
+    var due=date(o.estimated_at);show('estimate',due&&state[0]>=0&&state[0]<4);$('estimate-value').textContent=due;
+    show('progress-card',state[0]>=0);$('timeline').replaceChildren();
+    steps.forEach(function(title,i){var li=document.createElement('li');li.className=i<state[0]?'done':i===state[0]?'active':'';var dot=document.createElement('span');dot.className='dot';dot.textContent=i<state[0]?'✓':String(i+1);dot.setAttribute('aria-hidden','true');var b=document.createElement('b');b.textContent=title;li.append(dot,b);if(i===state[0])li.setAttribute('aria-current','step');$('timeline').append(li)});
+    $('services').replaceChildren();(Array.isArray(o.services)?o.services:[]).slice(0,20).forEach(function(s){if(typeof s!=='string')return;var e=document.createElement('span');e.className='service';e.textContent=s;$('services').append(e)});
+    show('customer-row',typeof o.customer_first_name==='string'&&o.customer_first_name);$('customer').textContent=typeof o.customer_first_name==='string'?o.customer_first_name:'';
+    var total=money(o.total);show('total-row',total);$('total').textContent=total;
+    var payment=typeof o.payment_status==='string'?o.payment_status:'';show('payment-row',payment);$('payment').textContent=payment;$('payment').classList.toggle('paid',payment==='Lunas');
+    var remaining=money(o.remaining);show('remaining-row',remaining&&o.remaining>0);$('remaining').textContent=remaining;
+    var phone=typeof outlet.phone==='string'?outlet.phone.replace(/[^0-9]/g,''):'';if(phone.startsWith('0'))phone='62'+phone.slice(1);
+    var phoneValid=/^[1-9][0-9]{7,14}$/.test(phone);show('contact',phoneValid);$('contact').removeAttribute('href');if(phoneValid)$('contact').href='https://wa.me/'+phone+'?text='+encodeURIComponent('Halo, saya ingin menanyakan pesanan '+o.id+'.');
+    var updated=date(o.updated_at);show('updated',updated);$('updated').textContent=updated?'Diperbarui '+updated:'';
+  }
+  window.GoyanaCustomerStatus={render:render};
+  var preview=new URLSearchParams(location.search).get('preview')==='1';show('preview',preview);
+  // Production must supply an authorised, minimal public order payload. No demo
+  // status is inferred from a URL/order number or shown without explicit preview.
+  render(preview?{id:'GY-261005-0133',outlet:{name:'Laundry Gramapuri',phone:'081234567890'},status:'setrika',customer_first_name:'Budi',estimated_at:'2026-10-06T17:00:00+07:00',services:['Cuci Setrika · 4 kg','Reguler'],total:28000,payment_status:'Belum Lunas',remaining:28000,updated_at:'2026-10-05T15:20:00+07:00'}:window.GOYANA_STATUS_ORDER);
+})();
+</script>
+</body>
+</html>

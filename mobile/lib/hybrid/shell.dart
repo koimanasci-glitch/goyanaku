@@ -24,6 +24,7 @@ import '../native/form_page.dart';
 import '../native/home_page.dart';
 import '../native/mirror_sheet.dart';
 import '../native/order_detail_page.dart';
+import '../native/order_status_qr.dart';
 import '../native/duration_page.dart';
 import '../native/pickservice_page.dart';
 import '../native/pickup_page.dart';
@@ -1131,7 +1132,26 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
             if (_nativePage == 'addorder' && !_loading)
               Positioned.fill(child: NativeAddOrder(model: _addOrder, actions: this)),
             if (_nativePage != null && _sheetId == 'g62-order-detail' && _sheetOd != null && !_loading)
-              Positioned.fill(child: NativeOrderDetail(model: _sheetOd!, actions: this))
+              Positioned.fill(child: NativeOrderDetail(
+                model: _sheetOd!, actions: this,
+                onQrStatus: orderStatusId(_sheetOd!) == null ? null : () {
+                  final detail = _sheetOd;
+                  if (detail == null) return;
+                  final id = orderStatusId(detail);
+                  if (id == null) return;
+                  final customer = detail['customer'];
+                  showModalBottomSheet<void>(
+                    context: context, isScrollControlled: true,
+                    backgroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                    builder: (context) => NativeOrderStatusQr(
+                      orderId: id,
+                      customerName: customer is Map && customer['name'] is String ? customer['name'] as String : '',
+                      onClose: () => Navigator.pop(context),
+                    ),
+                  );
+                },
+              ))
             else if (_nativePage != null && _sheetMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorSheet(
