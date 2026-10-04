@@ -32,7 +32,7 @@ Map<String, dynamic> _latestOrdersExpected(
   final expected = _copy(fixture);
   final tabs = expected['tabs'] as List;
   if (!tabs.any((e) => e is Map && e['t'] == 'Belum Bayar')) {
-    tabs.add({'t': 'Belum Bayar', 'n': _unpaidCount(after), 'on': false});
+    tabs.add({'t': 'Belum Bayar', 'n': '${_unpaidCount(after)}', 'on': false});
   }
   return expected;
 }
