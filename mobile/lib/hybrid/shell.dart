@@ -23,6 +23,7 @@ import '../native/form_page.dart';
 import '../native/home_page.dart';
 import '../native/mirror_sheet.dart';
 import '../native/order_detail_page.dart';
+import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
 import '../native/plan_page.dart';
 import '../native/orders_page.dart';
@@ -921,7 +922,20 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   },
                 ),
               ),
-            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'perfume' && _pageMirror != null && !_loading)
+            if (_nativePage == 'duration' && _pageMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeDurationPage(
+                  key: const ValueKey('native-duration'),
+                  model: _pageMirror!,
+                  onButton: (i) => _mirror('button', i),
+                  onNav: nav,
+                  onHeaderScan: () {
+                    final i = (_pageMirror?['scan'] as num?)?.toInt() ?? -1;
+                    if (i >= 0) _mirror('button', i);
+                  },
+                ),
+              ),
+            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'perfume' && _nativePage != 'duration' && _pageMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorPage(
                   key: ValueKey('mirror-page-$_nativePage'), model: _pageMirror!,
