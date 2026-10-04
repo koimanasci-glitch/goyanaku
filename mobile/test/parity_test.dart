@@ -101,7 +101,7 @@ void main() {
     final pricing = captured['addorderPricing'] as List;
     expect(pricing.length, 11);
     final compact = pricing.map((e) => {'name': e['name'], 'total': e['htmlModel']['total'], 'discount': e['htmlModel']['discount'], 'transport': e['htmlModel']['transport']}).toList();
-    // Satu baris sengaja dicetak agar oracle HTML bisa disalin menjadi fixture statis; test ini dihapus sesudahnya.
-    print('GOYANA_CAPTURE_3B=${jsonEncode(compact)}');
+    // Satu baris sengaja ditulis agar oracle HTML bisa disalin menjadi fixture statis; test ini dihapus sesudahnya.
+    stdout.writeln('GOYANA_CAPTURE_3B=${jsonEncode(compact)}');
   });
 }
