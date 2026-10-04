@@ -306,3 +306,13 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 ### [Claude] Cek A3c + gabung B7 Harga Paket — 4 Okt 2026 19.45 WIB
 - A3c (sesi 1, 0eafeb6): benar dan aman; satu perubahan: saat hasil Dart sama dengan HTML tidak lagi menulis ulang goyana-business177 (menghindari menimpa perubahan HTML sesaat sesudahnya).
 - B7 Harga Paket (sesi tampilan): warning analyze dibetulkan (hapus `!`), CI PR lulus semua, lalu digabung ke flutter/native agar golden & APK bisa dilihat Koko. Kalau Koko tidak suka: revert merge ini, plan111 kembali ke cermin.
+
+### [GPT tampilan] B1 Parfum — 4 Oktober 2026 21.01 WIB
+- Status: FUNGSI/CI SELESAI; visual efektif sama dengan cermin, tetapi pemeriksaan piksel menemukan deviasi kecil sehingga belum 100% pixel-identik.
+- Dikerjakan: halaman `perfume` tipe CERMIN dipisahkan dari renderer cermin generik dan diganti widget Flutter asli `mobile/lib/native/perfume_page.dart`. Nama parfum, warna, SVG botol, teks, dan indeks tombol dibaca dari model cermin yang sekarang; tidak ada data parfum yang di-hardcode.
+- Tombol tetap memakai aksi lama: `+ Tambah Parfum` meneruskan indeks 2; edit/hapus meneruskan indeks model masing-masing (contoh Akasia 3/4), melalui `__goyanaMirror`. `shell.dart` hanya ditambah import, sambungan khusus `perfume`, dan pengecualian `perfume` dari `NativeMirrorPage`; blok pengaman Dart tidak diubah.
+- Golden baru: `mobile/test/screens/perfume_native.png` dihasilkan CI dan dikirim ke branch `ci-screens`. Tes golden/aksi ada di `mobile/test/perfume_screens_test.dart`.
+- Perbandingan dengan `mirrorpage_perfume.png`: teks, warna, bentuk ikon, header, dan bottom navigation cocok. Deviasi terukur: seluruh isi di bawah header turun sekitar 1 px; swatch + tombol edit/hapus bergeser sekitar 8 px ke kanan dan 1 px ke bawah; divider baris turun 1 px. Karena batas Koko maksimal 2 CI sudah habis, tidak dibuat commit koreksi tanpa verifikasi/golden baru.
+- CI percobaan 1: run `37208381844`, SUCCESS untuk widget awal sebelum sambungan final. CI percobaan 2/final: run `37209036660`, SUCCESS penuh. Uji jembatan 31 PASS, `flutter analyze` tanpa temuan, unit 113/113 PASS, screenshot 95/95 PASS, build APK + artifact + publikasi `flutter-uji` sukses.
+- Commit kode: `956b11136db1997567f9e44569ff43ac699d05f5` (widget Flutter asli) dan `7c9fc0eb9a400acc0da5e839cdd43a385c4daf44` (sambungan shell + golden test). File terlarang tidak disentuh: logic/hitungan, `index.html`/JS/CSS, `capacitor.js`, workflow CI, dan halaman lain.
+- Langkah berikutnya: BERHENTI. Bila Koko meminta pixel-identik 100%, koreksi 1 px/8 px dilakukan pada putaran tampilan baru karena jatah dua CI B1 sudah terpakai.
