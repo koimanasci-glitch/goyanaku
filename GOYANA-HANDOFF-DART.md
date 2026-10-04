@@ -74,3 +74,19 @@ Branch: `flutter/native` (jangan push ke `main`). Pemilik: Koko.
   - popup Pria/Wanita di tengah;
   - menu bawah sembunyi saat mengetik;
   - kurir: tombol Tambah di atas, ada Hapus (`deleted:true`, riwayat tetap).
+
+## WAJIB: laporan tiap bagian (kuota bisa habis sewaktu-waktu)
+Setiap kali satu bagian selesai, ATAU sebelum berhenti, ATAU kalau kuota hampir habis, tambahkan laporan di bagian paling bawah `GOYANA-PROGRESS.md`, lalu commit dan push. Pakai format ini:
+
+```
+### [GPT] Dart — <nama bagian> — <tanggal jam WIB>
+- Status: SELESAI / SETENGAH JALAN / GAGAL
+- Sudah dikerjakan: …
+- File diubah: …
+- Tes paritas: <jumlah lulus>/<jumlah total>; fixture: …
+- Commit: <hash> ; hasil CI: lulus/gagal (sebutkan yang gagal)
+- Belum selesai / langkah berikutnya: … (cukup jelas supaya AI lain bisa langsung lanjut)
+- Temuan aturan HTML yang perlu ditanyakan ke Koko: …
+```
+
+Jangan menunggu satu bagian selesai sepenuhnya baru menulis laporan. Commit kecil-kecil, dan laporan juga ditulis untuk pekerjaan yang setengah jalan.
