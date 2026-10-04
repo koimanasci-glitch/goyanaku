@@ -35,9 +35,11 @@ async function main(){
    document.getElementById('f61-handover').selectedIndex=0;
    f61Payment();flushTransactions177();
    const before=JSON.parse(localStorage.getItem('goyana-business177')),now=new Date().toISOString(),code=nextCode136();
+   // Input identitas outlet harus ditangkap sebelum finish; jangan ambil dari expected.
+   const store={};for(const k of ['goyana-durations199','goyana-active-outlet180','goyana-outlets180'])store[k]=localStorage.getItem(k);
    const draft={name,phone,cart:JSON.parse(JSON.stringify(f61.cart)),dur:f61.dur,durationLabel:document.getElementById('f61-duration-label').textContent,method:config.method,total:f61.total,payamount:document.getElementById('f61-payamount').textContent,priority:document.getElementById('f61-priority').checked,handover:document.getElementById('f61-handover').value,perfume:document.querySelector('#f61-options select').value};
    f61Finish(config.method);flushTransactions177();
-   return {name:config.method+' '+config.dur,now,store:{'goyana-durations199':localStorage.getItem('goyana-durations199')},before,draft,code,htmlModel:JSON.parse(localStorage.getItem('goyana-business177'))};
+   return {name:config.method+' '+config.dur,now,store,before,draft,code,htmlModel:JSON.parse(localStorage.getItem('goyana-business177'))};
   },{i,config});
   assert.equal(result.htmlModel.orders.length,result.before.orders.length+1);
   cases.push(result);await p.clock.runFor(800);
