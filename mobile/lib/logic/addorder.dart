@@ -148,9 +148,9 @@ num _transportFee(String type, Map<String, dynamic> cfg) {
   return 0;
 }
 
-/// Diskon v127 + ongkir v183. Urutan sengaja mengikuti HTML apa adanya:
-/// ongkir masuk ke f61.total lebih dulu, sehingga diskon "Semua layanan" juga
-/// memotong ongkir. Diskon kategori hanya memakai subtotal unit kategorinya.
+/// Diskon v127 + ongkir v183. Keputusan Koko 4 Okt: diskon/voucher hanya
+/// memotong harga layanan. Ongkir ditambahkan ke total, tetapi tidak pernah
+/// masuk ke dasar diskon. Diskon kategori tetap memakai subtotal unitnya.
 Future<Map<String, dynamic>> transactionPricingModel(Business business, Map<String, dynamic> draft) async {
   final cart = _pricedCart(business, draft);
   final serviceSubtotal = cart.fold<int>(0, (sum, item) => sum + _round(_num(item['qty']) * _num(item['price'])));
@@ -177,7 +177,7 @@ Future<Map<String, dynamic>> transactionPricingModel(Business business, Map<Stri
       final scope = '${definition['scope'] ?? 'Semua layanan'}';
       final unit = const {'Kiloan': 'kg', 'Satuan': 'pcs', 'Meteran': 'm'}[scope];
       final base = scope == 'Semua layanan' || cart.isEmpty
-          ? gross
+          ? serviceSubtotal
           : cart.where((item) => item['unit'] == unit).fold<num>(0, (sum, item) => sum + _round(_num(item['qty']) * _num(item['price'])));
       final value = _num(definition['val']);
       final amount = definition['type'] == 'p' ? _round(base * value / 100) : (value < base ? value : base);
