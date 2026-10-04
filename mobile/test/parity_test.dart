@@ -76,7 +76,7 @@ void main() {
   for (final q in draftFixture['quantities'] as List) {
     test('Jumlah HTML ${q['unit']}: ${q['input']}', () {
       expect(transactionSubtotal(q['input'] as String, q['price'] as num), q['subtotal']);
-      final error = transactionQuantityError(transactionQuantity(q['input'] as String), q['unit'] as String);
+      final error = transactionQuantityError(transactionQuantity(q['input'] as String), q['unit'] as String, input: q['input'] as String);
       expect(error != null, q['rejected']);
       if (error != null) expect(error, q['toast']);
     });
