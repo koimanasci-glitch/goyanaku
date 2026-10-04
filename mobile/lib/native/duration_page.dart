@@ -172,17 +172,15 @@ class _DurationPageData {
       String hours = '';
 
       // Extract name and hours from the info section
-      if (infoParts.length >= 2) {
+      if (infoParts.length >= 3) {
         name = _text(infoParts[0]);
-        // Skip separator (parts[1])
-        if (infoParts.length >= 3) {
-          hours = _text(infoParts[2]);
-        }
+        hours = _text(infoParts[2]);
       }
 
       if (name.isEmpty) continue;
 
-      final actionNodes = _children(parts[1]['ch'])
+      final actionNode = _m(parts[1]);
+      final actionNodes = _children(actionNode['ch'])
           .where((node) => _buttonIndex(node) != null)
           .toList();
       final edit = actionNodes.isNotEmpty ? actionNodes[0] : <String, dynamic>{};
@@ -197,8 +195,8 @@ class _DurationPageData {
         deleteSvg: _firstSvg(remove),
         editBackground: _styleString(edit, 'bg', 'rgb(232, 73, 63)'),
         deleteBackground: _styleString(remove, 'bg', 'rgb(236, 238, 241)'),
-        nameColor: _styleString(infoParts.isNotEmpty ? infoParts[0] : <String, dynamic>{}, 'c', 'rgb(30, 30, 30)'),
-        hoursColor: _styleString(infoParts.length >= 3 ? infoParts[2] : <String, dynamic>{}, 'c', 'rgb(107, 116, 133)'),
+        nameColor: infoParts.length > 0 ? _styleString(infoParts[0], 'c', 'rgb(30, 30, 30)') : 'rgb(30, 30, 30)',
+        hoursColor: infoParts.length > 2 ? _styleString(infoParts[2], 'c', 'rgb(107, 116, 133)') : 'rgb(107, 116, 133)',
       ));
     }
 
