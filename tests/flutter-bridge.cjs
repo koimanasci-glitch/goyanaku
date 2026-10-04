@@ -336,6 +336,17 @@ try{
   const okIdx=await p.evaluate(()=>{const r=document.querySelector('#gs107 .sheet91-box')||document.querySelector('#gs107');return [...r.querySelectorAll('button')].findIndex(b=>/Tambah/.test(b.textContent))});
   await p.evaluate(i=>__goyanaForm('gs107','button',i),okIdx);
   await p.waitForFunction(()=>[...document.querySelectorAll('#duration .duration-row')].some(r=>/Super Kilat/.test(r.textContent)),null,{timeout:3000});
+  // Tombol edit/hapus durasi tampil dengan ikon (pensil/sampah dari ::after) dan Edit membuka form "Edit Durasi".
+  await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!=='lg167')e.classList.remove('show')})});
+  await p.evaluate(()=>openPage('duration'));
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.page==='duration'&&m.model&&m.model.mirror&&/Super Kilat/.test(JSON.stringify(m.model.mirror))},null,{timeout:3000});
+  last=await lastAdd();
+  const durJson=JSON.stringify(last.model.mirror);
+  assert.ok((durJson.match(/"svg":"<svg/g)||[]).length>=2,'edit/delete icons mirrored as svg');
+  const editIdx=await p.evaluate(()=>[...document.querySelectorAll('#duration button')].findIndex(b=>b.classList.contains('edit')&&/Super Kilat/.test(b.closest('.duration-row').textContent)));
+  await p.evaluate(i=>__goyanaMirror('duration','button',i),editIdx);
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.sheet&&m.sheet.mirror&&/Edit Durasi/.test(JSON.stringify(m.sheet.mirror.box))},null,{timeout:3000});
+  await p.evaluate(()=>closeSheet91('gs107'));await p.waitForTimeout(200);
   await p.evaluate(()=>{const r=[...document.querySelectorAll('#duration .duration-row')].find(r=>/Super Kilat/.test(r.textContent));r&&r.remove()});
   console.log('PASS Keuangan (kategori), Diskon native; Durasi + form sheet from the HTML mirror');
   // Shared sheets also open natively above custom native pages (Pelanggan → Urutkan).

@@ -537,6 +537,11 @@
   };
   function sides(cs, prop) { return [px(cs[prop + 'Top']), px(cs[prop + 'Right']), px(cs[prop + 'Bottom']), px(cs[prop + 'Left'])]; }
   var INLINE = /^(inline|contents)$/;
+  function rgbHex(v) {
+    var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(v || '');
+    if (!m || (m[4] != null && +m[4] === 0)) return '';
+    return '#' + [m[1], m[2], m[3]].map(function (x) { return ('0' + (+x).toString(16)).slice(-2); }).join('');
+  }
   function mirrorStyle(el, cs) {
     var st = { m: sides(cs, 'margin'), p: sides(cs, 'padding'), fs: px(cs.fontSize), fw: parseInt(cs.fontWeight, 10) || 400, lh: px(cs.lineHeight) || 0, c: cs.color };
     if (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') st.bg = cs.backgroundColor;
@@ -565,6 +570,13 @@
     if (/pre/.test(cs.whiteSpace)) st.pre = 1;
     if (/nowrap/.test(cs.whiteSpace)) st.nowrap = 1;
     if (cs.boxShadow && cs.boxShadow !== 'none') st.sh = 1;
+    if (cs.outlineStyle && cs.outlineStyle !== 'none' && px(cs.outlineWidth)) st.ring = { c: cs.outlineColor, w: px(cs.outlineWidth) + px(cs.outlineOffset) };
+    else if (cs.boxShadow && cs.boxShadow !== 'none') {
+      // Cincin (box-shadow tanpa blur, dengan spread) — contoh: warna parfum yang dipilih.
+      var rings = cs.boxShadow.split(/,(?![^(]*\))/).map(function (x) { var c = (x.match(/rgba?\([^)]*\)|#[0-9a-f]+/i) || [''])[0]; var nums = x.replace(c, '').trim().split(/\s+/).map(parseFloat); return { c: c, blur: nums[2] || 0, spread: nums[3] || 0 }; })
+        .filter(function (r) { return !r.blur && r.spread > 0; });
+      if (rings.length) { var big = rings[rings.length - 1]; st.ring = { c: big.c, w: big.spread }; }
+    }
     return st;
   }
   function mirrorNode(el, ctx, depth) {
@@ -582,7 +594,15 @@
       var pos = function (v) { return /px$/.test(v) ? px(v) : null; };
       n.abs = { t: pos(cs.top), l: pos(cs.left), r: pos(cs.right), b: pos(cs.bottom) };
     }
-    if (tag === 'svg') { n.svg = el.outerHTML.replace(/currentColor/g, cs.color).replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/g, function (_, r, g, b) { return '#' + [r, g, b].map(function (x) { return ('0' + (+x).toString(16)).slice(-2); }).join(''); }); if (!/\sfill=/.test(el.outerHTML.slice(0, 200)) && !/fill/.test(el.getAttribute('style') || '')) n.svg = n.svg.replace('<svg', '<svg fill="' + cs.fill.replace(/^none$/, 'none') + '" stroke="' + (cs.stroke === 'none' ? 'none' : cs.stroke) + '" stroke-width="' + (cs.strokeWidth || '') + '"'); return n; }
+    if (tag === 'svg') {
+      var hex = function (str) { return String(str).replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/g, function (_, r, g, b) { return '#' + [r, g, b].map(function (x) { return ('0' + (+x).toString(16)).slice(-2); }).join(''); }); };
+      var open = el.outerHTML.slice(0, el.outerHTML.indexOf('>') + 1), add = '';
+      // Warna dari CSS (fill/stroke yang diwariskan ke isi ikon) ditulis ke tag <svg> supaya Flutter menggambar warna yang sama.
+      if (!/\sfill=/.test(open)) add += ' fill="' + (cs.fill === 'none' ? 'none' : cs.fill) + '"';
+      if (!/\sstroke=/.test(open) && cs.stroke && cs.stroke !== 'none') add += ' stroke="' + cs.stroke + '" stroke-width="' + (parseFloat(cs.strokeWidth) || 1) + '" stroke-linecap="' + cs.strokeLinecap + '" stroke-linejoin="' + cs.strokeLinejoin + '"';
+      n.svg = hex(el.outerHTML.replace('<svg', '<svg' + add).replace(/currentColor/g, cs.color));
+      return n;
+    }
     if (tag === 'IMG') { n.img = el.src && el.src.length < 1500000 ? el.src : ''; return n; }
     if (tag === 'CANVAS') { try { n.img = el.toDataURL('image/png'); } catch (e) { n.img = ''; } return n; }
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
@@ -612,6 +632,34 @@
     if (!n.fixed && !textLen && (n.s.bw || n.s.bg || n.s.stripe || n.s.checker) && Array.prototype.every.call(el.children, function (c) { var p = getComputedStyle(c).position; return p === 'absolute' || p === 'fixed'; })) n.fixed = 1;
     var kids = [];
     var allInline = true;
+    // Ikon dari ::before/::after (mask/background berupa SVG data-url, contoh tombol edit/hapus): jadi simpul svg berwarna.
+    var pseudoIcon = function (which) {
+      var ps = getComputedStyle(el, which);
+      if (!ps || ps.content === 'none' || ps.display === 'none') return null;
+      var src = ps.webkitMaskImage || ps.maskImage, viaMask = src && src !== 'none';
+      if (!viaMask) src = ps.backgroundImage;
+      var m = /url\("?(data:image\/svg\+xml[^")]*)"?\)/.exec(src || '');
+      if (!m) return null;
+      var raw = m[1].slice(m[1].indexOf(',') + 1);
+      try { raw = /;base64/.test(m[1].slice(0, m[1].indexOf(','))) ? atob(raw) : decodeURIComponent(raw); } catch (e) { return null; }
+      var w = parseFloat(ps.width), h = parseFloat(ps.height);
+      if (!(w > 0 && h > 0)) return null;
+      if (viaMask) {
+        // Mask = bentuk ikon diwarnai latar pseudo-elemen.
+        var col = rgbHex(ps.backgroundColor);
+        if (!col) return null;
+        raw = raw.replace(/(fill|stroke)=(['"])(?!none)[^'"]*\2/g, '$1=$2' + col + '$2');
+        var open = raw.slice(0, raw.indexOf('>'));
+        if (!/\sfill=/.test(open)) raw = raw.replace('<svg', '<svg fill="' + col + '"');
+      }
+      return { s: { m: [0, 0, 0, 0], p: [0, 0, 0, 0] }, w: px(w), h: px(h), fixed: 1, svg: raw };
+    };
+    var iconAfter = pseudoIcon('::after'), iconBefore = pseudoIcon('::before');
+    if ((iconAfter || iconBefore) && (parseFloat(cs.fontSize) === 0 || cs.color === 'rgba(0, 0, 0, 0)')) {
+      n.ch = [iconBefore || iconAfter];
+      n.center = 1;
+      return n;
+    }
     Array.prototype.forEach.call(el.childNodes, function (c) {
       if (c.nodeType === 3) {
         var t = n.s.pre ? c.textContent : c.textContent.replace(/\s+/g, ' ');

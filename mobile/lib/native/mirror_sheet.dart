@@ -242,6 +242,7 @@ class _Node {
       color: s['bg'] == null ? null : cssColor(s['bg'] as String?),
       border: bw > 0 ? Border.all(color: cssColor(s['bc'] as String?, const Color(0xffe6e9ee)), width: bw) : null,
       borderRadius: r.any((x) => x > 0) ? BorderRadius.only(topLeft: Radius.circular(r[0]), topRight: Radius.circular(r[1]), bottomRight: Radius.circular(r[2]), bottomLeft: Radius.circular(r[3])) : null,
+      boxShadow: s['ring'] is Map ? [BoxShadow(color: cssColor(_m(s['ring'])['c'] as String?, Colors.black26), spreadRadius: _d(_m(s['ring'])['w']))] : null,
     );
     if (n['input'] is! Map) {
       child = Container(
