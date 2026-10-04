@@ -75,6 +75,7 @@ Branch: **`flutter/native`** (jangan push ke `main`). Pemilik: Koko.
 10. Terakhir, setelah semua lulus dan Koko setuju: cabut WebView/HTML dari APK.
 
 ## Hal yang sudah diketahui
+- **Jam durasi (keputusan Koko 4 Okt):** Reguler/Express/Kilat tampil di Pengaturan → Durasi dan jamnya bisa diedit (nama tetap, tidak bisa dihapus). Jam disimpan di kunci `goyana-durations199` berbentuk `{"Reguler":72,"Express":24,"Kilat":6}` (kunci yang tidak ada = bawaan 72/24/6). HTML memakai `durHours199(nama)` untuk label durasi dan estimasi selesai = waktu masuk + jam durasi. Logika Dart estimasi WAJIB membaca kunci ini.
 - HTML berlapis-lapis (`goyana-v108` … `v190` saling menimpa). Patokan = **hasil akhir yang terlihat**, bukan satu fungsi saja. Karena itu wajib tangkap hasil nyata.
 - Contoh perilaku HTML yang ditiru apa adanya: chip kartu disimpan di snapshot kartu (`chips[].hidden`); "Datang Langsung" tidak ditampilkan.
 - Revisi Koko yang sudah selesai (jangan dirusak):

@@ -6146,7 +6146,7 @@ select.gs107-i{appearance:auto;background:#fff}
     var tn=txtNode(strong), total=num(tn?tn.textContent:0), em=(c.querySelector('strong em')||{}).textContent||'';
     var dur=(c.querySelector('.g62-order-top span')||{}).textContent||'Reguler';
     var masuk=parseDt(smalls[0]&&smalls[0].textContent)||new Date(), due=parseDt(smalls[1]&&smalls[1].textContent)||new Date(masuk.getTime()+3*864e5);
-    if(c.classList.contains('new107')){var hh=/Kilat/.test(dur)?6:/Express|Ekspres/.test(dur)?24:72;masuk=new Date();due=new Date(masuk.getTime()+hh*3600e3)}
+    if(c.classList.contains('new107')){var hh=window.durHours199?durHours199(dur):(/Kilat/.test(dur)?6:/Express|Ekspres/.test(dur)?24:72);masuk=new Date();due=new Date(masuk.getTime()+hh*3600e3)}
     var items=[];
     if(c.dataset.items){try{items=JSON.parse(c.dataset.items)}catch(e){}}
     var dsc=+c.dataset.disc||0;
@@ -6361,7 +6361,7 @@ select.gs107-i{appearance:auto;background:#fff}
   var $=function(id){return document.getElementById(id)};
   function fq(q){return (Math.round(q*100)/100).toLocaleString('id-ID',{maximumFractionDigits:2})}
   function r500(n){return Math.round(n/500)*500}
-  var DUR=[{k:'Reguler',h:'72 Jam',x:1},{k:'Express',h:'24 Jam',x:1.5},{k:'Kilat',h:'6 Jam',x:2}];
+  var DUR=[['Reguler',72,1],['Express',24,1.5],['Kilat',6,2]].map(function(d){return {k:d[0],x:d[2],get h(){return (window.durHours199?durHours199(d[0]):d[1])+' Jam'}}});
   /* katalog demo — nanti diambil dari menu Pengaturan Layanan */
   var CAT=[
     {n:'Kiloan',ic:'Kiloan',proc:['Cuci','Kering','Setrika'],items:[
@@ -7664,7 +7664,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
     if(disc)c.dataset.disc=disc;
     var b=c.querySelector('.g62-order-body div b'); if(b&&name)b.textContent=name;
     if(!c.dataset.g126){var g=(window.CUST_GENDER126||{})[String(name).toLowerCase()]||(/siti|rahma|dewi|fitri|nisa|putri|ayu|rina|indah|lina|rani|sari|maya|nadia/i.test(name)?'female':'male');var av=c.querySelector('.gy75-person');if(av&&window.avatar126){av.className='g62-basket gy75-person '+g;av.innerHTML='<div class="v82-avatar v82-'+g+'">'+avatar126(g)+'</div>'}}
-    var hh=/Kilat/.test(durl)?6:/Express|Ekspres/.test(durl)?24:72, now=new Date(), due=new Date(now.getTime()+hh*3600e3);
+    var hh=window.durHours199?durHours199(durl):(/Kilat/.test(durl)?6:/Express|Ekspres/.test(durl)?24:72), now=new Date(), due=new Date(now.getTime()+hh*3600e3);
     var sp=c.querySelectorAll('.v87-order-meta span'); if(sp[0])sp[0].textContent='Masuk: '+pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear(); if(sp[1])sp[1].textContent='Est: '+due.getDate()+' '+BLN[due.getMonth()]+' '+due.getFullYear()+(hh<24?' '+pad(due.getHours())+':'+pad(due.getMinutes()):'');
     var sm=c.querySelectorAll('.g62-order-body div>small'); if(sm[1])sm[1].textContent='Estimasi · '+pad(due.getDate())+'/'+pad(due.getMonth()+1)+'/'+due.getFullYear()+' · '+pad(due.getHours())+':'+pad(due.getMinutes());
     var ch=c.querySelectorAll('.chip91'); var hand=(($('f61-handover')||{}).value||'Datang Langsung'); if(ch[1])ch[1].textContent=hand; if(/Antar/.test(hand))c.dataset.antar='1';
@@ -11336,6 +11336,57 @@ window.confirmUpgradePaid=()=>toast90('Pembelian belum tersedia. Google Play Bil
 window.selectUpgradePayment=window.placeOrder111=window.checkPay111=()=>toast90('Pembelian belum tersedia. Google Play Billing dan server akun perlu dihubungkan.');
 async function ready(){await Promise.all([new Promise(r=>setTimeout(r,950)),Promise.race([document.fonts?.ready||Promise.resolve(),new Promise(r=>setTimeout(r,2500))]),Promise.race([window.device178?device178.insets().then(r=>document.documentElement.style.setProperty('--goyana-safe-top',r.top+'px')).catch(()=>{}):Promise.resolve(),new Promise(r=>setTimeout(r,2500))])]);requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.classList.remove('boot180');$('boot180')?.remove()}))}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+})();
+</script>
+
+<script>
+/* v199 — 3 durasi utama (Reguler/Express/Kilat) tampil di Pengaturan Durasi & jamnya bisa diubah.
+   Jam disimpan di kunci 'goyana-durations199' dan dipakai untuk label durasi & estimasi selesai. */
+(function(){
+  var KEY='goyana-durations199', BASE=[['Reguler',72],['Express',24],['Kilat',6]];
+  function load(){var o={};try{o=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){o={}}var r={};BASE.forEach(function(b){var h=parseInt(o[b[0]],10);r[b[0]]=h>0?h:b[1]});return r}
+  function key(n){n=String(n||'');return /Kilat/i.test(n)?'Kilat':/Express|Ekspres/i.test(n)?'Express':'Reguler'}
+  window.durHours199=function(n){return load()[key(n)]};
+  function setT(el,v){if(el&&el.textContent!==v)el.textContent=v}
+  function refresh(){
+    var H=load();
+    // Sheet "Pilih Durasi" di Tambah Transaksi.
+    document.querySelectorAll('#f61-duration button').forEach(function(b){var k=(b.querySelector('b')||{}).textContent;if(!H[k])return;setT(b.querySelector('small'),H[k]+' Jam');var oc="f61ChooseDuration('"+k+" · "+H[k]+" Jam')";if(b.getAttribute('onclick')!==oc)b.setAttribute('onclick',oc)});
+    // Tab durasi di daftar layanan.
+    document.querySelectorAll('#dur116 button[data-k]').forEach(function(b){var sm=b.querySelector('small'),k=b.dataset.k;if(H[k])setT(sm,H[k]+' Jam')});
+    var lbl=document.getElementById('f61-duration-label');if(lbl){var m=/^(Reguler|Express|Kilat) · \d+ Jam$/.exec(lbl.textContent.trim());if(m)setT(lbl,m[1]+' · '+H[m[1]]+' Jam')}
+    // Varian harga di Layanan & Harga.
+    document.querySelectorAll('.v99').forEach(function(v){var k=(v.querySelector('div>b')||{}).textContent,sm=v.querySelector('div>small');if(sm&&H[k]&&/^\d+ jam$/i.test(sm.textContent.trim()))setT(sm,H[k]+' jam')});
+  }
+  window.refreshDurations199=refresh;
+  var mine=new WeakSet(); // baris 3 durasi utama (salinan untuk durasi tambahan tidak ikut)
+  function row(k,h){
+    var tpl=window.durationTemplate176;var n=tpl?tpl.cloneNode(true):null;
+    if(!n){n=document.createElement('div');n.className='duration-row';n.innerHTML='<div><strong></strong><b></b></div><div class="actions"><button class="edit">✎</button><button class="del">⌫</button></div>'}
+    mine.add(n);n.dataset.base199=k;n.querySelector('strong').innerHTML=h+' <small>jam</small>';n.querySelector('b').textContent=k;return n;
+  }
+  function renderPage(){
+    var wrap=document.querySelector('#duration .content');if(!wrap)return;var H=load();
+    wrap.querySelectorAll('.duration-row').forEach(function(r){if(mine.has(r))r.remove();else delete r.dataset.base199});
+    var add=wrap.querySelector('.primary'),after=add?add.nextSibling:wrap.firstChild;
+    BASE.forEach(function(b){wrap.insertBefore(row(b[0],H[b[0]]),after)});
+    var e=wrap.querySelector('.empty176');if(e)e.hidden=true;
+  }
+  window.renderDurations199=renderPage;
+  function save(k,h){var o=load();o[k]=h;try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}renderPage();refresh()}
+  // Edit/Hapus pada 3 durasi utama (dijalankan sebelum penangan umum di document).
+  window.addEventListener('click',function(e){
+    var btn=e.target.closest&&e.target.closest('#duration .duration-row .edit,#duration .duration-row .del');if(!btn||!mine.has(btn.closest('.duration-row')))return;
+    e.stopPropagation();e.preventDefault();
+    var k=btn.closest('.duration-row').dataset.base199,h=load()[k];
+    if(btn.classList.contains('del')){toast90('Durasi '+k+' tidak bisa dihapus. Matikan per layanan di Pengaturan → Layanan & Harga.');return}
+    formSheet107('Edit Durasi '+k,'',[{label:'Lama pengerjaan (jam)',value:h,num:1,req:1}],'Simpan',function(v){var n=parseInt(v[0],10);if(!(n>0)){toast90('Isi jam dengan angka lebih dari 0');return false}save(k,n);toast90('Durasi '+k+' jadi '+n+' jam')});
+  },true);
+  var oldOpen=window.openPage;window.openPage=function(id){oldOpen.apply(this,arguments);if(id==='duration')renderPage();refresh()};
+  // Bagian yang dibuat belakangan (tab durasi, varian layanan baru) ikut diperbarui.
+  var t=0;new MutationObserver(function(){if(t)return;t=setTimeout(function(){t=0;refresh()},60)}).observe(document.body,{childList:true,subtree:true});
+  function init(){renderPage();refresh()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 

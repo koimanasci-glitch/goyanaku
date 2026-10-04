@@ -347,6 +347,14 @@ try{
   await p.evaluate(i=>__goyanaMirror('duration','button',i),editIdx);
   await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.sheet&&m.sheet.mirror&&/Edit Durasi/.test(JSON.stringify(m.sheet.mirror.box))},null,{timeout:3000});
   await p.evaluate(()=>closeSheet91('gs107'));await p.waitForTimeout(200);
+  // 3 durasi utama selalu tampil di Pengaturan Durasi; Edit membuka form jam (tersimpan & dipakai label durasi).
+  assert.ok(/Reguler/.test(durJson)&&/Express/.test(durJson)&&/Kilat/.test(durJson),'base durations listed');
+  const exIdx=await p.evaluate(()=>[...document.querySelectorAll('#duration button')].findIndex(b=>b.classList.contains('edit')&&/Express/.test(b.closest('.duration-row').textContent)));
+  await p.evaluate(i=>__goyanaMirror('duration','button',i),exIdx);
+  await p.waitForFunction(()=>{const m=JSON.parse(window.GoyanaNative.__events.at(-1));return m.sheet&&m.sheet.mirror&&/Edit Durasi Express/.test(JSON.stringify(m.sheet.mirror.box))},null,{timeout:3000});
+  await p.evaluate(()=>{__goyanaForm('gs107','input',0,'12');const r=document.querySelector('#gs107 .sheet91-box')||document.querySelector('#gs107');__goyanaForm('gs107','button',[...r.querySelectorAll('button')].findIndex(b=>/Simpan/.test(b.textContent)))});
+  await p.waitForFunction(()=>/Express12Jam/.test(document.querySelector('#f61-duration').textContent.replace(/\s+/g,'')),null,{timeout:3000});
+  await p.evaluate(()=>{localStorage.removeItem('goyana-durations199');renderDurations199();refreshDurations199()});
   await p.evaluate(()=>{const r=[...document.querySelectorAll('#duration .duration-row')].find(r=>/Super Kilat/.test(r.textContent));r&&r.remove()});
   console.log('PASS Keuangan (kategori), Diskon native; Durasi + form sheet from the HTML mirror');
   // Shared sheets also open natively above custom native pages (Pelanggan → Urutkan).

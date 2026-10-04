@@ -214,3 +214,11 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Tes: uji jembatan 31 PASS (ditambah cek ikon & Edit Durasi); CI lulus; golden halaman/popup lain tidak berubah.
 - Commit: bc755e0, 2ae3ee1, 18c23e8, fda8e6b.
 - Temuan aturan HTML (tanya Koko, BELUM diubah): daftar Durasi di HTML tidak disimpan. Saat aplikasi dibuka daftarnya kosong ("Belum ada data"), dan durasi yang ditambah hilang setelah aplikasi dibuka ulang. Pilihan Reguler/Express/Kilat di Tambah Transaksi berasal dari tempat lain, bukan dari daftar ini.
+
+### [Claude] Pengaturan Durasi — 3 durasi utama bisa diedit — 4 Okt 2026 11.30 WIB
+- Status: SELESAI
+- Permintaan Koko: Reguler/Express/Kilat harus muncul di Pengaturan Durasi dan bisa diedit, karena jam tiap laundry bisa beda.
+- Keputusan: yang bisa diubah hanya jam. Nama tetap karena dipakai sebagai kunci harga layanan dan laporan. Ketiganya tidak bisa dihapus; untuk mematikan, matikan per layanan di Layanan & Harga.
+- Jam disimpan di `goyana-durations199` (SQLite HP). Dipakai untuk label sheet "Pilih Durasi", tab durasi di daftar layanan, label varian di Layanan & Harga, dan estimasi selesai pesanan baru (masuk + jam).
+- File: `index.html` (blok v199 + 3 baris pemakai jam), `tests/flutter-bridge.cjs`, fixture `mirror_pages/duration.json`, `GOYANA-HANDOFF-DART.md` (catatan untuk GPT).
+- Tes: uji jembatan 31 PASS (termasuk edit Express via Flutter); uji browser: Express diubah ke 12 jam, tetap tersimpan setelah aplikasi dibuka ulang, dan estimasi pesanan Express = masuk + 12 jam.
