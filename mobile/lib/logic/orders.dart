@@ -13,6 +13,7 @@ const _proc = ['cuci', 'kering', 'setrika', 'packing'];
 const orderTabs = [
   ['Penjemputan', 'jemput'], ['Antrian', 'antrian'], ['Proses', 'proses'], ['Siap Ambil', 'siap'],
   ['Diantar', 'diantar'], ['Diambil', 'diambil'], ['Batal', 'batal'], ['Telat Ambil', 'telat'],
+  ['Belum Bayar', 'unpaid'], // keputusan Koko 4 Okt: semua pesanan belum lunas kecuali batal
 ];
 
 const _status = {
@@ -38,6 +39,7 @@ String _fmtMinutes(double min) {
 bool _inTab(Order o, String key) {
   final st = o.status;
   if (key == 'proses') return _proc.contains(st);
+  if (key == 'unpaid') return st != 'batal' && !o.isPaid;
   return st == key;
 }
 

@@ -120,6 +120,8 @@ Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
 ## 6. Aturan hitung yang sudah diputuskan Koko
 - Omset hari ini = jumlah penjualan sejak tutup kasir terakhir (ikut HTML).
 - **Diskon & voucher hanya memotong harga layanan; ongkir tidak ikut didiskon** (keputusan Koko 4 Okt).
+- **Pesanan belum bayar BOLEH diambil** (piutang). Tab Pesanan baru **"Belum Bayar"** (paling akhir, kunci `unpaid`) = semua pesanan belum lunas (Belum Bayar/DP) dari semua status kecuali batal. Sudah di HTML & `logic/orders.dart` (keputusan Koko 4 Okt).
+- **Kurir bisa menerima pembayaran:** tugas kurir (selain penjemputan) yang belum lunas punya tombol **Bayar** → membuka Terima Pembayaran pesanan itu (keputusan Koko 4 Okt).
 - **Estimasi selesai = waktu masuk + jam durasi yang dipilih.** Jam diambil dari Pengaturan Durasi, kunci `goyana-durations199`, contoh `{"Reguler":72,"Express":24,"Kilat":6}`. Kunci yang tidak ada berarti bawaan 72/24/6. HTML memakai `durHours199(nama)`, dan Dart wajib memakai sumber yang sama.
 - Berat kiloan boleh desimal, pakai koma atau titik.
 - Input berat: hanya angka dengan satu koma/titik (`2,5`, `1.5`, `,5`). Minus (`-2,5`) dan dua pemisah (`1,2,3`) DITOLAK dengan peringatan (keputusan Koko 4 Okt).

@@ -5314,12 +5314,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   window.advanceOrder91=function(btn,e){if(e)e.stopPropagation();var c=btn.closest('.g62-ordercard');if(c)next(c)};
   function inTab(c){var st=c.dataset.st,k=tabKey;
+    // v199 (keputusan Koko 4 Okt): tab Belum Bayar = semua pesanan belum lunas (Belum Bayar/DP) dari semua status, kecuali batal.
+    if(k==='unpaid')return st!=='batal'&&/Belum|DP/.test((c.querySelector('strong em')||{}).textContent||'');
     if(k==='jemput')return subKey==='sudah'?c.dataset.picked==='1':st==='jemput';
     if(k==='proses')return subKey?st===subKey:PROC.indexOf(st)>-1;
     if(k==='siap'||k==='diambil'||k==='telat'){if(st!==k)return false;return subKey==='unpaid'?/Belum|DP/.test((c.querySelector('strong em')||{}).textContent||''):true}
     return st===k}
   function counts(){var cards=[].slice.call(document.querySelectorAll('#orders .g62-ordercard'));
-    document.querySelectorAll('#orders .tabs108 button').forEach(function(b){var k=b.dataset.k,n=cards.filter(function(c){var st=c.dataset.st;return k==='proses'?PROC.indexOf(st)>-1:st===k}).length;var i=b.querySelector('i');if(i)i.textContent=n})}
+    document.querySelectorAll('#orders .tabs108 button').forEach(function(b){var k=b.dataset.k,n=cards.filter(function(c){var st=c.dataset.st;return k==='proses'?PROC.indexOf(st)>-1:k==='unpaid'?(st!=='batal'&&/Belum|DP/.test((c.querySelector('strong em')||{}).textContent||'')):st===k}).length;var i=b.querySelector('i');if(i)i.textContent=n})}
   var SUBS={jemput:[['','Belum Dijemput'],['sudah','Sudah Dijemput']],siap:[['','Semua'],['unpaid','Belum Bayar']],telat:[['','Semua'],['unpaid','Belum Bayar']],diambil:[['','Semua'],['unpaid','Belum Bayar']]};
   function subs(){var box=document.getElementById('sub108');var l=SUBS[tabKey]||[];box.innerHTML=l.map(function(x){return '<button class="'+(x[0]===subKey?'on':'')+'" onclick="sub108(\''+x[0]+'\')">'+x[1]+'</button>'}).join('')}
   var EMPTY='<svg viewBox="0 0 200 130"><ellipse cx="100" cy="118" rx="80" ry="7" fill="#eef1f5"/><rect x="62" y="30" width="76" height="84" rx="10" fill="#e8edf4"/><rect x="62" y="30" width="76" height="16" rx="8" fill="#cfd8e3"/><circle cx="74" cy="38" r="3" fill="#E8493F"/><circle cx="100" cy="80" r="24" fill="#9aa7b8"/><circle cx="100" cy="80" r="18" fill="#dbeefc"/><path d="M92 86c3-4 13-4 16 0" stroke="#5b6479" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="94" cy="76" r="2" fill="#5b6479"/><circle cx="106" cy="76" r="2" fill="#5b6479"/><path d="M150 40c8-4 16 0 14 8" stroke="#cfd8e3" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
@@ -8557,6 +8559,9 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   /* tab baru setelah Batal */
   var bt=document.querySelector('#orders .tabs108 button[data-k=batal]');
   if(bt&&!document.querySelector('#orders .tabs108 button[data-k=telat]'))bt.insertAdjacentHTML('afterend','<button data-k="telat" onclick="tab108(this)">Telat Ambil <i>0</i></button>');
+  /* v199: tab Belum Bayar paling akhir (keputusan Koko 4 Okt) */
+  var tt=document.querySelector('#orders .tabs108 button[data-k=telat]');
+  if(tt&&!document.querySelector('#orders .tabs108 button[data-k=unpaid]'))tt.insertAdjacentHTML('afterend','<button data-k="unpaid" onclick="tab108(this)">Belum Bayar <i>0</i></button>');
   var sub=$('sub108');
   if(sub&&!$('tl140'))sub.insertAdjacentHTML('afterend','<div class="tl140" id="tl140"><span>⏰ Pesanan <b>Siap Ambil</b> otomatis pindah ke sini setelah</span><select id="tl140-d" onchange="telatDays140(this.value)"><option value="3">3 hari</option><option value="5">5 hari</option><option value="7" selected>7 hari</option><option value="14">14 hari</option></select></div>');
   function cards(){return [].slice.call(document.querySelectorAll('#orders .g62-ordercard'))}

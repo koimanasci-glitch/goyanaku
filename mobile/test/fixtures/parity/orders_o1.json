@@ -61,6 +61,11 @@
 "t": "Telat Ambil",
 "n": "0",
 "on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": false
 }
 ],
 "cards": [
@@ -154,6 +159,11 @@
 "t": "Telat Ambil",
 "n": "0",
 "on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": false
 }
 ],
 "cards": [
@@ -245,6 +255,11 @@
 "t": "Telat Ambil",
 "n": "0",
 "on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": false
 }
 ],
 "cards": [
@@ -331,6 +346,11 @@
 {
 "t": "Telat Ambil",
 "n": "0",
+"on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
 "on": false
 }
 ],
@@ -430,6 +450,11 @@
 "t": "Telat Ambil",
 "n": "0",
 "on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": false
 }
 ],
 "cards": [],
@@ -482,6 +507,11 @@
 {
 "t": "Telat Ambil",
 "n": "0",
+"on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
 "on": false
 }
 ],
@@ -570,6 +600,11 @@
 "t": "Telat Ambil",
 "n": "0",
 "on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": false
 }
 ],
 "cards": [
@@ -657,10 +692,144 @@
 "t": "Telat Ambil",
 "n": "0",
 "on": true
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": false
 }
 ],
 "cards": [],
 "empty": "Belum ada pesananPesanan dengan status \"Telat Ambil\" akan muncul di sini."
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
+"on": true
+}
+],
+"cards": [
+{
+"i": 0,
+"id": "GY-261003-0138",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Antrian",
+"bg": "rgb(255, 240, 241)",
+"c": "rgb(232, 73, 63)"
+},
+"name": "Lina",
+"lines": [],
+"amount": "Rp17.500",
+"pay": {
+"t": "Belum Bayar",
+"bg": "rgb(255, 240, 241)",
+"c": "rgb(216, 50, 63)"
+},
+"gender": "male",
+"auto": {
+"t": "⏱ 1j",
+"bg": "rgb(238, 244, 255)",
+"c": "rgb(43, 106, 166)"
+},
+"chips": [],
+"action": {
+"t": "Proses",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "antrian",
+"addr": "Jakarta"
+},
+{
+"i": 5,
+"id": "GY-261003-0133",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Proses",
+"bg": "rgb(238, 244, 255)",
+"c": "rgb(82, 117, 189)"
+},
+"name": "Budi",
+"lines": [],
+"amount": "Rp14.000",
+"pay": {
+"t": "Belum Bayar",
+"bg": "rgb(255, 240, 241)",
+"c": "rgb(216, 50, 63)"
+},
+"gender": "male",
+"auto": null,
+"chips": [],
+"action": {
+"t": "Tandai Siap ›",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "cuci",
+"addr": "Jakarta"
+}
+],
+"empty": ""
 }
 ],
 "search": {
@@ -713,6 +882,11 @@
 {
 "t": "Telat Ambil",
 "n": "0",
+"on": false
+},
+{
+"t": "Belum Bayar",
+"n": "2",
 "on": false
 }
 ],
