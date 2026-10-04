@@ -422,7 +422,7 @@ class _DurationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 14),
+        padding: const EdgeInsets.fromLTRB(2, 14, 2, 14),
         decoration: first
             ? null
             : const BoxDecoration(
