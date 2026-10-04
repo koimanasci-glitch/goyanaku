@@ -47,8 +47,8 @@ Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di a
 | A1 | Beranda (`logic/home.dart`) | SELESAI, terpasang |
 | A2 | Pesanan 8 tab + cari (`logic/orders.dart`) | SELESAI, terpasang |
 | A3a | Tambah Transaksi: keranjang | SELESAI, terpasang; input berat salah ketik ditolak (4 Okt) |
-| A3b | Tambah Transaksi: diskon, ongkir | Keputusan Koko: ongkir TIDAK ikut didiskon (HTML & fixture sudah). Sesuaikan Dart, pasang pengaman |
-| A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SIAP (8/8 tes), belum dipasang; dipasang sesudah A3b |
+| A3b | Tambah Transaksi: diskon, ongkir | SELESAI, terpasang (sesi 1, d6601f8); ongkir tidak ikut didiskon |
+| A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SIAP, belum dipasang. Fixture save_orders.json diperbarui 4 Okt: details.due kini ikut jam durasi (dulu selalu +72 jam). Sesuaikan Dart lalu pasang |
 | A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum |
 | A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum |
 | A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
