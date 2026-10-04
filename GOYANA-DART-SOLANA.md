@@ -47,7 +47,7 @@ Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di a
 | A1 | Beranda (`logic/home.dart`) | SELESAI, terpasang |
 | A2 | Pesanan 8 tab + cari (`logic/orders.dart`) | SELESAI, terpasang |
 | A3a | Tambah Transaksi: keranjang | SELESAI, terpasang; input berat salah ketik ditolak (4 Okt) |
-| A3b | Tambah Transaksi: diskon, ongkir | Dart & tes siap; MENUNGGU keputusan Koko: ongkir ikut didiskon atau tidak |
+| A3b | Tambah Transaksi: diskon, ongkir | Keputusan Koko: ongkir TIDAK ikut didiskon (HTML & fixture sudah). Sesuaikan Dart, pasang pengaman |
 | A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SIAP (8/8 tes), belum dipasang; dipasang sesudah A3b |
 | A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum |
 | A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum |
@@ -105,6 +105,7 @@ Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
 
 ## 6. Aturan hitung yang sudah diputuskan Koko
 - Omset hari ini = jumlah penjualan sejak tutup kasir terakhir (ikut HTML).
+- **Diskon & voucher hanya memotong harga layanan; ongkir tidak ikut didiskon** (keputusan Koko 4 Okt).
 - **Estimasi selesai = waktu masuk + jam durasi yang dipilih.** Jam diambil dari Pengaturan Durasi, kunci `goyana-durations199`, contoh `{"Reguler":72,"Express":24,"Kilat":6}`. Kunci yang tidak ada berarti bawaan 72/24/6. HTML memakai `durHours199(nama)`, dan Dart wajib memakai sumber yang sama.
 - Berat kiloan boleh desimal, pakai koma atau titik.
 - Input berat: hanya angka dengan satu koma/titik (`2,5`, `1.5`, `,5`). Minus (`-2,5`) dan dua pemisah (`1,2,3`) DITOLAK dengan peringatan (keputusan Koko 4 Okt).
@@ -112,7 +113,7 @@ Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
 ### Temuan salah hitung (menunggu keputusan Koko)
 | No | Temuan | HTML sekarang | Usulan benar | Status |
 |---|---|---|---|---|
-| 1 | Diskon persen "Semua layanan" ikut memotong ongkir | Rp14.000 + ongkir Rp6.000, diskon 10% → potong Rp2.000 | Diskon hanya dari layanan → potong Rp1.400, ongkir tetap Rp6.000 | menunggu Koko |
+| 1 | Diskon persen "Semua layanan" ikut memotong ongkir | Rp14.000 + ongkir Rp6.000, diskon 10% → potong Rp2.000 | Diskon hanya dari layanan → potong Rp1.400, ongkir tetap Rp6.000 | DISETUJUI Koko 4 Okt; HTML dibetulkan (diskon & voucher), fixture 3b diperbarui |
 | 2 | Input berat `1,2,3` | diterima sebagai 1,2 | ditolak, minta isi ulang | DISETUJUI Koko 4 Okt; HTML sudah dibetulkan (toast "Angka tidak sah") |
 | 3 | Input berat `-2,5` | minus dibuang jadi 2,5 | ditolak (berat tidak boleh minus) | DISETUJUI Koko 4 Okt; HTML sudah dibetulkan (toast "Berat tidak boleh minus") |
 

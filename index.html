@@ -6972,7 +6972,9 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
 
   /* ---------- pakai di transaksi (Atur Pesanan) ---------- */
   var UNIT={Kiloan:'kg',Satuan:'pcs',Meteran:'m'};
-  function base(d){var cart=(typeof f61!=='undefined'&&f61.cart)||[];if(d.scope==='Semua layanan'||!cart.length)return f61.total||0;
+  // v199 (keputusan Koko 4 Okt): diskon hanya dari harga layanan, ongkir tidak ikut didiskon.
+  function svc(){return Math.max(0,(f61.total||0)-(Number(f61._transport183)||0))}
+  function base(d){var cart=(typeof f61!=='undefined'&&f61.cart)||[];if(d.scope==='Semua layanan'||!cart.length)return svc();
     return cart.filter(function(c){return c.unit===UNIT[d.scope]}).reduce(function(a,c){return a+Math.round(c.qty*c.price)},0)}
   function amount(d){var b=base(d);if(!b)return 0;return Math.min(b,d.type==='p'?Math.round(b*d.val/100):d.val)}
   function dsel(){var sels=document.querySelectorAll('#f61-options select');return sels[2]}
@@ -7267,7 +7269,8 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   },true);
   var oldPay=window.f61Payment;
   window.f61Payment=function(){oldPay();var s=dsel(),x=window.vc130sel;if(!s||s.value!=='voucher'||!x){return}
-    var a=Math.min(f61.total||0,x.type==='p'?Math.round((f61.total||0)*x.val/100):x.val);window.disc127={amt:a,pct:x.type==='p'?x.val:0,name:'Voucher '+x.code};window.vc130used=x;
+    var sv=Math.max(0,(f61.total||0)-(Number(f61._transport183)||0)); // v199: ongkir tidak ikut didiskon
+    var a=Math.min(sv,x.type==='p'?Math.round(sv*x.val/100):x.val);window.disc127={amt:a,pct:x.type==='p'?x.val:0,name:'Voucher '+x.code};window.vc130used=x;
     var t=('Rp '+Math.max(0,(f61.total||0)-a).toLocaleString('id-ID'));['f61-payamount','f61-qramount'].forEach(function(id){var e=$(id);if(e)e.textContent=t});
     var box=document.querySelector('#f61-payment .f61-paytotal span');if(box&&!/Voucher/.test(box.textContent))box.textContent+=' · Voucher '+x.code+' −'+rp(a)};
   var oo=window.openPage; window.openPage=function(id){oo.apply(this,arguments);if(id==='addorder'){window.vc130sel=null;window.vc130used=null}};
