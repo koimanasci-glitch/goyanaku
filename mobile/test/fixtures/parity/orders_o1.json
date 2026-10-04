@@ -1,0 +1,768 @@
+{
+"now": "2026-10-03T03:00:45.545Z",
+"store": {
+"goyana-perfumes178": "[[\"Akasia\",\"rgb(233, 185, 73)\"],[\"Junjung Buih\",\"rgb(90, 169, 230)\"],[\"Lavender\",\"rgb(155, 122, 224)\"],[\"Ocean\",\"rgb(43, 179, 163)\"],[\"Sakura\",\"rgb(240, 122, 160)\"]]",
+"goyana-trial190": "{\"start\":\"2026-10-03T03:00:00.581Z\",\"until\":\"2026-12-03T03:00:00.581Z\"}",
+"goyana-qris-dynamic186": "1",
+"goyana-active-outlet180": "\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\"",
+"goyana-services158": "[{\"key\":\"cuci baju\",\"name\":\"Cuci Baju\",\"unit\":\"kg\",\"prices\":{\"Reguler\":7000,\"Express\":10500,\"Kilat\":14000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"sprei\",\"name\":\"Sprei\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":15000,\"Express\":22500,\"Kilat\":30000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"boneka\",\"name\":\"Boneka\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":20000,\"Express\":30000,\"Kilat\":40000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"bedcover\",\"name\":\"Bedcover\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":30000,\"Express\":45000,\"Kilat\":60000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"karpet\",\"name\":\"Karpet\",\"unit\":\"m\",\"prices\":{\"Reguler\":15000,\"Express\":22500,\"Kilat\":30000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"gorden\",\"name\":\"Gorden\",\"unit\":\"m\",\"prices\":{\"Reguler\":12000,\"Express\":18000,\"Kilat\":24000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"sepatu\",\"name\":\"Sepatu\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":35000,\"Express\":52500,\"Kilat\":70000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"setrika\",\"name\":\"Setrika\",\"unit\":\"kg\",\"prices\":{\"Reguler\":5000,\"Express\":7500,\"Kilat\":10000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"selimut\",\"name\":\"Selimut\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":20000,\"Express\":30000,\"Kilat\":40000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]},{\"key\":\"jas\",\"name\":\"Jas\",\"unit\":\"pcs\",\"prices\":{\"Reguler\":35000,\"Express\":52500,\"Kilat\":70000},\"enabled\":{\"Reguler\":true,\"Express\":true,\"Kilat\":true},\"proc\":[\"Cuci\",\"Kering\",\"Setrika\",\"Packing\"]}]",
+"goyana-seed178": "1",
+"goyana-qris-options185": "{\"dynamic\":true}",
+"goyana-business177": "{\"orders\":[{\"dataset\":{\"v108\":\"1\",\"st\":\"antrian\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":2.5}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:17.005Z\",\"method177\":\"Tunai\",\"paid177\":\"0\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[]\",\"outlet180\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"w133\":\"1\",\"ts133\":\"1790996417005\",\"w138\":\"1\",\"w141\":\"1\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0138\"],[\"Lina\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":17500,\"payment\":\"Belum Bayar\",\"paid\":false,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"diambil\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":1}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:07.429Z\",\"method177\":\"Tunai\",\"paid177\":\"7000\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[{\\\"m\\\":\\\"Tunai\\\",\\\"a\\\":7000,\\\"at\\\":\\\"2026-10-03T03:00:07.429Z\\\"}]\",\"outlet180\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"w133\":\"1\",\"ts133\":\"1790996412893\",\"w138\":\"1\",\"w141\":\"1\",\"auto133\":\"\",\"siap138\":\"1790996411961\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0137\"],[\"Agus\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":7000,\"payment\":\"Lunas\",\"paid\":true,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"batal\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":4}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:06.629Z\",\"method177\":\"Transfer\",\"paid177\":\"28000\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[{\\\"m\\\":\\\"Transfer\\\",\\\"a\\\":28000,\\\"at\\\":\\\"2026-10-03T03:00:06.629Z\\\"}]\",\"outlet180\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"w133\":\"1\",\"ts133\":\"1790996414697\",\"w138\":\"1\",\"w141\":\"1\",\"auto133\":\"\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0136\"],[\"Dewi\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":28000,\"payment\":\"Lunas\",\"paid\":true,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"jemput\",\"antar\":\"1\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":5}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:05.814Z\",\"method177\":\"QRIS\",\"paid177\":\"35000\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[{\\\"m\\\":\\\"QRIS\\\",\\\"a\\\":35000,\\\"at\\\":\\\"2026-10-03T03:00:05.814Z\\\"}]\",\"outlet180\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"transport183\":\"0\",\"transportType183\":\"roundtrip\",\"w133\":\"1\",\"ts133\":\"1790996405814\",\"w138\":\"1\",\"w141\":\"1\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0135\"],[\"Koko\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":35000,\"payment\":\"Lunas\",\"paid\":true,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Jemput & Antar\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"siap\",\"antar\":\"1\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":3}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:05.014Z\",\"method177\":\"Tunai\",\"paid177\":\"21000\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[{\\\"m\\\":\\\"Tunai\\\",\\\"a\\\":21000,\\\"at\\\":\\\"2026-10-03T03:00:05.014Z\\\"}]\",\"outlet180\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"transport183\":\"0\",\"transportType183\":\"delivery\",\"w133\":\"1\",\"ts133\":\"1790996409661\",\"w138\":\"1\",\"w141\":\"1\",\"auto133\":\"\",\"siap138\":\"1790996409661\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0134\"],[\"Sari\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":21000,\"payment\":\"Lunas\",\"paid\":true,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Antar\",\"hidden\":false},{\"text\":\"💬 Kabari WA\",\"hidden\":false}]},{\"dataset\":{\"v108\":\"1\",\"st\":\"cuci\",\"items\":\"[{\\\"n\\\":\\\"Cuci Baju\\\",\\\"ic\\\":\\\"Kiloan\\\",\\\"unit\\\":\\\"kg\\\",\\\"price\\\":7000,\\\"qty\\\":2}]\",\"v136\":\"1\",\"created177\":\"2026-10-03T03:00:04.198Z\",\"method177\":\"Tunai\",\"paid177\":\"0\",\"perfume178\":\"Tanpa Parfum\",\"payments178\":\"[]\",\"outlet180\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"w133\":\"1\",\"ts133\":\"1790996416105\",\"w138\":\"1\",\"w141\":\"1\",\"auto133\":\"\"},\"fields\":[[\"Reguler\"],[\"GY-261003-0133\"],[\"Budi\"],[\"Masuk · baru saja\",\"Estimasi · 06/10/2026 · 10:00\"],[],[]],\"total\":14000,\"payment\":\"Belum Bayar\",\"paid\":false,\"chips\":[{\"text\":\"Prioritas\",\"hidden\":true},{\"text\":\"Datang Langsung\",\"hidden\":false}]}],\"details\":{\"GY-261003-0133\":{\"id\":\"GY-261003-0133\",\"name\":\"Budi\",\"phone\":\"6281200000001\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":0,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:04.198Z\",\"due\":\"2026-10-06T03:00:04.198Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:04.198Z\",\"by\":\"Kasir\"},{\"st\":\"cuci\",\"at\":\"2026-10-03T03:00:16.105Z\",\"by\":\"Koko\"}]},\"GY-261003-0134\":{\"id\":\"GY-261003-0134\",\"name\":\"Sari\",\"phone\":\"6281200000002\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":3}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":21000,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Diantar kurir\",\"masuk\":\"2026-10-03T03:00:05.014Z\",\"due\":\"2026-10-06T03:00:05.014Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:05.014Z\",\"by\":\"Kasir\"},{\"st\":\"cuci\",\"at\":\"2026-10-03T03:00:08.761Z\",\"by\":\"Koko\"},{\"st\":\"siap\",\"at\":\"2026-10-03T03:00:09.661Z\",\"by\":\"Koko\"}]},\"GY-261003-0135\":{\"id\":\"GY-261003-0135\",\"name\":\"Koko\",\"phone\":\"6285212348626\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":5}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":35000,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Diantar kurir\",\"masuk\":\"2026-10-03T03:00:05.814Z\",\"due\":\"2026-10-06T03:00:05.814Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:05.814Z\",\"by\":\"Kasir\"}]},\"GY-261003-0136\":{\"id\":\"GY-261003-0136\",\"name\":\"Dewi\",\"phone\":\"6281200000005\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":4}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":28000,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:06.629Z\",\"due\":\"2026-10-06T03:00:06.629Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:06.629Z\",\"by\":\"Kasir\"},{\"st\":\"batal\",\"at\":\"2026-10-03T03:00:14.697Z\",\"by\":\"Koko\",\"note\":\"Pelanggan membatalkan\"}]},\"GY-261003-0137\":{\"id\":\"GY-261003-0137\",\"name\":\"Agus\",\"phone\":\"6281200000006\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":1}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":7000,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:07.429Z\",\"due\":\"2026-10-06T03:00:07.429Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:07.429Z\",\"by\":\"Kasir\"},{\"st\":\"cuci\",\"at\":\"2026-10-03T03:00:11.061Z\",\"by\":\"Koko\"},{\"st\":\"siap\",\"at\":\"2026-10-03T03:00:11.961Z\",\"by\":\"Koko\"},{\"st\":\"diambil\",\"at\":\"2026-10-03T03:00:12.893Z\",\"by\":\"Koko\"}]},\"GY-261003-0138\":{\"id\":\"GY-261003-0138\",\"name\":\"Lina\",\"phone\":\"6281200000010\",\"dur\":\"Reguler\",\"items\":[{\"n\":\"Cuci Baju\",\"ic\":\"Kiloan\",\"unit\":\"kg\",\"price\":7000,\"qty\":2.5}],\"discKey\":\"0\",\"ongkir\":0,\"paid\":0,\"perfume\":\"Tanpa Parfum\",\"note\":\"-\",\"handover\":\"Datang Langsung\",\"masuk\":\"2026-10-03T03:00:17.005Z\",\"due\":\"2026-10-06T03:00:17.005Z\",\"photos\":{\"in\":[],\"out\":[]},\"hist\":[{\"st\":\"antrian\",\"at\":\"2026-10-03T03:00:17.005Z\",\"by\":\"Kasir\"}]}},\"deposits178\":{},\"kas\":{\"start\":0,\"openAt\":\"\",\"kasir\":\"\",\"outlet\":\"Uji\",\"sales\":[{\"m\":\"Tunai\",\"a\":21000,\"id\":\"GY-261003-0134\",\"at\":\"2026-10-03T03:00:05.014Z\"},{\"m\":\"QRIS\",\"a\":35000,\"id\":\"GY-261003-0135\",\"at\":\"2026-10-03T03:00:05.814Z\"},{\"m\":\"Transfer\",\"a\":28000,\"id\":\"GY-261003-0136\",\"at\":\"2026-10-03T03:00:06.629Z\"},{\"m\":\"Tunai\",\"a\":7000,\"id\":\"GY-261003-0137\",\"at\":\"2026-10-03T03:00:07.429Z\"}],\"ins\":[],\"outs\":[],\"hist\":[],\"den\":{},\"phys\":null,\"qrisReal\":\"\",\"tfReal\":\"\",\"setor\":null,\"voided\":[],\"outsVoid\":[]},\"customers\":[{\"name\":\"Budi\",\"phone\":\"081200000001\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Sari\",\"phone\":\"081200000002\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Koko\",\"phone\":\"085212348626\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Dewi\",\"phone\":\"081200000005\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Agus\",\"phone\":\"081200000006\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"},{\"name\":\"Lina\",\"phone\":\"081200000010\",\"address\":\"\",\"gender\":\"male\",\"maps\":\"\"}]}",
+"goyana-outlets180": "[{\"id\":\"outlet180-3cf7b367-7bac-4e02-96eb-0896a38db041\",\"name\":\"Uji\",\"address\":\"Jakarta\",\"phone\":\"081234567890\",\"logo\":\"\"}]",
+"goyana-empty-version": "176"
+},
+"tabs": [
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": true
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 3,
+"id": "GY-261003-0135",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Penjemputan",
+"bg": "rgb(238, 244, 255)",
+"c": "rgb(59, 111, 216)"
+},
+"name": "Koko",
+"lines": [],
+"amount": "Rp35.000",
+"pay": {
+"t": "Lunas",
+"bg": "rgb(234, 247, 228)",
+"c": "rgb(62, 138, 46)"
+},
+"gender": "male",
+"auto": null,
+"chips": [
+{
+"t": "Jemput & Antar",
+"bg": "rgb(243, 244, 247)",
+"c": "rgb(91, 95, 110)"
+}
+],
+"action": {
+"t": "Jemput ›",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "jemput",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": true
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 0,
+"id": "GY-261003-0138",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Antrian",
+"bg": "rgb(255, 240, 241)",
+"c": "rgb(232, 73, 63)"
+},
+"name": "Lina",
+"lines": [],
+"amount": "Rp17.500",
+"pay": {
+"t": "Belum Bayar",
+"bg": "rgb(255, 240, 241)",
+"c": "rgb(216, 50, 63)"
+},
+"gender": "male",
+"auto": {
+"t": "⏱ 1j",
+"bg": "rgb(238, 244, 255)",
+"c": "rgb(43, 106, 166)"
+},
+"chips": [],
+"action": {
+"t": "Proses",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "antrian",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": true
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 5,
+"id": "GY-261003-0133",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Proses",
+"bg": "rgb(238, 244, 255)",
+"c": "rgb(82, 117, 189)"
+},
+"name": "Budi",
+"lines": [],
+"amount": "Rp14.000",
+"pay": {
+"t": "Belum Bayar",
+"bg": "rgb(255, 240, 241)",
+"c": "rgb(216, 50, 63)"
+},
+"gender": "male",
+"auto": null,
+"chips": [],
+"action": {
+"t": "Tandai Siap ›",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "cuci",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": true
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 4,
+"id": "GY-261003-0134",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Siap Ambil",
+"bg": "rgb(232, 248, 240)",
+"c": "rgb(21, 136, 93)"
+},
+"name": "Sari",
+"lines": [],
+"amount": "Rp21.000",
+"pay": {
+"t": "Lunas",
+"bg": "rgb(234, 247, 228)",
+"c": "rgb(62, 138, 46)"
+},
+"gender": "male",
+"auto": null,
+"chips": [
+{
+"t": "Antar",
+"bg": "rgb(243, 244, 247)",
+"c": "rgb(91, 95, 110)"
+},
+{
+"t": "💬 Kabari WA",
+"bg": "rgb(232, 250, 240)",
+"c": "rgb(18, 138, 74)"
+}
+],
+"action": {
+"t": "Antar ›",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "siap",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": true
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [],
+"empty": "Belum ada pesananPesanan dengan status \"Diantar\" akan muncul di sini."
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": true
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 1,
+"id": "GY-261003-0137",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Diambil",
+"bg": "rgb(241, 243, 246)",
+"c": "rgb(91, 100, 121)"
+},
+"name": "Agus",
+"lines": [],
+"amount": "Rp7.000",
+"pay": {
+"t": "Lunas",
+"bg": "rgb(234, 247, 228)",
+"c": "rgb(62, 138, 46)"
+},
+"gender": "male",
+"auto": null,
+"chips": [],
+"action": {
+"t": "Selesai ✓",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(154, 160, 172)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "diambil",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": true
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 2,
+"id": "GY-261003-0136",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Batal",
+"bg": "rgb(241, 243, 246)",
+"c": "rgb(154, 161, 173)"
+},
+"name": "Dewi",
+"lines": [],
+"amount": "Rp28.000",
+"pay": {
+"t": "Lunas",
+"bg": "rgb(234, 247, 228)",
+"c": "rgb(62, 138, 46)"
+},
+"gender": "male",
+"auto": null,
+"chips": [],
+"action": {
+"t": "Dibatalkan",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(154, 160, 172)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "batal",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+},
+{
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": false
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": true
+}
+],
+"cards": [],
+"empty": "Belum ada pesananPesanan dengan status \"Telat Ambil\" akan muncul di sini."
+}
+],
+"search": {
+"q": "sari",
+"tab": 1,
+"model": {
+"title": "PESANAN",
+"auto": {
+"t": "Otomatis",
+"on": true
+},
+"search": "sari",
+"placeholder": "Cari nama / ID / no HP",
+"tabs": [
+{
+"t": "Penjemputan",
+"n": "1",
+"on": false
+},
+{
+"t": "Antrian",
+"n": "1",
+"on": true
+},
+{
+"t": "Proses",
+"n": "1",
+"on": false
+},
+{
+"t": "Siap Ambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Diantar",
+"n": "0",
+"on": false
+},
+{
+"t": "Diambil",
+"n": "1",
+"on": false
+},
+{
+"t": "Batal",
+"n": "1",
+"on": false
+},
+{
+"t": "Telat Ambil",
+"n": "0",
+"on": false
+}
+],
+"cards": [
+{
+"i": 4,
+"id": "GY-261003-0134",
+"dur": {
+"t": "Reguler",
+"bg": "rgb(241, 242, 245)",
+"c": "rgb(91, 95, 110)"
+},
+"status": {
+"t": "Siap Ambil",
+"bg": "rgb(232, 248, 240)",
+"c": "rgb(21, 136, 93)"
+},
+"name": "Sari",
+"lines": [],
+"amount": "Rp21.000",
+"pay": {
+"t": "Lunas",
+"bg": "rgb(234, 247, 228)",
+"c": "rgb(62, 138, 46)"
+},
+"gender": "male",
+"auto": null,
+"chips": [
+{
+"t": "Antar",
+"bg": "rgb(243, 244, 247)",
+"c": "rgb(91, 95, 110)"
+},
+{
+"t": "💬 Kabari WA",
+"bg": "rgb(232, 250, 240)",
+"c": "rgb(18, 138, 74)"
+}
+],
+"action": {
+"t": "Antar ›",
+"bg": "rgb(232, 73, 63)",
+"c": "rgb(255, 255, 255)"
+},
+"maps": "https://www.google.com/maps/search/?api=1&query=Jakarta",
+"st": "siap",
+"addr": "Jakarta"
+}
+],
+"empty": ""
+}
+}
+}
