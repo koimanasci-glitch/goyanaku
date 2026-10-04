@@ -1,9 +1,10 @@
-# GOYANA: perintah kerja Dart (mode SOLANA, satu per satu)
+# GOYANA: perintah kerja (satu bagian per putaran)
 
 Untuk AI yang melanjutkan migrasi logika ke Dart. Baca sampai habis sebelum mulai.
 
-## 0. Mode kerja: SOLANA, bukan ASTRA
-- Pakai **Solana**. **Jangan pakai Astra** (jangan mengerjakan banyak bagian sekaligus atau paralel).
+## 0. Mode kerja
+- Mode Solana atau Astra boleh, ikut setelan yang dipakai Koko (contoh: mode work = Astra).
+- Apa pun modenya: **jangan mengerjakan banyak bagian sekaligus atau paralel dalam satu sesi.**
 - **Satu bagian per putaran kerja.** Selesaikan, tes, commit, tulis laporan, lalu BERHENTI dan tunggu Koko bilang "lanjut".
 - Jangan menyentuh bagian lain "sekalian". Kalau menemukan masalah di luar bagian yang dikerjakan, cukup **catat** di laporan.
 
@@ -36,25 +37,59 @@ Untuk AI yang melanjutkan migrasi logika ke Dart. Baca sampai habis sebelum mula
 
 Kalau perlu mengubah file di luar daftar ini, **berhenti dan tanya Koko dulu**.
 
-## 4. Urutan bagian (kerjakan berurutan, satu per satu)
+## 4. Peta lengkap sampai SEMPURNA (Flutter murni, tanpa HTML)
+Target akhir (keputusan Koko 4 Okt: "saya mau perfek semuanya"): aplikasi 100% Flutter + Dart, HTML/WebView dicabut, tampilan sama dengan sekarang, dan semua hitungan BENAR.
+Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di akhir.
+
+### Jalur A: Hitungan ke Dart (sesi Dart)
 | No | Bagian | Status |
 |---|---|---|
-| 1 | Beranda (`logic/home.dart`) | SELESAI, terpasang |
-| 2 | Pesanan 8 tab + cari (`logic/orders.dart`) | SELESAI, terpasang |
-| 3a | Tambah Transaksi: keranjang (jumlah, subtotal, harga per durasi) | SETENGAH JALAN (`logic/addorder.dart`, 37 tes). Pastikan semua lulus di CI, lalu pasang dengan pengaman. |
-| 3b | Tambah Transaksi: diskon, ongkir | belum |
-| 3c | Tambah Transaksi: nomor pesanan, estimasi selesai, simpan | belum |
-| 4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum |
-| 5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum |
-| 6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
-| 7 | Kas & Tutup Kasir | belum |
-| 8 | Laporan | belum |
-| 9 | Pelanggan, CRM, poin, voucher | belum |
-| 10 | Pengaturan (layanan/harga, parfum, diskon, outlet, pegawai, kurir, stok, printer, template WA) | belum |
-| 11 | Sinkron ke server Laravel (setelah VPS ada) | belum |
-| 12 | Cabut WebView/HTML: HANYA setelah semua lulus dan Koko setuju | belum |
+| A1 | Beranda (`logic/home.dart`) | SELESAI, terpasang |
+| A2 | Pesanan 8 tab + cari (`logic/orders.dart`) | SELESAI, terpasang |
+| A3a | Tambah Transaksi: keranjang | SELESAI, terpasang; input berat salah ketik ditolak (4 Okt) |
+| A3b | Tambah Transaksi: diskon, ongkir | Keputusan Koko: ongkir TIDAK ikut didiskon (HTML & fixture sudah). Sesuaikan Dart, pasang pengaman |
+| A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SIAP (8/8 tes), belum dipasang; dipasang sesudah A3b |
+| A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | belum |
+| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum |
+| A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
+| A7 | Kas & Tutup Kasir | belum |
+| A8 | Laporan (±40) | belum |
+| A9 | Pelanggan, CRM, poin, voucher | belum |
+| A10 | Pengaturan (layanan/harga, parfum, durasi, diskon, outlet, pegawai, kurir, stok, printer, template WA) | belum |
+| A11 | Sinkron ke server Laravel (setelah VPS ada) | belum |
 
-Bagian besar dipecah kecil (contoh 3a/3b/3c). **Satu putaran = satu baris tabel.**
+### Jalur B: Halaman & popup "cermin" jadi widget Flutter asli (sesi tampilan)
+Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus ditulis ulang sebagai widget Flutter biasa dengan bentuk PERSIS sama (bandingkan golden sebelum/sesudah, piksel harus sama atau beda tak terlihat). Satu halaman per putaran.
+| No | Halaman cermin | Status |
+|---|---|---|
+| B1 | Parfum (`perfume`) | belum |
+| B2 | Durasi (`duration`) | belum |
+| B3 | Pilih Layanan (`pickservice`) | belum |
+| B4 | Jemput (`pickup`) | belum |
+| B5 | Scan Pesanan (`orderscan`) | belum |
+| B6 | Status QR (`qrstatus`) | belum |
+| B7 | Harga Paket (`plan111`) | belum (tunggu hasil sesi desain dulu) |
+| B8 | Checkout Paket (`checkout111`) | belum |
+| B9 | Tagihan (`billing`) | belum |
+| B10 | Invoice (`invoice111`) | belum |
+| B11 | Otomasi WA (`waautomation`) | belum |
+| B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | belum |
+
+### Jalur C: Isi halaman formulir & popup native ke Dart
+±49 halaman formulir (Printer, Profil, Pegawai, Stok, CRM, Kurir, dst.) dan ±25 popup native: tampilannya sudah Flutter, tapi daftar isian (label, pilihan, nilai) masih dibaca dari HTML. Tulis daftar itu di Dart, satu kelompok halaman per putaran, bersamaan dengan bagian Jalur A yang terkait.
+
+### Jalur D: Cabut HTML
+| D1 | Uji penuh di HP nyata tanpa WebView (mode uji) | belum |
+| D2 | Cabut WebView/HTML dari APK: HANYA setelah A, B, C selesai dan Koko setuju | belum |
+
+Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
+
+## 4b. Peta halaman: NATIVE atau CERMIN (cek ini sebelum mengubah tampilan apa pun)
+| Jenis | Halaman | Bentuk diatur di | Cara mengubah tampilan |
+|---|---|---|---|
+| Native khusus | Beranda, Pesanan, Tambah Transaksi, Pelanggan, Laporan, Pengaturan, Kas, Tutup Kasir, Layanan, Rincian Pesanan | `mobile/lib/native/*_page.dart` | ubah widget Dart di file itu |
+| Native formulir | ±49 halaman di `_formPages` (shell.dart): Printer, Profil, Pegawai, Stok, CRM, Kurir, dll. | `mobile/lib/native/form_page.dart` (isi dari HTML) | ubah `form_page.dart` (berlaku ke semua formulir) |
+| CERMIN | perfume, duration, pickservice, pickup, orderscan, qrstatus, plan111 (Harga Paket), checkout111, billing, invoice111, waautomation + 16 popup di `MIRROR_SHEETS` (capacitor.js) | HTML/CSS tersembunyi, digambar `mirror_sheet.dart` | JANGAN ubah lewat CSS. Kalau perlu desain baru, tulis ulang jadi widget Flutter asli (Jalur B) sekaligus dengan desain barunya |
 
 ## 5. Langkah wajib untuk setiap bagian
 1. **Tangkap hasil HTML** dengan `tests/parity/capture.cjs` (jam palsu, skenario nyata).
@@ -77,6 +112,7 @@ Bagian besar dipecah kecil (contoh 3a/3b/3c). **Satu putaran = satu baris tabel.
 
 ## 6. Aturan hitung yang sudah diputuskan Koko
 - Omset hari ini = jumlah penjualan sejak tutup kasir terakhir (ikut HTML).
+- **Diskon & voucher hanya memotong harga layanan; ongkir tidak ikut didiskon** (keputusan Koko 4 Okt).
 - **Estimasi selesai = waktu masuk + jam durasi yang dipilih.** Jam diambil dari Pengaturan Durasi, kunci `goyana-durations199`, contoh `{"Reguler":72,"Express":24,"Kilat":6}`. Kunci yang tidak ada berarti bawaan 72/24/6. HTML memakai `durHours199(nama)`, dan Dart wajib memakai sumber yang sama.
 - Berat kiloan boleh desimal, pakai koma atau titik.
 - Input berat: hanya angka dengan satu koma/titik (`2,5`, `1.5`, `,5`). Minus (`-2,5`) dan dua pemisah (`1,2,3`) DITOLAK dengan peringatan (keputusan Koko 4 Okt).
@@ -84,7 +120,7 @@ Bagian besar dipecah kecil (contoh 3a/3b/3c). **Satu putaran = satu baris tabel.
 ### Temuan salah hitung (menunggu keputusan Koko)
 | No | Temuan | HTML sekarang | Usulan benar | Status |
 |---|---|---|---|---|
-| 1 | Diskon persen "Semua layanan" ikut memotong ongkir | Rp14.000 + ongkir Rp6.000, diskon 10% → potong Rp2.000 | Diskon hanya dari layanan → potong Rp1.400, ongkir tetap Rp6.000 | menunggu Koko |
+| 1 | Diskon persen "Semua layanan" ikut memotong ongkir | Rp14.000 + ongkir Rp6.000, diskon 10% → potong Rp2.000 | Diskon hanya dari layanan → potong Rp1.400, ongkir tetap Rp6.000 | DISETUJUI Koko 4 Okt; HTML dibetulkan (diskon & voucher), fixture 3b diperbarui |
 | 2 | Input berat `1,2,3` | diterima sebagai 1,2 | ditolak, minta isi ulang | DISETUJUI Koko 4 Okt; HTML sudah dibetulkan (toast "Angka tidak sah") |
 | 3 | Input berat `-2,5` | minus dibuang jadi 2,5 | ditolak (berat tidak boleh minus) | DISETUJUI Koko 4 Okt; HTML sudah dibetulkan (toast "Berat tidak boleh minus") |
 

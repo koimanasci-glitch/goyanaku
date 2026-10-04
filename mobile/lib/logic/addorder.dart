@@ -15,16 +15,25 @@ String _quantityText(num value) {
   return '${thousands(cents ~/ 100)}${fraction.isEmpty ? '' : ',$fraction'}';
 }
 
-/// Sama dengan input + val() v116: filter karakter, ganti koma pertama,
-/// parseFloat (awalan angka), lalu bulatkan dua desimal.
+/// Sama dengan input + raw()/bad()/val() HTML (v116 + v199): filter karakter (minus dibiarkan
+/// supaya bisa ditolak), lalu hanya angka dengan satu koma/titik yang sah. Selain itu = 0.
+String _quantityRaw(String input) => input.replaceAll(RegExp(r'[^0-9.,\-]'), '').replaceAll(RegExp(r'\s'), '');
+bool _quantityBad(String raw) => raw.isNotEmpty && !RegExp(r'^(\d+([.,]\d*)?|[.,]\d+)$').hasMatch(raw);
+
 double transactionQuantity(String input) {
-  final cleaned = input.replaceAll(RegExp(r'[^0-9.,]'), '').replaceFirst(',', '.');
-  final prefix = RegExp(r'^(?:\d+(?:\.\d*)?|\.\d+)').firstMatch(cleaned)?.group(0);
-  final n = double.tryParse(prefix ?? '') ?? 0;
+  final raw = _quantityRaw(input);
+  if (_quantityBad(raw)) return 0;
+  final n = double.tryParse(raw.replaceFirst(',', '.')) ?? 0;
   return _round(n * 100) / 100;
 }
 
-String? transactionQuantityError(double quantity, String unit) {
+/// Keputusan Koko 4 Okt: minus dan dua pemisah (contoh -2,5 / 1,2,3) ditolak dengan peringatan.
+String? transactionQuantityError(double quantity, String unit, {String? input}) {
+  if (input != null) {
+    final raw = _quantityRaw(input);
+    if (raw.contains('-')) return '${unit == 'kg' ? 'Berat' : 'Jumlah'} tidak boleh minus. Periksa lagi angkanya';
+    if (_quantityBad(raw)) return 'Angka tidak sah: "$raw". Pakai satu koma saja, contoh ${unit == 'pcs' ? '2' : '1,3'}';
+  }
   if (!(quantity > 0)) return 'Isi ${unit == 'kg' ? 'berat' : 'jumlah'} dulu, contoh ${unit == 'pcs' ? '2' : '1,3'}';
   if (unit == 'pcs' && quantity % 1 != 0) return 'Jumlah pcs harus bilangan bulat';
   if (quantity > 999) return 'Jumlah terlalu besar';
@@ -139,9 +148,9 @@ num _transportFee(String type, Map<String, dynamic> cfg) {
   return 0;
 }
 
-/// Diskon v127 + ongkir v183. Urutan sengaja mengikuti HTML apa adanya:
-/// ongkir masuk ke f61.total lebih dulu, sehingga diskon "Semua layanan" juga
-/// memotong ongkir. Diskon kategori hanya memakai subtotal unit kategorinya.
+/// Diskon v127 + ongkir v183. Keputusan Koko 4 Okt: diskon/voucher hanya
+/// memotong harga layanan. Ongkir ditambahkan ke total, tetapi tidak pernah
+/// masuk ke dasar diskon. Diskon kategori tetap memakai subtotal unitnya.
 Future<Map<String, dynamic>> transactionPricingModel(Business business, Map<String, dynamic> draft) async {
   final cart = _pricedCart(business, draft);
   final serviceSubtotal = cart.fold<int>(0, (sum, item) => sum + _round(_num(item['qty']) * _num(item['price'])));
@@ -168,7 +177,7 @@ Future<Map<String, dynamic>> transactionPricingModel(Business business, Map<Stri
       final scope = '${definition['scope'] ?? 'Semua layanan'}';
       final unit = const {'Kiloan': 'kg', 'Satuan': 'pcs', 'Meteran': 'm'}[scope];
       final base = scope == 'Semua layanan' || cart.isEmpty
-          ? gross
+          ? serviceSubtotal
           : cart.where((item) => item['unit'] == unit).fold<num>(0, (sum, item) => sum + _round(_num(item['qty']) * _num(item['price'])));
       final value = _num(definition['val']);
       final amount = definition['type'] == 'p' ? _round(base * value / 100) : (value < base ? value : base);

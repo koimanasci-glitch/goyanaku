@@ -409,7 +409,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       const store = DeviceKvStore();
       final b = await Business.load(store);
       final raw = await _web.runJavaScriptReturningResult(
-          'JSON.stringify({cart:(typeof f61!=="undefined"&&Array.isArray(f61.cart)?f61.cart:[]),catalog:(typeof catalog158!=="undefined"?catalog158:[]),duration:(typeof f61!=="undefined"&&f61.dur)||"Reguler"})');
+          'JSON.stringify((function(){'
+          'var ds=document.querySelectorAll("#f61-options select")[2];'
+          'return {cart:(typeof f61!=="undefined"&&Array.isArray(f61.cart)?f61.cart:[]),catalog:(typeof catalog158!=="undefined"?catalog158:[]),duration:(typeof f61!=="undefined"&&f61.dur)||"Reguler",handover:String(document.getElementById("f61-handover")?.value||""),discount:{value:String(ds?.value||""),manual:String(ds?.dataset.manual||""),definitions:(Array.isArray(window.DISC127)?window.DISC127:[])},htmlPricing:{discount:(window.disc127?{amt:Number(window.disc127.amt)||0,pct:Number(window.disc127.pct)||0,name:String(window.disc127.name||"")}:null),transport:{fee:(typeof f61!=="undefined"?Number(f61._transport183)||0:0),type:(typeof f61!=="undefined"?String(f61._transportType183||"none"):"none")}}};'
+          '})())');
       if (!mounted || seq != _addorderSeq) return;
       var text = raw.toString();
       try {
@@ -419,7 +422,29 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       final value = jsonDecode(text);
       if (value is! Map) return;
       final draft = Map<String, dynamic>.from(value);
-      final dart = addorderModel(b, draft, htmlModel);
+      final presentation = jsonDecode(jsonEncode(htmlModel)) as Map<String, dynamic>;
+      final sheet = presentation['sheet'];
+      if (sheet is Map && sheet['kind'] == 'payment') {
+        final dartPricing = await transactionPricingModel(b, draft);
+        if (!mounted || seq != _addorderSeq) return;
+        final htmlState = draft['htmlPricing'] is Map
+            ? Map<String, dynamic>.from(draft['htmlPricing'] as Map)
+            : <String, dynamic>{};
+        final htmlPricing = <String, dynamic>{
+          'total': '${sheet['total'] ?? ''}',
+          'discount': htmlState['discount'],
+          'transport': htmlState['transport'],
+        };
+        final hp = jsonDecode(jsonEncode(htmlPricing));
+        final dp = jsonDecode(jsonEncode(dartPricing));
+        if (jsonEncode(_stable(dp)) != jsonEncode(_stable(hp))) {
+          await _parityLog(store, 'addorder-3b', _stable(hp), _stable(dp));
+          return;
+        }
+        // Hanya setelah paritas 3b sama: angka pembayaran pada model native berasal dari Dart.
+        sheet['total'] = dartPricing['total'];
+      }
+      final dart = addorderModel(b, draft, presentation);
       final html = jsonDecode(jsonEncode(htmlModel));
       final d = jsonDecode(jsonEncode(dart));
       if (jsonEncode(_stable(d)) == jsonEncode(_stable(html))) {
