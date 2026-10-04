@@ -11,6 +11,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import '../core/business.dart';
 import '../core/store.dart';
 import '../logic/addorder.dart';
+import '../logic/addorder_save.dart';
 import '../logic/home.dart';
 import '../logic/orders.dart';
 import '../native/addorder_page.dart';
@@ -242,6 +243,9 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         }
         if (toast.isNotEmpty || page == null) _toast = toast;
       });
+      if (page == 'orders' && _addorderSavePending != null) {
+        unawaited(_addorderSaveFromDart());
+      }
     } catch (_) {/* ignore malformed events */}
   }
 
@@ -402,6 +406,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   }
 
   int _addorderSeq = 0;
+  Map<String, dynamic>? _addorderSavePending;
   Future<void> _addorderFromDart(Map<String, dynamic> htmlModel) async {
     final seq = ++_addorderSeq;
     if (htmlModel['stage'] != 'services') return;
@@ -411,7 +416,14 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       final raw = await _web.runJavaScriptReturningResult(
           'JSON.stringify((function(){'
           'var ds=document.querySelectorAll("#f61-options select")[2];'
-          'return {cart:(typeof f61!=="undefined"&&Array.isArray(f61.cart)?f61.cart:[]),catalog:(typeof catalog158!=="undefined"?catalog158:[]),duration:(typeof f61!=="undefined"&&f61.dur)||"Reguler",handover:String(document.getElementById("f61-handover")?.value||""),discount:{value:String(ds?.value||""),manual:String(ds?.dataset.manual||""),definitions:(Array.isArray(window.DISC127)?window.DISC127:[])},htmlPricing:{discount:(window.disc127?{amt:Number(window.disc127.amt)||0,pct:Number(window.disc127.pct)||0,name:String(window.disc127.name||"")}:null),transport:{fee:(typeof f61!=="undefined"?Number(f61._transport183)||0:0),type:(typeof f61!=="undefined"?String(f61._transportType183||"none"):"none")}}};'
+          'var perfume=document.querySelector("#f61-options select");'
+          'var priority=document.getElementById("f61-priority");'
+          'var durationLabel=document.getElementById("f61-duration-label");'
+          'var customer=document.querySelector("#f61-services .f61-customerbar div b");'
+          'var handover=document.getElementById("f61-handover");'
+          'var cart=(typeof f61!=="undefined"&&Array.isArray(f61.cart)?f61.cart:[]);'
+          'var duration=(typeof f61!=="undefined"&&f61.dur)||"Reguler";'
+          'return {cart:cart,catalog:(typeof catalog158!=="undefined"?catalog158:[]),duration:duration,handover:String(handover?.value||""),discount:{value:String(ds?.value||""),manual:String(ds?.dataset.manual||""),definitions:(Array.isArray(window.DISC127)?window.DISC127:[])},htmlPricing:{discount:(window.disc127?{amt:Number(window.disc127.amt)||0,pct:Number(window.disc127.pct)||0,name:String(window.disc127.name||"")}:null),transport:{fee:(typeof f61!=="undefined"?Number(f61._transport183)||0:0),type:(typeof f61!=="undefined"?String(f61._transportType183||"none"):"none")}},saveDraft:{name:String((typeof pickedName136!=="undefined"&&pickedName136)||customer?.textContent||"Pelanggan"),cart:cart,dur:duration,durationLabel:String(durationLabel?.textContent||duration),total:(typeof f61!=="undefined"?Number(f61.total)||0:0),payamount:String(document.getElementById("f61-payamount")?.textContent||""),priority:Boolean(priority?.checked),handover:String(handover?.value||"Datang Langsung"),perfume:String(perfume?.value||"Tanpa Parfum")}};'
           '})())');
       if (!mounted || seq != _addorderSeq) return;
       var text = raw.toString();
@@ -443,6 +455,34 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         }
         // Hanya setelah paritas 3b sama: angka pembayaran pada model native berasal dari Dart.
         sheet['total'] = dartPricing['total'];
+
+        // A3c: simpan keadaan sebelum HTML finish. HTML tetap menulis sekali lebih dulu;
+        // hasil Dart baru boleh mengganti blob yang sama bila snapshot penuh identik.
+        final saveDraft = draft['saveDraft'];
+        final beforeRaw = await store.get('goyana-business177');
+        if (!mounted || seq != _addorderSeq) return;
+        if (saveDraft is Map && beforeRaw != null) {
+          final beforeValue = jsonDecode(beforeRaw);
+          if (beforeValue is Map) {
+            final saveStore = <String, dynamic>{};
+            for (final key in const [
+              'goyana-durations199',
+              'goyana-active-outlet180',
+              'goyana-outlets180',
+            ]) {
+              final saved = await store.get(key);
+              if (saved != null) saveStore[key] = saved;
+            }
+            if (!mounted || seq != _addorderSeq) return;
+            _addorderSavePending = <String, dynamic>{
+              'before': Map<String, dynamic>.from(beforeValue),
+              'draft': Map<String, dynamic>.from(saveDraft),
+              'store': saveStore,
+            };
+            // Menutup celah bila pengguna sangat cepat menekan metode bayar.
+            if (_nativePage == 'orders') unawaited(_addorderSaveFromDart());
+          }
+        }
       }
       final dart = addorderModel(b, draft, presentation);
       final html = jsonDecode(jsonEncode(htmlModel));
@@ -453,6 +493,94 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         await _parityLog(store, 'addorder', _stable(html), _stable(d));
       }
     } catch (_) {/* tetap memakai HTML */}
+  }
+
+  Future<void> _addorderSaveFromDart() async {
+    final pending = _addorderSavePending;
+    if (pending == null) return;
+    // Event native dapat muncul lebih dari sekali; hanya satu guard yang boleh memproses transaksi ini.
+    _addorderSavePending = null;
+    try {
+      const store = DeviceKvStore();
+      final before = Map<String, dynamic>.from(pending['before'] as Map);
+      final saveDraft = Map<String, dynamic>.from(pending['draft'] as Map);
+      final saveStore = Map<String, dynamic>.from(pending['store'] as Map);
+      final beforeOrders = before['orders'] is List
+          ? List<dynamic>.from(before['orders'] as List)
+          : const <dynamic>[];
+
+      Map<String, dynamic>? html;
+      // GoyanaStore menulis ke SQLite; beri waktu singkat sampai hasil HTML benar-benar terlihat.
+      for (var attempt = 0; attempt < 12; attempt++) {
+        final raw = await store.get('goyana-business177');
+        if (raw != null) {
+          final value = jsonDecode(raw);
+          if (value is Map) {
+            final candidate = Map<String, dynamic>.from(value);
+            final orders = candidate['orders'] as List? ?? const [];
+            if (orders.length == beforeOrders.length + 1) {
+              html = candidate;
+              break;
+            }
+          }
+        }
+        if (attempt < 11) {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      }
+      if (html == null) return; // batal/kembali tanpa menyimpan: HTML dibiarkan apa adanya.
+
+      String orderId(Object? raw) {
+        if (raw is! Map) return '';
+        final fields = raw['fields'];
+        if (fields is! List || fields.length < 2) return '';
+        final code = fields[1];
+        return code is List && code.isNotEmpty ? '${code.first}' : '';
+      }
+
+      final htmlOrders = html['orders'] as List? ?? const [];
+      if (htmlOrders.isEmpty) return;
+      final newCardRaw = htmlOrders.first;
+      if (newCardRaw is! Map) return;
+      final id = orderId(newCardRaw);
+      if (id.isEmpty || beforeOrders.any((o) => orderId(o) == id)) return;
+      final dataset = newCardRaw['dataset'];
+      if (dataset is! Map) return;
+      final now = DateTime.tryParse('${dataset['created177'] ?? ''}');
+      if (now == null) return;
+      final paid = '${dataset['paid177'] ?? '0'}';
+      saveDraft['method'] = paid == '0'
+          ? 'Bayar Nanti'
+          : '${dataset['method177'] ?? ''}';
+
+      final dart = prepareAddOrderSave(
+        before: before,
+        draft: saveDraft,
+        store: saveStore,
+        now: now,
+        localOffset: now.toLocal().timeZoneOffset,
+      );
+      final h = jsonDecode(jsonEncode(html));
+      final d = jsonDecode(jsonEncode(dart));
+      if (jsonEncode(_canonical(d)) == jsonEncode(_canonical(h))) {
+        // Replacement satu key, bukan append kedua: order/ledger tidak mungkin dobel dari guard ini.
+        await store.set('goyana-business177', jsonEncode(dart));
+      } else {
+        await _parityLog(store, 'addorder-3c', _canonical(h), _canonical(d));
+      }
+    } on UnsupportedError {
+      // Jalur di luar fixture 3c tetap sepenuhnya memakai hasil HTML.
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
+  static Object? _canonical(Object? value) {
+    if (value is Map) {
+      final entries = value.entries.toList()
+        ..sort((a, b) => '${a.key}'.compareTo('${b.key}'));
+      return {for (final e in entries) '${e.key}': _canonical(e.value)};
+    }
+    if (value is List) return [for (final x in value) _canonical(x)];
+    return value;
   }
 
   /// Bagian yang dibandingkan: semuanya kecuali hitung mundur otomatis (berubah tiap menit).

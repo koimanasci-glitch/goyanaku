@@ -30,5 +30,24 @@ void main() {
           c['store']['goyana-durations199'] as String?);
       expect(orderEstimateText(due), c['htmlModel']['orders'][0]['fields'][3][1]);
     });
+    test('3c details.due ikut jam durasi: ${c['name']}', () {
+      final now = DateTime.parse(c['now'] as String);
+      final got = prepareAddOrderSave(
+        before: c['before'] as Map<String, dynamic>,
+        draft: c['draft'] as Map<String, dynamic>,
+        store: c['store'] as Map<String, dynamic>,
+        now: now,
+        localOffset: const Duration(hours: 7),
+      );
+      final id = c['code'] as String;
+      final gotDue = ((got['details'] as Map)[id] as Map)['due'] as String;
+      final expectedDue = ((c['htmlModel']['details'] as Map)[id] as Map)['due'];
+      expect(gotDue, expectedDue);
+      final hours = orderDurationHours(
+        c['draft']['durationLabel'] as String,
+        c['store']['goyana-durations199'] as String?,
+      );
+      expect(DateTime.parse(gotDue).difference(now).inHours, hours);
+    });
   }
 }

@@ -1,4 +1,4 @@
-// 3c SIAPKAN saja: fungsi murni, tidak menulis storage atau memanggil WebView.
+// 3c: fungsi murni; runtime guard di shell yang memutuskan kapan snapshot ini dipakai.
 import 'dart:convert';
 
 String _pad(int n) => '$n'.padLeft(2, '0');
@@ -62,9 +62,8 @@ String _activeOutlet(Map<String, dynamic> store) {
 /// Snapshot sinkron tepat setelah f61Finish + flushTransactions177.
 /// Input draft adalah snapshot sebelum finish (payamount dan total berbeda).
 /// Batas capture saat ini: Datang Langsung, outlet dari store, tanpa diskon/picked customer,
-/// cart tidak kosong; hanya empat metode fixture. Bukan API runtime siap pasang.
-/// details.due sengaja +72h mengikuti ensureDetail178; estimasi kartu memakai
-/// durHours199. Jangan menyamakan keduanya tanpa keputusan dan capture baru.
+/// cart tidak kosong; hanya empat metode fixture. Jalur di luar fixture tetap HTML.
+/// Sejak df4aaef, estimasi kartu dan details.due sama-sama mengikuti durHours199.
 Map<String, dynamic> prepareAddOrderSave({
   required Map<String, dynamic> before,
   required Map<String, dynamic> draft,
@@ -84,8 +83,10 @@ Map<String, dynamic> prepareAddOrderSave({
   final id = nextOrderCode(localNow, orders.length);
   final at = _iso(now);
   final dur = draft['dur'] as String;
-  final due = orderEstimatedFinish(localNow, draft['durationLabel'] as String,
-      store['goyana-durations199'] as String?);
+  final durationsJson = store['goyana-durations199'] as String?;
+  final durationHours = orderDurationHours(
+      draft['durationLabel'] as String, durationsJson);
+  final due = localNow.add(Duration(hours: durationHours));
   // v116 mengambil nama tanpa akhiran durasi, urutan properti JSON dipertahankan.
   final items = (draft['cart'] as List).map((dynamic it) => <String, dynamic>{
     'n': (it['name'] as String).replaceFirst(RegExp(r' \(.*\)$'), ''),
@@ -131,7 +132,7 @@ Map<String, dynamic> prepareAddOrderSave({
     'id': id, 'name': draft['name'], 'phone': '', 'dur': dur,
     'items': items, 'discKey': '0', 'ongkir': 0, 'paid': paid,
     'perfume': draft['perfume'], 'note': '-', 'handover': draft['handover'],
-    'masuk': at, 'due': _iso(now.add(const Duration(hours: 72))),
+    'masuk': at, 'due': _iso(now.add(Duration(hours: durationHours))),
     'photos': {'in': [], 'out': []},
     'hist': [{'st': 'antrian', 'at': at, 'by': 'Kasir'}],
   };
