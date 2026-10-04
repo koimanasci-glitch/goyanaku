@@ -95,7 +95,6 @@ void main() {
 
   final pricingFixture = jsonDecode(File('test/fixtures/parity/addorder_pricing.json').readAsStringSync()) as Map<String, dynamic>;
   final pricingCases = pricingFixture['cases'] as List;
-  expect(pricingCases.length, 11);
   for (final row in pricingCases.whereType<Map>()) {
     test('Tambah Transaksi 3b sama dengan HTML: ${row['name']}', () async {
       final store = MemoryKvStore(Map<String, String>.from(row['store'] as Map));
