@@ -44,9 +44,24 @@ String _jsNumber(num n) => n == n.truncateToDouble() ? '${n.toInt()}' : '$n';
 Map<String, dynamic> _copy(Map<String, dynamic> m) =>
     jsonDecode(jsonEncode(m)) as Map<String, dynamic>;
 
+// v180: validasi outlet aktif; bila tidak ada, gunakan outlet pertama.
+String _activeOutlet(Map<String, dynamic> store) {
+  dynamic read(String key, dynamic fallback) {
+    try {
+      return jsonDecode(store[key] as String? ?? 'null') ?? fallback;
+    } on FormatException {
+      return fallback;
+    }
+  }
+  final outlets = read('goyana-outlets180', <dynamic>[]) as List;
+  final active = read('goyana-active-outlet180', '') as String;
+  if (outlets.any((dynamic o) => o['id'] == active)) return active;
+  return outlets.isEmpty ? '' : (outlets.first['id'] as String? ?? '');
+}
+
 /// Snapshot sinkron tepat setelah f61Finish + flushTransactions177.
 /// Input draft adalah snapshot sebelum finish (payamount dan total berbeda).
-/// Batas capture saat ini: Datang Langsung, tanpa diskon/outlet/picked customer,
+/// Batas capture saat ini: Datang Langsung, outlet dari store, tanpa diskon/picked customer,
 /// cart tidak kosong; hanya empat metode fixture. Bukan API runtime siap pasang.
 /// details.due sengaja +72h mengikuti ensureDetail178; estimasi kartu memakai
 /// durHours199. Jangan menyamakan keduanya tanpa keputusan dan capture baru.
@@ -79,8 +94,8 @@ Map<String, dynamic> prepareAddOrderSave({
   final total = draft['total'] as num;
   final paid = method == 'Bayar Nanti' ? 0 : total;
   final paymentMethod = method == 'Bayar Nanti' ? 'Tunai' : method;
-  // v107 memakai teks payamount, BUKAN qty*price. Dalam fixture v180
-  // menolak f61Payment tanpa outlet; teks bawaan Rp 20.000 tetap tertinggal.
+  // v107 memakai teks payamount, bukan menghitung ulang qty*price.
+  // Fixture dengan outlet aktif memiliki payamount Rp 17.500.
   final amountText = draft['payamount'] as String;
   final cardTotal = amountText.isEmpty ? total.round() : _digits(amountText);
   final kasAmount = _digits(amountText) == 0 ? total : _digits(amountText);
@@ -109,6 +124,8 @@ Map<String, dynamic> prepareAddOrderSave({
       {'text': draft['handover'], 'hidden': false},
     ],
   };
+  final outlet = _activeOutlet(store);
+  if (outlet.isNotEmpty) (card['dataset'] as Map)['outlet180'] = outlet;
   orders.insert(0, card);
   (result['details'] as Map)[id] = {
     'id': id, 'name': draft['name'], 'phone': '', 'dur': dur,
