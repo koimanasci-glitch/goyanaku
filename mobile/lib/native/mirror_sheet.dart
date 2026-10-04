@@ -75,6 +75,15 @@ class NativeMirrorSheet extends StatelessWidget {
 }
 
 class _Node {
+  // Garis per sisi bila CSS hanya memberi garis di sebagian sisi (tanpa sudut membulat; Flutter tidak mendukung keduanya sekaligus).
+  static BoxBorder? _border(Map s, double bw, List<double> r) {
+    final c = cssColor(s['bc'] as String?, const Color(0xffe6e9ee));
+    final bs = _q(s['bs']);
+    if (s['bs'] is! List || bs.length != 4) return Border.all(color: c, width: bw);
+    if (r.any((x) => x > 0)) return bs[0] > 0 ? Border.all(color: c, width: bw) : null;
+    BorderSide side(double w) => w > 0 ? BorderSide(color: c, width: w) : BorderSide.none;
+    return Border(top: side(bs[0]), right: side(bs[1]), bottom: side(bs[2]), left: side(bs[3]));
+  }
   /// Isi sebuah elemen (anak-anaknya), tanpa kotak/padding elemen itu sendiri.
   static Widget children(MirrorEnv sheet, Map<String, dynamic> n, {required Color inheritColor}) {
     final s = _m(n['s']);
@@ -240,7 +249,7 @@ class _Node {
     final deco = BoxDecoration(
       image: bgimg == null ? null : DecorationImage(image: bgimg, fit: BoxFit.contain),
       color: s['bg'] == null ? null : cssColor(s['bg'] as String?),
-      border: bw > 0 ? Border.all(color: cssColor(s['bc'] as String?, const Color(0xffe6e9ee)), width: bw) : null,
+      border: bw > 0 ? _border(s, bw, r) : null,
       borderRadius: r.any((x) => x > 0) ? BorderRadius.only(topLeft: Radius.circular(r[0]), topRight: Radius.circular(r[1]), bottomRight: Radius.circular(r[2]), bottomLeft: Radius.circular(r[3])) : null,
       boxShadow: s['ring'] is Map ? [BoxShadow(color: cssColor(_m(s['ring'])['c'] as String?, Colors.black26), spreadRadius: _d(_m(s['ring'])['w']))] : null,
     );

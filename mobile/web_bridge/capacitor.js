@@ -559,8 +559,15 @@
         if (uc.length >= 2) st.stripe = { deg: deg ? +deg[1] : 0, c: uc.slice(0, 2), w: stops.length >= 2 ? parseFloat(stops[1]) : 8 };
       } else if (gc.length && !st.bg) st.bg = gc[0];
     }
-    var bw = px(cs.borderTopWidth);
-    if (bw && cs.borderTopStyle !== 'none') { st.bw = bw; st.bc = cs.borderTopColor; if (cs.borderTopStyle === 'dashed') st.dash = 1; }
+    // Garis tepi. Bila CSS hanya memberi garis di sebagian sisi (contoh pemisah antar baris Parfum/Durasi), sisi lain tidak digambar.
+    var side = function (k) { return cs['border' + k + 'Style'] === 'none' ? 0 : px(cs['border' + k + 'Width']); };
+    var bs = [side('Top'), side('Right'), side('Bottom'), side('Left')];
+    var bi = bs.findIndex(function (x) { return x > 0; });
+    if (bi >= 0) {
+      var nm = ['Top', 'Right', 'Bottom', 'Left'][bi];
+      st.bw = bs[bi]; st.bc = cs['border' + nm + 'Color']; if (cs['border' + nm + 'Style'] === 'dashed') st.dash = 1;
+      if (bs.some(function (x) { return x !== st.bw; })) st.bs = bs;
+    }
     var r = [px(cs.borderTopLeftRadius), px(cs.borderTopRightRadius), px(cs.borderBottomRightRadius), px(cs.borderBottomLeftRadius)];
     if (/%/.test(cs.borderTopLeftRadius)) { var w = el.getBoundingClientRect().width; r = r.map(function () { return w / 2; }); }
     if (r.some(Boolean)) st.br = r;
@@ -670,8 +677,26 @@
       var k = mirrorNode(c, ctx, depth + 1);
       if (!k) return;
       if (!k.inline && !k.br) allInline = false;
+      if (n.row || n.col) k._o = parseFloat(getComputedStyle(c).order) || 0;
       kids.push(k);
     });
+    if (n.row || n.col) {
+      // Garis/kotak hias dari ::before/::after (contoh pemisah "|" di baris Durasi) ikut digambar, sesuai urutan CSS `order`.
+      [['::before', -1], ['::after', 1]].forEach(function (x) {
+        var ps = getComputedStyle(el, x[0]);
+        if (!ps || ps.content === 'none' || ps.display === 'none' || /^(inline)$/.test(ps.display)) return;
+        if (ps.content !== '""' && ps.content !== "''") return;
+        var bg = ps.backgroundColor, w = parseFloat(ps.width), h = parseFloat(ps.height);
+        if (!bg || bg === 'rgba(0, 0, 0, 0)' || !(w > 0 && h > 0) || ps.position === 'absolute' || ps.position === 'fixed') return;
+        var box = { s: { m: sides(ps, 'margin'), p: [0, 0, 0, 0], bg: bg, br: [0, 0, 0, 0] }, w: px(w), h: px(h), fixed: 1, _o: parseFloat(ps.order) || 0 };
+        allInline = false;
+        if (x[1] < 0) kids.unshift(box); else kids.push(box);
+      });
+      if (kids.some(function (k) { return k._o; })) {
+        kids = kids.map(function (k, i) { return [k, i]; }).sort(function (a, b) { return ((a[0]._o || 0) - (b[0]._o || 0)) || (a[1] - b[1]); }).map(function (x) { return x[0]; });
+      }
+      kids.forEach(function (k) { delete k._o; });
+    }
     // Hanya teks (dan elemen sebaris seperti <b>, <a>): satu paragraf.
     if (allInline && kids.length && !n.row && !n.grid) {
       n.spans = kids.map(function (k) {
