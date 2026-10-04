@@ -85,8 +85,8 @@ Bagian besar dipecah kecil (contoh 3a/3b/3c). **Satu putaran = satu baris tabel.
 | No | Temuan | HTML sekarang | Usulan benar | Status |
 |---|---|---|---|---|
 | 1 | Diskon persen "Semua layanan" ikut memotong ongkir | Rp14.000 + ongkir Rp6.000, diskon 10% → potong Rp2.000 | Diskon hanya dari layanan → potong Rp1.400, ongkir tetap Rp6.000 | menunggu Koko |
-| 2 | Input berat `1,2,3` | diterima sebagai 1,2 | ditolak, minta isi ulang | menunggu Koko |
-| 3 | Input berat `-2,5` | minus dibuang jadi 2,5 | ditolak (berat tidak boleh minus) | menunggu Koko |
+| 2 | Input berat `1,2,3` | diterima sebagai 1,2 | ditolak, minta isi ulang | DISETUJUI Koko 4 Okt; HTML sudah dibetulkan (toast "Angka tidak sah") |
+| 3 | Input berat `-2,5` | minus dibuang jadi 2,5 | ditolak (berat tidak boleh minus) | DISETUJUI Koko 4 Okt; HTML sudah dibetulkan (toast "Berat tidak boleh minus") |
 
 ## 7. Revisi Koko yang sudah selesai (JANGAN dirusak)
 - Berat bisa koma/titik sejak ketikan pertama.

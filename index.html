@@ -6446,15 +6446,20 @@ select.gs107-i{appearance:auto;background:#fff}
     $('qty116-del').hidden=!ct; calcSub();
     $('qty116').classList.add('show'); setTimeout(function(){var i=$('qty116-in');i.focus();i.select()},60);
   };
-  function val(){var v=parseFloat(String($('qty116-in').value).replace(/\s/g,'').replace(',','.'));return isNaN(v)?0:Math.round(v*100)/100}
+  // v199: hanya angka dengan satu koma/titik yang sah. Minus atau dua pemisah (contoh -2,5 / 1,2,3) = salah ketik.
+  function raw(){return String($('qty116-in').value).replace(/\s/g,'')}
+  function bad(){var r=raw();return r!==''&&!/^(\d+([.,]\d*)?|[.,]\d+)$/.test(r)}
+  function val(){if(bad())return 0;var v=parseFloat(raw().replace(',','.'));return isNaN(v)?0:Math.round(v*100)/100}
   function calcSub(){$('qty116-sub').textContent=rp(Math.round(val()*(cur?cur.price:0)))}
-  $('qty116-in').addEventListener('input',function(){this.value=this.value.replace(/[^0-9.,]/g,'');calcSub()});
+  $('qty116-in').addEventListener('input',function(){this.value=this.value.replace(/[^0-9.,\-]/g,'');calcSub()});
   $('qty116-in').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();saveQty116()}if(e.key==='Escape')closeQty116()});
   window.setQty116=function(n){$('qty116-in').value=fq(n);calcSub()};
   window.stepQty116=function(dx){var s=cur.it.unit==='pcs'?1:.5, n=Math.max(0,Math.round((val()+dx*s)*100)/100);$('qty116-in').value=n?fq(n):'';calcSub()};
   window.closeQty116=function(){$('qty116').classList.remove('show');cur=null};
   window.saveQty116=function(){
-    var n=val(), it=cur.it;
+    var n=val(), it=cur.it, r=raw();
+    if(/-/.test(r)){toast90((it.unit==='kg'?'Berat':'Jumlah')+' tidak boleh minus. Periksa lagi angkanya');$('qty116-in').focus();return}
+    if(bad()){toast90('Angka tidak sah: "'+r+'". Pakai satu koma saja, contoh '+(it.unit==='pcs'?'2':'1,3'));$('qty116-in').focus();return}
     if(!(n>0)){toast90('Isi '+(it.unit==='kg'?'berat':'jumlah')+' dulu, contoh '+(it.unit==='pcs'?'2':'1,3'));$('qty116-in').focus();return}
     if(it.unit==='pcs'&&n%1){toast90('Jumlah pcs harus bilangan bulat');return}
     if(n>999){toast90('Jumlah terlalu besar');return}
