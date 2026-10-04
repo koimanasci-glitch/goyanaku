@@ -62,13 +62,13 @@ Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di a
 Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus ditulis ulang sebagai widget Flutter biasa dengan bentuk PERSIS sama (bandingkan golden sebelum/sesudah, piksel harus sama atau beda tak terlihat). Satu halaman per putaran.
 | No | Halaman cermin | Status |
 |---|---|---|
-| B1 | Parfum (`perfume`) | belum |
-| B2 | Durasi (`duration`) | belum |
-| B3 | Pilih Layanan (`pickservice`) | belum |
+| B1 | Parfum (`perfume`) | SELESAI |
+| B2 | Durasi (`duration`) | SELESAI |
+| B3 | Pilih Layanan (`pickservice`) | SELESAI |
 | B4 | Jemput (`pickup`) | belum |
 | B5 | Scan Pesanan (`orderscan`) | belum |
 | B6 | Status QR (`qrstatus`) | belum |
-| B7 | Harga Paket (`plan111`) | belum (tunggu hasil sesi desain dulu) |
+| B7 | Harga Paket (`plan111`) | SELESAI |
 | B8 | Checkout Paket (`checkout111`) | belum |
 | B9 | Tagihan (`billing`) | belum |
 | B10 | Invoice (`invoice111`) | belum |
