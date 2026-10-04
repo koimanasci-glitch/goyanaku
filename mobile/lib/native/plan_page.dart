@@ -219,7 +219,7 @@ class _PlanData {
     }
 
     var description = _s(selectedPlan?['s']);
-    if (description.isEmpty && heroTitle!.isNotEmpty) {
+    if (description.isEmpty && heroTitle.isNotEmpty) {
       final hi = texts.indexOf(heroTitle);
       if (hi >= 0 && hi + 1 < texts.length) description = texts[hi + 1];
     }
