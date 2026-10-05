@@ -70,7 +70,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B6 | Status QR (`qrstatus`) | SELESAI |
 | B7 | Harga Paket (`plan111`) | SELESAI |
 | B8 | Checkout Paket (`checkout111`) | SELESAI — paritas 5 kondisi 390/320, 125 screenshot dan APK lulus; 2 CI awal + 1 tambahan berizin; pembelian produksi tetap diblokir |
-| B9 | Tagihan (`billing`) | belum |
+| B9 | Tagihan (`billing`) | SELESAI — paritas 390/320, 129 screenshot dan APK lulus; 1/2 CI; menu produksi tetap menuju Riwayat Transaksi |
 | B10 | Invoice (`invoice111`) | belum |
 | B11 | Otomasi WA (`waautomation`) | belum |
 | B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | belum |
