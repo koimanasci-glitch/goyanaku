@@ -11,6 +11,11 @@ module.exports=async function captureCheckout(browser,write=false){
       await p.clock.install({time:new Date('2026-10-05T01:00:00Z')});
       await p.addInitScript(()=>{window.GoyanaNative={__events:[],postMessage(raw){if(raw.startsWith('{"event"')){this.__events.push(raw);return}const m=JSON.parse(raw);setTimeout(()=>__goyanaNative.finish(m.id,true,m.method==='insets'?{top:31}:{}),5)}}});
       await p.goto(require('url').pathToFileURL(path.join(root,'mobile/assets/web/index.html')).href);await p.clock.runFor(3500);
+      // Match Flutter's bundled Poppins; avoid host-dependent fallback font widths.
+      await p.evaluate(async faces=>{
+        for(const face of faces){const font=new FontFace('Poppins','url(data:font/ttf;base64,'+face.data+')',{weight:face.weight});document.fonts.add(await font.load())}
+        await document.fonts.ready;
+      },[['Regular','400'],['Medium','500'],['SemiBold','600']].map(([name,weight])=>({weight,data:fs.readFileSync(path.join(root,'mobile/assets/fonts/Poppins-'+name+'.ttf')).toString('base64')})));
       await p.evaluate(()=>{document.getElementById('ob189').hidden=true;document.querySelectorAll('.show').forEach(e=>e.classList.remove('show'));openPlan111(0,1);goCheckout111()});await p.clock.runFor(400);
       assert.notEqual(await p.evaluate(()=>document.querySelector('.page.active').id),'checkout111','checkout remains blocked in production');
       const expose=async()=>{await p.evaluate(()=>{document.querySelectorAll('.show').forEach(e=>e.classList.remove('show'));document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='checkout111'));document.getElementById('toast90').classList.remove('show')});await p.clock.runFor(400)};
