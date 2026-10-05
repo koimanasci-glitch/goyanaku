@@ -488,4 +488,7 @@ try{
   const invoiceCases=await require('./parity/invoice111.cjs')(b);
   assert.deepEqual(invoiceCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/invoice111_cases.json'),'utf8')));
   console.log('PASS B10 invoice mirror fixtures 390/320, back index and unchanged purchase guard');
+  const pairingCases=await require('./parity/wa_pair195.cjs')(b);
+  assert.deepEqual(pairingCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/wa_pair195.json'),'utf8')));
+  console.log('PASS WA pairing native QR/code 390/320, scoped indices, close/reset and honest disconnected state');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});

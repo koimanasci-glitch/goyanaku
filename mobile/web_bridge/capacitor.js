@@ -433,7 +433,7 @@
   var GENERIC_SHEETS = ['gs107', 'cancel91', 'pay91', 'gy158-sort', 'rs107', 'lock111', 'wh135', 'vc130', 'disc127', 'perm178', 'kc137s', 'up175', 'deposits178', 'edit115', 'pay115', 'act115', 'qr160-menu',
     'gy154-cash', 'gy154-transfer', 'f61-qris', 'qris193-setup', 'dp178', 'depositpay178', 'dp91', 'photochoose178', 'rc106',
     'f61-duration', 'qty116', 'gp128', 'gy154-edit', 'pin139', 'wf141', 'au133s', 'bg137', 'cat99', 'qr135', 'outlet-selector-v56', 'customer-modal', 'qty-modal', 'g62-order-detail',
-    'f61-print', 'hist115', 'photo115', 'wa131', 'wa138', 'rm138s', 'rs139', 'contacts178', 'guide135', 'api135', 'pay111', 'upgrade-pay-modal', 'g181-modal', 'td175'], FORM_PAGES = {};
+    'f61-print', 'hist115', 'photo115', 'wa131', 'wa138', 'rm138s', 'rs139', 'contacts178', 'guide135', 'api135', 'pay111', 'upgrade-pay-modal', 'g181-modal', 'td175', 'wa195-pair'], FORM_PAGES = {};
   function sheetRoot(sh) {
     var box = sh.querySelector('.sheet91-box, .g62-sheet, [role="dialog"]');
     if (box) return box;
