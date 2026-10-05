@@ -59,7 +59,7 @@ Acuan teknis: `GOYANA-DART-SOLANA.md` (bagian 4, 4b, 5). Jalur A dan B boleh dik
 | No | Bagian | Status |
 |---|---|---|
 | A1–A4 | Beranda, Pesanan, Tambah Transaksi, Rincian Pesanan | SELESAI |
-| A3c | Nomor pesanan, estimasi, simpan | Cek dulu: tabel bilang "belum dipasang", laporan bilang pengaman sudah dipasang. Pastikan statusnya, tulis yang benar. |
+| A3c | Nomor pesanan, estimasi, simpan | SELESAI tahap paritas + pengaman; terpasang sejak 4 Okt (0eafeb6, review Claude). Nomor/estimasi/snapshot Dart 12/12 diverifikasi ulang 6 Okt; penulisan SQLite masih HTML selama migrasi. |
 | A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum. Patokan DP/pelunasan/QRIS siap di `flows_a4_a5_a7.json`. Deposit & ralat belum ada patokan → tangkap pakai `tests/parity/flows.cjs` |
 | A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
 | A7 | Kas & Tutup Kasir | belum. Patokan siap (part=A7) |
@@ -203,7 +203,7 @@ GPT **tidak** membeli VPS/domain dan **tidak** memegang password server. GPT men
 ## 8. Urutan kerja yang disarankan
 
 1. Sesi tampilan: B5 → B6 → B8 → B9 → B10 → B11 → B12 (popup satu per satu).
-2. Sesi Dart (bersamaan): A3c (pastikan status) → A5 → A6 → A7 → A8 → A9 → A10.
+2. Sesi Dart (bersamaan): A3c terverifikasi → A5 → A6 → A7 → A8 → A9 → A10.
 3. Sesi backend (bersamaan, branch backend): F2-1 → F2-2 → F2-3 → F2-4 → F2-5..F2-8 → F3 → F6-1..F6-3.
 4. Setelah A, B selesai: Jalur C.
 5. Setelah F2-4 dan VPS ada: F4 (A11).
