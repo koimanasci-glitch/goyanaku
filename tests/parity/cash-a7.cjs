@@ -40,7 +40,7 @@ const original=JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/p
   const shot=await page.evaluate(name=>({name,...__goyanaCashA7()}),name);if(entry)shot.entry=entry;shots.push(shot);
   if(name==='balanced'){
    await page.evaluate(()=>kcClose137());await page.clock.runFor(100);await page.evaluate(()=>document.querySelector('#gs107-ok').click());await page.clock.runFor(500);
-   const closed=await page.evaluate(()=>{flushTransactions177();return __goyanaCashA7().kas});assert.equal(closed.start,100000);assert.equal(closed.hist[0].omset,80500);
+   const closed=await page.evaluate(()=>{return __goyanaCashA7().kas});assert.equal(closed.start,100000);assert.equal(closed.hist[0].omset,80500);
    await page.reload();await page.clock.runFor(3500);await page.evaluate(()=>openPage('cashclose'));await page.clock.runFor(200);
    const restored=await page.evaluate(()=>__goyanaCashA7());assert.deepEqual(restored.kas,closed,'closed shift survives Android storage reload');assert.equal(restored.model.sections[5].history.length,closed.hist.length);
    shot.closed=closed;shot.restored=restored;

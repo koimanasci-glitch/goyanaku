@@ -552,6 +552,7 @@ try{
   assert.equal(payments.status,0,payments.stderr||payments.stdout);
   console.log('PASS A5 payment corrections: methods, amounts, deposit refund once, rollback, legacy and reload');
   {const a6=spawnSync(process.execPath,[path.join(root,'tests/parity/status-a6.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(a6.status,0,a6.stdout+'\n'+a6.stderr);console.log('PASS A6 status timers: seven settings, exact boundaries, delivery exclusions, manual ready and reminder plans');}
+  {const a7=spawnSync(process.execPath,[path.join(root,'tests/parity/cash-a7.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(a7.status,0,a7.stdout+'\n'+a7.stderr);console.log('PASS A7 cash: 14 original states, manual entries, close and persisted history reload; financial discrepancies audited');}
   await require('./customer-status.cjs')(b);
   const checkoutCases=await require('./parity/checkout111.cjs')(b);
   assert.deepEqual(checkoutCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/checkout111_cases.json'),'utf8')));

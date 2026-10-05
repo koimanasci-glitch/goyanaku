@@ -94,8 +94,9 @@ Map<String, dynamic> closeCashA7({
   final phys = _n(physical);
   if (phys < 0 || phys > _maxSafe) throw StateError('Invalid physical cash');
   final diff = phys - total['expect']!;
-  if (diff != 0 && note.trim().isEmpty)
+  if (diff != 0 && note.trim().isEmpty) {
     throw StateError('Discrepancy requires a note');
+  }
   final requested = k['setor'];
   final setor = requested == null
       ? (phys - _n(k['start'])).clamp(0, _maxSafe)
@@ -138,10 +139,12 @@ Map<String, dynamic> cashEntryA7({
   required String note,
 }) {
   if (amount <= 0 || amount > _maxSafe) throw StateError('Invalid amount');
-  if (!income && method != 'Tunai')
+  if (!income && method != 'Tunai') {
     throw StateError('Non-cash expense requires HTML correction approval');
-  if (method != 'Tunai' && method != 'Non-Tunai')
+  }
+  if (method != 'Tunai' && method != 'Non-Tunai') {
     throw StateError('Choose a cash method');
+  }
   final result = _clone(before),
       b = jsonDecode(before[cashBusinessKey] as String) as Map;
   final k = b['kas'] as Map;
