@@ -103,8 +103,9 @@ Map<String, dynamic> applyPaymentA5({
       final name = '${detail['name']}';
       final phone = '${ds['phone'] ?? detail['phone'] ?? ''}';
       final record = account(name, phone);
-      if (_number(record['balance']) < action.amount)
+      if (_number(record['balance']) < action.amount) {
         throw StateError('Saldo deposit tidak cukup');
+      }
       record['balance'] = _number(record['balance']) - action.amount;
       (record['history'] as List).add({
         'type': 'payment',
