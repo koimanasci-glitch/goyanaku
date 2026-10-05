@@ -1203,6 +1203,15 @@
     });
     return { title: txt('#cashclose .subhead b'), date: txt('#kc-date'), total: txt('#kc-omset'), label: txt('#cashclose .kc137-hero .r small:last-child'), status: txt('#cashclose .kc137-hero .st'), meta: txt('#kc-meta1') + ' · ' + txt('#kc-meta2'), sections: sections, submit: txt('#cashclose .kc137-go') };
   }
+  window.__goyanaCashA7 = function () {
+    if (!window.readCashA7) return null;
+    var state = readCashA7();
+    state.now = Date.now();
+    state.business = JSON.parse(localStorage.getItem('goyana-business177') || '{}');
+    state.active = document.activeElement ? '#' + document.activeElement.id : '';
+    state.model = cashcloseModel();
+    return state;
+  };
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');

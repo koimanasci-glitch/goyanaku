@@ -13,6 +13,7 @@ import '../core/store.dart';
 import '../logic/addorder.dart';
 import '../logic/addorder_save.dart';
 import '../logic/home.dart';
+import '../logic/cash.dart';
 import '../logic/order_detail.dart';
 import '../logic/orders.dart';
 import '../logic/payments.dart';
@@ -241,7 +242,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       if (!mounted) return;
       setState(() {
         _nativePage = page;
-        if (page == 'cashclose' && model != null) _cashClose = model;
+        if (page == 'cashclose' && model != null) {
+          _cashClose = model;
+          unawaited(_cashCloseFromDart());
+        }
         if (page == 'services' && model != null) _services = ServicesModel.fromJson(model);
         if (_formPages.contains(page) && model != null) _form = FormModel.fromJson(page!, model);
         if (page == 'home' && model != null) {
@@ -406,6 +410,34 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   // Beranda dihitung Dart dari database HP yang sama. Selama HTML masih ada, hasil Dart dipakai bila sama dengan HTML;
   // bila berbeda, tampilan tetap memakai angka HTML dan perbedaannya dicatat (kunci goyana-parity-log) untuk diperbaiki.
   int _homeSeq = 0;
+  int _cashCloseSeq = 0;
+  Future<void> _cashCloseFromDart() async {
+    final seq = ++_cashCloseSeq;
+    try {
+      final raw = await _web.runJavaScriptReturningResult(
+          'JSON.stringify(window.__goyanaCashA7 ? __goyanaCashA7() : null)');
+      var text = raw.toString();
+      final outer = jsonDecode(text);
+      if (outer is String) text = outer;
+      final decoded = jsonDecode(text);
+      if (decoded is! Map || !mounted || seq != _cashCloseSeq || _nativePage != 'cashclose') return;
+      final state = Map<String, dynamic>.from(decoded);
+      final summary = cashSummaryA7(state['kas'] as Map);
+      const store = DeviceKvStore();
+      if (jsonEncode(_canonical(summary)) != jsonEncode(_canonical(state['expected']))) {
+        await _parityLog(store, 'cash-a7', state['expected'], summary);
+        return;
+      }
+      final candidate = cashCloseModelA7(state);
+      if (jsonEncode(_canonical(candidate)) != jsonEncode(_canonical(state['model']))) {
+        await _parityLog(store, 'cashclose-a7', state['model'], candidate);
+        return;
+      }
+      if (!mounted || seq != _cashCloseSeq || _nativePage != 'cashclose') return;
+      setState(() => _cashClose = candidate);
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
   Future<void> _homeFromDart(Map<String, dynamic> htmlModel) async {
     final seq = ++_homeSeq;
     try {
