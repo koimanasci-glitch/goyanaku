@@ -21,6 +21,7 @@ import '../native/cashclose_page.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
+import '../native/gs107_sheet.dart';
 import '../native/home_page.dart';
 import '../native/mirror_sheet.dart';
 import '../native/order_detail_page.dart';
@@ -1195,6 +1196,15 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   );
                 },
               ))
+            else if (_nativePage != null && _sheetId == 'gs107' && _sheetMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeGs107Sheet(
+                  key: const ValueKey('native-gs107'), model: _sheetMirror!,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onInput: (i, v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0),
+                ),
+              )
             else if (_nativePage != null && _sheetMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorSheet(

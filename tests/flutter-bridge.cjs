@@ -494,4 +494,7 @@ try{
   const waCases=await require('./parity/waautomation_active.cjs')(b);
   assert.deepEqual(waCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/waautomation_active.json'),'utf8')));
   console.log('PASS B11 active WhatsApp native fixtures 390/320, redirect, actions, package guards and persisted toggles');
+  const gsCases=await require('./parity/gs107.cjs')(b);
+  assert.deepEqual(gsCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/gs107_cases.json'),'utf8')));
+  console.log('PASS B12 gs107 fixtures 390/320, input/color/save/validation and safe cancellation');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
