@@ -82,7 +82,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | WA-PAIR | Tambahan berizin: popup Hubungkan WhatsApp, pilihan Scan QR / Kode WhatsApp | SELESAI (tampilan) — 390/320, 137 screenshot dan APK lulus; 2/2 CI; QR/kode nyata menunggu API CHATKU (F5) |
 | B11 | Otomasi WA (`waautomation`) → WhatsApp & Chatbot aktif | SELESAI jalur aktif sesuai pilihan Paduka — sudah NativeForm; 6 kondisi 390/320, 144 screenshot dan APK lulus; 2/2 CI. Halaman demo lama tetap tersembunyi; CHATKU menunggu F5 |
-| B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | belum |
+| B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | gs107 SELESAI — CI 37297694842 lulus 38 bridge, 123 unit, 153 screenshot dan APK; 2 CI awal + 1 tambahan berizin. 15 popup lain belum; berikutnya cat99 |
 
 Pola: lihat B2/B3/B4. File `mobile/lib/native/<halaman>_page.dart`, sambungan di `shell.dart` saja, golden `screens/<halaman>_native.png` dikunci (`autoUpdateGoldenFiles = false` saat membandingkan).
 
