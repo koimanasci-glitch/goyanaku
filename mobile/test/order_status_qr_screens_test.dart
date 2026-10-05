@@ -90,8 +90,8 @@ void main() {
       expect(painters, hasLength(1));
       final expected = QrPainter(data: 'https://goyana.id/s/GY-261003-0133',
         version: QrVersions.auto, errorCorrectionLevel: QrErrorCorrectLevel.M, gapless: true,
-        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square),
-        dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square));
+        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+        dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black));
       final sameQr = await tester.runAsync(() async => listEquals(
         await _qrPixels(painters.first), await _qrPixels(expected)));
       expect(sameQr, isTrue, reason: 'QR yang dilukis harus berisi URL pesanan aktif, sama dengan nota');
