@@ -61,7 +61,7 @@ Acuan teknis: `GOYANA-DART-SOLANA.md` (bagian 4, 4b, 5). Jalur A dan B boleh dik
 | A1–A4 | Beranda, Pesanan, Tambah Transaksi, Rincian Pesanan | SELESAI |
 | A3c | Nomor pesanan, estimasi, simpan | SELESAI tahap paritas + pengaman; terpasang sejak 4 Okt (0eafeb6, review Claude). Nomor/estimasi/snapshot Dart 12/12 diverifikasi ulang 6 Okt; penulisan SQLite masih HTML selama migrasi. |
 | A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | SELESAI tahap paritas + pengaman — pembayaran/deposit/ralat; CI keempat berizin 37358031335 SUCCESS: bridge 58, analyze bersih, unit 173, screenshot 228, APK terbit. SQLite masih ditulis HTML; batas cakupan dan dua capture HTML Tutup Kasir tercatat di laporan A5 CI4 6 Okt. |
-| A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
+| A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | SELESAI tahap paritas + pengaman — keputusan status/pengingat Dart; CI 37387857402 SUCCESS: bridge 59, analyze bersih, unit 189, screenshot 228 dan APK terbit. HTML tetap menjalankan timer/menulis data sampai D2; lihat laporan A6 6 Okt. |
 | A7 | Kas & Tutup Kasir | belum. Patokan siap (part=A7) |
 | A8 | Laporan (±40 laporan) — pecah per kelompok laporan, satu kelompok per putaran | belum |
 | A9 | Pelanggan, CRM, poin, voucher | belum |
