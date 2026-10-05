@@ -50,7 +50,7 @@ Ada 4 jalur. Jalur A dan B boleh jalan bersamaan oleh sesi berbeda. C dan D di a
 | A3b | Tambah Transaksi: diskon, ongkir | SELESAI, terpasang (sesi 1, d6601f8); ongkir tidak ikut didiskon |
 | A3c | Tambah Transaksi: nomor pesanan, estimasi, simpan | SELESAI tahap paritas + pengaman; terpasang sejak 4 Okt (0eafeb6, review Claude). Nomor/estimasi/snapshot Dart 12/12 diverifikasi ulang 6 Okt; penulisan SQLite masih HTML selama migrasi. |
 | A4 | Rincian Pesanan: ganti status, edit, batal, riwayat | SELESAI, terpasang dengan pengaman (5 Okt, CI 37223205196) |
-| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | SETENGAH JALAN — pembayaran/deposit/ralat Dart + pengaman dan koreksi saldo disetujui Paduka; 20 snapshot/15 model lulus lokal. CI ketiga gagal tes reload layanan; koreksi tes SQLite lulus lokal, perlu izin CI keempat. APK A5 belum dibangun. Lihat laporan A5 6 Okt. |
+| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | SELESAI tahap paritas + pengaman — pembayaran/deposit/ralat; CI keempat berizin 37358031335 SUCCESS: bridge 58, analyze bersih, unit 173, screenshot 228, APK terbit. SQLite masih ditulis HTML; batas cakupan dan dua capture HTML Tutup Kasir tercatat di laporan A5 CI4 6 Okt. |
 | A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
 | A7 | Kas & Tutup Kasir | belum. PATOKAN SIAP: tutup kasir (part=A7), termasuk model layar Tutup Kasir & Beranda sebelum/sesudah |
 | A8 | Laporan (±40) | belum |
