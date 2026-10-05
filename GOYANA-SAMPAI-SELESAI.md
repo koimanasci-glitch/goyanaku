@@ -85,7 +85,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | 2/16 SELESAI. 14 popup sisa gabungan atas izin Paduka; CI3 37321200324 bridge/analyze/unit lulus; 226/228 screenshot lulus, dua tes key kurir gagal; APK tertahan. 2 CI awal + 1 tambahan berizin. |
 | B12-2 | Kategori Baru (`cat99`) | SELESAI (tampilan) — 390/320, keyboard/scroll, 24 paritas gambar, 158 screenshot dan APK lulus; 1/2 CI |
 | B12-3 | Pesanan Berhasil (`f61-print`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
-| B12-4 | Riwayat Status (`hist115`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
+| B12-4 | Riwayat Status (`hist115`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-5 | Foto Dokumentasi (`photo115`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-6 | Nota WhatsApp (`wa131`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-7 | Kabari Pelanggan (`wa138`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
