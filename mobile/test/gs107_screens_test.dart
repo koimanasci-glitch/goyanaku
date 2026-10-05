@@ -149,8 +149,12 @@ void main() {
           final field = find.byType(TextField).at(i);
           await tester.ensureVisible(field);
           await tester.pumpAndSettle();
-          await tester.enterText(field, '12');
-          expect(inputs.last, [i, '12']);
+          final current = tester.widget<TextField>(field).controller!.text;
+          final changed = current == '12' ? '24' : '12';
+          final previousCount = inputs.length;
+          await tester.enterText(field, changed);
+          expect(inputs.length, previousCount + 1);
+          expect(inputs.last, [i, changed]);
         }
         await tester.tapAt(const Offset(10, 10));
         expect(closed, 1);
