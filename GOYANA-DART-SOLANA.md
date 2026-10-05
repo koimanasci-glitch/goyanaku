@@ -88,7 +88,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B12-12 | API GOYANA (`api135`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-13 | Bayar Melalui (`pay111`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-14 | Pembayaran Upgrade Lama (`upgrade-pay-modal`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
-| B12-15 | Formulir Stok dan Kurir (`g181-modal`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
+| B12-15 | Formulir Stok dan Kurir (`g181-modal`) | MENTOK (aksi kurir diperbaiki; menunggu verifikasi) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-16 | Detail Administrator (`td175`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 
 ### Jalur C: Isi halaman formulir & popup native ke Dart
