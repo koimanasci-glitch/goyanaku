@@ -482,4 +482,7 @@ try{
   const checkoutCases=await require('./parity/checkout111.cjs')(b);
   assert.deepEqual(checkoutCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/checkout111_cases.json'),'utf8')));
   console.log('PASS B8 checkout mirror fixtures 390/320, HTML action indices and production purchase guards');
+  const billingCases=await require('./parity/billing.cjs')(b);
+  assert.deepEqual(billingCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/billing_cases.json'),'utf8')));
+  console.log('PASS B9 billing mirror fixtures 390/320, back index and unchanged history redirect');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
