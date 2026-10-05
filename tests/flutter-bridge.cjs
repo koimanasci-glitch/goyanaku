@@ -506,10 +506,11 @@ try{
   // Text, styles, actions and all other geometry stay exact; Flutter independently
   // compares every native/reference pixel, including this row, with zero tolerance.
   const expectedRemaining=JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/remaining_popups.json'),'utf8'));
+  assert.equal(remainingPopups.length,expectedRemaining.length,'remaining popup case count');
   // The non-fixed correction form height is unused by Flutter layout. Chromium
   // can round its subpixel sum by one hundredth differently across machines.
   // Permit only that measured height to differ by <=0.011; do not relax pixels.
-  for(let i=0;i<remainingPopups.length;i++){const actual=remainingPopups[i],expected=expectedRemaining[i];if(actual.id==='rs139'){assert.equal(expected.id,actual.id);assert.equal(expected.width,actual.width);const a=actual.model.box.ch[3].h,e=expected.model.box.ch[3].h;assert.ok(Number.isFinite(a)&&Number.isFinite(e)&&Math.abs(a-e)<=0.011,'rs139 non-fixed form height rounding')}}
+  for(let i=0;i<remainingPopups.length;i++){const actual=remainingPopups[i],expected=expectedRemaining[i];if(actual.id==='rs139'){assert.equal(expected.id,actual.id);assert.equal(expected.state,actual.state);assert.equal(expected.width,actual.width);const a=actual.model.box.ch[3].h,e=expected.model.box.ch[3].h;assert.ok(Number.isFinite(a)&&Number.isFinite(e)&&Math.abs(a-e)<=0.011,'rs139 non-fixed form height rounding')}}
   const stablePopups=cases=>cases.map(c=>{const copy=JSON.parse(JSON.stringify(c));if(copy.id==='rm138s'){delete copy.model.box.h;const note=copy.model.box.ch[5];const strip=n=>{delete n.w;delete n.h;for(const child of n.ch||[])strip(child)};strip(note)}if(copy.id==='rs139')delete copy.model.box.ch[3].h;return copy});
   assert.deepEqual(stablePopups(remainingPopups),stablePopups(expectedRemaining));
   for(const id of [...new Set(remainingPopups.map(c=>c.id))]) console.log('PASS B12 '+id+' fixtures 390/320 and scoped close without saving');
