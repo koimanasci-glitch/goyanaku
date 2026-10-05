@@ -34,6 +34,7 @@ import '../native/perfume_page.dart';
 import '../native/plan_page.dart';
 import '../native/checkout_page.dart';
 import '../native/billing_page.dart';
+import '../native/invoice_page.dart';
 import '../native/orders_page.dart';
 import '../native/reports_page.dart';
 import '../native/services_page.dart';
@@ -1046,6 +1047,19 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   },
                 ),
               ),
+            if (_nativePage == 'invoice111' && _pageMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeInvoicePage(
+                  key: const ValueKey('native-invoice111'),
+                  model: _pageMirror!,
+                  onButton: (i) => _mirror('button', i),
+                  onNav: nav,
+                  onHeaderScan: () {
+                    final scan = _pageMirror?['scan'];
+                    if (scan is num && scan.isFinite && scan >= 0) _mirror('button', scan.toInt());
+                  },
+                ),
+              ),
             if (_nativePage == 'perfume' && _pageMirror != null && !_loading)
               Positioned.fill(
                 child: NativePerfumePage(
@@ -1127,7 +1141,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   },
                 ),
               ),
-            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'checkout111' && _nativePage != 'billing' && _nativePage != 'perfume' && _nativePage != 'duration' && _nativePage != 'pickservice' && _nativePage != 'pickup' && _nativePage != 'orderscan' && _nativePage != 'qrstatus' && _pageMirror != null && !_loading)
+            if (_nativePage != null && _nativePage != 'plan111' && _nativePage != 'checkout111' && _nativePage != 'billing' && _nativePage != 'invoice111' && _nativePage != 'perfume' && _nativePage != 'duration' && _nativePage != 'pickservice' && _nativePage != 'pickup' && _nativePage != 'orderscan' && _nativePage != 'qrstatus' && _pageMirror != null && !_loading)
               Positioned.fill(
                 child: NativeMirrorPage(
                   key: ValueKey('mirror-page-$_nativePage'), model: _pageMirror!,

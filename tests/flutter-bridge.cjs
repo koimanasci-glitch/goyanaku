@@ -485,4 +485,7 @@ try{
   const billingCases=await require('./parity/billing.cjs')(b);
   assert.deepEqual(billingCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/billing_cases.json'),'utf8')));
   console.log('PASS B9 billing mirror fixtures 390/320, back index and unchanged history redirect');
+  const invoiceCases=await require('./parity/invoice111.cjs')(b);
+  assert.deepEqual(invoiceCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/invoice111_cases.json'),'utf8')));
+  console.log('PASS B10 invoice mirror fixtures 390/320, back index and unchanged purchase guard');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
