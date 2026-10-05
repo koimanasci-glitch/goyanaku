@@ -79,7 +79,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | QR-1 | Tambahan berizin: tombol QR di Rincian Pesanan + desain web status pelanggan | SELESAI (tampilan) — CI tambahan berizin lulus; backend status publik belum tersambung |
 | B8 | Checkout Paket (`checkout111`) | SELESAI — paritas 5 kondisi 390/320, 125 screenshot dan APK lulus; 2 CI awal + 1 tambahan berizin; pembelian produksi tetap diblokir |
 | B9 | Tagihan (`billing`) | SELESAI — paritas 390/320, 129 screenshot dan APK lulus; 1/2 CI; menu produksi tetap menuju Riwayat Transaksi |
-| B10 | Invoice (`invoice111`) | belum, tangkap fixture dulu |
+| B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | B11 | Otomasi WA (`waautomation`) | belum, tangkap fixture dulu |
 | B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | belum |
 
