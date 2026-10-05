@@ -69,7 +69,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B5 | Scan Pesanan (`orderscan`) | SELESAI |
 | B6 | Status QR (`qrstatus`) | SELESAI |
 | B7 | Harga Paket (`plan111`) | SELESAI |
-| B8 | Checkout Paket (`checkout111`) | MENTOK — bridge/analyze/unit lulus; 3 tes screenshot gagal, 2/2 CI terpakai |
+| B8 | Checkout Paket (`checkout111`) | SELESAI — paritas 5 kondisi 390/320, 125 screenshot dan APK lulus; 2 CI awal + 1 tambahan berizin; pembelian produksi tetap diblokir |
 | B9 | Tagihan (`billing`) | belum |
 | B10 | Invoice (`invoice111`) | belum |
 | B11 | Otomasi WA (`waautomation`) | belum |
