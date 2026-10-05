@@ -82,11 +82,11 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | WA-PAIR | Tambahan berizin: popup Hubungkan WhatsApp, pilihan Scan QR / Kode WhatsApp | SELESAI (tampilan) — 390/320, 137 screenshot dan APK lulus; 2/2 CI; QR/kode nyata menunggu API CHATKU (F5) |
 | B11 | Otomasi WA (`waautomation`) → WhatsApp & Chatbot aktif | SELESAI jalur aktif sesuai pilihan Paduka — sudah NativeForm; 6 kondisi 390/320, 144 screenshot dan APK lulus; 2/2 CI. Halaman demo lama tetap tersembunyi; CHATKU menunggu F5 |
-| B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | 4/16 SELESAI. 14 popup sisa gabungan atas izin Paduka; CI4 37341886006: lulus; bridge 53, analyze bersih, unit 123, screenshot 228, 336 paritas gambar dan APK baru. 2 CI awal + 2 tambahan berizin. |
+| B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | 5/16 SELESAI. 14 popup sisa gabungan atas izin Paduka; CI4 37341886006: lulus; bridge 53, analyze bersih, unit 123, screenshot 228, 336 paritas gambar dan APK baru. 2 CI awal + 2 tambahan berizin. |
 | B12-2 | Kategori Baru (`cat99`) | SELESAI (tampilan) — 390/320, keyboard/scroll, 24 paritas gambar, 158 screenshot dan APK lulus; 1/2 CI |
 | B12-3 | Pesanan Berhasil (`f61-print`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
 | B12-4 | Riwayat Status (`hist115`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
-| B12-5 | Foto Dokumentasi (`photo115`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
+| B12-5 | Foto Dokumentasi (`photo115`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
 | B12-6 | Nota WhatsApp (`wa131`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-7 | Kabari Pelanggan (`wa138`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-8 | Cucian Belum Diambil (`rm138s`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
