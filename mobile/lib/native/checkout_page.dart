@@ -355,6 +355,8 @@ class NativeCheckoutPage extends StatelessWidget {
             for (final c in _children(node))
               c['input'] is Map ? _field(c) : _leaf(c),
           ])
+        else if (_children(node).isNotEmpty)
+          _info(node)
         else
           _leaf(node),
     ]),

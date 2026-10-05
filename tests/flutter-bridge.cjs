@@ -480,6 +480,6 @@ try{
   console.log('PASS bridge is inert outside the Flutter app');
   await require('./customer-status.cjs')(b);
   const checkoutCases=await require('./parity/checkout111.cjs')(b);
-  assert.deepEqual(checkoutCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/mirror_pages/checkout111_cases.json'),'utf8')));
+  assert.deepEqual(checkoutCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/checkout111_cases.json'),'utf8')));
   console.log('PASS B8 checkout mirror fixtures 390/320, HTML action indices and production purchase guards');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});

@@ -36,7 +36,7 @@ void main() {
     await loader.load();
   });
   final cases = (jsonDecode(
-    File('test/fixtures/mirror_pages/checkout111_cases.json')
+    File('test/fixtures/parity/checkout111_cases.json')
         .readAsStringSync(),
   ) as List).map(_map);
   for (final fixture in cases) {

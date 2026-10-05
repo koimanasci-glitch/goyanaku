@@ -52,7 +52,7 @@ module.exports=async function captureCheckout(browser,write=false){
     }
   }finally{await p.close()}
   const dir=path.join(root,'mobile/test/fixtures/mirror_pages');
-  if(write){fs.writeFileSync(path.join(dir,'checkout111.json'),JSON.stringify(cases[0].model,null,2)+'\n');fs.writeFileSync(path.join(dir,'checkout111_cases.json'),JSON.stringify(cases)+'\n')}
+  if(write){fs.writeFileSync(path.join(dir,'checkout111.json'),JSON.stringify(cases[0].model,null,2)+'\n');fs.writeFileSync(path.join(root,'mobile/test/fixtures/parity/checkout111_cases.json'),JSON.stringify(cases)+'\n')}
   return cases;
 };
 if(require.main===module)(async()=>{
