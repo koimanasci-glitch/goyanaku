@@ -27,6 +27,9 @@ String _string(Object? value, [String fallback = '']) =>
     value is String ? value : fallback;
 int? _index(Object? value) =>
     value is num && value.isFinite && value >= 0 ? value.toInt() : null;
+// Unscoped legacy fields carry -1; keep their identity/callback unchanged.
+int? _fieldIndex(Object? value) =>
+    value is num && value.isFinite ? value.toInt() : null;
 List<double> _sides(Object? value) => value is List && value.length == 4
     ? value
           .map((v) => _number(v).clamp(0.0, double.infinity).toDouble())
@@ -258,7 +261,7 @@ class PopupStyle {
     if (node['input'] is Map) {
       Widget field = _PopupField(
         key: ValueKey(
-          '${actions.id}-input-${_index(_map(node['input'])['i'])}',
+          '${actions.id}-input-${_fieldIndex(_map(node['input'])['i'])}',
         ),
         node: node,
         onInput: actions.onInput,
@@ -602,10 +605,7 @@ class _PopupFieldState extends State<_PopupField> {
       c: _color(s['c'], const Color(0xff1e1e1e)),
       h: lh > 0 ? lh : null,
     );
-    final rawIndex = input['i'];
-    final index = rawIndex is num && rawIndex.isFinite
-        ? rawIndex.toInt()
-        : null;
+    final index = _fieldIndex(input['i']);
     final options = input['options'];
     if (options is List) {
       final list = options.map((e) => e is String ? e : '').toList();
