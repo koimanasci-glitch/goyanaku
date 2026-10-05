@@ -146,36 +146,40 @@ class NativeGs107Sheet extends StatelessWidget {
       child: child,
     );
     final index = _index(node['b']);
-    if (index != null)
+    if (index != null) {
       result = GestureDetector(
         key: ValueKey('gs107-button-$index'),
         behavior: HitTestBehavior.opaque,
         onTap: () => onButton(index),
         child: result,
       );
-    if (fixed && !inRow)
+    }
+    if (fixed && !inRow) {
       return Align(
         alignment: (m[1] - m[3]).abs() < 2 && m[1] > 0
             ? Alignment.center
             : Alignment.centerLeft,
         child: result,
       );
-    if (m[1] > 0 || m[3] > 0)
+    }
+    if (m[1] > 0 || m[3] > 0) {
       result = Padding(
         padding: EdgeInsets.only(left: m[3], right: m[1]),
         child: result,
       );
+    }
     return result;
   }
 
   Widget _field(Map<String, dynamic> node) {
-    if (node['input'] is Map)
+    if (node['input'] is Map) {
       return _Gs107Field(
         key: ValueKey('gs107-input-${_index(_map(node['input'])['i'])}'),
         node: node,
         onInput: onInput,
       );
-    if (node['row'] == true)
+    }
+    if (node['row'] == true) {
       return _box(
         node,
         Wrap(
@@ -190,6 +194,7 @@ class NativeGs107Sheet extends StatelessWidget {
           ],
         ),
       );
+    }
     return _box(node, _text(node));
   }
 
@@ -265,8 +270,9 @@ class NativeGs107Sheet extends StatelessWidget {
                 ]
               : nodes,
           (node) {
-            if (nodes.indexOf(node) == 3)
+            if (nodes.indexOf(node) == 3) {
               return _box(node, _blocks(_children(node), _field));
+            }
             return _box(node, _text(node));
           },
         ),

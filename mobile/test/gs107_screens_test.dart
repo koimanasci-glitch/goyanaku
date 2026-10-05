@@ -123,8 +123,9 @@ void main() {
           );
           if (state == 'perfume' && width == 390 && keyboard == 0) {
             final update = autoUpdateGoldenFiles;
-            if (File('test/screens/gs107_native.png').existsSync())
+            if (File('test/screens/gs107_native.png').existsSync()) {
               autoUpdateGoldenFiles = false;
+            }
             try {
               await expectLater(
                 find.byKey(const Key('screen')),
