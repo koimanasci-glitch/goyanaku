@@ -87,7 +87,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B12-3 | Pesanan Berhasil (`f61-print`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-4 | Riwayat Status (`hist115`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-5 | Foto Dokumentasi (`photo115`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
-| B12-6 | Nota WhatsApp (`wa131`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
+| B12-6 | Nota WhatsApp (`wa131`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-7 | Kabari Pelanggan (`wa138`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-8 | Cucian Belum Diambil (`rm138s`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-9 | Ralat Pembayaran (`rs139`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
