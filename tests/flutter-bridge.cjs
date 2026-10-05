@@ -11,6 +11,7 @@ const fakeNative=()=>{window.__calls=[];window.GoyanaNative={__events:[],postMes
     'Geolocation.getCurrentPosition':{timestamp:1,coords:{latitude:-6.2,longitude:106.8,accuracy:5}},'Clipboard.read':{text:'dari HP'}};
   setTimeout(()=>window.__goyanaNative.finish(m.id,true,answers[key]||{}),5)}}};
 
+// Service persistence and reload tests use the Android storage adapter.
 const fakeStore=()=>{const P='sq:';const keys=()=>Object.keys(sessionStorage).filter(k=>k.startsWith(P));
     window.GoyanaStore={all:()=>JSON.stringify(Object.fromEntries(keys().map(k=>[k.slice(P.length),sessionStorage.getItem(k)]))),
       set:(k,v)=>{sessionStorage.setItem(P+k,v);return true},setMany:j=>{const o=JSON.parse(j);for(const k in o)sessionStorage.setItem(P+k,o[k]);return true},
