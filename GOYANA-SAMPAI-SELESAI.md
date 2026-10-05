@@ -82,8 +82,9 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | WA-PAIR | Tambahan berizin: popup Hubungkan WhatsApp, pilihan Scan QR / Kode WhatsApp | SELESAI (tampilan) — 390/320, 137 screenshot dan APK lulus; 2/2 CI; QR/kode nyata menunggu API CHATKU (F5) |
 | B11 | Otomasi WA (`waautomation`) → WhatsApp & Chatbot aktif | SELESAI jalur aktif sesuai pilihan Paduka — sudah NativeForm; 6 kondisi 390/320, 144 screenshot dan APK lulus; 2/2 CI. Halaman demo lama tetap tersembunyi; CHATKU menunggu F5 |
-| B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | 2/16 SELESAI: gs107 dan cat99. Cat99 CI 37300621797 lulus 39 bridge, 123 unit, 24 paritas gambar, 158 screenshot dan APK; 1/2 CI. 14 popup lain belum; berikutnya f61-print |
+| B12 | 16 popup cermin (satu popup per putaran): gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 | 2/16 SELESAI. 14 popup sisa dikerjakan gabungan atas izin Paduka; laporan B12-3. CI 37309074537: gagal; batas 2/2; lihat blocker tiap laporan. |
 | B12-2 | Kategori Baru (`cat99`) | SELESAI (tampilan) — 390/320, keyboard/scroll, 24 paritas gambar, 158 screenshot dan APK lulus; 1/2 CI |
+| B12-3 | Pesanan Berhasil (`f61-print`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 
 Pola: lihat B2/B3/B4. File `mobile/lib/native/<halaman>_page.dart`, sambungan di `shell.dart` saja, golden `screens/<halaman>_native.png` dikunci (`autoUpdateGoldenFiles = false` saat membandingkan).
 
