@@ -60,7 +60,7 @@ Acuan teknis: `GOYANA-DART-SOLANA.md` (bagian 4, 4b, 5). Jalur A dan B boleh dik
 |---|---|---|
 | A1–A4 | Beranda, Pesanan, Tambah Transaksi, Rincian Pesanan | SELESAI |
 | A3c | Nomor pesanan, estimasi, simpan | SELESAI tahap paritas + pengaman; terpasang sejak 4 Okt (0eafeb6, review Claude). Nomor/estimasi/snapshot Dart 12/12 diverifikasi ulang 6 Okt; penulisan SQLite masih HTML selama migrasi. |
-| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | belum. Patokan DP/pelunasan/QRIS siap di `flows_a4_a5_a7.json`. Deposit & ralat belum ada patokan → tangkap pakai `tests/parity/flows.cjs` |
+| A5 | Pembayaran: Tunai, QRIS, Transfer, DP, deposit, ralat | SETENGAH JALAN — perhitungan pembayaran/deposit dan pengaman Dart terpasang; 7 snapshot cocok. Ralat menunggu keputusan: metode tidak sinkron dan pembatalan deposit tidak mengembalikan saldo. CI 2/2 habis; APK A5 belum dibangun. Lihat laporan A5 6 Okt. |
 | A6 | Status otomatis: Antrian→Proses 60 menit, Telat Ambil, pengingat | belum |
 | A7 | Kas & Tutup Kasir | belum. Patokan siap (part=A7) |
 | A8 | Laporan (±40 laporan) — pecah per kelompok laporan, satu kelompok per putaran | belum |
