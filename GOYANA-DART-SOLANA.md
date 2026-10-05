@@ -74,13 +74,14 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | WA-PAIR | Tambahan berizin: popup Hubungkan WhatsApp, pilihan Scan QR / Kode WhatsApp | SELESAI (tampilan) — 390/320, 137 screenshot dan APK lulus; 2/2 CI; QR/kode nyata menunggu API CHATKU (F5) |
 | B11 | Otomasi WA (`waautomation`) → WhatsApp & Chatbot aktif | SELESAI jalur aktif sesuai pilihan Paduka — sudah NativeForm; 6 kondisi 390/320, 144 screenshot dan APK lulus; 2/2 CI. Halaman demo lama tetap tersembunyi; CHATKU menunggu F5 |
-| B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | 2/16 SELESAI. 14 popup sisa dikerjakan gabungan atas izin Paduka; laporan B12-7. CI 37309074537: gagal; batas 2/2; lihat blocker tiap laporan. |
+| B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | 2/16 SELESAI. 14 popup sisa dikerjakan gabungan atas izin Paduka; laporan B12-8. CI 37309074537: gagal; batas 2/2; lihat blocker tiap laporan. |
 | B12-2 | Kategori Baru (`cat99`) | SELESAI (tampilan) — 390/320, keyboard/scroll, 24 paritas gambar, 158 screenshot dan APK lulus; 1/2 CI |
 | B12-3 | Pesanan Berhasil (`f61-print`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-4 | Riwayat Status (`hist115`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-5 | Foto Dokumentasi (`photo115`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-6 | Nota WhatsApp (`wa131`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-7 | Kabari Pelanggan (`wa138`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
+| B12-8 | Cucian Belum Diambil (`rm138s`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 
 ### Jalur C: Isi halaman formulir & popup native ke Dart
 ±49 halaman formulir (Printer, Profil, Pegawai, Stok, CRM, Kurir, dst.) dan ±25 popup native: tampilannya sudah Flutter, tapi daftar isian (label, pilihan, nilai) masih dibaca dari HTML. Tulis daftar itu di Dart, satu kelompok halaman per putaran, bersamaan dengan bagian Jalur A yang terkait.
