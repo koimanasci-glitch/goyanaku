@@ -92,7 +92,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B12-8 | Cucian Belum Diambil (`rm138s`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-9 | Ralat Pembayaran (`rs139`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-10 | Pilih Kontak HP (`contacts178`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
-| B12-11 | Panduan (`guide135`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
+| B12-11 | Panduan (`guide135`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
 | B12-12 | API GOYANA (`api135`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-13 | Bayar Melalui (`pay111`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
 | B12-14 | Pembayaran Upgrade Lama (`upgrade-pay-modal`) | MENTOK (widget dibuat; verifikasi gabungan belum lulus) — CI 37309074537; 2/2 gabungan; lihat laporan |
