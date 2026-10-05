@@ -73,7 +73,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B9 | Tagihan (`billing`) | SELESAI — paritas 390/320, 129 screenshot dan APK lulus; 1/2 CI; menu produksi tetap menuju Riwayat Transaksi |
 | B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | WA-PAIR | Tambahan berizin: popup Hubungkan WhatsApp, pilihan Scan QR / Kode WhatsApp | SELESAI (tampilan) — 390/320, 137 screenshot dan APK lulus; 2/2 CI; QR/kode nyata menunggu API CHATKU (F5) |
-| B11 | Otomasi WA (`waautomation`) | belum — final HTML dialihkan ke whatsappbot; tangkap fixture final dulu |
+| B11 | Otomasi WA (`waautomation`) → WhatsApp & Chatbot aktif | SELESAI jalur aktif sesuai pilihan Paduka — sudah NativeForm; 6 kondisi 390/320, 144 screenshot dan APK lulus; 2/2 CI. Halaman demo lama tetap tersembunyi; CHATKU menunggu F5 |
 | B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | belum |
 
 ### Jalur C: Isi halaman formulir & popup native ke Dart
@@ -91,6 +91,8 @@ Bagian besar dipecah kecil. **Satu putaran = satu baris tabel.**
 | Native khusus | Beranda, Pesanan, Tambah Transaksi, Pelanggan, Laporan, Pengaturan, Kas, Tutup Kasir, Layanan, Rincian Pesanan | `mobile/lib/native/*_page.dart` | ubah widget Dart di file itu |
 | Native formulir | ±49 halaman di `_formPages` (shell.dart): Printer, Profil, Pegawai, Stok, CRM, Kurir, dll. | `mobile/lib/native/form_page.dart` (isi dari HTML) | ubah `form_page.dart` (berlaku ke semua formulir) |
 | CERMIN | perfume, duration, pickservice, pickup, orderscan, qrstatus, plan111 (Harga Paket), checkout111, billing, invoice111, waautomation + 16 popup di `MIRROR_SHEETS` (capacitor.js) | HTML/CSS tersembunyi, digambar `mirror_sheet.dart` | JANGAN ubah lewat CSS. Kalau perlu desain baru, tulis ulang jadi widget Flutter asli (Jalur B) sekaligus dengan desain barunya |
+
+Catatan B11 (pilihan Paduka 5 Okt): jalur produksi `waautomation` dialihkan ke `whatsappbot` yang sudah memakai NativeForm. B11 mengunci halaman aktif; HTML cermin demo lama tetap tersembunyi dan belum dihapus. Definisi formulir masih berasal dari HTML sampai jalur C/D.
 
 ## 5. Langkah wajib untuk setiap bagian
 **CARA CEPAT (keputusan Koko 4 Okt): TES BESAR, JANGAN BOLAK-BALIK.**
