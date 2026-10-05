@@ -15,6 +15,7 @@ import '../logic/addorder_save.dart';
 import '../logic/home.dart';
 import '../logic/order_detail.dart';
 import '../logic/orders.dart';
+import '../logic/payments.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
 import '../native/cashclose_page.dart';
@@ -233,6 +234,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     try {
       final data = jsonDecode(message) as Map<String, dynamic>;
       if (data['event'] != 'native') return;
+      _paymentA5Check();
       final page = data['page'] as String?;
       final model = data['model'] is Map ? Map<String, dynamic>.from(data['model'] as Map) : null;
       if (!mounted) return;
@@ -641,18 +643,22 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
           after: after,
           orderId: id,
         );
-        if (action == null) {
-          // Perubahan bukan A4 (misalnya pembayaran A5); jangan menilai sebagai mismatch A4.
+        final payment = action == null
+            ? inferPaymentA5Action(before: before, after: after, orderId: id)
+            : null;
+        if (action == null && payment == null) {
           _orderDetailA4BeforeRaw = current;
           _orderDetailA4Id = id;
           return;
         }
-        final candidate = applyOrderDetailA4(before: before, action: action);
+        final candidate = action != null
+            ? applyOrderDetailA4(before: before, action: action)
+            : applyPaymentA5(before: before, action: payment!);
         candidateRaw = candidate[Keys.business] as String;
         final hStore = jsonDecode(current);
         final dStore = jsonDecode(candidateRaw);
         if (jsonEncode(_canonical(hStore)) != jsonEncode(_canonical(dStore))) {
-          await _parityLog(store, 'order-detail-a4',
+          await _parityLog(store, action == null ? 'payment-a5' : 'order-detail-a4',
               {'store': _canonical(hStore)}, {'store': _canonical(dStore)});
           _orderDetailA4BeforeRaw = current;
           _orderDetailA4Id = id;
@@ -697,6 +703,36 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     } on UnsupportedError catch (_) {
       // Status di luar patokan A4 tetap memakai HTML.
     } catch (_) {/* tetap memakai HTML */}
+  }
+
+  int _paymentA5Seq = 0;
+  String? _paymentA5Before;
+  Future<void> _paymentA5Check() async {
+    final seq = ++_paymentA5Seq;
+    try {
+      const store = DeviceKvStore();
+      final raw = await store.get(Keys.business);
+      if (raw == null || !mounted || seq != _paymentA5Seq) return;
+      final previous = _paymentA5Before;
+      _paymentA5Before = raw;
+      if (previous == null || previous == raw) return;
+      final before = <String, dynamic>{Keys.business: previous};
+      final after = <String, dynamic>{Keys.business: raw};
+      final action = inferPaymentA5Action(before: before, after: after);
+      if (action == null) {
+        return; // Ralat belum dipindah sampai keputusan aturan saldo.
+      }
+      final candidate = applyPaymentA5(before: before, action: action);
+      final expected = _canonical(
+        jsonDecode(candidate[Keys.business] as String),
+      );
+      final actual = _canonical(jsonDecode(raw));
+      if (jsonEncode(expected) != jsonEncode(actual)) {
+        await _parityLog(store, 'payment-a5', actual, expected);
+      }
+    } catch (_) {
+      /* transaksi di luar patokan tetap memakai HTML */
+    }
   }
 
   static Object? _canonical(Object? value) {

@@ -4,7 +4,8 @@
 // Pakai: GOYANA_BROWSER_EXECUTABLE=... NODE_PATH=tests/node_modules node tests/parity/flows.cjs
 const fs=require('fs'),path=require('path'),{spawnSync}=require('child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..');
-const out=path.join(root,'mobile/test/fixtures/parity/flows_a4_a5_a7.json');
+const extra=process.argv.includes('--a5-extra');
+const out=path.join(root,'mobile/test/fixtures/parity/'+(extra?'payments_a5_extra.json':'flows_a4_a5_a7.json'));
 (async()=>{
  const prep=spawnSync('python',[path.join(root,'tools/prepare_flutter_web.py'),root,path.join(root,'tests/node_modules/@zxing/library/umd/index.min.js')],{encoding:'utf8'});
  if(prep.status)throw Error(prep.stderr||prep.stdout);
@@ -39,6 +40,24 @@ const out=path.join(root,'mobile/test/fixtures/parity/flows_a4_a5_a7.json');
    if(after)Object.assign(rec,await after());
    steps.push(rec);await closeAll();await p.clock.runFor(300);
  };
+ if(extra){
+ await mk('Fina Deposit','081200000006',4,'Bayar Nanti','Reguler');
+ await p.evaluate(()=>openDeposits178());
+ await step('A5','deposit_topup_transfer',{desc:'Tambah saldo Transfer Rp50000'},()=>{document.getElementById('deposits178-amount').value='50000';document.getElementById('deposits178-method').value='Transfer';document.getElementById('deposits178-save').click()});
+ await openDetail('Fina Deposit');
+ await step('A5','deposit_partial',{desc:'Bayar deposit Rp10000'},()=>{openPay115();document.getElementById('pay115-amt').value='10000';[...document.querySelectorAll('#pay115-m button')].find(b=>b.textContent.trim()==='Deposit').click();savePay115()});
+ await openDetail('Fina Deposit');
+ await step('A5','deposit_full',{desc:'Lunasi sisa Rp18000 dengan deposit'},()=>{openPay115();payDeposit91();document.getElementById('depositpay178-save').click()});
+ await mk('Gina DP','081200000007',4,'Bayar Nanti','Reguler');
+ await openDetail('Gina DP');
+ await step('A5','dp_transfer',{desc:'DP Transfer Rp5000'},()=>{openPay115();openDp91();document.getElementById('dp178-amount').value='5000';document.getElementById('dp178-method').value='Transfer';document.getElementById('dp178-save').click()});
+ await openDetail('Gina DP');
+ await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5-audit','ralat_method',{desc:'Ralat Transfer menjadi Tunai'},()=>{[...document.querySelectorAll('#rs139-m button')].find(b=>b.textContent==='Tunai').click();document.querySelector('#rs139-ch button').click();rsSave139()});
+ await openDetail('Fina Deposit');
+ await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5-audit','void_deposit',{desc:'Batalkan pembayaran deposit terakhir'},()=>{document.querySelector('#rs139-ch button').click();rsVoid139()});
+ }else{
  // ---------- A4: Rincian Pesanan (status, batal) ----------
  await mk('Ani Status','081200000001',3,'Bayar Nanti','Reguler');
  for(const [i,label] of ['proses','siap','diambil'].entries()){
@@ -72,8 +91,9 @@ const out=path.join(root,'mobile/test/fixtures/parity/flows_a4_a5_a7.json');
    await p.clock.runFor(2000);await closeAll();await p.evaluate(()=>openPage('cashclose'));await p.clock.runFor(500);const ccAfter=await lastModel('cashclose');
    await p.evaluate(()=>openPage('home'));await p.clock.runFor(800);
    return {after:await store(),cashcloseBefore:ccBefore,cashcloseAfter:ccAfter,homeBefore,homeAfter:await lastModel('home')};});
+ }
  await b.close();
  if(errors.length)console.error('page errors:',errors.slice(0,5));
- fs.writeFileSync(out,JSON.stringify({note:'Patokan HTML A4/A5/A7. Setiap langkah: before -> aksi -> after. Ditangkap Claude.',steps}));
+ fs.writeFileSync(out,JSON.stringify({note:extra?'Patokan tambahan A5 ditangkap GPT Work sesuai GOYANA-SAMPAI-SELESAI.md; A5-audit menunjukkan kasus ralat yang perlu keputusan.':'Patokan HTML A4/A5/A7. Setiap langkah: before -> aksi -> after. Ditangkap Claude.',steps}));
  console.log('Captured',steps.length,'steps ->',path.relative(root,out));
 })().catch(e=>{console.error(e);process.exitCode=1});
