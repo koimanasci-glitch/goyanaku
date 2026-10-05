@@ -290,6 +290,7 @@ Map<String, dynamic> orderDetailA4Model({
   required Map<String, dynamic> store,
   required String orderId,
   required Map<String, dynamic> presentation,
+  bool preserveSavedBanner = false,
 }) {
   final model = _copyMap(presentation);
   final business = _business(store);
@@ -300,7 +301,9 @@ Map<String, dynamic> orderDetailA4Model({
   final handover = '${detail['handover'] ?? ''}';
   final view = _statusView(status, handover);
   final level = view['level'] as int;
-  final showBanner = status != 'diambil';
+  final showBanner = preserveSavedBanner
+      ? (presentation['od'] is Map && (presentation['od'] as Map)['banner'] != null)
+      : status != 'diambil';
   final shift = showBanner ? 0 : -1;
   final total = _num(card['total']);
   final paidAmount = _num(detail['paid'] ?? dataset['paid177']);
@@ -316,7 +319,7 @@ Map<String, dynamic> orderDetailA4Model({
   final od = Map<String, dynamic>.from(odRaw);
   model['od'] = od;
   od['sub'] = '$orderId · ${_field(card, 0)}';
-  od['banner'] = showBanner ? banner : null;
+  if (!preserveSavedBanner) od['banner'] = showBanner ? banner : null;
   od['steps'] = _innerSteps(level);
 
   if (od['customer'] is Map) {
@@ -361,9 +364,9 @@ Map<String, dynamic> orderDetailA4Model({
   }
 
   final bannerIndex = items.indexWhere((e) => e['type'] == 'row' && '${e['t']}'.startsWith('Pesanan tersimpan'));
-  if (!showBanner && bannerIndex >= 0) {
+  if (!preserveSavedBanner && !showBanner && bannerIndex >= 0) {
     items.removeAt(bannerIndex);
-  } else if (showBanner) {
+  } else if (!preserveSavedBanner && showBanner) {
     final row = <String, dynamic>{
       'type': 'row', 't': banner['t'],
       's': '$orderId · tekan tombol WA hijau untuk kirim nota',

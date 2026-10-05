@@ -4,8 +4,9 @@
 // Pakai: GOYANA_BROWSER_EXECUTABLE=... NODE_PATH=tests/node_modules node tests/parity/flows.cjs
 const fs=require('fs'),path=require('path'),{spawnSync}=require('child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..');
-const extra=process.argv.includes('--a5-extra');
-const out=path.join(root,'mobile/test/fixtures/parity/'+(extra?'payments_a5_extra.json':'flows_a4_a5_a7.json'));
+const corrected=process.argv.includes('--a5-corrected');
+const extra=process.argv.includes('--a5-extra')||corrected;
+const out=path.join(root,'mobile/test/fixtures/parity/'+(corrected?'payments_a5_corrected.json':extra?'payments_a5_extra.json':'flows_a4_a5_a7.json'));
 (async()=>{
  const prep=spawnSync('python',[path.join(root,'tools/prepare_flutter_web.py'),root,path.join(root,'tests/node_modules/@zxing/library/umd/index.min.js')],{encoding:'utf8'});
  if(prep.status)throw Error(prep.stderr||prep.stdout);
@@ -36,13 +37,22 @@ const out=path.join(root,'mobile/test/fixtures/parity/'+(extra?'payments_a5_extr
    const before=await store();
    if(js)await p.evaluate(js);else await action.run();
    await p.clock.runFor(900);
+   if(corrected){await p.evaluate(()=>{f61Close('f61-payment');if(api115.cur()&&document.getElementById('g62-order-detail').classList.contains('show'))api115.render();__goyanaHomeRefresh()});await p.clock.runFor(400);await p.waitForTimeout(50);}
    const rec={part,name,action:action.desc,now:new Date(await p.evaluate(()=>Date.now())).toISOString(),before,after:await store(),orders:await lastModel('orders'),home:null,detail:await detailModel()};
    if(after)Object.assign(rec,await after());
    steps.push(rec);await closeAll();await p.clock.runFor(300);
  };
  if(extra){
+ if(corrected){
+ await mk('Hana Cash','081200000008',4,'Bayar Nanti','Reguler');await openDetail('Hana Cash');
+ await step('A5','fresh_dp50_tunai',{desc:'DP 50 persen Tunai'},()=>{openPay115();payQuick115(.5);document.querySelector('#pay115-m button').click();savePay115()});
+ await openDetail('Hana Cash');
+ await step('A5','fresh_settle_transfer',{desc:'Pelunasan Transfer setelah DP'},()=>{openPay115();payQuick115(1);[...document.querySelectorAll('#pay115-m button')].find(b=>b.textContent.trim()==='Transfer').click();savePay115()});
+ await mk('Intan QRIS','081200000009',2.5,'Bayar Nanti','Kilat');await openDetail('Intan QRIS');
+ await step('A5','fresh_full_qris',{desc:'Pelunasan QRIS'},()=>{openPay115();payQuick115(1);[...document.querySelectorAll('#pay115-m button')].find(b=>b.textContent.trim()==='QRIS').click();savePay115()});
+ }
  await mk('Fina Deposit','081200000006',4,'Bayar Nanti','Reguler');
- await p.evaluate(()=>openDeposits178());
+ await p.evaluate(()=>{openDeposits178();const sel=document.getElementById('deposits178-customer');sel.value=[...sel.options].find(o=>o.textContent.startsWith('Fina Deposit')).value;sel.dispatchEvent(new Event('change'))});
  await step('A5','deposit_topup_transfer',{desc:'Tambah saldo Transfer Rp50000'},()=>{document.getElementById('deposits178-amount').value='50000';document.getElementById('deposits178-method').value='Transfer';document.getElementById('deposits178-save').click()});
  await openDetail('Fina Deposit');
  await step('A5','deposit_partial',{desc:'Bayar deposit Rp10000'},()=>{openPay115();document.getElementById('pay115-amt').value='10000';[...document.querySelectorAll('#pay115-m button')].find(b=>b.textContent.trim()==='Deposit').click();savePay115()});
@@ -53,10 +63,34 @@ const out=path.join(root,'mobile/test/fixtures/parity/'+(extra?'payments_a5_extr
  await step('A5','dp_transfer',{desc:'DP Transfer Rp5000'},()=>{openPay115();openDp91();document.getElementById('dp178-amount').value='5000';document.getElementById('dp178-method').value='Transfer';document.getElementById('dp178-save').click()});
  await openDetail('Gina DP');
  await p.evaluate(()=>ralatPay139(null,api115.cur().id));
- await step('A5-audit','ralat_method',{desc:'Ralat Transfer menjadi Tunai'},()=>{[...document.querySelectorAll('#rs139-m button')].find(b=>b.textContent==='Tunai').click();document.querySelector('#rs139-ch button').click();rsSave139()});
+ await step(corrected?'A5':'A5-audit','ralat_method',{desc:'Ralat Transfer menjadi Tunai'},()=>{[...document.querySelectorAll('#rs139-m button')].find(b=>b.textContent==='Tunai').click();document.querySelector('#rs139-ch button').click();rsSave139()});
  await openDetail('Fina Deposit');
  await p.evaluate(()=>ralatPay139(null,api115.cur().id));
- await step('A5-audit','void_deposit',{desc:'Batalkan pembayaran deposit terakhir'},()=>{document.querySelector('#rs139-ch button').click();rsVoid139()});
+ await step(corrected?'A5':'A5-audit','void_deposit',{desc:'Batalkan pembayaran deposit terakhir'},()=>{document.querySelector('#rs139-ch button').click();rsVoid139()});
+ if(corrected){
+ await step('A5-rejected','void_deposit_twice',{desc:'Tekan ulang pembatalan deposit yang sama: tidak boleh refund dua kali'},()=>rsVoid139());
+ await openDetail('Gina DP');await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5','ralat_amount',{desc:'Ralat pembayaran Tunai menjadi Rp9000'},()=>{document.getElementById('rs139-a').value='9000';document.querySelector('#rs139-ch button').click();rsSave139()});
+ await openDetail('Gina DP');await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5-rejected','ralat_over_bill',{desc:'Tolak ralat Rp28001 melebihi total Rp28000'},()=>{document.getElementById('rs139-a').value='28001';document.querySelector('#rs139-ch button').click();rsSave139()});
+ for(const [name,raw] of [['ralat_negative','-5000'],['ralat_fraction','5,5']]){
+ await openDetail('Gina DP');await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5-rejected',name,{desc:'Tolak nominal '+raw,run:()=>p.evaluate(v=>{document.getElementById('rs139-a').value=v;document.querySelector('#rs139-ch button').click();rsSave139()},raw)},null);
+ }
+ await openDetail('Gina DP');await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5-rejected','ralat_disk_failure',{desc:'Gagal penyimpanan: seluruh perubahan harus rollback'},()=>{document.getElementById('rs139-a').value='10000';document.querySelector('#rs139-ch button').click();const f=window.flushTransactions177;window.flushTransactions177=()=>false;rsSave139();window.flushTransactions177=f});
+ await openDetail('Fina Deposit');await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5-rejected','deposit_refund_disk_failure',{desc:'Refund deposit gagal tersimpan: saldo dan pembayaran harus rollback'},()=>{document.querySelector('#rs139-ch button').click();const f=window.flushTransactions177;window.flushTransactions177=()=>false;rsVoid139();window.flushTransactions177=f});
+ await openDetail('Fina Deposit');await p.evaluate(()=>ralatPay139(null,api115.cur().id));
+ await step('A5','deposit_to_cash',{desc:'Ganti pembayaran deposit Rp10000 menjadi Tunai; saldo kembali Rp50000'},()=>{document.querySelector('#rs139-m button').click();document.querySelector('#rs139-ch button').click();rsSave139()});
+ await openDetail('Gina DP');await p.evaluate(()=>{KAS137.sales.length=0;flushTransactions177();ralatPay139(null,api115.cur().id)});
+ await step('A5','legacy_ralat',{desc:'Ralat pembayaran shift sebelumnya menjadi Transfer Rp7000'},()=>{[...document.querySelectorAll('#rs139-m button')].find(b=>b.textContent==='Transfer').click();document.getElementById('rs139-a').value='7000';document.querySelector('#rs139-ch button').click();rsSave139()});
+ await openDetail('Gina DP');await p.evaluate(()=>{KAS137.sales.length=0;flushTransactions177();ralatPay139(null,api115.cur().id)});
+ await step('A5','legacy_void',{desc:'Batalkan pembayaran shift sebelumnya'},()=>{document.querySelector('#rs139-ch button').click();rsVoid139()});
+ await p.reload();await p.clock.runFor(3500);await openDetail('Fina Deposit');
+ const reloaded=JSON.parse((await store())['goyana-business177']);
+ if(reloaded.deposits178['phone:6281200000006'].balance!==50000)throw Error('Refund tidak bertahan setelah reload');
+ }
  }else{
  // ---------- A4: Rincian Pesanan (status, batal) ----------
  await mk('Ani Status','081200000001',3,'Bayar Nanti','Reguler');
@@ -93,7 +127,9 @@ const out=path.join(root,'mobile/test/fixtures/parity/'+(extra?'payments_a5_extr
    return {after:await store(),cashcloseBefore:ccBefore,cashcloseAfter:ccAfter,homeBefore,homeAfter:await lastModel('home')};});
  }
  await b.close();
- if(errors.length)console.error('page errors:',errors.slice(0,5));
- fs.writeFileSync(out,JSON.stringify({note:extra?'Patokan tambahan A5 ditangkap GPT Work sesuai GOYANA-SAMPAI-SELESAI.md; A5-audit menunjukkan kasus ralat yang perlu keputusan.':'Patokan HTML A4/A5/A7. Setiap langkah: before -> aksi -> after. Ditangkap Claude.',steps}));
+ if(errors.length)throw Error('page errors: '+errors.slice(0,5).join('; '));
+ const assert=require('assert/strict');
+ if(corrected){for(const c of steps){if(c.part==='A5-rejected')assert.deepEqual(c.after,c.before,c.name);const b=JSON.parse(c.after['goyana-business177']);for(const card of b.orders){const id=card.fields[1][0],o=b.details[id],entries=JSON.parse(card.dataset.payments178||'[]');assert.equal(entries.reduce((n,e)=>n+e.a,0),o.paid,c.name+' history');assert.equal(Number(card.dataset.paid177),o.paid,c.name+' paid dataset')}}const refunded=JSON.parse(steps.find(c=>c.name==='void_deposit').after['goyana-business177']);assert.equal(refunded.deposits178['phone:6281200000006'].balance,40000);}
+ if(!process.argv.includes('--verify-only'))fs.writeFileSync(out,JSON.stringify({note:corrected?'Patokan A5 dengan koreksi keuangan disetujui Paduka 6 Okt 2026; before -> aksi -> after.':extra?'Patokan tambahan A5 ditangkap GPT Work sesuai GOYANA-SAMPAI-SELESAI.md; A5-audit menunjukkan kasus ralat yang perlu keputusan.':'Patokan HTML A4/A5/A7. Setiap langkah: before -> aksi -> after. Ditangkap Claude.',steps}));
  console.log('Captured',steps.length,'steps ->',path.relative(root,out));
 })().catch(e=>{console.error(e);process.exitCode=1});

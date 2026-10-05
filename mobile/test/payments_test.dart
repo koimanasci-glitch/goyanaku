@@ -7,11 +7,19 @@ import 'package:goyana_flutter/logic/order_detail.dart';
 
 void main() {
   final cases = <Map>[];
-  for (final file in ['flows_a4_a5_a7.json', 'payments_a5_extra.json']) {
+  for (final file in [
+    'flows_a4_a5_a7.json',
+    'payments_a5_extra.json',
+    'payments_a5_corrected.json',
+  ]) {
     final fixture = jsonDecode(
       File('test/fixtures/parity/$file').readAsStringSync(),
     ) as Map;
-    cases.addAll((fixture['steps'] as List).whereType<Map>());
+    cases.addAll(
+      (fixture['steps'] as List).whereType<Map>().map(
+        (c) => {...c, 'freshModel': file != 'flows_a4_a5_a7.json'},
+      ),
+    );
   }
   for (final c in cases.where((c) => c['part'] == 'A5')) {
     test('A5 snapshot HTML ${c['name']}', () {
@@ -25,7 +33,10 @@ void main() {
     });
   }
   for (final c in cases.where(
-    (c) => c['part'] == 'A5' && c['name'] != 'deposit_topup_transfer',
+    (c) =>
+        c['part'] == 'A5' &&
+        c['freshModel'] == true &&
+        c['name'] != 'deposit_topup_transfer',
   )) {
     test('A5 detail native sama HTML ${c['name']}', () {
       final before = Map<String, dynamic>.from(c['before'] as Map);
@@ -39,6 +50,7 @@ void main() {
           store: got,
           orderId: action.orderId,
           presentation: Map<String, dynamic>.from(c['detail'] as Map),
+          preserveSavedBanner: true,
         ),
         c['detail'],
       );
@@ -88,6 +100,42 @@ void main() {
     expect(
       paymentCustomerKey('Citra', '0812-0000'),
       paymentCustomerKey('Citra', '628120000'),
+    );
+  });
+  for (final c in cases.where((c) => c['part'] == 'A5-rejected')) {
+    test('A5 tidak berubah saat ditolak ${c['name']}', () {
+      expect(c['after'], c['before']);
+      expect(
+        inferPaymentA5Action(
+          before: Map<String, dynamic>.from(c['before'] as Map),
+          after: Map<String, dynamic>.from(c['after'] as Map),
+        ),
+        isNull,
+      );
+    });
+  }
+  test('A5 refund deposit Rp18000 kembali sekali dan bertahan', () {
+    final c = cases.firstWhere(
+      (c) => c['name'] == 'void_deposit' && c['part'] == 'A5',
+    );
+    final b =
+        jsonDecode((c['after'] as Map)[paymentBusinessKey] as String) as Map;
+    expect(
+      ((b['deposits178'] as Map)['phone:6281200000006'] as Map)['balance'],
+      40000,
+    );
+    final details = (b['details'] as Map).values.whereType<Map>();
+    final order = details.firstWhere((o) => o['name'] == 'Fina Deposit');
+    expect(order['paid'], 10000);
+    final card = (b['orders'] as List).whereType<Map>().firstWhere(
+      (o) => (o['fields'] as List)[1][0] == order['id'],
+    );
+    expect((card['dataset'] as Map)['paid177'], '10000');
+    expect(
+      (jsonDecode(
+        (card['dataset'] as Map)['payments178'] as String,
+      ) as List).length,
+      1,
     );
   });
   for (final c in cases.where((c) => c['part'] == 'A5-audit')) {

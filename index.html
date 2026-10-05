@@ -8428,19 +8428,17 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
         if(m!==om&&(om==='Tunai'||m==='Tunai'))t.push('Uang di laci seharusnya ikut berubah');
         p.innerHTML=t.join('<br>');p.classList.toggle('show',t.length>0)},
       save:function(){var m=segVal('rs139-m'),om=legacy?segVal('rs139-old'):s.m,a=num($('rs139-a').value),r=reason();
+        if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)$/.test($('rs139-a').value.trim())){toast90('Isi nominal rupiah bulat yang benar');return}
         if(!a){toast90('Nominal tidak boleh 0 · pakai Batalkan Bayar');return}
         if(m===om&&a===s.a){toast90('Belum ada yang diubah');return}
         if(!r){toast90('Pilih alasan ralat dulu');return}
         admin139('Ralat pembayaran '+(s.id||''),function(by){
-          var before=om+' '+rp(s.a),after=m+' '+rp(a),oldA=s.a;
-          if(legacy){K.sales.push({m:om,a:-s.a,id:s.id,adj:1,rid:'S'+(++seq),at:new Date()});K.sales.push({m:m,a:a,id:s.id,adj:1,rid:'S'+(++seq),at:new Date()})}
-          else{s.m=m;s.a=a;s.edited=1}
-          if(s.id&&a!==oldA)withOrder(s.id,function(o){o.paid=Math.max(0,o.paid+(a-oldA))});
+          var before=om+' '+rp(s.a),after=m+' '+rp(a);
+          if(!window.correctPayment178(s,{method:m,amount:a,reason:r,by:by,legacy:legacy,oldMethod:om,makeRid:function(){return 'S'+(++seq)}}))return;
           closeSheet91('rs139');addLog({type:'bayar',title:'Ralat pembayaran '+(s.id||''),before:before,after:after,reason:r,by:by,tag:legacy?'Shift lalu':''});toast90('Ralat tersimpan · tercatat di Log Ralat')})},
       void:function(){var r=reason();if(!r){toast90('Pilih alasan dulu');return}
         admin139('Batalkan pembayaran '+(s.id||''),function(by){var om=legacy?segVal('rs139-old'):s.m;
-          if(legacy)K.sales.push({m:om,a:-s.a,id:s.id,adj:1,rid:'S'+(++seq),at:new Date()});else{K.sales.splice(K.sales.indexOf(s),1);s.voidAt=new Date();K.voided.push(s)}
-          if(s.id)withOrder(s.id,function(o){o.paid=Math.max(0,o.paid-s.a)});
+          if(!window.correctPayment178(s,{method:om,amount:0,reason:r,by:by,legacy:legacy,oldMethod:om,void:true,makeRid:function(){return 'S'+(++seq)}}))return;
           closeSheet91('rs139');addLog({type:'bayar',title:'Pembayaran dibatalkan '+(s.id||''),before:om+' '+rp(s.a),after:'Dibatalkan · Belum bayar',reason:r,by:by,tag:legacy?'Shift lalu':''});toast90('Pembayaran dibatalkan · pesanan jadi Belum Bayar')})}})};
   window.rsSave139=function(){F&&F.save&&F.save()};
   window.rsVoid139=function(){F&&F.void&&F.void()};
@@ -11215,6 +11213,44 @@ function orderCard(id){return orderCards().find(c=>orderId(c)===id)}
 function ensureDetail(c){const id=orderId(c);if(!orderData177[id]){const created=new Date(c.dataset.created177||Date.now());orderData177[id]={id,name:c.querySelector('.g62-order-body div b').textContent.trim(),phone:c.dataset.phone||'',dur:c.querySelector('.g62-order-top span').textContent,items:readItems(c),discKey:Number(c.dataset.disc)?'n'+c.dataset.disc:'0',ongkir:0,paid:Number(c.dataset.paid177)||0,perfume:c.dataset.perfume178||'Tanpa Parfum',note:'-',handover:c.dataset.antar==='1'?'Diantar kurir':'Datang Langsung',masuk:created,due:new Date(created.getTime()+(window.durHours199?durHours199(c.querySelector('.g62-order-top span').textContent):72)*3600e3),photos:{in:[],out:[]},hist:[{st:c.dataset.st||'antrian',at:created,by:'Kasir'}]}}return orderData177[id]}
 function readItems(c){try{return JSON.parse(c.dataset.items||'[]')}catch(e){return []}}
 function syncPayment(c,o){const total=api115.calc(o).total,remain=Math.max(0,total-o.paid),em=c.querySelector('strong em');c.dataset.paid177=String(o.paid);if(em){em.textContent=remain===0?'Lunas':o.paid>0?'DP · sisa '+rp(remain):'Belum Bayar';em.className=remain===0?'paid':''}if(api115.cur()===o)api115.render()}
+// Authorized A5 corrections: synchronize all payment records in one persisted snapshot.
+window.correctPayment178=function(s,opt){
+ let c,o,prior,ledgerKey,ledgerPrior;const sales=KAS137.sales.slice(),voided=KAS137.voided.slice();
+ try{
+  if(!s.id||s._corrected178)throw Error('Pembayaran ini sudah diralat atau tidak memiliki pesanan');
+  c=orderCard(s.id);if(!c)throw Error('Pesanan tidak ditemukan');o=ensureDetail(c);
+  const amount=opt.void?0:opt.amount,total=api115.calc(o).total;
+  if(!Number.isSafeInteger(amount)||amount<0||(!opt.void&&!amount)||!['Tunai','QRIS','Transfer','Deposit'].includes(opt.method)||!opt.reason)throw Error('Isi nominal, metode, dan alasan ralat yang benar');
+  let entries=JSON.parse(c.dataset.payments178||'[]'),index=-1;
+  if(!opt.legacy){
+   if(KAS137.sales.indexOf(s)<0)throw Error('Pembayaran ini sudah diralat atau dibatalkan');
+   for(let i=entries.length-1;i>=0;i--)if(entries[i].m===s.m&&entries[i].a===s.a&&new Date(entries[i].at).getTime()===new Date(s.at).getTime()){index=i;break}
+   if(index<0)throw Error('Riwayat pembayaran tidak cocok. Buka kembali pesanan.');
+  }
+  const oldEntries=opt.legacy?(entries.length?entries:[{m:opt.oldMethod,a:s.a,at:new Date().toISOString()}]):[entries[index]];
+  const oldAmount=oldEntries.reduce((n,e)=>n+e.a,0),next=o.paid-oldAmount+amount;
+  if(!Number.isSafeInteger(next)||next<0||next>total||oldAmount!==s.a)throw Error('Nominal ralat melebihi tagihan atau riwayat tidak cocok');
+  const at=new Date().toISOString(),newEntries=amount?[{m:opt.method,a:amount,at:opt.legacy?at:entries[index].at}]:[];
+  const oldDeposit=oldEntries.reduce((n,e)=>n+(e.m==='Deposit'?e.a:0),0),newDeposit=opt.method==='Deposit'?amount:0,delta=oldDeposit-newDeposit;
+  prior={paid:o.paid,corrections:o.paymentCorrections178,method:c.dataset.method177,entries:c.dataset.payments178};
+  if(delta){
+   const acc=account(o.name,c.dataset.phone||o.phone||'');ledgerKey=acc.key;ledgerPrior=JSON.stringify(deposits178[ledgerKey]||null);
+   if(!Number.isSafeInteger(acc.record.balance+delta)||acc.record.balance+delta<0)throw Error('Saldo deposit tidak cukup atau nominal terlalu besar');
+   acc.record.balance+=delta;acc.record.history.push({type:delta>0?'refund':'payment',amount:Math.abs(delta),order:o.id,at,reason:opt.reason});deposits178[ledgerKey]=acc.record;
+  }
+  const rids=[];
+  if(opt.legacy){oldEntries.forEach(e=>{const rid=opt.makeRid();rids.push(rid);KAS137.sales.push({m:e.m,a:-e.a,id:o.id,adj:1,rid,at:new Date(at)})});if(amount){const rid=opt.makeRid();rids.push(rid);KAS137.sales.push({m:opt.method,a:amount,id:o.id,adj:1,rid,at:new Date(at)})};entries=newEntries}
+  else{const saleIndex=KAS137.sales.indexOf(s);if(opt.void){KAS137.sales.splice(saleIndex,1);KAS137.voided.push(Object.assign({},s,{voidAt:new Date(at)}));entries.splice(index,1)}else{KAS137.sales[saleIndex]=Object.assign({},s,{m:opt.method,a:amount,edited:1});entries[index]=newEntries[0]}}
+  o.paid=next;c.dataset.payments178=JSON.stringify(entries);c.dataset.method177=entries.length?entries[entries.length-1].m:opt.oldMethod;
+  o.paymentCorrections178=(o.paymentCorrections178||[]).concat([{rid:s.rid||'',legacy:!!opt.legacy,void:!!opt.void,method:opt.method,amount,oldMethod:opt.oldMethod,oldAmount,oldEntries,at,reason:opt.reason,by:opt.by,rids}]);
+  syncPayment(c,o);if(!flushTransactions177())throw Error('Ralat belum tersimpan');if(opt.legacy)s._corrected178=true;return true;
+ }catch(e){
+  KAS137.sales.splice(0,KAS137.sales.length,...sales);KAS137.voided.splice(0,KAS137.voided.length,...voided);
+  if(prior){o.paid=prior.paid;if(prior.corrections===undefined)delete o.paymentCorrections178;else o.paymentCorrections178=prior.corrections;c.dataset.method177=prior.method;c.dataset.payments178=prior.entries;syncPayment(c,o)}
+  if(ledgerKey&&ledgerPrior!==undefined){const old=JSON.parse(ledgerPrior);if(old)deposits178[ledgerKey]=old;else delete deposits178[ledgerKey]}
+  toast90(e.message);return false;
+ }
+};
 // Normalize full payments into the same history used by DP and deposit.
 let finish=window.f61Finish;window.f61Finish=function(method){const before=new Set(orderCards()),result=finish.apply(this,arguments),c=orderCards().find(x=>!before.has(x));if(c){c.dataset.perfume178=document.querySelector('#f61-options select').value;const o=ensureDetail(c);const a=Number(c.dataset.paid177)||0;c.dataset.payments178=JSON.stringify(a?[{m:c.dataset.method177,a,at:new Date().toISOString()}]:[]);syncPayment(c,o);flushTransactions177()}return result};
 let paymentContext=null,busy=false;
@@ -11237,7 +11273,7 @@ const grid=document.querySelector('#f61-payment .f61-paygrid');[['½','DP / Uang
 // Reject deposit bypass in the old detail sheet, record the real amount and method.
 const savePay=window.savePay115;window.savePay115=function(){const o=api115.cur(),m=(document.querySelector('#pay115-m .on')||{}).textContent||'Tunai';if(m.trim()==='Deposit'){paymentContext=o.id;return applyPayment(Number($('pay115-amt').value),'Deposit',true)}const old=o&&o.paid,result=savePay.apply(this,arguments);if(o&&o.paid>old){const c=orderCard(o.id),a=o.paid-old;c.dataset.method177=m.trim();let entries=JSON.parse(c.dataset.payments178||'[]');entries.push({m:m.trim(),a,at:new Date().toISOString()});c.dataset.payments178=JSON.stringify(entries);syncPayment(c,o);flushTransactions177()}return result};
 document.body.insertAdjacentHTML('beforeend','<div id="deposits178" class="sheet91"><div class="sheet91-box"><i class="sheet91-h"></i><h3>Deposit Pelanggan</h3><p class="sheet91-sub">Saldo titipan pelanggan untuk pembayaran laundry.</p><select id="deposits178-customer" class="gs107-i"></select><p id="deposits178-balance"></p><label class="gs107-l">Nominal tambah saldo</label><input type="number" min="1" inputmode="numeric" id="deposits178-amount" class="gs107-i"><label class="gs107-l">Metode penerimaan</label><select id="deposits178-method" class="gs107-i"><option>Tunai</option><option>QRIS</option><option>Transfer</option></select><button class="sheet91-main" id="deposits178-save">Simpan Tambah Saldo</button><div id="deposits178-history" class="perm178-list"></div><button class="lk111-alt" onclick="closeSheet91(\'deposits178\')">Tutup</button></div></div>');
-let depositCustomers=[];function depositDisplay(){const c=depositCustomers[Number($('deposits178-customer').value)];if(!c){$('deposits178-balance').textContent='Tambahkan pelanggan terlebih dahulu';$('deposits178-save').disabled=true;return}$('deposits178-save').disabled=false;const a=account(c.name,c.phone);$('deposits178-balance').textContent='Saldo '+rp(a.record.balance);$('deposits178-history').innerHTML=a.record.history.slice().reverse().slice(0,20).map(h=>'<p>'+esc(h.type==='topup'?'Tambah saldo':'Pembayaran '+h.order)+' · '+rp(h.amount)+'<br><small>'+new Date(h.at).toLocaleString('id-ID')+'</small></p>').join('')}
+let depositCustomers=[];function depositDisplay(){const c=depositCustomers[Number($('deposits178-customer').value)];if(!c){$('deposits178-balance').textContent='Tambahkan pelanggan terlebih dahulu';$('deposits178-save').disabled=true;return}$('deposits178-save').disabled=false;const a=account(c.name,c.phone);$('deposits178-balance').textContent='Saldo '+rp(a.record.balance);$('deposits178-history').innerHTML=a.record.history.slice().reverse().slice(0,20).map(h=>'<p>'+esc(h.type==='topup'?'Tambah saldo':h.type==='refund'?'Pengembalian '+h.order:'Pembayaran '+h.order)+' · '+rp(h.amount)+'<br><small>'+new Date(h.at).toLocaleString('id-ID')+'</small></p>').join('')}
 window.openDeposits178=function(){depositCustomers=Array.from(document.querySelectorAll('#cust59-db .cust59-row'),r=>({name:r.querySelector('b').textContent,phone:r.dataset.phone||''}));const sel=$('deposits178-customer');sel.replaceChildren();depositCustomers.forEach((c,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=c.name+' · '+c.phone;sel.appendChild(opt)});$('deposits178-amount').value='';depositDisplay();openSheet91('deposits178')};$('deposits178-customer').onchange=depositDisplay;
 $('deposits178-save').onclick=function(){const c=depositCustomers[Number($('deposits178-customer').value)],amount=Number($('deposits178-amount').value);if(!c||!Number.isSafeInteger(amount)||amount<=0)return toast90('Isi nominal saldo yang benar');const a=account(c.name,c.phone),old=JSON.stringify(deposits178[a.key]||null),n=KAS137.ins.length;const record=a.record;if(!Number.isSafeInteger(record.balance+amount))return toast90('Nominal terlalu besar');record.balance+=amount;record.history.push({type:'topup',amount,at:new Date().toISOString(),method:$('deposits178-method').value});deposits178[a.key]=record;KAS137.ins.push({m:$('deposits178-method').value==='Tunai'?'Tunai':'Non-Tunai',actualMethod178:$('deposits178-method').value,a:amount,t:'Titipan deposit '+c.name,deposit178:true,at:new Date()});if(!flushTransactions177()){const prior=JSON.parse(old);if(prior)deposits178[a.key]=prior;else delete deposits178[a.key];KAS137.ins.splice(n);return}$('deposits178-amount').value='';depositDisplay();toast90('Saldo deposit tersimpan')};
 wrap.children[5].lastChild.appendChild(settingButton('Deposit Pelanggan','Tambah saldo dan riwayat penggunaan',openDeposits178));

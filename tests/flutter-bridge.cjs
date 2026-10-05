@@ -543,6 +543,9 @@ try{
   const n=await b.newPage();await n.goto(require('url').pathToFileURL(path.join(web,'index.html')).href);await n.waitForTimeout(1500);
   assert.equal(await n.evaluate(()=>!!window.__goyanaNative),false);
   console.log('PASS bridge is inert outside the Flutter app');
+  const payments=require('child_process').spawnSync(process.execPath,[path.join(root,'tests/parity/flows.cjs'),'--a5-corrected','--verify-only'],{encoding:'utf8'});
+  assert.equal(payments.status,0,payments.stderr||payments.stdout);
+  console.log('PASS A5 payment corrections: methods, amounts, deposit refund once, rollback, legacy and reload');
   await require('./customer-status.cjs')(b);
   const checkoutCases=await require('./parity/checkout111.cjs')(b);
   assert.deepEqual(checkoutCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/checkout111_cases.json'),'utf8')));

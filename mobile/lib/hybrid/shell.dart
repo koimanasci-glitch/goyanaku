@@ -633,6 +633,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       if (current == null || !mounted || seq != _orderDetailA4Seq) return;
 
       var candidateRaw = current;
+      var paymentChange = false;
       final beforeRaw = _orderDetailA4BeforeRaw;
       final sameOrder = _orderDetailA4Id == id;
       if (beforeRaw != null && sameOrder && beforeRaw != current) {
@@ -654,6 +655,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         final candidate = action != null
             ? applyOrderDetailA4(before: before, action: action)
             : applyPaymentA5(before: before, action: payment!);
+        paymentChange = payment != null;
         candidateRaw = candidate[Keys.business] as String;
         final hStore = jsonDecode(current);
         final dStore = jsonDecode(candidateRaw);
@@ -670,6 +672,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         store: <String, dynamic>{Keys.business: candidateRaw},
         orderId: id,
         presentation: htmlDetail,
+        preserveSavedBanner: paymentChange,
       );
       final business = await Business.load(store);
       final tabs = htmlOrders['tabs'] as List? ?? const [];
@@ -720,7 +723,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       final after = <String, dynamic>{Keys.business: raw};
       final action = inferPaymentA5Action(before: before, after: after);
       if (action == null) {
-        return; // Ralat belum dipindah sampai keputusan aturan saldo.
+        return; // Hanya satu aksi yang dapat diturunkan dari patokan.
       }
       final candidate = applyPaymentA5(before: before, action: action);
       final expected = _canonical(
