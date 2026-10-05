@@ -25,6 +25,21 @@ import '../native/form_page.dart';
 import '../native/gs107_sheet.dart';
 import '../native/home_page.dart';
 import '../native/mirror_sheet.dart';
+import '../native/popup_components.dart';
+import '../native/f61_print_sheet.dart';
+import '../native/hist115_sheet.dart';
+import '../native/photo115_sheet.dart';
+import '../native/wa131_sheet.dart';
+import '../native/wa138_sheet.dart';
+import '../native/rm138s_sheet.dart';
+import '../native/rs139_sheet.dart';
+import '../native/contacts178_sheet.dart';
+import '../native/guide135_sheet.dart';
+import '../native/api135_sheet.dart';
+import '../native/pay111_sheet.dart';
+import '../native/upgrade_pay_modal_sheet.dart';
+import '../native/g181_modal_sheet.dart';
+import '../native/td175_sheet.dart';
 import '../native/order_detail_page.dart';
 import '../native/order_status_qr.dart';
 import '../native/duration_page.dart';
@@ -1196,6 +1211,132 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                     ),
                   );
                 },
+              ))
+            else if (_nativePage != null && _sheetId == 'f61-print' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeF61PrintSheet(
+                key: const ValueKey('native-f61-print'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'hist115' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeHist115Sheet(
+                key: const ValueKey('native-hist115'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'photo115' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativePhoto115Sheet(
+                key: const ValueKey('native-photo115'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'wa131' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeWa131Sheet(
+                key: const ValueKey('native-wa131'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'wa138' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeWa138Sheet(
+                key: const ValueKey('native-wa138'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'rm138s' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeRm138sSheet(
+                key: const ValueKey('native-rm138s'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'rs139' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeRs139Sheet(
+                key: const ValueKey('native-rs139'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'contacts178' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeContacts178Sheet(
+                key: const ValueKey('native-contacts178'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'guide135' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeGuide135Sheet(
+                key: const ValueKey('native-guide135'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'api135' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeApi135Sheet(
+                key: const ValueKey('native-api135'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'pay111' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativePay111Sheet(
+                key: const ValueKey('native-pay111'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'upgrade-pay-modal' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeUpgradePaySheet(
+                key: const ValueKey('native-upgrade-pay-modal'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'g181-modal' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeG181ModalSheet(
+                key: const ValueKey('native-g181-modal'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
+              ))
+            else if (_nativePage != null && _sheetId == 'td175' && _sheetMirror != null && !_loading)
+              Positioned.fill(child: NativeTd175Sheet(
+                key: const ValueKey('native-td175'), model: _sheetMirror!,
+                actions: PopupActions(id: _sheetId,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onTap: (i) => fmScoped(_sheetId, 'tap', i),
+                  onInput: (i,v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0)),
               ))
             else if (_nativePage != null && _sheetId == 'cat99' && _sheetMirror != null && !_loading)
               Positioned.fill(

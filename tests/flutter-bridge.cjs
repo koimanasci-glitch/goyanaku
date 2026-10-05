@@ -500,4 +500,7 @@ try{
   const catCases=await require('./parity/cat99.cjs')(b);
   assert.deepEqual(catCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/cat99_cases.json'),'utf8')));
   console.log('PASS B12 cat99 fixtures 390/320, all icon/unit/process indices, input/save/validation and safe close');
+  const remainingPopups=await require('./parity/remaining_popups.cjs')(b);
+  assert.deepEqual(remainingPopups,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/remaining_popups.json'),'utf8')));
+  for(const id of [...new Set(remainingPopups.map(c=>c.id))]) console.log('PASS B12 '+id+' fixtures 390/320 and scoped close without saving');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
