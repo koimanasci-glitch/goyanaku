@@ -13,6 +13,71 @@ const fakeNative=()=>{window.__calls=[];window.GoyanaNative={__events:[],postMes
 
 (async()=>{const b=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.GOYANA_BROWSER_EXECUTABLE?{executablePath:process.env.GOYANA_BROWSER_EXECUTABLE}:{})});
 try{
+  // Upgraded installs can retain the seed marker while the service list is empty.
+  // Settings and the order catalog must recover the same editable defaults.
+  for (const state of ['fresh', 'missing', 'empty', 'custom']) {
+    const servicePage=await b.newPage({viewport:{width:390,height:844}}),serviceErrors=[];
+    servicePage.on('pageerror',e=>serviceErrors.push(e.message));
+    await servicePage.addInitScript(fakeNative);
+    await servicePage.addInitScript(state=>{
+      if(localStorage.getItem('service-defaults-test'))return;
+      localStorage.setItem('service-defaults-test','1');
+      localStorage.setItem('goyana-empty-version','176');
+      if(state!=='fresh')localStorage.setItem('goyana-seed178','1');
+      if(state==='empty')localStorage.setItem('goyana-services158','[]');
+      if(state==='custom')localStorage.setItem('goyana-services158',JSON.stringify([
+        {key:'cuci baju',name:'Cuci Milik Outlet',unit:'kg',prices:{Reguler:12345,Express:0,Kilat:0},enabled:{Reguler:true,Express:false,Kilat:false},proc:['Cuci','Packing']}
+      ]));
+    },state);
+    try {
+      await servicePage.goto(require('url').pathToFileURL(path.join(web,'index.html')).href);
+      await servicePage.waitForFunction(()=>window.GY198||window.GoyanaFlowFix198);
+      await servicePage.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('services')});
+      const count=state==='custom'?1:10;
+      await servicePage.waitForFunction(count=>{
+        const last=(window.GoyanaNative.__events||[]).map(x=>JSON.parse(x)).filter(x=>x.event==='native').at(-1);
+        return last?.page==='services'&&last.model.cats.length===count;
+      },count);
+      const snapshot=()=>servicePage.evaluate(()=>({
+        stored:JSON.parse(localStorage.getItem('goyana-services158')),
+        names:[...document.querySelectorAll('#cat99-list .cat99-t b')].map(x=>x.textContent),
+        catalog:catalog158.flatMap(x=>x.items).map(x=>({name:x.n,prices:x.prices158})),
+        business:localStorage.getItem('goyana-business177')
+      }));
+      let initial=await snapshot();
+      assert.equal(initial.stored.length,count,state);
+      assert.deepEqual(initial.names,initial.stored.map(x=>x.name),state+' settings');
+      assert.deepEqual(initial.catalog.map(x=>x.name).sort(),initial.names.slice().sort(),state+' order catalog');
+      if(state==='custom'){
+        assert.equal(initial.stored[0].name,'Cuci Milik Outlet');
+        assert.equal(initial.stored[0].prices.Reguler,12345);
+        assert.equal(initial.stored[0].enabled.Express,false);
+      } else {
+        assert.deepEqual(initial.names,['Cuci Baju','Sprei','Boneka','Bedcover','Karpet','Gorden','Sepatu','Setrika','Selimut','Jas']);
+        assert.equal(initial.stored[0].prices.Reguler,7000);
+      }
+      if(state==='missing'){
+        await servicePage.evaluate(()=>__goyanaTap('#cat99-list .cat99 .mini99'));
+        await servicePage.locator('#gs107').waitFor({state:'visible'});
+        await servicePage.locator('#gs107-f input').nth(0).fill('Cuci Edit Outlet');
+        await servicePage.locator('#gs107-f input').nth(1).fill('9000');
+        await servicePage.evaluate(()=>__goyanaTap('#gs107-ok'));
+        const edited=await snapshot();
+        assert.equal(edited.stored[0].name,'Cuci Edit Outlet');
+        assert.equal(edited.stored[0].prices.Reguler,9000);
+        assert.equal(edited.catalog.find(x=>x.name==='Cuci Edit Outlet').prices.Reguler,9000);
+        assert.equal(edited.business,initial.business,'editing services leaves customer/order data unchanged');
+        initial=edited;
+      }
+      await servicePage.reload();
+      await servicePage.waitForFunction(()=>window.GoyanaFlowFix198);
+      const reloaded=await snapshot();
+      assert.deepEqual(reloaded.stored,initial.stored,state+' survives reload without duplicates or overwritten prices');
+      assert.deepEqual(reloaded.names,initial.names,state+' restored settings');
+      assert.deepEqual(serviceErrors,[],state+' no script errors');
+      console.log('PASS editable service defaults: '+state+' settings/order catalog and reload');
+    } finally { await servicePage.close(); }
+  }
   const p=await b.newPage({viewport:{width:390,height:844}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.addInitScript(fakeNative);
   await p.goto(require('url').pathToFileURL(path.join(web,'index.html')).href);await p.waitForTimeout(3300);

@@ -1182,3 +1182,15 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Jatah CI gabungan seluruh 14 popup: 2 awal + CI3 berizin + CI4 berizin = 4 CI terpakai. Tidak ada CI kelima/rerun. Golden dan laporan skip CI.
 - Bentuk/alur: Detail laundry memakai struktur native khusus, dengan isi final kosong dan tombol Tutup sesuai fixture/cermin sekarang.
 - Temuan/batas/pertanyaan tetap untuk Koko: Daftar T administrator pada HTML final kosong. adm175d(0) memang crash di HTML; tes tidak mengarang akun laundry atau mengaktifkannya. Popup kosong diisolasi untuk paritas. Batas: detail terisi dan integrasi admin/backend belum bisa diverifikasi sebelum F3 menyediakan data nyata. Teks/data masih membaca HTML sampai C/D; belum diuji di HP nyata. Berhenti setelah laporan B12; tidak memulai C/D atau bagian lain sebelum pemeriksaan Claude/Koko.
+
+
+### [GPT] Contoh Layanan dapat diedit di Pengaturan — 6 Oktober 2026 00.03 WIB
+- Status: SETENGAH JALAN — perbaikan lokal dan tes browser lulus; belum push/CI/build APK.
+- Permintaan Paduka: contoh jenis layanan harus tersedia di Pengaturan dan bisa diedit; daftar pesanan dan Pengaturan memakai sumber layanan yang sama.
+- Penyebab yang direproduksi: goyana-seed178 sudah ada, tetapi goyana-services158 hilang atau kosong. Penanda lama membuat pembuatan contoh dilewati, sehingga #cat99-list kosong. Uji kode sebelum perubahan membuktikan 0 layanan dalam kondisi ini.
+- Perbaikan: jalankan kembali seeding sepuluh contoh bawaan bila daftar layanan kosong meskipun penanda lama ada. Daftar layanan nonkosong tetap dipakai tanpa menambah contoh atau menimpa nama/harga/varian yang diedit. Tidak mengganti daftar contoh, harga, tampilan, logika hitung Dart, workflow atau dependency.
+- File: index.html (kondisi seeding saja), tests/flutter-bridge.cjs (empat skenario regresi), GOYANA-PROGRESS.md.
+- Validasi lokal: node tests/flutter-bridge.cjs 57 PASS (53 lama + 4 baru); node tests/regression.cjs 16 PASS, ERRORS []; node --check dan git diff --check lulus. Empat skenario: fresh, seed lama + data hilang, seed lama + [], layanan custom. Edit nama/harga melalui popup resmi diuji, katalog mengikuti harga Rp9.000, perubahan bertahan setelah reload tanpa duplikasi. Regresi lama juga mencakup penyimpanan transaksi/stock/QRIS.
+- CI untuk perubahan ini: 0 kali; belum ada APK yang memuat perbaikan ini. Perlu push ke flutter/native lalu CI pertama sesuai batas 2 kali per bagian. Jangan menganggap APK B12 yang sudah terbit mengandung perbaikan ini.
+- Publikasi tertahan: automatic approval review sebelumnya menolak push karena belum ada izin eksplisit mengirim isi repositori ke GitHub. Tidak mencoba bypass atau jalur publikasi lain. Golden/laporan B12 dari sesi sebelumnya tetap commit lokal, bukan klaim telah dipush.
+- Langkah berikutnya: setelah Paduka mengizinkan push hasil proyek Goyana ke rajabadutiklan-lab/Goyana branch flutter/native, pull ulang, push fast-forward tanpa main/force, verifikasi CI/analyze/unit/screenshot/APK lalu laporkan. A3c tidak diubah dalam putaran ini.

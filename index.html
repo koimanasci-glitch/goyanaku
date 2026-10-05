@@ -11143,8 +11143,9 @@ window.device178=device;
 async function permission(alias){if(!device)return true;try{const r=await device.requestAccess({alias});if(r.granted&&alias==='notifications')scheduleReminders178();if(!r.granted)toast90('Izin belum diberikan. Cek Pengaturan → Izin Aplikasi.');return r.granted}catch(e){toast90(e.message||'Izin tidak dapat diminta');return false}}
 window.permission178=permission;
 if(device)device.insets().then(r=>document.documentElement.style.setProperty('--goyana-safe-top',r.top+'px')).catch(()=>{});
-// Editable defaults, seeded once without deleting customers or orders.
-if(!localStorage.getItem('goyana-seed178')){
+// Recover missing defaults even when an older install already has the seed marker.
+// Existing service rows (including edited names/prices) remain authoritative.
+if(!localStorage.getItem('goyana-seed178')||!document.querySelector('#cat99-list .cat99')){
  const list=$('cat99-list');if(!list.querySelector('.cat99')&&window.serviceTemplate178){
   [['Cuci Baju','kg',7000],['Sprei','pcs',15000],['Boneka','pcs',20000],['Bedcover','pcs',30000],['Karpet','m',15000],['Gorden','m',12000],['Sepatu','pcs',35000],['Setrika','kg',5000],['Selimut','pcs',20000],['Jas','pcs',35000]].forEach(([name,unit,price])=>{
    const row=serviceTemplate178.cloneNode(true);row.dataset.key158=name.toLowerCase();row.dataset.name=name.toLowerCase();row.querySelector('.cat99-t b').textContent=name;row.querySelector('.cat99-t small').textContent='Per '+unit;
