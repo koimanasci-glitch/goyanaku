@@ -135,7 +135,16 @@ void main() {
             150,
             scrollable: find.byType(Scrollable).first,
           );
-          await tester.ensureVisible(target);
+          await Scrollable.ensureVisible(
+            tester.element(target),
+            alignment: 0.25,
+          );
+          await tester.pumpAndSettle();
+          expect(
+            tester.getCenter(target).dy,
+            lessThan(734),
+            reason: 'Aksi harus di atas footer, bukan terhalang navigasi',
+          );
           await tester.tap(target);
           expect(
             actions.calls.last,
