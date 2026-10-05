@@ -562,6 +562,7 @@ try{
   const gsCases=await require('./parity/gs107.cjs')(b);
   assert.deepEqual(gsCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/gs107_cases.json'),'utf8')));
   console.log('PASS B12 gs107 fixtures 390/320, input/color/save/validation and safe cancellation');
+  // Capture waits for current input values; the full fixture remains exact.
   const catCases=await require('./parity/cat99.cjs')(b);
   assert.deepEqual(catCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/cat99_cases.json'),'utf8')));
   console.log('PASS B12 cat99 fixtures 390/320, all icon/unit/process indices, input/save/validation and safe close');

@@ -31,7 +31,17 @@ module.exports=async function capture(browser,write=false){
     await p.evaluate(()=>{__goyanaForm('cat99','button',26);__goyanaForm('cat99','button',28);['Kategori B12','7000','85'].forEach((v,i)=>__goyanaForm('cat99','input',i,v))});
    };
    if(state==='changed')await change();await p.clock.runFor(400);
-   const event=await p.evaluate(()=>GoyanaNative.__events.filter(e=>e.sheet?.id==='cat99').at(-1));assert.ok(event?.sheet.mirror);
+   // Property input edits do not produce a DOM attribute mutation. Wait for the
+   // bridge's next mirror capture instead of accepting a stale native event.
+   let event;
+   for(let attempt=0;attempt<40;attempt++){
+    event=await p.evaluate(()=>GoyanaNative.__events.filter(e=>e.sheet?.id==='cat99').at(-1));
+    const values=[];const walk=n=>{if(!n||typeof n!=='object')return;if(n.inp)values.push(n.inp.v);for(const v of Object.values(n))if(v&&typeof v==='object')Array.isArray(v)?v.forEach(walk):walk(v)};walk(event?.sheet?.mirror);
+    const actual=await p.evaluate(()=>[...document.querySelectorAll('#cat99 input')].map(e=>e.value));
+    if(JSON.stringify(values)===JSON.stringify(actual))break;
+    await p.clock.runFor(200);await p.waitForTimeout(50);
+   }
+   assert.ok(event?.sheet.mirror);
    const inputs=await p.evaluate(()=>[...document.querySelectorAll('#cat99 input')].map((e,i)=>({i,numeric:e.inputMode==='numeric',v:e.value})));
    cases.push({width,state,model:event.sheet.mirror,buttons,inputs});
    if(state==='empty'){
