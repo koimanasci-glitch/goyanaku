@@ -11,6 +11,11 @@ const fakeNative=()=>{window.__calls=[];window.GoyanaNative={__events:[],postMes
     'Geolocation.getCurrentPosition':{timestamp:1,coords:{latitude:-6.2,longitude:106.8,accuracy:5}},'Clipboard.read':{text:'dari HP'}};
   setTimeout(()=>window.__goyanaNative.finish(m.id,true,answers[key]||{}),5)}}};
 
+const fakeStore=()=>{const P='sq:';const keys=()=>Object.keys(sessionStorage).filter(k=>k.startsWith(P));
+    window.GoyanaStore={all:()=>JSON.stringify(Object.fromEntries(keys().map(k=>[k.slice(P.length),sessionStorage.getItem(k)]))),
+      set:(k,v)=>{sessionStorage.setItem(P+k,v);return true},setMany:j=>{const o=JSON.parse(j);for(const k in o)sessionStorage.setItem(P+k,o[k]);return true},
+      remove:k=>sessionStorage.removeItem(P+k),get:k=>sessionStorage.getItem(P+k),sizeBytes:()=>0}};
+
 (async()=>{const b=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.GOYANA_BROWSER_EXECUTABLE?{executablePath:process.env.GOYANA_BROWSER_EXECUTABLE}:{})});
 try{
   // Upgraded installs can retain the seed marker while the service list is empty.
@@ -19,6 +24,7 @@ try{
     const servicePage=await b.newPage({viewport:{width:390,height:844}}),serviceErrors=[];
     servicePage.on('pageerror',e=>serviceErrors.push(e.message));
     await servicePage.addInitScript(fakeNative);
+    await servicePage.addInitScript(fakeStore);
     await servicePage.addInitScript(state=>{
       if(localStorage.getItem('service-defaults-test'))return;
       localStorage.setItem('service-defaults-test','1');
@@ -45,6 +51,7 @@ try{
         business:localStorage.getItem('goyana-business177')
       }));
       let initial=await snapshot();
+      assert.equal(await servicePage.evaluate(()=>window.__goyanaStore?.engine),'sqlite',state+' uses Android storage');
       assert.equal(initial.stored.length,count,state);
       assert.deepEqual(initial.names,initial.stored.map(x=>x.name),state+' settings');
       assert.deepEqual(initial.catalog.map(x=>x.name).sort(),initial.names.slice().sort(),state+' order catalog');
@@ -73,6 +80,7 @@ try{
       await servicePage.waitForFunction(()=>window.GoyanaFlowFix198);
       const reloaded=await snapshot();
       assert.deepEqual(reloaded.stored,initial.stored,state+' survives reload without duplicates or overwritten prices');
+      assert.deepEqual(await servicePage.evaluate(()=>JSON.parse(sessionStorage.getItem('sq:goyana-services158'))),initial.stored,state+' persisted Android storage');
       assert.deepEqual(reloaded.names,initial.names,state+' restored settings');
       assert.deepEqual(serviceErrors,[],state+' no script errors');
       console.log('PASS editable service defaults: '+state+' settings/order catalog and reload');
@@ -521,10 +529,6 @@ try{
   assert.deepEqual(errors,[]);await p.close();
 
   // SQLite storage: fake window.GoyanaStore backed by sessionStorage (survives reload like the phone's database).
-  const fakeStore=()=>{const P='sq:';const keys=()=>Object.keys(sessionStorage).filter(k=>k.startsWith(P));
-    window.GoyanaStore={all:()=>JSON.stringify(Object.fromEntries(keys().map(k=>[k.slice(P.length),sessionStorage.getItem(k)]))),
-      set:(k,v)=>{sessionStorage.setItem(P+k,v);return true},setMany:j=>{const o=JSON.parse(j);for(const k in o)sessionStorage.setItem(P+k,o[k]);return true},
-      remove:k=>sessionStorage.removeItem(P+k),get:k=>sessionStorage.getItem(P+k),sizeBytes:()=>0}};
   const s=await b.newPage({viewport:{width:390,height:844}}),serr=[];s.on('pageerror',e=>serr.push(e.message));
   const url=require('url').pathToFileURL(path.join(web,'index.html')).href;
   await s.goto(url);await s.evaluate(()=>localStorage.setItem('goyana-legacy-test','dari WebView lama'));
