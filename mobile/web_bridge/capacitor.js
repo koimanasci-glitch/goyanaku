@@ -308,6 +308,15 @@
       cards: list, empty: shown(empty) ? empty.textContent.trim() : ''
     };
   }
+  // Capture rules, DOM inputs and the original timer calculations together.
+  window.__goyanaStatusA6 = function () {
+    if (!window.readAutoA6 || !window.readLateA6 || !window.readRemindersA6) return null;
+    var now = Date.now(), a = readAutoA6(now), l = readLateA6(now), r = readRemindersA6(now);
+    return { now: now, rules: a.rules, lateDays: l.days, reminderDays: r.days, log: r.log,
+      cards: Array.prototype.map.call(document.querySelectorAll('#orders .g62-ordercard'), function (c) {
+        return { id: ((c.querySelector('.g62-order-top b') || {}).textContent || '').trim(), dataset: Object.assign({}, c.dataset) };
+      }), expected: { queue: a.queue, moves: l.moves, reminders: r.reminders, notices: window.readQueueNoticesA6 ? readQueueNoticesA6(now) : [] }, model: ordersModel() };
+  };
   function svgOf(el) { var g = el && el.querySelector('svg'); return g ? g.outerHTML : ''; }
   function field(input) { return input ? { v: input.value, ph: input.placeholder || '' } : null; }
   // Tambah Transaksi: langkah 1 (pilih pelanggan) dan 2 (layanan) native; durasi, jumlah, opsi & pembayaran tetap sheet HTML.

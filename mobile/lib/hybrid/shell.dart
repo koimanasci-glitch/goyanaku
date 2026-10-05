@@ -16,6 +16,7 @@ import '../logic/home.dart';
 import '../logic/order_detail.dart';
 import '../logic/orders.dart';
 import '../logic/payments.dart';
+import '../logic/status_auto.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
 import '../native/cashclose_page.dart';
@@ -435,12 +436,25 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     final seq = ++_ordersSeq;
     try {
       const store = DeviceKvStore();
+      final observation = await _web.runJavaScriptReturningResult('JSON.stringify(window.__goyanaStatusA6 ? __goyanaStatusA6() : null)');
+      var observationText = observation.toString();
+      final outer = jsonDecode(observationText);
+      if (outer is String) observationText = outer;
+      final state = jsonDecode(observationText);
+      if (state is! Map || !mounted || seq != _ordersSeq) return;
+      final a6 = Map<String, dynamic>.from(state);
+      final plan = statusAutoPlan(a6);
+      if (jsonEncode(_canonical(plan)) != jsonEncode(_canonical(a6['expected']))) {
+        await _parityLog(store, 'status-a6', a6['expected'], plan);
+        return;
+      }
+      final current = Map<String, dynamic>.from(a6['model'] as Map);
       final b = await Business.load(store);
-      final tabs = (htmlModel['tabs'] as List? ?? const []);
+      final tabs = (current['tabs'] as List? ?? const []);
       final tab = tabs.indexWhere((t) => t is Map && t['on'] == true);
-      final dart = ordersModel(b, tab: tab < 0 ? 1 : tab, search: '${htmlModel['search'] ?? ''}', now: DateTime.now());
+      final dart = ordersModel(b, tab: tab < 0 ? 1 : tab, search: '${current['search'] ?? ''}', now: DateTime.fromMillisecondsSinceEpoch((a6['now'] as num).toInt()), lateDays: (a6['reminderDays'] as num).toInt(), queueEnabled: (a6['rules'] as Map)['q'] == true, queueMinutes: ((a6['rules'] as Map)['qMin'] as num).toDouble(), reminderLog: Map<String, dynamic>.from(a6['log'] as Map));
       if (!mounted || seq != _ordersSeq) return;
-      final html = jsonDecode(jsonEncode(htmlModel));
+      final html = jsonDecode(jsonEncode(current));
       final d = jsonDecode(jsonEncode(dart));
       if (jsonEncode(_stable(d)) == jsonEncode(_stable(html))) {
         setState(() => _orders = OrdersModel.fromJson(Map<String, dynamic>.from(d as Map)));

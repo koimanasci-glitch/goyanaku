@@ -7472,9 +7472,9 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   var list=document.querySelector('#orders .g62-orderlist'); if(list)new MutationObserver(function(){cards().forEach(watch);paintChips()}).observe(list,{childList:true});
 
   /* ---------- label hitung mundur di kartu ---------- */
-  function due(c){var st=c.dataset.st,t=+c.dataset.ts133||Date.now();
-    if(st==='antrian'&&A.q)return {min:A.qMin-(Date.now()-t)/60000,txt:'proses'};
-    var pi=PROC.indexOf(st); if(pi>-1&&A.p&&st!=='packing')return {min:A.step[st]-(Date.now()-t)/60000,txt:'auto '+PROC[pi+1]};
+  function due(c,now){now=now==null?Date.now():now;var st=c.dataset.st,t=+c.dataset.ts133||now;
+    if(st==='antrian'&&A.q)return {min:A.qMin-(now-t)/60000,txt:'proses'};
+    var pi=PROC.indexOf(st); if(pi>-1&&A.p&&st!=='packing')return {min:A.step[st]-(now-t)/60000,txt:'auto '+PROC[pi+1]};
     return null}
   function paintChips(){cards().forEach(function(c){var row=c.querySelector('.oa91')||c.querySelector('.g62-order-body>div');if(!row)return;var ch=c.querySelector('.auto133'),d=due(c);
     if(!d){if(ch)ch.remove();return}
@@ -7487,6 +7487,8 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
     c.dataset.auto133='1'; if(btn&&window.advanceOrder91){advanceOrder91(btn)}else if(window.next108){next108(c)}
     if(st==='antrian')toast90('Otomatis: '+((c.querySelector('.g62-order-top b')||{}).textContent||'pesanan')+' masuk Proses · Cuci')});
     paintChips()}
+  // A6 read-only oracle: use the same due() calculation as the existing timer.
+  window.readAutoA6=function(now){return {rules:JSON.parse(JSON.stringify(A)),queue:cards().map(function(c){var d=due(c,now);return d?{id:((c.querySelector('.g62-order-top b')||{}).textContent||'').trim(),min:d.min,label:('⏱ '+(d.min>0?fmt(d.min):'…')).trim(),next:d.min<=0&&c.dataset.st==='antrian'?'cuci':null}:null}).filter(Boolean)}};
   window.autoTick133=tick;
   setInterval(tick,20000); paintChips();
   var oldOpen=window.openPage; window.openPage=function(id){oldOpen.apply(this,arguments);if(id==='orders'){tick()}};
@@ -8258,7 +8260,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   cards().forEach(watch);
   if(list)new MutationObserver(function(){cards().forEach(watch);paintRemind()}).observe(list,{childList:true});
 
-  function late(){var now=Date.now();return cards().filter(function(c){return (c.dataset.st==='siap'||c.dataset.st==='telat')&&c.dataset.siap138}).map(function(c){var i=info(c),since=new Date(+c.dataset.siap138);i.since=since;i.days=Math.floor((now-since)/DAY);return i}).filter(function(i){return i.days>=TH}).sort(function(a,b){return b.days-a.days})}
+  function late(now){now=now==null?Date.now():now;return cards().filter(function(c){return (c.dataset.st==='siap'||c.dataset.st==='telat')&&c.dataset.siap138}).map(function(c){var i=info(c),since=new Date(+c.dataset.siap138);i.since=since;i.days=Math.floor((now-since)/DAY);return i}).filter(function(i){return i.days>=TH}).sort(function(a,b){return b.days-a.days})}
   function addLog(id,k){(LOG[id]=LOG[id]||[]).push({k:k,t:new Date()})}
   var top=document.querySelector('#orders .tabs108')||document.querySelector('#orders .g62-orderlist');
   if(top&&!$('rm138'))top.insertAdjacentHTML('beforebegin','<button type="button" class="rm138" id="rm138" hidden onclick="openRemind138()"><span>⏰</span><div><b id="rm138-b"></b><small id="rm138-sm"></small></div><em>Ingatkan</em></button>');
@@ -8273,6 +8275,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
       return '<div class="rm138-it"><span class="d'+(i.days<14?' w':'')+'">'+i.days+'<small>HARI</small></span><div><b>'+esc(i.name)+'</b><small>'+esc(i.id)+' · '+rp(i.total)+' · '+(i.paid?'Lunas':'Belum bayar')+'</small>'+(last?'<small class="sent">✓ Diingatkan '+lg.length+'× · terakhir '+hm(last.t)+'</small>':'<small>Siap sejak '+dmy(i.since)+'</small>')+'</div><button type="button" class="'+(last?'again':'')+'" onclick="remSend138(\''+esc(i.id)+'\')">'+(last?'Kirim lagi':'Kirim WA')+'</button></div>'}).join('')||'<div class="lb137-empty">Semua cucian sudah diambil tepat waktu</div>';
     $('rm138-note').innerHTML=hasBot()?'<span>🤖</span><div>Paket <b>'+esc(pid)+'</b> punya chatbot: pengingat bisa dikirim otomatis dari menu CRM. Tombol di atas tetap bisa untuk kirim manual.</div>':'<span>💬</span><div>Paket <b>'+esc(pid)+'</b>: pengingat dikirim <b>manual</b> lewat WhatsApp HP kasir. Mau otomatis tanpa klik? <a href="#" onclick="closeSheet91(\'rm138s\');openPage(\'upgrade\');return false" style="color:#2b6aa6;font-weight:800">Upgrade ke PRO CHATBOT</a></div>'}
   window.openRemind138=function(){paintSheet();openSheet91('rm138s')};
+  window.readRemindersA6=function(now){return {days:TH,log:JSON.parse(JSON.stringify(LOG)),reminders:late(now).map(function(i){return {id:i.id,days:i.days,since:+i.since,count:(LOG[i.id]||[]).length}})}};
   window.remTh138=function(d){TH=d;paintRemind();paintSheet()};
   window.remSend138=function(id){var i=late().filter(function(x){return x.id===id})[0];if(!i)return;closeSheet91('rm138s');
     showWA('Pengingat pengambilan',i.id+' · '+i.name+' · '+i.days+' hari',[['WA manual'],[i.days+' hari',1]],waRemind138(i,i.days,i.since),PHONE[i.name.toLowerCase()],function(){addLog(i.id,'rem');paintRemind();var r=document.querySelector('#audit .audit-day-v33');if(r)r.insertAdjacentHTML('afterend','<div class="audit-row-v33"><span>⏰</span><div><b>Pengingat pengambilan</b><small>'+esc(i.id)+' · '+esc(i.name)+' · '+i.days+' hari</small></div><time>Baru</time></div>');if(window.afterRemind140)afterRemind140()})};
@@ -8563,7 +8566,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   var sub=$('sub108');
   if(sub&&!$('tl140'))sub.insertAdjacentHTML('afterend','<div class="tl140" id="tl140"><span>⏰ Pesanan <b>Siap Ambil</b> otomatis pindah ke sini setelah</span><select id="tl140-d" onchange="telatDays140(this.value)"><option value="3">3 hari</option><option value="5">5 hari</option><option value="7" selected>7 hari</option><option value="14">14 hari</option></select></div>');
   function cards(){return [].slice.call(document.querySelectorAll('#orders .g62-ordercard'))}
-  function age(c){return c.dataset.siap138?Math.floor((Date.now()- +c.dataset.siap138)/DAY):-1}
+  function age(c,now){return c.dataset.siap138?Math.floor(((now==null?Date.now():now)- +c.dataset.siap138)/DAY):-1}
   function idOf(c){return ((c.querySelector('.g62-order-top b'))||{}).textContent||''}
   function chipWA(c){var row=c.querySelector('.oa91');if(!row)return;var ch=row.querySelector('.wa140');
     if(c.dataset.st!=='telat'){if(ch)ch.remove();return}
@@ -8575,6 +8578,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
       else if(st==='telat'&&d<TH){c.dataset.st='siap';if(window.paint108)paint108(c)}
       chipWA(c)});
     if(window.counts108)counts108();if(window.apply108)apply108();return moved}
+  window.readLateA6=function(now){return {days:TH,moves:cards().map(function(c){var st=c.dataset.st,d=age(c,now),next=st==='siap'&&c.dataset.antar!=='1'&&d>=TH?'telat':st==='telat'&&d<TH?'siap':null;return next?{id:idOf(c).trim(),next:next}:null}).filter(Boolean)}};
   window.telatSync140=sync;
   window.telatDays140=function(v){TH=+v||7;if(window.remTh138)remTh138(TH);var m=sync();toast90('Telat Ambil: lewat '+TH+' hari'+(m?' · '+m+' pesanan dipindah':''))};
   /* kirim pengingat dari chip */
@@ -11281,8 +11285,9 @@ wrap.children[5].lastChild.appendChild(settingButton('Deposit Pelanggan','Tambah
 if(device&&device.loginBar){const update=()=>device.loginBar({login:login.classList.contains('show')}).catch(()=>{});new MutationObserver(update).observe(login,{attributes:true,attributeFilter:['class']});update()}
 
 // Native reminders are optional and do not mark laundry ready automatically.
+window.readQueueNoticesA6=function(now){now=now==null?Date.now():now;const out=[];for(const c of orderCards()){const id=Array.from(orderId(c)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))>>>0,0)%2147483647;const at=(Number(c.dataset.ts133)||now)+AUTO133.qMin*60000;if(c.dataset.st==='antrian'&&AUTO133.q&&at>now)out.push({id,at,order:orderId(c)})}return out};
 let scheduled178=new Set(),reminderTimer178;
-async function scheduleReminders178(){if(!notices)return;try{const status=await notices.checkPermissions();if(status.display!=='granted')return;const active=new Set();for(const c of orderCards()){const id=Array.from(orderId(c)).reduce((n,ch)=>(n*31+ch.charCodeAt(0))>>>0,0)%2147483647;const at=(Number(c.dataset.ts133)||Date.now())+AUTO133.qMin*60000;if(c.dataset.st==='antrian'&&AUTO133.q&&at>Date.now()){active.add(id);await notices.schedule({notifications:[{id,title:'Pengingat antrean GOYANA',body:orderId(c)+' sudah mencapai waktu antrean. Periksa pengerjaannya.',schedule:{at:new Date(at)}}]})}}const cancel=[...scheduled178].filter(id=>!active.has(id));if(cancel.length)await notices.cancel({notifications:cancel.map(id=>({id}))});scheduled178=active}catch(e){console.warn('Pengingat belum terjadwal',e.message)}}
+async function scheduleReminders178(){if(!notices)return;try{const status=await notices.checkPermissions();if(status.display!=='granted')return;const active=new Set();for(const n of readQueueNoticesA6()){active.add(n.id);await notices.schedule({notifications:[{id:n.id,title:'Pengingat antrean GOYANA',body:n.order+' sudah mencapai waktu antrean. Periksa pengerjaannya.',schedule:{at:new Date(n.at)}}]})}const cancel=[...scheduled178].filter(id=>!active.has(id));if(cancel.length)await notices.cancel({notifications:cancel.map(id=>({id}))});scheduled178=active}catch(e){console.warn('Pengingat belum terjadwal',e.message)}}
 if(notices){new MutationObserver(()=>{clearTimeout(reminderTimer178);reminderTimer178=setTimeout(scheduleReminders178,350)}).observe(document.querySelector('#orders .g62-orderlist'),{childList:true,subtree:true,attributes:true,attributeFilter:['data-st']});$('au133').addEventListener('change',scheduleReminders178);document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleReminders178()});scheduleReminders178()}
 // Users can choose a camera shot or an existing gallery image.
 document.body.insertAdjacentHTML('beforeend','<div id="photochoose178" class="sheet91"><div class="sheet91-box"><i class="sheet91-h"></i><h3>Tambah Foto Cucian</h3><button id="photochoose178-camera" class="sheet91-main">Ambil dengan Kamera</button><button id="photochoose178-gallery" class="sheet91-soft">Pilih dari Galeri</button><button class="lk111-alt" onclick="closeSheet91(\'photochoose178\')">Batal</button></div></div>');

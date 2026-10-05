@@ -45,7 +45,7 @@ bool _inTab(Order o, String key) {
 
 String _compact(String t) => t.replaceAll(RegExp('Antar ke Pelanggan', caseSensitive: false), 'Antar');
 
-Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {required int lateDays}) {
+Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {required int lateDays, required bool queueEnabled, required double queueMinutes, required Map<String, dynamic> reminderLog}) {
   final st = o.status;
   final key = _proc.contains(st) ? 'proses' : st;
   final tag = _status[key] ?? _status['antrian']!;
@@ -53,9 +53,9 @@ Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {requir
   final ds = o.dataset;
   // Hitung mundur Antrian → Proses.
   Map<String, String>? auto;
-  if (st == 'antrian') {
+  if (st == 'antrian' && queueEnabled) {
     final ts = int.tryParse('${ds['ts133'] ?? ''}');
-    final left = autoQueueMinutes - (now.millisecondsSinceEpoch - (ts ?? now.millisecondsSinceEpoch)) / 60000;
+    final left = queueMinutes - (now.millisecondsSinceEpoch - (ts == null || ts == 0 ? now.millisecondsSinceEpoch : ts)) / 60000;
     auto = _c('⏱ ${left > 0 ? _fmtMinutes(left) : '…'}', 'rgb(238, 244, 255)', 'rgb(43, 106, 166)');
   }
   final chips = <Map<String, String>>[];
@@ -77,7 +77,10 @@ Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {requir
     chips.add(_c(_compact(t), 'rgb(243, 244, 247)', 'rgb(91, 95, 110)'));
   }
   if (st == 'siap') chips.add(_c(ds['kb141'] == '1' ? '✓ Sudah dikabari' : '💬 Kabari WA', 'rgb(232, 250, 240)', 'rgb(18, 138, 74)'));
-  if (st == 'telat') chips.add(_c('💬 Ingatkan', 'rgb(232, 250, 240)', 'rgb(18, 138, 74)'));
+  if (st == 'telat') {
+    final sent = reminderLog[o.id] as List?;
+    chips.add(sent == null ? _c('💬 Ingatkan', 'rgb(232, 250, 240)', 'rgb(18, 138, 74)') : _c('✓ Diingatkan ${sent.length}×', 'rgb(241, 243, 246)', 'rgb(107, 114, 128)'));
+  }
   // Tombol tahap berikutnya.
   final antar = o.antar;
   const off = ['rgb(241, 242, 245)', 'rgb(154, 160, 172)'];
@@ -112,7 +115,7 @@ Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {requir
 }
 
 /// Model halaman Pesanan untuk tab [tab] (indeks [orderTabs]) dan kata pencarian [search].
-Map<String, dynamic> ordersModel(Business b, {required int tab, String search = '', required DateTime now, int lateDays = 7}) {
+Map<String, dynamic> ordersModel(Business b, {required int tab, String search = '', required DateTime now, int lateDays = 7, bool queueEnabled = true, double queueMinutes = 60, Map<String, dynamic> reminderLog = const {}}) {
   final all = b.orders;
   final key = orderTabs[tab.clamp(0, orderTabs.length - 1)][1];
   final q = search.trim().toLowerCase();
@@ -124,11 +127,11 @@ Map<String, dynamic> ordersModel(Business b, {required int tab, String search = 
 
   final cards = <Map<String, dynamic>>[];
   for (var i = 0; i < all.length; i++) {
-    if (match(all[i])) cards.add(_card(b, all[i], i, now, lateDays: lateDays));
+    if (match(all[i])) cards.add(_card(b, all[i], i, now, lateDays: lateDays, queueEnabled: queueEnabled, queueMinutes: queueMinutes, reminderLog: reminderLog));
   }
   final label = orderTabs[tab.clamp(0, orderTabs.length - 1)][0];
   return {
-    'title': 'PESANAN', 'auto': {'t': 'Otomatis', 'on': true},
+    'title': 'PESANAN', 'auto': {'t': 'Otomatis', 'on': queueEnabled},
     'search': search, 'placeholder': 'Cari nama / ID / no HP',
     'tabs': [
       for (var k = 0; k < orderTabs.length; k++)
