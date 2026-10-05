@@ -163,6 +163,11 @@ class PopupStyle {
     final bw = _number(s['bw']).clamp(0.0, double.infinity).toDouble(),
         fixed = node['fixed'] == 1;
     final ring = _map(s['ring']);
+    final stripe = s['stripe'] is Map
+        ? _map(s['stripe'])
+        : s['checker'] is Map
+        ? {..._map(s['checker']), 'checker': true}
+        : <String, dynamic>{};
     Widget result = Container(
       width: fixed
           ? _number(node['w']).clamp(0.0, double.infinity).toDouble()
@@ -194,7 +199,15 @@ class PopupStyle {
               ]
             : null,
       ),
-      child: child,
+      child: stripe.isEmpty
+          ? child
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(r[0] > bw ? r[0] - bw : 0),
+              child: CustomPaint(
+                painter: _PopupStripes(stripe),
+                child: SizedBox.expand(child: Center(child: child)),
+              ),
+            ),
     );
     final index = _index(node['b']);
     if (index != null) {
@@ -675,4 +688,49 @@ class _PopupFieldState extends State<_PopupField> {
       ),
     );
   }
+}
+
+// Same stripe/checker painting as the current mirror, with safe style values.
+class _PopupStripes extends CustomPainter {
+  _PopupStripes(this.style);
+  final Map<String, dynamic> style;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final colors = style['c'] is List
+        ? (style['c'] as List).map((e) => _color(e, Colors.black)).toList()
+        : <Color>[];
+    if (colors.length < 2) return;
+    if (style['checker'] == true) {
+      final value = _number(style['s']);
+      final q = value <= 0
+          ? 12.0
+          : (value / 2).clamp(0.5, double.infinity).toDouble();
+      canvas.drawRect(Offset.zero & size, Paint()..color = colors[1]);
+      final paint = Paint()..color = colors[0];
+      for (var y = 0.0; y < size.height; y += q) {
+        for (var x = 0.0; x < size.width; x += q) {
+          if (((x / q).round() + (y / q).round()).isEven) {
+            canvas.drawRect(Rect.fromLTWH(x, y, q, q), paint);
+          }
+        }
+      }
+      return;
+    }
+    final value = _number(style['w']),
+        w = value <= 0 ? 8.0 : value.clamp(0.5, double.infinity).toDouble();
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, Paint()..color = colors[1]);
+    final diag = size.width + size.height;
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate(_number(style['deg']) * 3.1415926535 / 180);
+    final paint = Paint()..color = colors[0];
+    for (var x = -diag; x < diag; x += w * 2) {
+      canvas.drawRect(Rect.fromLTWH(x, -diag, w, diag * 2), paint);
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _PopupStripes old) => old.style != style;
 }

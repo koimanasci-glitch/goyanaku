@@ -5,7 +5,7 @@ module.exports=async function capture(browser,write=false){
  const cases=[],p=await browser.newPage({viewport:{width:390,height:844},timezoneId:'Asia/Jakarta'});
  try{
   await p.clock.install({time:new Date('2026-10-05T01:00:00Z')});
-  await p.addInitScript(()=>{localStorage.clear();Math.random=()=>0.25;window.open=()=>null;
+  await p.addInitScript(()=>{localStorage.clear();Math.random=()=>0.25;let uuid=0;crypto.randomUUID=()=> '00000000-0000-4000-8000-'+(++uuid).toString().padStart(12,'0');window.open=()=>null;
    window.GoyanaNative={__events:[],postMessage(raw){if(raw.startsWith('{"event"')){this.__events.push(JSON.parse(raw));return}const m=JSON.parse(raw);
     const data=m.method==='insets'?{top:31}:m.method==='requestAccess'?{granted:true}:m.method==='contacts'?{contacts:[{name:'Budi Uji',phone:'081234000001'},{name:'Sari Uji',phone:'081234000002'}]}:{};
     setTimeout(()=>__goyanaNative.finish(m.id,true,data),5)}}});
@@ -36,13 +36,14 @@ module.exports=async function capture(browser,write=false){
     else if(id==='api135'){openPage('integrations');[...document.querySelectorAll('#integrations .row')].find(r=>r.textContent.includes('API Goyana')).click()}
     else if(id==='pay111'){openPage('checkout111');openSheet91(id)}
     else if(id==='upgrade-pay-modal'){openPage('upgrade');document.getElementById(id).classList.add('show')}
-    else if(id==='g181-modal'){openPage('inventory');[...document.querySelectorAll('#inventory button')].find(b=>b.textContent.includes('Tambah Bahan')).click()}
+    else if(id==='g181-modal'){createInitialOutlet189('Outlet Uji B12');openPage('inventory');[...document.querySelectorAll('#inventory button')].find(b=>b.textContent.includes('Tambah Bahan')).click()}
     else if(id==='td175'){openPage('adm175');openSheet91(id)}
    },id);await p.clock.runFor(800);
    if(id==='rm138s'){await p.evaluate(()=>{const c=document.querySelector('#orders .g62-ordercard');c.dataset.siap138=String(Date.now()-8*86400000);openRemind138()});await p.clock.runFor(200)}
    // Isolate the already-populated target for capture, without changing production routing.
    await p.evaluate(id=>{document.querySelectorAll('.show').forEach(e=>{if(e.id!==id)e.classList.remove('show')});document.getElementById(id).classList.add('show');__goyanaHomeRefresh()},id);await p.clock.runFor(500);
    const record=async state=>{
+    assert.equal(await p.locator('#'+id).isVisible(),true,id+' '+state+' visible');
     const event=await p.evaluate(id=>GoyanaNative.__events.filter(e=>e.sheet?.id===id).at(-1),id);
     assert.ok(event?.sheet?.mirror,id+' '+width+' '+state+' mirror');
     const actions=await p.evaluate(id=>{const e=document.getElementById(id);return {buttons:[...e.querySelectorAll('button')].filter(b=>b.type!=='file').map((b,i)=>({i,t:b.textContent.trim()})),inputs:[...e.querySelectorAll('input:not([type=file]):not([type=checkbox]):not([type=radio]),textarea,select')].map((v,i)=>({i,v:v.tagName==='SELECT'?v.selectedIndex:v.value}))}},id);
@@ -57,6 +58,7 @@ module.exports=async function capture(browser,write=false){
     await p.evaluate(()=>{document.getElementById('s181-n').value='Detergen Uji';document.getElementById('s181-q').value='10';document.getElementById('s181-u').value='liter';document.getElementById('s181-m').value='2';document.getElementById('s181-c').value='5000';document.getElementById('g181-ms').click()});await p.clock.runFor(400);
     for(const tool of ['move','op','sup','buy','tr']){
      await p.evaluate(()=>{closeSheet91('g181-modal');openPage('inventory')});await p.clock.runFor(250);
+     if(tool==='tr'){await p.evaluate(()=>{addBranch96();const f=document.querySelector('#outletedit');f.querySelector('input.profile-input').value='Cabang Uji B12';f.querySelector('textarea').value='Jakarta';f.querySelector('input[inputmode=tel]').value='081234000003';saveOutlet158();openPage('inventory')});await p.clock.runFor(250)}
      await p.evaluate(tool=>document.querySelector('#inventory [data-st='+tool+']').click(),tool);await p.clock.runFor(400);await record(tool);
     }
     await p.evaluate(()=>{closeSheet91('g181-modal');openCourier181('manage');[...document.querySelectorAll('#courier181 button')].find(b=>b.textContent.includes('Tambah Kurir')).click()});await p.clock.runFor(500);await record('courier');
