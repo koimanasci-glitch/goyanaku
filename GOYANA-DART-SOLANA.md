@@ -74,7 +74,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B10 | Invoice (`invoice111`) | SELESAI (tampilan final kosong) — paritas 390/320, 133 screenshot dan APK lulus; 1/2 CI; invoice terisi/pembelian belum tersedia |
 | WA-PAIR | Tambahan berizin: popup Hubungkan WhatsApp, pilihan Scan QR / Kode WhatsApp | SELESAI (tampilan) — 390/320, 137 screenshot dan APK lulus; 2/2 CI; QR/kode nyata menunggu API CHATKU (F5) |
 | B11 | Otomasi WA (`waautomation`) → WhatsApp & Chatbot aktif | SELESAI jalur aktif sesuai pilihan Paduka — sudah NativeForm; 6 kondisi 390/320, 144 screenshot dan APK lulus; 2/2 CI. Halaman demo lama tetap tersembunyi; CHATKU menunggu F5 |
-| B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | 15/16 SELESAI. 14 popup sisa gabungan atas izin Paduka; CI4 37341886006: lulus; bridge 53, analyze bersih, unit 123, screenshot 228, 336 paritas gambar dan APK baru. 2 CI awal + 2 tambahan berizin. |
+| B12 | 16 popup cermin: gs107, cat99, f61-print, hist115, photo115, wa131, wa138, rm138s, rs139, contacts178, guide135, api135, pay111, upgrade-pay-modal, g181-modal, td175 (satu popup per putaran) | 16/16 SELESAI. 14 popup sisa gabungan atas izin Paduka; CI4 37341886006: lulus; bridge 53, analyze bersih, unit 123, screenshot 228, 336 paritas gambar dan APK baru. 2 CI awal + 2 tambahan berizin. |
 | B12-2 | Kategori Baru (`cat99`) | SELESAI (tampilan) — 390/320, keyboard/scroll, 24 paritas gambar, 158 screenshot dan APK lulus; 1/2 CI |
 | B12-3 | Pesanan Berhasil (`f61-print`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
 | B12-4 | Riwayat Status (`hist115`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
@@ -89,7 +89,7 @@ Sekarang bentuknya dibaca dari HTML tersembunyi (`mirror_sheet.dart`). Harus dit
 | B12-13 | Bayar Melalui (`pay111`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
 | B12-14 | Pembayaran Upgrade Lama (`upgrade-pay-modal`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
 | B12-15 | Formulir Stok dan Kurir (`g181-modal`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
-| B12-16 | Detail Administrator (`td175`) | SETENGAH JALAN (tampilan/tes lulus; APK bersama tertahan) — CI 37321200324; 2 CI awal + 1 tambahan berizin; lihat laporan CI3 |
+| B12-16 | Detail Administrator (`td175`) | SELESAI (tampilan) — CI 37341886006; 4 CI gabungan berizin; lihat laporan CI4 |
 
 ### Jalur C: Isi halaman formulir & popup native ke Dart
 ±49 halaman formulir (Printer, Profil, Pegawai, Stok, CRM, Kurir, dst.) dan ±25 popup native: tampilannya sudah Flutter, tapi daftar isian (label, pilihan, nilai) masih dibaca dari HTML. Tulis daftar itu di Dart, satu kelompok halaman per putaran, bersamaan dengan bagian Jalur A yang terkait.
