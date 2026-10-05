@@ -77,7 +77,7 @@ Pola pemasangan sama dengan A3/A4: Dart hitung dulu → sama dengan HTML → lay
 | B5 | Scan Pesanan (`orderscan`) — **jangan ubah bagian kamera `mobile_scanner`**, hanya tampilan | SELESAI |
 | B6 | Status QR (`qrstatus`) | SELESAI — paritas 390/320 dan golden lulus; 1 CI tambahan diizinkan Koko |
 | QR-1 | Tambahan berizin: tombol QR di Rincian Pesanan + desain web status pelanggan | SELESAI (tampilan) — CI tambahan berizin lulus; backend status publik belum tersambung |
-| B8 | Checkout Paket (`checkout111`) | belum, tangkap fixture dulu |
+| B8 | Checkout Paket (`checkout111`) | MENTOK — widget/fixture siap; 2/2 CI terpakai, pesan promo dan lokasi fixture multi-kasus perlu diperbaiki; APK belum dibuat |
 | B9 | Tagihan (`billing`) | belum, tangkap fixture dulu |
 | B10 | Invoice (`invoice111`) | belum, tangkap fixture dulu |
 | B11 | Otomasi WA (`waautomation`) | belum, tangkap fixture dulu |
