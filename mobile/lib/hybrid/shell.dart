@@ -18,6 +18,7 @@ import '../logic/orders.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
 import '../native/cashclose_page.dart';
+import '../native/cat99_sheet.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
@@ -1196,6 +1197,15 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                   );
                 },
               ))
+            else if (_nativePage != null && _sheetId == 'cat99' && _sheetMirror != null && !_loading)
+              Positioned.fill(
+                child: NativeCat99Sheet(
+                  key: const ValueKey('native-cat99'), model: _sheetMirror!,
+                  onButton: (i) => fmScoped(_sheetId, 'button', i),
+                  onInput: (i, v) => fmScoped(_sheetId, 'input', i, v),
+                  onClose: () => fmScoped(_sheetId, 'close', 0),
+                ),
+              )
             else if (_nativePage != null && _sheetId == 'gs107' && _sheetMirror != null && !_loading)
               Positioned.fill(
                 child: NativeGs107Sheet(
