@@ -24,6 +24,7 @@ import '../native/cashclose_page.dart';
 import '../native/cat99_sheet.dart';
 import '../native/common.dart';
 import '../native/brand_intro.dart';
+import '../native/guide_intro.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/gs107_sheet.dart';
@@ -96,6 +97,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   final _device = const MethodChannel('id.goyana/device');
   bool _loading = true;
   bool _brandIntroDone = false;
+  bool _guideOpen = false, _guideChecked = false;
   String? _nativePage; // 'home' | 'orders' while a native page covers the WebView
   HomeModel _home = const HomeModel();
   OrdersModel _orders = const OrdersModel();
@@ -284,6 +286,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         }
         if (toast.isNotEmpty || page == null) _toast = toast;
       });
+      if (page == 'home') unawaited(_maybeShowGuide());
       if (page == 'orders' && _addorderSavePending != null) {
         unawaited(_addorderSaveFromDart());
       }
@@ -919,7 +922,18 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   @override
   void stLogout() => _tap('#settings .lo167');
   @override
-  void stTutorial() => _tap('#tutorial189-open');
+  /// Five-slide guide: once, as soon as the owner's Beranda appears for the first time
+  /// (right after the first outlet is created), after the opening animation has finished.
+  Future<void> _maybeShowGuide() async {
+    if (_guideChecked || !_brandIntroDone) return;
+    _guideChecked = true;
+    try {
+      final seen = await const DeviceKvStore().get(guideSeenKey);
+      if (seen == null && mounted) setState(() => _guideOpen = true);
+    } catch (_) {/* storage problem: skip the guide rather than block the app */}
+  }
+
+  void stTutorial() => setState(() => _guideOpen = true);
 
   @override
   void ccTap(String selector, int index, String? child) => _tap(selector, index, child, false);
@@ -1034,6 +1048,12 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
 
   // ---------- hardware back ----------
   Future<void> _onBack() async {
+    if (_guideOpen) {
+      // Back on the guide = skip it (same as "Lewati").
+      try { await const DeviceKvStore().set(guideSeenKey, '1'); } catch (_) {}
+      if (mounted) setState(() => _guideOpen = false);
+      return;
+    }
     String action = 'exit';
     try {
       final r = await _web.runJavaScriptReturningResult(
@@ -1460,9 +1480,14 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                 left: 24, right: 24, bottom: 130,
                 child: IgnorePointer(child: Center(child: NativeToast(text: _toast))),
               ),
+            if (_guideOpen && _brandIntroDone && _loadError == null)
+              Positioned.fill(child: GuideIntro(onDone: () {
+                if (mounted) setState(() => _guideOpen = false);
+              })),
             if (!_brandIntroDone && _loadError == null)
               Positioned.fill(child: BrandIntro(ready: !_loading, onDone: () {
                 if (mounted) { setState(() => _brandIntroDone = true); }
+                if (_nativePage == 'home') unawaited(_maybeShowGuide());
               })),
             if (_loadError != null)
               Positioned.fill(
