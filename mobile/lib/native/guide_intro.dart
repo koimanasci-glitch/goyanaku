@@ -180,9 +180,9 @@ class _GuideIntroState extends State<GuideIntro> {
                                 ),
                               ),
                               child: Text(
-                                'Kembali',
+                                'KEMBALI',
                                 style: gText(
-                                  14,
+                                  13,
                                   w: FontWeight.w600,
                                   c: Colors.white,
                                 ),
@@ -223,9 +223,9 @@ class _GuideIntroState extends State<GuideIntro> {
                           ),
                         ),
                         child: Text(
-                          last ? 'Mulai' : 'Lanjut',
+                          last ? 'MULAI' : 'LANJUT',
                           style: gText(
-                            14,
+                            13,
                             w: FontWeight.w600,
                             c: const Color(0xffed0026),
                           ),

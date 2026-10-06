@@ -1380,5 +1380,6 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 
 ## [Claude] Ikon Android baru dan teks tombol tidak huruf besar semua — 6 Oktober 2026 (branch flutter/panduan-baru)
 - Ikon aplikasi diganti dengan gambar baru dari Paduka (G + tulisan GOYANA): ikon lama `ic_launcher.png` 5 kepadatan, ditambah ikon adaptif Android 8+ (`mipmap-anydpi-v26/ic_launcher.xml`, latar buram + gambar di zona aman) supaya tidak terpotong oleh bentuk ikon HP. Sudut hitam gambar sumber dibuang. Dicek pratinjau bentuk lingkaran dan kotak membulat; belum dipasang di HP.
-- Teks tombol panduan: "Kembali / Lanjut / Mulai" (bukan huruf kapital semua). Tulisan "KASIR LAUNDRY" di bawah logo pembuka tetap kapital karena bagian dari logo; menunggu keputusan Paduka.
+- Koreksi Paduka: aturan "jangan huruf besar semua" hanya untuk nama aplikasi di bawah ikon di HP: `android:label` kini "Goyana" (sebelumnya "GOYANA"). Tombol panduan dan "KASIR LAUNDRY" tetap huruf kapital seperti gambar acuan.
 - Tes: belum dijalankan; CI tambahan habis (3/3), menunggu izin.
+- Paduka melonggarkan jatah CI ("Jatah CI aku longgarkan", 6 Okt 13:00 WIB, jumlah tidak disebut). CI berikutnya dijalankan atas izin itu untuk ikon baru, label, layar awal tanpa ikon dan merpati/panduan.

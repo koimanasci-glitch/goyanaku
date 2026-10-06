@@ -24,18 +24,18 @@ void main() {
     await _open(tester, store, () => done++);
     await tester.pumpAndSettle();
     expect(find.text('Catat pesanan, cetak struk & label barcode dengan cepat dan rapi.'), findsOneWidget);
-    expect(find.text('Kembali'), findsNothing, reason: 'no back on the first slide');
-    expect(find.text('Lanjut'), findsOneWidget);
+    expect(find.text('KEMBALI'), findsNothing, reason: 'no back on the first slide');
+    expect(find.text('LANJUT'), findsOneWidget);
     for (var i = 0; i < 4; i++) {
       await tester.tap(find.byKey(const Key('guide-next')));
       await tester.pumpAndSettle();
     }
     expect(find.textContaining('paket Gold ke atas'), findsOneWidget);
-    expect(find.text('Mulai'), findsOneWidget);
-    expect(find.text('Kembali'), findsOneWidget);
+    expect(find.text('MULAI'), findsOneWidget);
+    expect(find.text('KEMBALI'), findsOneWidget);
     await tester.tap(find.byKey(const Key('guide-prev')));
     await tester.pumpAndSettle();
-    expect(find.text('Lanjut'), findsOneWidget);
+    expect(find.text('LANJUT'), findsOneWidget);
     expect(find.text('Atur hingga beberapa cabang dalam satu aplikasi. Mudah dipantau dari mana saja.'), findsOneWidget);
     expect(done, 0);
     await tester.tap(find.byKey(const Key('guide-next')));
