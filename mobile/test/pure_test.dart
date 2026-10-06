@@ -47,7 +47,7 @@ void main() {
   testWidgets('kasir: pelanggan baru → layanan → opsi → tunai → pesanan tersimpan', (tester) async {
     final kv = _store();
     final s = await _pump(tester, kv);
-    expect(find.text('GOYANA'), findsWidgets);
+    expect(find.text('Goyana'), findsWidgets);
 
     s.tile(0); // Tambah Transaksi
     await _settle(tester);
