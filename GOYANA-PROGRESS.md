@@ -1425,3 +1425,12 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Export (4: x-keu, x-trx, x-plg, x-peg) ikut dipindah: 39 laporan/export dicocokkan. Sisa A8: tampilan detail laporan dari Dart (bukan HTML).
 - Temuan A8: patch HTML lebih baru mengubah laporan nyata — "Top Pelanggan" (v181: urut total belanja, label "Pelanggan teratas", tanpa grafik) dan "Laba Rugi" berganti nama "Surplus Kas"; v182 menambah "HPP Bahan Terpakai" dan "Laba Operasional" (berbasis buku stok). Dart mengikuti versi terbaru untuk Top Pelanggan; dua laporan baru v182 tetap HTML sampai stok dipindah.
 - Halaman detail laporan (`lib/native/report_detail.dart`): periode, KPI, grafik batang/horizontal, tabel + "Tampilkan lebih banyak", CSV/WA; dipakai hanya bila hitungan Dart sama dengan HTML (periode Dart-lokal, sinkron ke HTML agar CSV/WA tetap jalan).
+
+## A9 — CRM (Dart)
+- CRM kini dimiliki Dart (lib/logic/crm.dart, lib/native/crm_page.dart, test/crm_test.dart), disimpan di kunci `goyana-crm203`.
+- Catatan: CRM130 di HTML hanya demo dalam memori, jadi ini fitur baru. Poin = pesanan lunas dikurangi poin yang ditukar.
+- Terbuka: voucher/poin CRM belum disatukan dengan voucher Mode Murni (settings.raw['vouchers']); penggantian CrmPage murni ditunda agar integrasi diskon tidak rusak.
+
+## A8/D1 — Laporan di Mode Murni
+- Beranda dan detail Laporan Dart tampil di Mode Murni dari database Dart lewat `reportStateFromBusiness` (diuji dengan data HTML yang sama; kolom status dilewati karena HTML memajukan status otomatis saat boot).
+- Laporan v182 (hpp, laba operasional) masih bergantung pada buku stok dan tetap di HTML.
