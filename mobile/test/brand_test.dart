@@ -22,7 +22,7 @@ void main() {
     expect(scans, 1);
   });
   testWidgets(
-    'First opening plays the 1.2s dove intro and stores an independent marker',
+    'First opening plays the 2.2s bird intro and stores an independent marker',
     (tester) async {
       final store = MemoryKvStore();
       var done = 0;
@@ -32,9 +32,9 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.text('Goyana'), findsOneWidget);
+      expect(find.text('G'), findsOneWidget);
       expect(find.text('KASIR LAUNDRY'), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 1100));
+      await tester.pump(const Duration(milliseconds: 2100));
       expect(done, 0);
       await tester.pump(const Duration(milliseconds: 120));
       expect(done, 0, reason: 'leave fade still running');
@@ -47,7 +47,7 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  testWidgets('Later openings take 0.9s', (tester) async {
+  testWidgets('Later openings also take 2.2s', (tester) async {
     final store = MemoryKvStore({brandIntroKey: '1'});
     var done = 0;
     await tester.pumpWidget(
@@ -56,9 +56,9 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 850));
+    await tester.pump(const Duration(milliseconds: 2100));
     expect(done, 0);
-    await tester.pump(const Duration(milliseconds: 60));
+    await tester.pump(const Duration(milliseconds: 120));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pump();
@@ -76,8 +76,8 @@ void main() {
         ),
       );
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1500));
       await tester.pump(const Duration(milliseconds: 1000));
-      await tester.pump(const Duration(milliseconds: 400));
       expect(done, 0);
       await tester.pumpWidget(
         MaterialApp(
@@ -92,22 +92,29 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  test('Dove settles in and breathes gently without moving its feet', () {
-    final start = doveAt(0);
-    expect(start.opacity, 0, reason: 'invisible at the very start');
-    final rest = doveAt(.25);
-    expect(rest.scale, closeTo(1, 1e-9));
-    expect(rest.opacity, closeTo(1, 1e-9));
-    expect(rest.lift, closeTo(0, 1e-9));
-    expect(doveAt(.4375).scale, greaterThan(1.03), reason: 'inhale peak');
-    expect(doveAt(1).scale, closeTo(1, 1e-9), reason: 'ends at rest');
-    for (var i = 0; i <= 100; i++) {
-      final p = doveAt(i / 100);
-      expect(p.scale, inInclusiveRange(1, 1.036));
-      expect(p.opacity, inInclusiveRange(0, 1));
-      if (i >= 25) {
-        expect(p.lift, closeTo(0, 1e-9), reason: 'feet stay perched');
-      }
+  test('Bird flies in flapping, perches on the G and folds its wings', () {
+    expect(birdAt(0).alpha, 0, reason: 'invisible at the very start');
+    final fly = birdAt(.3);
+    expect(fly.y, lessThan(14), reason: 'still above the perch');
+    expect(fly.alpha, closeTo(1, 1e-9));
+    final land = birdAt(.55);
+    expect(land.x, closeTo(92, 1e-9));
+    expect(land.y, closeTo(14, 1e-9));
+    final rest = birdAt(1);
+    expect(rest.x, closeTo(92, 1e-9));
+    expect(rest.y, closeTo(14, 1e-9));
+    expect(rest.flap, closeTo(-12, 1e-9), reason: 'wings folded');
+    expect(rest.scale, closeTo(.8, 1e-9));
+    final flaps = {
+      for (var i = 8; i <= 55; i++) birdAt(i / 100).flap.round(),
+    };
+    expect(flaps.length, greaterThan(10), reason: 'wings really move');
+  });
+  test('Name letters appear one after another', () {
+    expect(letterProgress(.5, 0), closeTo(0, 1e-9));
+    expect(letterProgress(.62, 0), greaterThan(letterProgress(.62, 3)));
+    for (var i = 0; i < 6; i++) {
+      expect(letterProgress(1, i), closeTo(1, 1e-9));
     }
   });
 }

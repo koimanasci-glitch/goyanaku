@@ -25,10 +25,10 @@ class BrandIntro extends StatefulWidget {
   State<BrandIntro> createState() => _BrandIntroState();
 }
 
-const brandIntroFirstMs = 1200;
-const brandIntroLaterMs = 900;
+const brandIntroFirstMs = 2200;
+const brandIntroLaterMs = 2200;
 const _leaveMs = 160;
-const _markSize = 175.0;
+const _markSize = 200.0;
 
 class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
   late final AnimationController _animation;
@@ -125,10 +125,10 @@ class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
       animation: Listenable.merge([_animation, _leave]),
       builder: (context, _) {
         final u = _animation.value;
-        final logo = (u / .25).clamp(0.0, 1.0);
-        final name = _easeOut(((u - .45) / .35).clamp(0.0, 1.0));
-        final tag = _easeOut(((u - .6) / .32).clamp(0.0, 1.0));
-        final dove = doveAt(u);
+        final draw = _easeOut((u / .5).clamp(0.0, 1.0));
+        final shine = ((u - .62) / .25).clamp(0.0, 1.0);
+        final bird = birdAt(u);
+        final tag = _easeOut(((u - .75) / .25).clamp(0.0, 1.0));
         return IgnorePointer(
           ignoring: _done,
           child: Opacity(
@@ -158,58 +158,22 @@ class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
+                              Positioned.fill(child: _Mark(draw, shine)),
                               Positioned.fill(
-                                child: Opacity(
-                                  opacity: logo,
-                                  child: Transform.scale(
-                                    scale: .92 + .08 * _easeOut(logo),
-                                    child: Image.asset(
-                                      'assets/branding/mark.png',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: _doveLeft,
-                                top: _doveTop + dove.lift,
-                                width: _doveSize,
-                                height: _doveSize,
-                                child: Opacity(
-                                  opacity: dove.opacity,
-                                  child: Transform(
-                                    alignment: Alignment.bottomCenter,
-                                    transform: Matrix4.diagonal3Values(
-                                      1 + (dove.scale - 1) * .5,
-                                      dove.scale,
-                                      1,
-                                    ),
-                                    child: Image.asset(
-                                      'assets/branding/dove.png',
-                                      cacheWidth: 360,
-                                      filterQuality: FilterQuality.medium,
-                                      errorBuilder: (context, e, s) =>
-                                          const SizedBox.shrink(),
-                                    ),
-                                  ),
+                                child: CustomPaint(
+                                  painter: _BirdPainter(bird),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Opacity(
-                          opacity: name,
-                          child: Transform.translate(
-                            offset: Offset(0, (1 - name) * 16),
-                            child: Text(
-                              'Goyana',
-                              style: gText(
-                                48,
-                                w: FontWeight.w600,
-                                c: Colors.white,
-                              ),
-                            ),
-                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (var i = 0; i < _word.length; i++)
+                              _Letter(_word[i], letterProgress(u, i)),
+                          ],
                         ),
                         const SizedBox(height: 6),
                         Opacity(
@@ -234,6 +198,80 @@ class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
       },
     );
   }
+}
+
+const _word = 'Goyana';
+
+/// Progress (0..1) of letter [i] of the name for animation progress [u].
+double letterProgress(double u, int i) =>
+    _easeOut(((u - .5 - i * .045) / .25).clamp(0.0, 1.0));
+
+class _Letter extends StatelessWidget {
+  const _Letter(this.ch, this.p);
+  final String ch;
+  final double p;
+  @override
+  Widget build(BuildContext context) => Opacity(
+    opacity: p,
+    child: Transform.translate(
+      offset: Offset(0, (1 - p) * 22),
+      child: Text(ch, style: gText(48, w: FontWeight.w600, c: Colors.white)),
+    ),
+  );
+}
+
+/// The G: revealed by a counter-clockwise sweep starting at the upper right,
+/// then crossed once by a diagonal shine.
+class _Mark extends StatelessWidget {
+  const _Mark(this.draw, this.shine);
+  final double draw, shine;
+  @override
+  Widget build(BuildContext context) {
+    Widget image = Image.asset('assets/branding/mark.png');
+    if (shine > 0 && shine < 1) {
+      final c = -.3 + 1.6 * shine;
+      image = ShaderMask(
+        blendMode: BlendMode.srcATop,
+        shaderCallback: (rect) => LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: const [Color(0x00ffffff), Color(0xb3ffffff), Color(0x00ffffff)],
+          stops: [
+            (c - .14).clamp(0.0, 1.0),
+            c.clamp(0.0, 1.0),
+            (c + .14).clamp(0.0, 1.0),
+          ],
+        ).createShader(rect),
+        child: image,
+      );
+    }
+    if (draw >= 1) {
+      return image;
+    }
+    return ClipPath(clipper: _SweepClip(draw), child: image);
+  }
+}
+
+class _SweepClip extends CustomClipper<Path> {
+  const _SweepClip(this.t);
+  final double t;
+  @override
+  Path getClip(Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.longestSide;
+    return Path()
+      ..moveTo(c.dx, c.dy)
+      ..arcTo(
+        Rect.fromCircle(center: c, radius: r),
+        -35 * math.pi / 180,
+        -2 * math.pi * t,
+        false,
+      )
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(_SweepClip old) => old.t != t;
 }
 
 double _easeOut(double p) => 1 - math.pow(1 - p, 3).toDouble();
@@ -263,22 +301,122 @@ class _Floral extends CustomPainter {
   bool shouldRepaint(_Floral oldDelegate) => false;
 }
 
-// Dove position in the 175px logo box: feet rest on the upper-left of the "G"
-// ring (ring top is at y~10), image is nearly square and faces right.
-const _doveSize = 112.0, _doveLeft = 6.0, _doveTop = -96.0;
+/// Bird state for one frame, in the 200px logo box (feet position).
+class BirdPose {
+  const BirdPose(this.x, this.y, this.flap, this.scale, this.tilt, this.alpha);
 
-class DovePose {
-  const DovePose(this.scale, this.lift, this.opacity);
-  final double scale, lift, opacity;
+  /// Feet position, flap angle in degrees (positive = wings up), wing scale,
+  /// body tilt in radians and opacity.
+  final double x, y, flap, scale, tilt, alpha;
 }
 
-/// Dove pose for animation progress [u] (0..1): fades in and settles onto the
-/// "G", then breathes gently (a soft rise of the chest, anchored at the feet)
-/// so body and feet stay perched. Ends at rest.
-DovePose doveAt(double u) {
-  final fadeIn = ((u - .08) / .17).clamp(0.0, 1.0);
-  final settle = (1 - _easeOut(fadeIn)) * -10; // drops 10px into place
-  final x = ((u - .25) / .75).clamp(0.0, 1.0);
-  final breath = (1 - math.cos(math.pi * 4 * x)) / 2; // two soft breaths
-  return DovePose(1 + .035 * breath, settle, fadeIn);
+const _perch = Offset(92, 14); // feet rest on the upper-left of the G ring
+const _birdStart = Offset(30, -200); // above the screen, upper left
+
+/// Bird for animation progress [u] (0..1): flies in flapping (u .08-.55),
+/// lands on the G, flaps slowly and folds its wings (u .55-.75), then rests.
+BirdPose birdAt(double u) {
+  final fl = _easeOut(((u - .08) / .47).clamp(0.0, 1.0));
+  final x = _birdStart.dx + (_perch.dx - _birdStart.dx) * fl;
+  final y = _birdStart.dy + (_perch.dy - _birdStart.dy) * fl;
+  final alpha = ((u - .08) / .1).clamp(0.0, 1.0);
+  if (u < .55) {
+    final psi = 18 + 48 * math.sin(2 * math.pi * 3 * (u - .08) / .47);
+    return BirdPose(x, y, psi, 1, -.35 * (1 - fl), alpha);
+  }
+  final k = ((u - .55) / .2).clamp(0.0, 1.0);
+  final psi =
+      (18 + 48 * math.sin(2 * math.pi * 1.2 * k)) * (1 - k) + -12 * k;
+  return BirdPose(x, y, psi, 1 - .2 * k, 0, alpha);
+}
+
+class _BirdPainter extends CustomPainter {
+  const _BirdPainter(this.b);
+  final BirdPose b;
+
+  static const _wing = [
+    Offset(0, -5),
+    Offset(25, -13),
+    Offset(60, -15),
+    Offset(98, -7),
+    Offset(82, 2),
+    Offset(56, 7),
+    Offset(26, 11),
+    Offset(0, 8),
+  ];
+
+  Path _poly(List<Offset> pts) {
+    final path = Path()..moveTo(pts.first.dx, pts.first.dy);
+    for (final p in pts.skip(1)) {
+      path.lineTo(p.dx, p.dy);
+    }
+    return path..close();
+  }
+
+  Offset _t(double px, double py) {
+    final c = math.cos(b.tilt), s = math.sin(b.tilt);
+    return Offset(b.x + px * c - py * s, b.y + px * s + py * c);
+  }
+
+  void _drawWing(Canvas canvas, Offset shoulder, double psi, double sc, Paint p) {
+    final a = math.pi - psi * math.pi / 180;
+    final c = math.cos(a), s = math.sin(a);
+    final pts = [
+      for (final w in _wing)
+        Offset(
+          shoulder.dx + (w.dx * c - w.dy * s) * sc,
+          shoulder.dy + (w.dx * s + w.dy * c) * sc,
+        ),
+    ];
+    canvas.drawPath(_poly(pts), p);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (b.alpha <= 0) {
+      return;
+    }
+    int a(int v) => (v * b.alpha).round();
+    final near = Paint()..color = Color.fromARGB(a(255), 255, 255, 255);
+    final far = Paint()..color = Color.fromARGB(a(255), 225, 228, 236);
+    final beak = Paint()..color = Color.fromARGB(a(255), 255, 236, 200);
+    final eye = Paint()..color = Color.fromARGB(a(255), 237, 0, 38);
+    final shoulder = _t(-2, -34);
+    _drawWing(canvas, shoulder, b.flap * .9 - 8, b.scale * .92, far);
+    canvas.drawPath(
+      _poly([
+        for (final p in const [
+          [-34.0, -24.0], [-20.0, -42.0], [6.0, -48.0], [28.0, -46.0],
+          [38.0, -38.0], [36.0, -30.0], [20.0, -18.0], [-6.0, -12.0],
+          [-26.0, -14.0],
+        ])
+          _t(p[0], p[1]),
+      ]),
+      near,
+    );
+    canvas.drawPath(
+      _poly([
+        for (final p in const [
+          [-30.0, -22.0], [-66.0, -14.0], [-62.0, -26.0], [-60.0, -34.0],
+          [-28.0, -36.0],
+        ])
+          _t(p[0], p[1]),
+      ]),
+      near,
+    );
+    canvas.drawCircle(_t(34, -48), 11, near);
+    canvas.drawPath(_poly([_t(42, -52), _t(58, -47), _t(42, -44)]), beak);
+    canvas.drawCircle(_t(38, -52), 1.8, eye);
+    final leg = Paint()
+      ..color = beak.color
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    for (final fx in const [-4.0, 8.0]) {
+      canvas.drawLine(_t(fx, -12), _t(fx - 3, 0), leg);
+    }
+    _drawWing(canvas, shoulder, b.flap, b.scale, near);
+  }
+
+  @override
+  bool shouldRepaint(_BirdPainter old) => old.b != b;
 }

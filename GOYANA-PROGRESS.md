@@ -1383,3 +1383,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Koreksi Paduka: aturan "jangan huruf besar semua" hanya untuk nama aplikasi di bawah ikon di HP: `android:label` kini "Goyana" (sebelumnya "GOYANA"). Tombol panduan dan "KASIR LAUNDRY" tetap huruf kapital seperti gambar acuan.
 - Tes: belum dijalankan; CI tambahan habis (3/3), menunggu izin.
 - Paduka melonggarkan jatah CI ("Jatah CI aku longgarkan", 6 Okt 13:00 WIB, jumlah tidak disebut). CI berikutnya dijalankan atas izin itu untuk ikon baru, label, layar awal tanpa ikon dan merpati/panduan.
+
+### Animasi pembuka: burung buatan kode, mengepak (branch flutter/panduan-baru)
+- [Claude] Atas permintaan Koiman (6 Okt 14:06 WIB, "2 detik gpp selagi biar loading elemen siap"): merpati PNG diganti burung putih gambar sendiri lewat CustomPainter (bukan meniru logo merek lain). Urutan: G menggambar dirinya (sapuan berlawanan arah jarum jam), burung terbang dari kiri atas sambil mengepak 3 kali lalu hinggap di G dan melipat sayap, kilau menyapu G, huruf "Goyana" muncul satu per satu, lalu KASIR LAUNDRY. Durasi 2,2 detik di setiap pembukaan (+160 ms memudar saat aplikasi siap).
+- Berkas: `mobile/lib/native/brand_intro.dart` (`birdAt`, `letterProgress`, `_BirdPainter`, `_Mark`), `mobile/test/brand_test.dart`. `dove.png` tidak dipakai lagi oleh intro.
+- Belum diuji: kelancaran di HP asli dan kemiripan dengan preview (preview dibuat di komputer, bukan dari Flutter). Bentuk sayap/badan masih sederhana dan bisa dihaluskan.
