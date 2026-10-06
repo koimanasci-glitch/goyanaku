@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Same red gradient as the opening animation (brand_intro.dart), no icon, so the
+     very first frame blends into the Flutter intro instead of showing the launcher icon. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item><shape><solid android:color="#FF493C" /></shape></item>
-    <item><bitmap android:gravity="center" android:src="@mipmap/ic_launcher" /></item>
+    <item>
+        <shape>
+            <gradient
+                android:angle="315"
+                android:startColor="#FFFF7956"
+                android:centerColor="#FFFF2636"
+                android:endColor="#FFED0026" />
+        </shape>
+    </item>
 </layer-list>

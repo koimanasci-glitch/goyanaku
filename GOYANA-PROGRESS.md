@@ -1371,3 +1371,9 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Dijalankan atas izin "Kamu bebas uji". Run 37416347206: analyze gagal (override salah tempat). Run 37416789429: analyze lulus, 1 tes unit gagal (perbandingan float di tes baru). Jatah tambahan sebelum ini 1/3 terpakai; dua run ini membuatnya 3/3 (habis). Run berikutnya hanya karena izin "bebas uji" dan dicatat di bawah.
 - Run 37417211777 (commit 4744c39) SUCCESS: bridge di browser, analyze, tes unit, screenshot, APK terbit (flutter-uji, 56.858.556 byte, 6 Okt 05:23 UTC). Jatah tambahan Paduka: 3/3 terpakai; run ini dijalankan atas izin "Kamu bebas uji". Tidak ada CI lagi tanpa izin baru.
 - Catatan: APK `flutter-uji` ditimpa oleh build branch ini (bukan dari `flutter/native`).
+
+## [Claude] Hilangkan layar awal bawaan Android (ikon di latar koral) — 6 Oktober 2026 (branch flutter/panduan-baru)
+- Masalah dari Paduka: sebelum animasi pembuka sempat tampil ikon launcher kecil di tengah layar koral polos (splash sistem Android).
+- Perbaikan: ikon splash Android 12+ diganti transparan (`values-v31/styles.xml`); `launch_background.xml` (Android 11 ke bawah) tidak lagi memuat ikon dan memakai gradasi merah yang sama dengan animasi pembuka.
+- Tes: belum dibangun/dicoba di HP; perlu 1 CI dan uji di perangkat. Jatah CI tambahan sudah habis (3/3), menunggu izin.
+- Catatan: Android 12+ tetap menampilkan layar sistem sekejap (warna polos #FF493C) sebelum frame pertama; yang hilang adalah ikonnya. Warna ini tidak bisa berupa gradasi.
