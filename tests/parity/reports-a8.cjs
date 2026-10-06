@@ -49,8 +49,8 @@ function synthetic(){
    const out={name,periods:{}};
    for(const k of KEYS){
     const st=await page.evaluate(([k,ids])=>__goyanaReportsA8(k,ids),[k,IDS]);assert.ok(st,'hook');
-    if(!out.state)out.state={tz:st.tz,now:st.now,t0:st.t0,ord:st.ord,exp:st.exp,inc:st.inc};
-    else assert.deepEqual({tz:st.tz,now:st.now,t0:st.t0,ord:st.ord,exp:st.exp,inc:st.inc},out.state,'state stable');
+    if(!out.state)out.state={tz:st.tz,now:st.now,t0:st.t0,ord:st.ord,exp:st.exp,inc:st.inc,att:st.att,stock:st.stock,staff:st.staff};
+    else assert.deepEqual({tz:st.tz,now:st.now,t0:st.t0,ord:st.ord,exp:st.exp,inc:st.inc,att:st.att,stock:st.stock,staff:st.staff},out.state,'state stable');
     out.periods[k]={range:st.range,expected:st.expected};
    }
    scenarios.push(out);await page.close();
