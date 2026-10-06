@@ -202,31 +202,43 @@ class _NativeLoginState extends State<NativeLogin> {
                               onSubmit: _submit,
                             ),
                             Row(children: [
-                              GestureDetector(
-                                key: const Key('login-remember'),
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => setState(() => _remember = !_remember),
-                                child: Row(children: [
-                                  Container(
-                                    width: 22,
-                                    height: 22,
-                                    decoration: BoxDecoration(
-                                      color: _remember ? const Color(0xffff1f3d) : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: Colors.white, width: 1.4),
+                              Flexible(
+                                child: GestureDetector(
+                                  key: const Key('login-remember'),
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => setState(() => _remember = !_remember),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Container(
+                                      width: 22,
+                                      height: 22,
+                                      decoration: BoxDecoration(
+                                        color: _remember ? const Color(0xffff1f3d) : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.white, width: 1.4),
+                                      ),
+                                      child: _remember ? const Icon(Icons.check_rounded, size: 16, color: Colors.white) : null,
                                     ),
-                                    child: _remember ? const Icon(Icons.check_rounded, size: 16, color: Colors.white) : null,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text('Ingat saya', style: gText(13.5, c: Colors.white)),
-                                ]),
+                                    const SizedBox(width: 10),
+                                    Flexible(
+                                      child: Text('Ingat saya', maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(13.5, c: Colors.white)),
+                                    ),
+                                  ]),
+                                ),
                               ),
-                              const Spacer(),
+                              const SizedBox(width: 8),
                               if (b.forgot != null)
-                                GestureDetector(
-                                  key: const Key('login-forgot'),
-                                  onTap: () => widget.actions.fmButton(b.forgot!),
-                                  child: Text('Lupa Password?', style: gText(13.5, w: FontWeight.w500, c: Colors.white)),
+                                Flexible(
+                                  child: GestureDetector(
+                                    key: const Key('login-forgot'),
+                                    onTap: () => widget.actions.fmButton(b.forgot!),
+                                    child: Text(
+                                      'Lupa Password?',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.end,
+                                      style: gText(13.5, w: FontWeight.w500, c: Colors.white),
+                                    ),
+                                  ),
                                 ),
                             ]),
                             const SizedBox(height: 16),
@@ -267,7 +279,9 @@ class _NativeLoginState extends State<NativeLogin> {
                                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                                   Text('G', style: gText(22, w: FontWeight.w700, c: const Color(0xff4285f4))),
                                   const SizedBox(width: 12),
-                                  Text('Masuk dengan Google', style: gText(15.5, w: FontWeight.w600, c: const Color(0xff1e1e1e))),
+                                  Flexible(
+                                    child: Text('Masuk dengan Google', maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(15.5, w: FontWeight.w600, c: const Color(0xff1e1e1e))),
+                                  ),
                                 ]),
                               ),
                             ),
@@ -284,13 +298,15 @@ class _NativeLoginState extends State<NativeLogin> {
                               onTap: () => setState(() => _note = 'Pendaftaran akun baru menyusul.'),
                               child: Container(
                                 height: 48,
-                                margin: const EdgeInsets.symmetric(horizontal: 36),
+                                margin: const EdgeInsets.symmetric(horizontal: 24),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(color: const Color(0xb3ffffff)),
                                 ),
                                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                  Text('Buat Akun Baru', style: gText(14.5, w: FontWeight.w600, c: Colors.white)),
+                                  Flexible(
+                                    child: Text('Buat Akun Baru', maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(14.5, w: FontWeight.w600, c: Colors.white)),
+                                  ),
                                   const SizedBox(width: 8),
                                   const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
                                 ]),
