@@ -19,13 +19,13 @@ class _BrandMigrationComparator extends LocalFileComparator {
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
     if (golden.path.contains('branding_')) {
-      return super.compare(imageBytes, golden);
+      return await super.compare(imageBytes, golden);
     }
     final image = await _decode(imageBytes),
         reference = await _decode(await getGoldenBytes(golden));
     try {
       if (image.width != reference.width || image.height != reference.height) {
-        return super.compare(imageBytes, golden);
+        return await super.compare(imageBytes, golden);
       }
       final actual = (await image.toByteData(
         format: ui.ImageByteFormat.rawRgba,
@@ -39,7 +39,7 @@ class _BrandMigrationComparator extends LocalFileComparator {
       if (image.height < 95 ||
           actual[probe] <= actual[probe + 1] * 1.3 ||
           expected[probe] <= expected[probe + 1] * 1.3) {
-        return super.compare(imageBytes, golden);
+        return await super.compare(imageBytes, golden);
       }
       for (var y = 40; y < 88; y++) {
         for (var x = 9; x < 225 && x < image.width; x++) {
