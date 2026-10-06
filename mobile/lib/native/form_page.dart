@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'common.dart';
+import 'login_screen.dart';
 
 // Formulir generik native untuk halaman pengaturan sederhana (mis. Printer & Nota).
 // Isi diambil berurutan dari DOM (formModel di capacitor.js); setiap isian/tombol ditulis ke elemen HTML yang sama.
@@ -37,6 +38,12 @@ class NativeSheet extends StatelessWidget {
     final sa = _SheetActions(actions, id);
     final form = NativeForm(model: FormModel(page: id, items: items), actions: sa);
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    if (screen && id == 'lg167') {
+      final bindings = LoginBindings.from(items);
+      if (bindings != null) {
+        return NativeLogin(items: items, bindings: bindings, actions: sa);
+      }
+    }
     if (screen) {
       return Material(
         color: Colors.white,

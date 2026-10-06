@@ -47,7 +47,7 @@ jobs:
         env:
           # Alamat server sinkronisasi: GitHub → Settings → Variables → GOYANA_API_URL. Kosong = mode offline.
           GOYANA_API_URL: ${{ vars.GOYANA_API_URL }}
-        run: python tools/prepare_flutter_web.py . tests/node_modules/@zxing/library/umd/index.min.js
+        run: python tools/prepare_flutter_web.py . tests/node_modules/@zxing/library/umd/index.min.js --test-mode
 
       - uses: actions/setup-java@v4
         with:

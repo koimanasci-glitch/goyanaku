@@ -420,3 +420,35 @@ class _BirdPainter extends CustomPainter {
   @override
   bool shouldRepaint(_BirdPainter old) => old.b != b;
 }
+
+/// Corner petals used behind the opening animation and the login screen.
+class BrandFloral extends StatelessWidget {
+  const BrandFloral({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const SizedBox.expand(child: CustomPaint(painter: _Floral()));
+}
+
+/// The G with the bird already perched (resting pose of the opening animation).
+class BrandMarkWithBird extends StatelessWidget {
+  const BrandMarkWithBird({super.key, this.size = 150});
+  final double size;
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: size,
+    height: size,
+    child: FittedBox(
+      child: SizedBox(
+        width: _markSize,
+        height: _markSize,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(child: Image.asset('assets/branding/mark.png')),
+            Positioned.fill(child: CustomPaint(painter: _BirdPainter(birdAt(1)))),
+          ],
+        ),
+      ),
+    ),
+  );
+}

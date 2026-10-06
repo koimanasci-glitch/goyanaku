@@ -20,6 +20,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/web/
+    - assets/web/branding/
     - assets/branding/
     - assets/guide/
   fonts:
