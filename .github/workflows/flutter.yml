@@ -99,6 +99,16 @@ jobs:
         working-directory: mobile
       - name: Siapkan APK
         run: cp mobile/build/app/outputs/flutter-apk/app-release.apk GOYANA-Flutter-Uji.apk
+      - name: Build APK Mode Murni (tanpa WebView)
+        run: |
+          flutter build apk --release --target-platform android-arm,android-arm64 --build-number=$((100 + ${{ github.run_number }})) -t lib/main_pure.dart
+          cp build/app/outputs/flutter-apk/app-release.apk ../GOYANA-Murni-Uji.apk
+        working-directory: mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GOYANA-Murni-Uji
+          path: GOYANA-Murni-Uji.apk
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: GOYANA-Flutter-Uji
@@ -132,6 +142,7 @@ jobs:
           # Unggah dulu dengan nama sementara, baru tukar: link unduhan tidak pernah kosong/terpotong saat diunduh.
           cp GOYANA-Flutter-Uji.apk GOYANA-Flutter-Uji-baru.apk
           gh release upload "$TAG" GOYANA-Flutter-Uji-baru.apk --clobber
+          gh release upload "$TAG" GOYANA-Murni-Uji.apk --clobber
           REL=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" --jq .id)
           OLD=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji.apk") | .id')
           NEW=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji-baru.apk") | .id')
