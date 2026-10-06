@@ -75,3 +75,10 @@ Paduka menyatakan: "Sekarang aku kasih 3 jatah tulis di md".
 
 ### Pemakaian jatah baru — CI5
 Jatah pertama dari tiga tambahan dipakai untuk CI5 pada kode terbaru dengan acuan header Goyana yang sudah diperbaiki. Counter saat run dimulai: **1/3 terpakai, 2 tersisa**. Hasil run dan APK akan dicatat sesudah verifikasi.
+
+### Hasil CI5 — lulus dan APK terbit
+- Run 37400232867, job 112065548795, commit a0b8d5a37d19dd60770e90c3586128f918c79d4e: SUCCESS. Browser 69 PASS, analyze No issues found, unit Dart 224/224 PASS, screenshot Flutter 228/228 PASS.
+- APK baru build 312 terbit pada 6 Oktober 2026 08:49:05 WIB, ukuran 55.351.167 byte. Tag flutter-uji, notes release dan artifact 11385117821 cocok dengan commit yang diuji.
+- Unduh: https://github.com/rajabadutiklan-lab/Goyana/releases/download/flutter-uji/GOYANA-Flutter-Uji.apk
+- **Counter tiga jatah tambahan: 1/3 terpakai, 2 tersisa.** Commit laporan [skip ci] tidak memakai jatah. Dua sisanya tetap tercatat lintas sesi; tidak menjalankan CI lain sesudah hasil ini lulus.
+- A7 koreksi hitungan dan branding selesai pada tahap paritas + pengaman. Aplikasi masih hybrid dengan writer HTML sampai D2; belum mengklaim seluruh proyek murni Dart atau sudah diuji HP nyata. A8 tetap langkah berikutnya pada putaran terpisah.
