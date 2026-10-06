@@ -8,8 +8,7 @@ import 'common.dart';
 
 const brandIntroKey = '__goyana_brand_intro_seen_v1';
 
-/// Opening animation: the white dove perched on the "G" looks left, then
-/// right, while the name and tagline fade in. 1.2 s on the first opening and
+/// Opening animation: the white dove perched on the "G" breathes gently, while the name and tagline fade in. 1.2 s on the first opening and
 /// 0.9 s afterwards. Startup work continues behind this overlay, so it never
 /// adds waiting time of its own beyond the animation.
 class BrandIntro extends StatefulWidget {
@@ -178,10 +177,10 @@ class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
                                 child: Opacity(
                                   opacity: dove.opacity,
                                   child: Transform(
-                                    alignment: Alignment.center,
+                                    alignment: Alignment.bottomCenter,
                                     transform: Matrix4.diagonal3Values(
-                                      dove.scaleX,
-                                      1,
+                                      1 + (dove.scale - 1) * .5,
+                                      dove.scale,
                                       1,
                                     ),
                                     child: Image.asset(
@@ -269,25 +268,17 @@ class _Floral extends CustomPainter {
 const _doveSize = 112.0, _doveLeft = 6.0, _doveTop = -96.0;
 
 class DovePose {
-  const DovePose(this.scaleX, this.lift, this.opacity);
-  final double scaleX, lift, opacity;
+  const DovePose(this.scale, this.lift, this.opacity);
+  final double scale, lift, opacity;
 }
 
-double _smooth(double p) => p * p * (3 - 2 * p);
-
-/// Dove pose for animation progress [u] (0..1): settles in, looks left (flips),
-/// holds, looks right again and ends facing right (the artwork's own direction).
+/// Dove pose for animation progress [u] (0..1): fades in and settles onto the
+/// "G", then breathes gently (a soft rise of the chest, anchored at the feet)
+/// so body and feet stay perched. Ends at rest.
 DovePose doveAt(double u) {
   final fadeIn = ((u - .08) / .17).clamp(0.0, 1.0);
   final settle = (1 - _easeOut(fadeIn)) * -10; // drops 10px into place
-  // 0 = facing right, 1 = facing left.
-  final toLeft = _smooth(((u - .25) / .2).clamp(0.0, 1.0));
-  final toRight = _smooth(((u - .55) / .2).clamp(0.0, 1.0));
-  final turn = toLeft - toRight;
-  var sx = math.cos(math.pi * turn);
-  if (sx.abs() < .12) {
-    sx = sx < 0 ? -.12 : .12; // never fully edge-on
-  }
-  final hop = -4 * math.sin(math.pi * turn.clamp(0.0, 1.0));
-  return DovePose(sx, settle + hop, fadeIn);
+  final x = ((u - .25) / .75).clamp(0.0, 1.0);
+  final breath = (1 - math.cos(math.pi * 4 * x)) / 2; // two soft breaths
+  return DovePose(1 + .035 * breath, settle, fadeIn);
 }

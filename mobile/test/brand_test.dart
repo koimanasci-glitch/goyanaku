@@ -92,20 +92,22 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  test('Dove settles in, looks left, then right, and ends facing right', () {
+  test('Dove settles in and breathes gently without moving its feet', () {
     final start = doveAt(0);
     expect(start.opacity, 0, reason: 'invisible at the very start');
     final rest = doveAt(.25);
-    expect(rest.scaleX, closeTo(1, 1e-9));
+    expect(rest.scale, closeTo(1, 1e-9));
     expect(rest.opacity, closeTo(1, 1e-9));
     expect(rest.lift, closeTo(0, 1e-9));
-    expect(doveAt(.5).scaleX, closeTo(-1, 1e-9), reason: 'facing left');
-    expect(doveAt(.9).scaleX, closeTo(1, 1e-9), reason: 'back to facing right');
-    expect(doveAt(1).scaleX, closeTo(1, 1e-9));
+    expect(doveAt(.4375).scale, greaterThan(1.03), reason: 'inhale peak');
+    expect(doveAt(1).scale, closeTo(1, 1e-9), reason: 'ends at rest');
     for (var i = 0; i <= 100; i++) {
       final p = doveAt(i / 100);
-      expect(p.scaleX.abs(), greaterThanOrEqualTo(.12 - 1e-9));
+      expect(p.scale, inInclusiveRange(1, 1.036));
       expect(p.opacity, inInclusiveRange(0, 1));
+      if (i >= 25) {
+        expect(p.lift, closeTo(0, 1e-9), reason: 'feet stay perched');
+      }
     }
   });
 }
