@@ -1434,3 +1434,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 ## A8/D1 — Laporan di Mode Murni
 - Beranda dan detail Laporan Dart tampil di Mode Murni dari database Dart lewat `reportStateFromBusiness` (diuji dengan data HTML yang sama; kolom status dilewati karena HTML memajukan status otomatis saat boot).
 - Laporan v182 (hpp, laba operasional) masih bergantung pada buku stok dan tetap di HTML.
+
+## D1 — Alur Tambah Transaksi Mode Murni disamakan dengan HTML
+- Temuan: teks/ikon/urutan di Mode Murni berbeda dari HTML (judul, "Langkah x dari 5", ikon kategori/layanan/pembayaran, urutan field Atur Pesanan, tombol "Buat Pesanan", "Batalkan Pesanan").
+- Disamakan dengan tangkapan model HTML asli (Playwright): lib/pure/addorder_assets.dart (SVG dari HTML) + `_addOrderJson`. Nilai parfum tersimpan tetap 'Tanpa Parfum'.
+- Belum disamakan: popup jumlah, Tunai, QRIS, DP, Deposit, layar "Pesanan Berhasil", pilihan diskon (manual/kode voucher). Perlu penangkapan HTML berikutnya.

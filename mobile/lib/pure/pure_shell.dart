@@ -15,6 +15,7 @@ import '../core/settings.dart';
 import '../core/money.dart';
 import '../core/store.dart';
 import '../native/addorder_page.dart';
+import 'addorder_assets.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
@@ -740,7 +741,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
           final dueDays = int.tryParse('${_form['dueDays'] ?? ''}');
           b.edit(o,
               note: '${_form['note'] ?? o.note}',
-              perfume: _perfumes[((_form['perfume'] as int?) ?? 0).clamp(0, _perfumes.length - 1)],
+              perfume: _perfumeValue((_form['perfume'] as int?) ?? 0),
               discKey: _discs[((_form['disc'] as int?) ?? 0).clamp(0, _discs.length - 1)][1],
               due: dueDays == null ? null : (o.masuk ?? now).add(Duration(days: dueDays)));
           _save();
@@ -971,7 +972,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             OrderItem(name: s.name, icon: s.unit == 'kg' ? 'Kiloan' : (s.unit == 'm' ? 'Meteran' : 'Satuan'), unit: s.unit, price: s.priceFor(_aoDur), qty: e.value),
       ];
 
-  static const _baseDiscs = [['Tanpa diskon', '0'], ['Diskon 5%', 'p5'], ['Diskon 10%', 'p10'], ['Potongan Rp5.000', 'n5000'], ['Potongan Rp10.000', 'n10000']];
+  static const _baseDiscs = [['Tidak', '0'], ['Diskon 5%', 'p5'], ['Diskon 10%', 'p10'], ['Potongan Rp5.000', 'n5000'], ['Potongan Rp10.000', 'n10000']];
   List<List<String>> get _discs => [
         ..._baseDiscs,
         for (final d in (_settings!.raw['discounts'] as List? ?? const []))
@@ -979,71 +980,86 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         for (final v in (_settings!.raw['vouchers'] as List? ?? const []))
           if (v is Map && v['key'] != null) ['Voucher ${v['code']}', '${v['key']}'],
       ];
-  static const _hands = ['Datang Langsung', 'Antar ke rumah', 'Jemput & Antar'];
+  static const _hands = ['Datang Langsung', 'Antar ke Pelanggan', 'Jemput & Antar'];
 
   Map<String, dynamic> _addOrderJson() {
     final b = _b!;
-    final m = <String, dynamic>{'title': 'Tambah Transaksi', 'stage': _aoStage};
+    final m = <String, dynamic>{'title': _aoStage == 'customer' ? 'PILIH PELANGGAN' : 'TAMBAHKAN LAYANAN', 'stage': _aoStage};
     if (_aoStage == 'customer') {
       final q = _aoCustSearch.trim().toLowerCase();
       final list = b.customers;
-      m['step'] = 'Langkah 1 dari 4 · Pilih pelanggan';
-      m['search'] = {'v': _aoCustSearch, 'ph': 'Cari nama / no HP'};
-      m['add'] = 'Tambah Pelanggan Baru';
+      m['step'] = 'Langkah 1 dari 5';
+      m['search'] = {'v': _aoCustSearch, 'ph': 'Cari nama / no handphone'};
+      m['add'] = 'Tambah Pelanggan';
       m['people'] = [
         for (var i = 0; i < list.length; i++)
           if (q.isEmpty || '${list[i].name} ${list[i].phone}'.toLowerCase().contains(q))
-            {'i': i, 'name': list[i].name, 'lines': ['☎ ${list[i].phone}', '⌖ ${list[i].address.isEmpty ? '—' : list[i].address}'], 'btn': 'Pilih'},
+            {'i': i, 'name': list[i].name, 'avatar': aoPersonAvatar, 'lines': ['☎ ${list[i].phone}', '⌖ ${list[i].address.isEmpty ? '—' : list[i].address}'], 'btn': 'Pilih'},
       ];
       m['empty'] = (m['people'] as List).isEmpty ? (q.isEmpty ? 'Belum ada pelanggan. Tambahkan pelanggan baru.' : 'Pelanggan tidak ditemukan.') : '';
       return m;
     }
     final t = calcTotals(_cartItems, _discs[(_opt['disc'] as int)][1], 0);
-    m['step'] = 'Langkah 2 dari 4 · Pilih layanan';
-    m['customer'] = {'name': _aoCustomer, 'sub': b.customerByName(_aoCustomer)?.phone ?? ''};
+    m['step'] = 'Langkah 2 dari 5';
+    m['customer'] = {'name': _aoCustomer, 'sub': _aoDur, 'avatar': aoBarAvatar};
     m['durations'] = [for (final d in _durations) {'t': d, 's': '${durationHours(d)} Jam', 'on': d == _aoDur}];
-    m['cats'] = [for (var i = 0; i < _cats.length; i++) {'t': _cats[i][0], 'on': i == _aoCat}];
-    m['search'] = {'v': _aoSvcSearch, 'ph': 'Cari layanan'};
+    m['cats'] = [for (var i = 0; i < _cats.length; i++) {'t': _cats[i][0], 'on': i == _aoCat, 'svg': aoCatSvg[_cats[i][0]] ?? ''}];
+    m['search'] = {'v': _aoSvcSearch, 'ph': 'Cari layanan $_aoDur'};
     final items = <Map<String, dynamic>>[];
     final svcs = _visibleServices;
     for (final cat in _cats.skip(1)) {
       final group = svcs.where((s) => s.unit == cat[1]).toList();
       if (group.isEmpty) continue;
-      items.add({'h': 1, 't': cat[0]});
+      items.add({'h': 1, 'svg': aoHeadSvg[cat[0]] ?? '', 't': '${cat[0]} · $_aoDur', 's': const {'kg': 'Cuci ››› Kering ››› Setrika', 'pcs': 'Cuci ››› Kering ››› Packing', 'm': 'Cuci ››› Kering'}[cat[1]] ?? ''});
       for (final s in group) {
         final q = _cart[s.name];
-        items.add({'i': b.services.indexOf(s), 't': s.name, 's': '${rpSpaced(s.priceFor(_aoDur))} / ${s.unit}', 'btn': q == null ? '+ Tambah' : '${qtyText(q)} ${s.unit}', 'on': q != null});
+        items.add({'i': b.services.indexOf(s), 'svg': aoItemSvg[cat[0]] ?? '', 't': s.name, 's': '${rpSpaced(s.priceFor(_aoDur))} / ${s.unit} · ${durationHours(_aoDur)} Jam', 'btn': q == null ? 'Pilih' : '${qtyText(q)} ${s.unit}', 'on': q != null});
       }
     }
     m['items'] = items;
-    m['footer'] = {'name': _aoCustomer, 'sum': '${_cart.length} layanan', 'label': 'Total', 'total': rpSpaced(t.total), 'btn': 'Lanjut'};
+    double sumOf(String u) => _cart.entries.fold<double>(0, (a, e) => a + (b.services.any((x) => x.name == e.key && x.unit == u) ? e.value : 0));
+    String qn(double v) => qtyText(v);
+    m['footer'] = {'name': _aoCustomer, 'sum': '${qn(sumOf('kg'))} kg · ${qn(sumOf('pcs'))} pcs · ${qn(sumOf('m'))} m', 'label': 'Total Layanan', 'total': rpSpaced(t.total), 'btn': 'LANJUT ›'};
     if (_aoSheet == 'options') {
       m['sheet'] = {
         'kind': 'options', 'title': 'Atur Pesanan',
         'fields': [
           {'k': 0, 'type': 'select', 'label': 'Parfum', 'options': _perfumes, 'index': _opt['perfume']},
-          {'k': 1, 'type': 'select', 'label': 'Diskon', 'options': [for (final d in _discs) d[0]], 'index': _opt['disc']},
           {'k': 2, 'type': 'select', 'label': 'Penyerahan', 'options': _hands, 'index': _opt['hand']},
-          {'k': 3, 'type': 'switch', 'label': 'Prioritas', 'sub': 'Dikerjakan lebih dulu', 'on': _opt['prio'] == true},
+          {'k': 3, 'type': 'switch', 'label': 'Jadikan Prioritas', 'sub': 'naik ke atas antrian', 'on': _opt['prio'] == true},
+          {'k': 1, 'type': 'select', 'label': 'Diskon', 'options': [for (final d in _discs) d[0]], 'index': _opt['disc']},
         ],
-        'note': {'v': '${_opt['note']}', 'ph': 'Catatan (contoh: 12 pcs, rak B2)'},
-        'main': 'Lanjut ke Pembayaran',
+        'note': {'v': '${_opt['note']}', 'ph': 'Catatan: jumlah pakaian, no rak, kondisi (contoh: 12 pcs, rak B2, kemeja luntur)'},
+        'main': 'Buat Pesanan',
       };
     } else if (_aoSheet == 'payment') {
       m['sheet'] = {
         'kind': 'payment', 'title': 'Pembayaran', 'label': 'Total Tagihan', 'total': rpSpaced(t.total), 'id': b.nextOrderId(now),
-        'methods': [for (var i = 0; i < _payMethods.length; i++) {'i': i, 't': _payMethods[i][0], 'icon': _payMethods[i][1], 'ic': '#e8493f', 'bg': '#fff0f1', 's': _payMethods[i][2]}],
-        'cancel': 'Kembali',
+        'methods': [
+          for (var i = 0; i < _payMethods.length; i++)
+            {
+              'i': i, 't': _payMethods[i][3], 'svg': aoPaySvg[_payMethods[i][3]]![0], 'icon': aoPaySvg[_payMethods[i][3]]![3],
+              'ic': aoPaySvg[_payMethods[i][3]]![1], 'bg': aoPaySvg[_payMethods[i][3]]![2],
+              's': _payMethods[i][0] == 'Saldo Deposit' && b.depositOf(_aoCustomer) > 0 ? 'Saldo ${rp(b.depositOf(_aoCustomer))}' : '',
+            },
+        ],
+        'cancel': 'Batalkan Pesanan',
       };
     }
     return m;
   }
 
-  List<String> get _perfumes => ['Tanpa Parfum', for (final p in _settings!.perfumes) p.first];
+  /// Nilai yang disimpan di pesanan (HTML menyimpan 'Tanpa Parfum' untuk pilihan 'Tidak').
+  String _perfumeValue(int i) {
+    final v = _perfumes[i.clamp(0, _perfumes.length - 1)];
+    return v == 'Tidak' ? 'Tanpa Parfum' : v;
+  }
+
+  List<String> get _perfumes => ['Tidak', for (final p in _settings!.perfumes) p.first];
 
   static const _payMethods = [
-    ['Tunai', '💵', 'Bayar di kasir'], ['QRIS', '▦', 'Scan QR'], ['Transfer', '⇄', 'Transfer bank'],
-    ['Bayar Nanti', '⏱', 'Belum dibayar'], ['DP / Uang Muka', '½', 'Bayar sebagian'], ['Saldo Deposit', '◈', 'Potong saldo'],
+    ['Tunai', '', '', 'Tunai'], ['QRIS', '', '', 'QRIS'], ['Transfer', '', '', 'Transfer'],
+    ['Bayar Nanti', '', '', 'Bayar Nanti'], ['DP / Uang Muka', '', '', 'DP / Uang Muka'], ['Saldo Deposit', '', '', 'Saldo Deposit'],
   ];
 
   @override
@@ -1285,7 +1301,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final hand = _hands[_opt['hand'] as int];
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
-      discKey: _discs[(_opt['disc'] as int)][1], perfume: _perfumes[(_opt['perfume'] as int).clamp(0, _perfumes.length - 1)],
+      discKey: _discs[(_opt['disc'] as int)][1], perfume: _perfumeValue((_opt['perfume'] as int)),
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
       payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );
