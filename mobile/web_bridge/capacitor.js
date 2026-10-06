@@ -1223,6 +1223,7 @@
       (ids || []).forEach(function (id) {
         var x = c.REP.filter(function (y) { return y.id === id; })[0];
         if (x && x.f) expected[id] = JSON.parse(JSON.stringify(x.f(r)));
+        else if (x && x.exp) expected[id] = JSON.parse(JSON.stringify(x.exp(r)));
       });
       return JSON.parse(JSON.stringify({
         tz: -new Date().getTimezoneOffset(), now: c.now, t0: c.T0, key: key,

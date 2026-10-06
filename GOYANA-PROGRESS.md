@@ -1422,4 +1422,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Di aplikasi: `_reportsParityA8` membandingkan Dart vs HTML tiap buka Laporan; selisih masuk `goyana-parity-log`. Tampilan masih dari HTML (belum dipindah tampilannya).
 - Kelompok Transaksi (semua, top layanan, durasi, status, batal, telat ambil, antar-jemput) menyusul di fixture yang sama (`reports_a8.json`, daftar id dibaca dari `reportIdsA8`). `ralat` & `tutup` hanya tautan ke halaman lain.
 - Pelanggan (6), Pegawai (4: kinerja, presensi, komisi, kurir), Stok (4), Operasional (4) ikut dipindah; total 35 laporan Dart dicocokkan dengan HTML (2 skenario × 5 periode). Data stok/presensi/pegawai asli aplikasi masih kosong (HTML memang belum mengisinya); skenario uji mengisinya agar hitungan teruji.
-- Sisa A8: Export (5: x-keu, x-trx, x-plg, x-peg + unduh CSV/WA), lalu tampilan detail laporan dari Dart (bukan HTML).
+- Export (4: x-keu, x-trx, x-plg, x-peg) ikut dipindah: 39 laporan/export dicocokkan. Sisa A8: tampilan detail laporan dari Dart (bukan HTML).

@@ -1,4 +1,4 @@
-// A8 Laporan — kelompok Keuangan (10), Transaksi (7), Pelanggan (6), Pegawai (4), Stok (4), Operasional (4).
+// A8 Laporan — kelompok Keuangan (10), Transaksi (7), Pelanggan (6), Pegawai (4), Stok (4), Operasional (4), Export (4).
 // Menyalin hitungan mesin HTML (goyana-v170-reports-script) apa adanya; HTML tetap pembanding (paritas).
 // Waktu dipakai sebagai "jam dinding" (UTC yang sudah digeser zona perangkat) agar hasil sama di tiap mesin uji.
 import 'dart:math' as math;
@@ -16,6 +16,8 @@ const reportIdsA8 = [
   'stok', 'pakai', 'beli', 'nilai',
   // Operasional
   'jam', 'hari', 'waktu', 'kapasitas',
+  // Export (baris tabel CSV)
+  'x-keu', 'x-trx', 'x-plg', 'x-peg',
 ];
 const _day = Duration.millisecondsPerDay;
 const _bl = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -295,8 +297,8 @@ String _idNum(num n) {
 
 Object _jsonNum(Object? v) => v is num ? _norm(v) : v!;
 
-/// Hasil satu laporan (struktur sama dengan keluaran `REP170[i].f(range)` di HTML), atau null bila belum dipindah.
-Map<String, Object?>? reportA8(String id, RepCtx c, RepRange r) {
+/// Hasil satu laporan (keluaran `REP170[i].f(range)` di HTML; untuk export `exp(range)` = daftar baris), atau null bila belum dipindah.
+Object? reportA8(String id, RepCtx c, RepRange r) {
   switch (id) {
     case 'omzet':
       {
@@ -967,6 +969,59 @@ Map<String, Object?>? reportA8(String id, RepCtx c, RepRange r) {
           'pv': '$kg kg',
           'txt': 1,
         };
+      }
+    case 'x-keu':
+      {
+        final o = c.ords(r).where((x) => x.isPaid);
+        return <Object>[
+          ['Tanggal', 'Jenis', 'Keterangan', 'Metode', 'Nominal'],
+          for (final x in o) [_dmy(x.t), 'Masuk', 'Pembayaran ${x.id}', x.m, _norm(x.total)],
+          for (final x in c.incs(r)) [_dmy(x.t), 'Masuk', x.note, 'Tunai', _norm(x.a)],
+          for (final x in c.exps(r)) [_dmy(x.t), 'Keluar', '${x.cat} - ${x.note}', 'Tunai', _norm(-x.a)],
+        ];
+      }
+    case 'x-trx':
+      return <Object>[
+        ['Order', 'Tanggal', 'Pelanggan', 'Layanan', 'Berat/Qty', 'Durasi', 'Diskon', 'Total', 'Bayar', 'Status', 'Pegawai'],
+        for (final x in c.ords(r, all: true))
+          [
+            x.id,
+            _dmy(x.t),
+            x.c,
+            x.items.map((i) => i.n).join(' + '),
+            x.items.map((i) => '${_norm(i.q)} ${i.u}').join(' + '),
+            x.dur,
+            _norm(x.disc),
+            _norm(x.total),
+            x.m,
+            _stn[x.st]![0],
+            x.staff,
+          ],
+      ];
+    case 'x-plg':
+      {
+        final m = <String, ({int n, num v, DateTime last})>{};
+        for (final o in c.orders) {
+          final x = m[o.c];
+          m[o.c] = (n: (x?.n ?? 0) + 1, v: (x?.v ?? 0) + o.total, last: x == null || o.t.isAfter(x.last) ? o.t : x.last);
+        }
+        return <Object>[
+          ['Pelanggan', 'Total Order', 'Total Belanja', 'Order Pertama', 'Order Terakhir'],
+          for (final e in m.entries) [e.key, e.value.n, _norm(e.value.v), _dmy(c.first[e.key]!), _dmy(e.value.last)],
+        ];
+      }
+    case 'x-peg':
+      {
+        final o = c.ords(r);
+        return <Object>[
+          ['Pegawai', 'Order', 'Berat (kg)', 'Omzet', 'Komisi', 'Hari Hadir'],
+          for (final st in c.staff)
+            () {
+              final x = o.where((y) => y.staff == st).toList();
+              final kg = jsRound(_sum(x, (y) => y.kg));
+              return <Object>[st, x.length, kg, _norm(_sum(x, (y) => y.total)), kg * 300, c.att.where((a) => a.s == st && c._in(a.d, r)).length];
+            }(),
+        ];
       }
   }
   return null;
