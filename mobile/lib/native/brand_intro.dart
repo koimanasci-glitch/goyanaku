@@ -25,8 +25,8 @@ class BrandIntro extends StatefulWidget {
   State<BrandIntro> createState() => _BrandIntroState();
 }
 
-const brandIntroFirstMs = 2200;
-const brandIntroLaterMs = 2200;
+const brandIntroFirstMs = 3000;
+const brandIntroLaterMs = 3000;
 const _leaveMs = 160;
 const _markSize = 200.0;
 
@@ -321,12 +321,12 @@ BirdPose birdAt(double u) {
   final y = _birdStart.dy + (_perch.dy - _birdStart.dy) * fl;
   final alpha = ((u - .08) / .1).clamp(0.0, 1.0);
   if (u < .55) {
-    final psi = 18 + 48 * math.sin(2 * math.pi * 3 * (u - .08) / .47);
+    final psi = 18 + 48 * math.sin(2 * math.pi * 2 * (u - .08) / .47);
     return BirdPose(x, y, psi, 1, -.35 * (1 - fl), alpha);
   }
   final k = ((u - .55) / .2).clamp(0.0, 1.0);
   final psi =
-      (18 + 48 * math.sin(2 * math.pi * 1.2 * k)) * (1 - k) + -12 * k;
+      (18 + 48 * math.sin(2 * math.pi * 1 * k)) * (1 - k) + -12 * k;
   return BirdPose(x, y, psi, 1 - .2 * k, 0, alpha);
 }
 

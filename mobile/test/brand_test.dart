@@ -22,7 +22,7 @@ void main() {
     expect(scans, 1);
   });
   testWidgets(
-    'First opening plays the 2.2s bird intro and stores an independent marker',
+    'First opening plays the 3s bird intro and stores an independent marker',
     (tester) async {
       final store = MemoryKvStore();
       var done = 0;
@@ -34,7 +34,7 @@ void main() {
       await tester.pump();
       expect(find.text('G'), findsOneWidget);
       expect(find.text('KASIR LAUNDRY'), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 2100));
+      await tester.pump(const Duration(milliseconds: 2900));
       expect(done, 0);
       await tester.pump(const Duration(milliseconds: 120));
       expect(done, 0, reason: 'leave fade still running');
@@ -47,7 +47,7 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  testWidgets('Later openings also take 2.2s', (tester) async {
+  testWidgets('Later openings also take 3s', (tester) async {
     final store = MemoryKvStore({brandIntroKey: '1'});
     var done = 0;
     await tester.pumpWidget(
@@ -56,7 +56,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 2100));
+    await tester.pump(const Duration(milliseconds: 2900));
     expect(done, 0);
     await tester.pump(const Duration(milliseconds: 120));
     await tester.pump(const Duration(milliseconds: 200));
@@ -77,7 +77,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 1500));
-      await tester.pump(const Duration(milliseconds: 1000));
+      await tester.pump(const Duration(milliseconds: 1600));
       expect(done, 0);
       await tester.pumpWidget(
         MaterialApp(

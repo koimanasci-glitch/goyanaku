@@ -1481,11 +1481,11 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                 child: IgnorePointer(child: Center(child: NativeToast(text: _toast))),
               ),
             if (_guideOpen && _brandIntroDone && _loadError == null)
-              Positioned.fill(child: GuideIntro(onDone: () {
+              Positioned.fill(key: const ValueKey('guide-intro-overlay'), child: GuideIntro(onDone: () {
                 if (mounted) setState(() => _guideOpen = false);
               })),
             if (!_brandIntroDone && _loadError == null)
-              Positioned.fill(child: BrandIntro(ready: !_loading, onDone: () {
+              Positioned.fill(key: const ValueKey('brand-intro-overlay'), child: BrandIntro(ready: !_loading, onDone: () {
                 if (mounted) { setState(() => _brandIntroDone = true); }
                 if (_nativePage == 'home') unawaited(_maybeShowGuide());
               })),
