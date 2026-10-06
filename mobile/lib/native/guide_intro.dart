@@ -166,7 +166,7 @@ class _GuideIntroState extends State<GuideIntro> {
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 96,
+                      width: 108,
                       child: _i == 0
                           ? null
                           : OutlinedButton(
@@ -174,6 +174,9 @@ class _GuideIntroState extends State<GuideIntro> {
                               onPressed: _prev,
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
                                 side: const BorderSide(color: Colors.white),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(6),
@@ -210,7 +213,7 @@ class _GuideIntroState extends State<GuideIntro> {
                       ),
                     ),
                     SizedBox(
-                      width: 104,
+                      width: 108,
                       child: ElevatedButton(
                         key: const Key('guide-next'),
                         onPressed: _next,
@@ -218,6 +221,7 @@ class _GuideIntroState extends State<GuideIntro> {
                           backgroundColor: Colors.white,
                           foregroundColor: const Color(0xffed0026),
                           elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6),
                           ),
