@@ -8,7 +8,7 @@ PATCHES = [f'goyana-v{v}-{name}.js' for v, name in [
     (181, 'system-fixes'), (182, 'finance-hpp'),
     (183, 'delivery-transport'), (184, 'owner-transport-settings'),
     (185, 'qris-stability'), (187, 'home-navigation'), (188, 'mobile-polish'),
-    (189, 'getting-started'), (190, 'subscription-layout'), (191, 'chatbot-settings'), (193, 'qris-map'), (195, 'wa-devices'), (196, 'small-screen'), (197, 'sync'), (198, 'flow-fixes'), (200, 'cash'), (201, 'brand')]]
+    (189, 'getting-started'), (190, 'subscription-layout'), (191, 'chatbot-settings'), (193, 'qris-map'), (195, 'wa-devices'), (196, 'small-screen'), (197, 'sync'), (198, 'flow-fixes'), (200, 'cash'), (201, 'brand'), (202, 'antar-jemput')]]
 
 TEST_PATCH = 'goyana-v192-test-mode.js'
 SYNC_CORE = 'goyana-sync-core.js'

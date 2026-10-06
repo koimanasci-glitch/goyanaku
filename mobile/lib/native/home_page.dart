@@ -287,7 +287,7 @@ class _Grid extends StatelessWidget {
         Row(children: [
           _tile(0, gSvg(svgTileAdd, 43), 'Tambah\nTransaksi'),
           const SizedBox(width: 8),
-          _tile(1, gSvg(svgTileSearch, 43), 'Cari\nTransaksi'),
+          _tile(1, _emoji('🛵'), 'Antar\nJemput'),
           const SizedBox(width: 8),
           _tile(2, _emoji('🚚'), 'Kurir'),
         ]),

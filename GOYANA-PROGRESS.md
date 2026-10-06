@@ -1404,3 +1404,14 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   2. Mode Uji ikut APK Flutter uji: `tools/prepare_flutter_web.py --test-mode` dipakai di `.github/workflows/flutter.yml` (APK ini kanal uji `flutter-uji`; build rilis nanti harus tanpa `--test-mode`). Pengaturan → Mode Uji meminta password pemilik (hash SHA-256 di v192), lalu pilih paket (default Platinum) sehingga menu Chatbot terbuka. Ini pembatas menu uji, bukan keamanan produksi; hak paket sungguhan wajib divalidasi server.
   3. Layar login Flutter baru (`mobile/lib/native/login_screen.dart`): latar gradien polos + kelopak, logo G dengan burung hinggap, kartu kaca, Email/Password (mata), Ingat saya (hiasan), Lupa Password (memicu tombol HTML), Login (mengisi dan menekan form HTML lg167), "Masuk dengan Google" dan "Buat Akun Baru" hanya menampilkan pesan belum tersedia (butuh OAuth/server). Login HTML saat ini hanya memeriksa kolom tidak kosong (belum ada autentikasi server).
 - Belum diuji di HP: tampilan login, Mode Uji di build Flutter (menu Mode Uji harus muncul di Pengaturan native; kalau tidak muncul, laporkan).
+
+### Antar Jemput (6 Okt sore, branch flutter/panduan-baru)
+- [Claude] Tile "Cari Transaksi" diganti "Antar Jemput" (🛵) di beranda HTML dan Flutter; pencarian transaksi tetap ada di halaman Pesanan.
+- Skrip baru `goyana-v202-antar-jemput.js` (terdaftar di `tools/prepare_web.py`, halaman `jemput202` dan `jemputnew202` ikut daftar halaman formulir native di `capacitor.js` dan `shell.dart`):
+  - Buat Penjemputan (nama, WA, alamat, link Maps, waktu, layanan, catatan): TANPA berat/harga. Pelanggan baru masuk daftar pelanggan lewat alur yang ada.
+  - Daftar Aktif/Selesai; tombol Navigasi (Maps), WhatsApp pelanggan, Tugaskan (pilih kurir), Kirim ke Kurir (WhatsApp berisi alamat+Maps+catatan), Sampai Lokasi, Batalkan.
+  - Sampai Lokasi membuka Tambah Transaksi dan memilih pelanggan itu (kalau ada di daftar); berat, item dan ongkos kirim dipilih di alur Tambah Transaksi yang sudah ada. Setelah transaksi dibuat, penjemputan ditandai Selesai (nomor transaksi tercatat) dan pesanan langsung berstatus Antrian karena barang sudah dibawa.
+  - Halaman Kurir (tab Tugas) menampilkan kartu "N penjemputan menunggu" yang membuka daftar Antar Jemput.
+- Data permintaan jemput disimpan di kunci `goyana-pickup202` (belum ikut sinkron server). Alur lama (transaksi dibuat dulu lalu dijemput) tidak diubah.
+- Tes: `tests/antar-jemput.cjs` 11 skenario lulus lokal; regression dan 6 suite browser lain lulus; `flutter-bridge.cjs` hanya gagal di langkah anak yang meluncurkan browser (batas lingkungan, sama seperti sebelum perubahan).
+- Belum: tombol Tugaskan di HP kurir sendiri butuh server; pilihan ongkos memakai opsi Jemput di Tambah Transaksi (belum ada layar ongkos khusus).
