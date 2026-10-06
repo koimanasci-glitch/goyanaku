@@ -23,6 +23,7 @@ class _BrandMigrationComparator extends LocalFileComparator {
     }
     final image = await _decode(imageBytes),
         reference = await _decode(await getGoldenBytes(golden));
+    // Await comparisons before finally disposes the decoded images.
     try {
       if (image.width != reference.width || image.height != reference.height) {
         return await super.compare(imageBytes, golden);

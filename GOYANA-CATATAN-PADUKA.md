@@ -54,3 +54,7 @@ Tes lokal hitungan, batas hari/bulan, dua shift, batal, kegagalan penyimpanan da
 
 ### Hasil CI tambahan dan koreksi await
 CI3 Flutter run 37395885281 (job 112051598723) menggunakan commit 9e7415bff6cd528fa892d0e6f16414fdcd750381. Browser 69 PASS; analyze berhenti pada dua peringatan unawaited_return_in_try_block di test/flutter_test_config.dart. Kedua return di dalam try telah diperbaiki menjadi return await. Tes unit, screenshot dan build APK tidak sempat dijalankan. Perbaikan/laporan disimpan dengan [skip ci]; tambahan CI yang disetujui sudah 1/1 terpakai. Perlu izin baru untuk verifikasi Flutter/APK berikutnya sesuai aturan batas CI proyek. APK terakhir masih build 309, belum memuat koreksi atau branding putaran ini.
+
+## 6 Oktober 2026, 08:27 WIB — izin CI berikutnya
+
+Paduka menjawab "Ijinkan" atas permintaan satu CI tambahan untuk memverifikasi perbaikan dua await dan membuat APK. Izin ini berlaku untuk tepat satu CI Flutter berikutnya (A7 CI4), pada kode terbaru yang sudah diperbaiki; bukan rerun SHA gagal sebelumnya. Tidak mengubah workflow, dependensi, atau cakupan A8.
