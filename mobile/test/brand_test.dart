@@ -22,7 +22,7 @@ void main() {
     expect(scans, 1);
   });
   testWidgets(
-    'First opening lasts 3 seconds and stores an independent marker',
+    'First opening plays the 1.2s dove intro and stores an independent marker',
     (tester) async {
       final store = MemoryKvStore();
       var done = 0;
@@ -32,9 +32,14 @@ void main() {
         ),
       );
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 2900));
+      expect(find.text('Goyana'), findsOneWidget);
+      expect(find.text('KASIR LAUNDRY'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1100));
       expect(done, 0);
-      await tester.pump(const Duration(milliseconds: 110));
+      await tester.pump(const Duration(milliseconds: 120));
+      expect(done, 0, reason: 'leave fade still running');
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
       await tester.pump();
       expect(done, 1);
       expect(await store.get(brandIntroKey), '1');
@@ -42,9 +47,7 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  testWidgets('Later openings finish in 350ms and do not repeat long intro', (
-    tester,
-  ) async {
+  testWidgets('Later openings take 0.9s', (tester) async {
     final store = MemoryKvStore({brandIntroKey: '1'});
     var done = 0;
     await tester.pumpWidget(
@@ -53,7 +56,11 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 351));
+    await tester.pump(const Duration(milliseconds: 850));
+    expect(done, 0);
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pump();
     expect(done, 1);
     await tester.pumpWidget(const SizedBox());
@@ -69,6 +76,7 @@ void main() {
         ),
       );
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
       await tester.pump(const Duration(milliseconds: 400));
       expect(done, 0);
       await tester.pumpWidget(
@@ -77,8 +85,27 @@ void main() {
         ),
       );
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump();
       expect(done, 1);
       await tester.pumpWidget(const SizedBox());
     },
   );
+  test('Dove settles in, looks left, then right, and ends facing right', () {
+    final start = doveAt(0);
+    expect(start.opacity, 0, reason: 'invisible at the very start');
+    final rest = doveAt(.25);
+    expect(rest.scaleX, 1);
+    expect(rest.opacity, 1);
+    expect(rest.lift, closeTo(0, 1e-9));
+    expect(doveAt(.5).scaleX, closeTo(-1, 1e-9), reason: 'facing left');
+    expect(doveAt(.9).scaleX, closeTo(1, 1e-9), reason: 'back to facing right');
+    expect(doveAt(1).scaleX, closeTo(1, 1e-9));
+    for (var i = 0; i <= 100; i++) {
+      final p = doveAt(i / 100);
+      expect(p.scaleX.abs(), greaterThanOrEqualTo(.12 - 1e-9));
+      expect(p.opacity, inInclusiveRange(0, 1));
+    }
+  });
 }

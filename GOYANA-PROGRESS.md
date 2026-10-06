@@ -1359,3 +1359,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - File utama: mobile/lib/native/guide_intro.dart, mobile/lib/hybrid/shell.dart, goyana-v189-getting-started.js, tests/regression.cjs, mobile/test/guide_intro_test.dart, mobile/pubspec.yaml
 - Tes: `tests/regression.cjs` lulus penuh di cloud; subscription-stock, chatbot-settings, test-mode, pricing-qris-map, package-ui, wa-devices-qris lulus; flutter-bridge lulus sampai sub-tes cash-day-ui yang butuh browser lain di mesin ini (tidak terkait perubahan). Tes Flutter belum dijalankan (SDK tidak ada di cloud). CI belum dipakai.
 - Catatan: pengguna lama yang sudah punya outlet juga akan melihat panduan sekali.
+
+## [Claude] Animasi pembuka merpati — 6 Oktober 2026 (branch flutter/panduan-baru)
+- Dikerjakan: animasi pembuka lama (kain/air, 3000 ms) diganti merpati putih yang bertengger di huruf G, menengok kiri lalu kanan (dibalik horizontal), lalu nama dan tagline muncul halus. 1200 ms pembukaan pertama, 900 ms berikutnya, fade keluar 160 ms saat aplikasi siap. Rancangan ini menggantikan catatan 3000 ms/350 ms di bagian branding sebelumnya. `storyboard.png` dihapus; `dove.png` dari kiriman Paduka.
+- Posisi dan gerak dicek lewat pratinjau kanvas HTML (rumus sama dengan `doveAt()` di Dart), bukan di perangkat.
+- File utama: mobile/lib/native/brand_intro.dart, mobile/test/brand_test.dart, mobile/assets/branding/README.md
+- Tes: belum dijalankan (SDK Flutter tidak ada di cloud); 1 CI akan dipakai bersama panduan baru.
+- Belum diuji / ragu: kelancaran di HP asli; balik badan memakai skala horizontal sehingga ada sekejap merpati tampak sangat tipis di tengah putaran (batas minimum lebar 12%).

@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../core/store.dart';
 import 'common.dart';
 
 const brandIntroKey = '__goyana_brand_intro_seen_v1';
 
-/// Startup work continues behind this overlay. Only the first install gets the
-/// full cloth -> water -> logo sequence; later openings fade concurrently.
+/// Opening animation: the white dove perched on the "G" looks left, then
+/// right, while the name and tagline fade in. 1.2 s on the first opening and
+/// 0.9 s afterwards. Startup work continues behind this overlay, so it never
+/// adds waiting time of its own beyond the animation.
 class BrandIntro extends StatefulWidget {
   const BrandIntro({
     super.key,
@@ -26,17 +26,25 @@ class BrandIntro extends StatefulWidget {
   State<BrandIntro> createState() => _BrandIntroState();
 }
 
-class _BrandIntroState extends State<BrandIntro>
-    with SingleTickerProviderStateMixin {
+const brandIntroFirstMs = 1200;
+const brandIntroLaterMs = 900;
+const _leaveMs = 160;
+const _markSize = 175.0;
+
+class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
   late final AnimationController _animation;
+  late final AnimationController _leave;
   bool _first = false, _resolved = false, _done = false;
-  ui.Image? _story;
   @override
   void initState() {
     super.initState();
     _animation = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: brandIntroLaterMs),
+    );
+    _leave = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: _leaveMs),
     );
     _animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -44,6 +52,15 @@ class _BrandIntroState extends State<BrandIntro>
           unawaited(_remember());
         }
         _finish();
+      }
+    });
+    _leave.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            widget.onDone();
+          }
+        });
       }
     });
     unawaited(_start());
@@ -75,29 +92,16 @@ class _BrandIntroState extends State<BrandIntro>
       _first = first;
       _resolved = true;
     });
-    _animation.duration = Duration(milliseconds: first ? 3000 : 350);
+    _animation.duration = Duration(
+      milliseconds: first ? brandIntroFirstMs : brandIntroLaterMs,
+    );
     _animation.forward();
-    if (first) {
-      final data = await rootBundle.load('assets/branding/storyboard.png');
-      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-      final frame = await codec.getNextFrame();
-      codec.dispose();
-      if (mounted) {
-        setState(() => _story = frame.image);
-      } else {
-        frame.image.dispose();
-      }
-    }
   }
 
   void _finish() {
     if (!_done && widget.ready && _resolved && _animation.isCompleted) {
       _done = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          widget.onDone();
-        }
-      });
+      _leave.forward();
     }
   }
 
@@ -112,84 +116,131 @@ class _BrandIntroState extends State<BrandIntro>
   @override
   void dispose() {
     _animation.dispose();
-    _story?.dispose();
+    _leave.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _animation,
-    builder: (context, _) {
-      final t = _animation.value;
-      final finalLogo = !_first ? 1.0 : ((t - .55) / .25).clamp(0.0, 1.0);
-      return IgnorePointer(
-        ignoring: widget.ready && !_first,
-        child: Opacity(
-          opacity: !_first && _resolved && widget.ready ? 1 - t : 1,
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xffff7956),
-                  Color(0xffff2636),
-                  Color(0xffed0026),
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_animation, _leave]),
+      builder: (context, _) {
+        final u = _animation.value;
+        final logo = (u / .25).clamp(0.0, 1.0);
+        final name = _easeOut(((u - .45) / .35).clamp(0.0, 1.0));
+        final tag = _easeOut(((u - .6) / .32).clamp(0.0, 1.0));
+        final dove = doveAt(u);
+        return IgnorePointer(
+          ignoring: _done,
+          child: Opacity(
+            opacity: 1 - _leave.value,
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xffff7956),
+                    Color(0xffff2636),
+                    Color(0xffed0026),
+                  ],
+                ),
+              ),
+              child: Stack(
+                children: [
+                  const Positioned.fill(child: CustomPaint(painter: _Floral())),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: _markSize,
+                          height: _markSize,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Positioned.fill(
+                                child: Opacity(
+                                  opacity: logo,
+                                  child: Transform.scale(
+                                    scale: .92 + .08 * _easeOut(logo),
+                                    child: Image.asset(
+                                      'assets/branding/mark.png',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                left: _doveLeft,
+                                top: _doveTop + dove.lift,
+                                width: _doveSize,
+                                height: _doveSize,
+                                child: Opacity(
+                                  opacity: dove.opacity,
+                                  child: Transform(
+                                    alignment: Alignment.center,
+                                    transform: Matrix4.diagonal3Values(
+                                      dove.scaleX,
+                                      1,
+                                      1,
+                                    ),
+                                    child: Image.asset(
+                                      'assets/branding/dove.png',
+                                      cacheWidth: 360,
+                                      filterQuality: FilterQuality.medium,
+                                      errorBuilder: (context, e, s) =>
+                                          const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Opacity(
+                          opacity: name,
+                          child: Transform.translate(
+                            offset: Offset(0, (1 - name) * 16),
+                            child: Text(
+                              'Goyana',
+                              style: gText(
+                                48,
+                                w: FontWeight.w600,
+                                c: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Opacity(
+                          opacity: tag,
+                          child: Text(
+                            'KASIR LAUNDRY',
+                            style: gText(
+                              11,
+                              c: Colors.white,
+                              ls: 9 - 5 * tag,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _IntroArt(t, _first ? _story : null),
-                  ),
-                ),
-                Center(
-                  child: Opacity(
-                    opacity: finalLogo,
-                    child: Transform.scale(
-                      scale: .88 + .12 * finalLogo,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/branding/mark.png',
-                            width: 175,
-                            height: 175,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Goyana',
-                            style: gText(
-                              48,
-                              w: FontWeight.w600,
-                              c: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'KASIR LAUNDRY',
-                            style: gText(11, c: Colors.white, ls: 4),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
+  }
 }
 
-class _IntroArt extends CustomPainter {
-  _IntroArt(this.t, this.story);
-  final double t;
-  final ui.Image? story;
+double _easeOut(double p) => 1 - math.pow(1 - p, 3).toDouble();
+
+class _Floral extends CustomPainter {
+  const _Floral();
   @override
   void paint(Canvas canvas, Size size) {
     final floral = Paint()..color = const Color(0x40ffcc90);
@@ -207,54 +258,36 @@ class _IntroArt extends CustomPainter {
       }
       canvas.restore();
     }
-    final image = story;
-    if (image == null || t >= .8) {
-      return;
-    }
-    final width = size.width * .98;
-    final dst = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height * .45),
-      width: width,
-      height: width * 1.12,
-    );
-    void panel(int index, double opacity, double scale) {
-      if (opacity <= 0) {
-        return;
-      }
-      canvas.save();
-      canvas.translate(dst.center.dx, dst.center.dy);
-      canvas.scale(scale);
-      canvas.translate(-dst.center.dx, -dst.center.dy);
-      canvas.saveLayer(
-        dst,
-        Paint()..color = Colors.white.withValues(alpha: opacity),
-      );
-      canvas.drawImageRect(
-        image,
-        Rect.fromLTWH(index * 512 + 28, 165, 456, 555),
-        dst,
-        Paint()..filterQuality = FilterQuality.medium,
-      );
-      canvas.drawRect(
-        dst,
-        Paint()
-          ..blendMode = BlendMode.dstIn
-          ..shader = const RadialGradient(
-            colors: [Colors.white, Colors.white, Colors.transparent],
-            stops: [0, .6, 1],
-          ).createShader(dst),
-      );
-      canvas.restore();
-      canvas.restore();
-    }
-
-    final water = ((t - .25) / .2).clamp(0.0, 1.0),
-        fade = 1 - ((t - .55) / .25).clamp(0.0, 1.0);
-    panel(0, (1 - water) * fade, .9 + .12 * t);
-    panel(1, water * fade, .88 + .15 * t);
   }
 
   @override
-  bool shouldRepaint(_IntroArt oldDelegate) =>
-      t != oldDelegate.t || story != oldDelegate.story;
+  bool shouldRepaint(_Floral oldDelegate) => false;
+}
+
+// Dove position in the 175px logo box: feet rest on the upper-left of the "G"
+// ring (ring top is at y~10), image is nearly square and faces right.
+const _doveSize = 112.0, _doveLeft = 6.0, _doveTop = -96.0;
+
+class DovePose {
+  const DovePose(this.scaleX, this.lift, this.opacity);
+  final double scaleX, lift, opacity;
+}
+
+double _smooth(double p) => p * p * (3 - 2 * p);
+
+/// Dove pose for animation progress [u] (0..1): settles in, looks left (flips),
+/// holds, looks right again and ends facing right (the artwork's own direction).
+DovePose doveAt(double u) {
+  final fadeIn = ((u - .08) / .17).clamp(0.0, 1.0);
+  final settle = (1 - _easeOut(fadeIn)) * -10; // drops 10px into place
+  // 0 = facing right, 1 = facing left.
+  final toLeft = _smooth(((u - .25) / .2).clamp(0.0, 1.0));
+  final toRight = _smooth(((u - .55) / .2).clamp(0.0, 1.0));
+  final turn = toLeft - toRight;
+  var sx = math.cos(math.pi * turn);
+  if (sx.abs() < .12) {
+    sx = sx < 0 ? -.12 : .12; // never fully edge-on
+  }
+  final hop = -4 * math.sin(math.pi * turn.clamp(0.0, 1.0));
+  return DovePose(sx, settle + hop, fadeIn);
 }
