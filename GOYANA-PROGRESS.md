@@ -1369,3 +1369,5 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 
 ### CI untuk animasi merpati + panduan baru (branch flutter/panduan-baru)
 - Dijalankan atas izin "Kamu bebas uji". Run 37416347206: analyze gagal (override salah tempat). Run 37416789429: analyze lulus, 1 tes unit gagal (perbandingan float di tes baru). Jatah tambahan sebelum ini 1/3 terpakai; dua run ini membuatnya 3/3 (habis). Run berikutnya hanya karena izin "bebas uji" dan dicatat di bawah.
+- Run 37417211777 (commit 4744c39) SUCCESS: bridge di browser, analyze, tes unit, screenshot, APK terbit (flutter-uji, 56.858.556 byte, 6 Okt 05:23 UTC). Jatah tambahan Paduka: 3/3 terpakai; run ini dijalankan atas izin "Kamu bebas uji". Tidak ada CI lagi tanpa izin baru.
+- Catatan: APK `flutter-uji` ditimpa oleh build branch ini (bukan dari `flutter/native`).
