@@ -921,7 +921,6 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   void stAcctLink() => _tap('#settings .acct92-link');
   @override
   void stLogout() => _tap('#settings .lo167');
-  @override
   /// Five-slide guide: once, as soon as the owner's Beranda appears for the first time
   /// (right after the first outlet is created), after the opening animation has finished.
   Future<void> _maybeShowGuide() async {
@@ -933,6 +932,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     } catch (_) {/* storage problem: skip the guide rather than block the app */}
   }
 
+  @override
   void stTutorial() => setState(() => _guideOpen = true);
 
   @override
