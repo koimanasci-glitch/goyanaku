@@ -1438,4 +1438,6 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 ## D1 — Alur Tambah Transaksi Mode Murni disamakan dengan HTML
 - Temuan: teks/ikon/urutan di Mode Murni berbeda dari HTML (judul, "Langkah x dari 5", ikon kategori/layanan/pembayaran, urutan field Atur Pesanan, tombol "Buat Pesanan", "Batalkan Pesanan").
 - Disamakan dengan tangkapan model HTML asli (Playwright): lib/pure/addorder_assets.dart (SVG dari HTML) + `_addOrderJson`. Nilai parfum tersimpan tetap 'Tanpa Parfum'.
-- Belum disamakan: popup jumlah, Tunai, QRIS, DP, Deposit, layar "Pesanan Berhasil", pilihan diskon (manual/kode voucher). Perlu penangkapan HTML berikutnya.
+- Popup jumlah, Pembayaran Tunai, QRIS, DP/Uang Muka dan Saldo Deposit dibuat ulang mengikuti tangkapan layar HTML (lib/pure/addorder_popups.dart); Transfer dan Bayar Nanti langsung menyimpan seperti HTML.
+- Hybrid tidak berubah: tampilan Tambah Transaksi di hybrid sudah dibandingkan dengan HTML dan sama.
+- Belum disamakan: pilihan diskon (manual / kode voucher) dan daftar diskon bawaan Murni (HTML: Tidak + diskon dari Pengaturan).

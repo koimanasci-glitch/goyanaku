@@ -16,6 +16,7 @@ import '../core/money.dart';
 import '../core/store.dart';
 import '../native/addorder_page.dart';
 import 'addorder_assets.dart';
+import 'addorder_popups.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
@@ -805,7 +806,17 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       case 'items':
         _itemsButton(index);
       case 'confirm':
-        if (index == 1) _finishOrder(_pendingMethod);
+        if (index == 4) {
+          _close('confirm');
+          return nav('qris');
+        }
+        if (index == 1) {
+          if (_pendingMethod == 'Saldo Deposit') {
+            final bal = _b!.depositOf(_aoCustomer);
+            if (bal < _cartTotal) return toast('Saldo deposit $_aoCustomer ${rp(bal)} tidak cukup');
+          }
+          _finishOrder(_pendingMethod);
+        }
         _close('confirm');
     }
   }
@@ -1125,18 +1136,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   List<Map<String, dynamic>> _qtyItems() {
-    final s = _qtyService!;
-    final chips = s.unit == 'kg' ? [1, 2, 3, 5] : [1, 2, 3, 4];
-    final q = parseQty(_form['amount']);
+    final sv = _qtyService!;
     return [
-      {'type': 'title', 't': '${s.name} · $_aoDur', 's': ''},
-      {'type': 'hint', 't': '${rpSpaced(s.priceFor(_aoDur))} / ${s.unit} · selesai ${durationHours(_aoDur)} Jam'},
-      {'type': 'input', 'v': '${_form['amount']}', 'ph': '0', 'numeric': true, 'suf': s.unit, 'label': 'Jumlah (${s.unit})', 'i': 0},
-      {'type': 'buttons', 'options': [for (var k = 0; k < chips.length; k++) {'t': '${chips[k]} ${s.unit}', 'i': 10 + k}]},
-      {'type': 'pair', 't': 'Subtotal', 'v': rpSpaced((q * s.priceFor(_aoDur)).round())},
-      {'type': 'button', 't': 'SIMPAN', 'primary': true, 'i': 1},
-      if (_cart.containsKey(s.name)) {'type': 'button', 't': 'Hapus layanan ini', 'primary': false, 'i': 2},
-      {'type': 'button', 't': 'BATAL', 'primary': false, 'i': 3},
+      {'type': 'ao', 'kind': 'qty', 'v': '${_form['amount']}', 'unit': sv.unit, 'hasRemove': _cart.containsKey(sv.name)},
     ];
   }
 
@@ -1211,48 +1213,42 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
           ..['dpMethod'] = 'Tunai';
         _open(_Sheet('dp', _dpItems()));
       case 'Saldo Deposit':
-        final bal = _b!.depositOf(_aoCustomer);
-        if (bal < _cartTotal) return toast('Saldo deposit $_aoCustomer ${rp(bal)} tidak cukup');
-        _confirm('Saldo Deposit', 'Potong saldo deposit ${rp(_cartTotal)}?');
+        _confirm('Saldo Deposit');
+      case 'QRIS':
+        _confirm('QRIS');
       default:
-        _confirm(m, m == 'QRIS' ? 'Periksa pembayaran QRIS ${rp(_cartTotal)} sudah masuk.' : 'Cek mutasi bank: transfer ${rp(_cartTotal)} sudah masuk.');
+        _finishOrder(m);
     }
   }
 
-  void _confirm(String method, String text) {
+  void _confirm(String method) {
     _pendingMethod = method;
+    if (method == 'Saldo Deposit') {
+      return _open(_Sheet('confirm', [
+        {'type': 'ao', 'kind': 'deposit', 'title': 'Saldo Deposit', 'sub': '$_aoCustomer · saldo ${rp(_b!.depositOf(_aoCustomer))} · tagihan ${rp(_cartTotal)}', 'ok': 'Bayar dengan Deposit'},
+      ]));
+    }
     final qris = _settings!.qrisText;
-    final st = _settings!;
     _open(_Sheet('confirm', [
-      {'type': 'title', 't': method == 'QRIS' ? 'Pembayaran QRIS' : (method == 'Transfer' ? 'Transfer Bank' : method), 's': ''},
-      if (method == 'QRIS' && qrisValid(qris)) {'type': 'qr', 'data': qrisDynamic(qris, _cartTotal), 'size': 230},
-      if (method == 'QRIS' && !qrisValid(qris)) {'type': 'hint', 't': 'QRIS outlet belum diatur. Atur di Pengaturan → QRIS Outlet.'},
-      if (method == 'Transfer' && st.bank.isNotEmpty) {'type': 'pair', 't': st.bank, 'v': st.account},
-      if (method == 'Transfer' && st.holder.isNotEmpty) {'type': 'pair', 't': 'Atas nama', 'v': st.holder},
-      if (method == 'Transfer' && st.bank.isEmpty) {'type': 'hint', 't': 'Rekening belum diatur. Atur di Pengaturan → Rekening Transfer.'},
-      {'type': 'pair', 't': 'Total Tagihan', 'v': rpSpaced(_cartTotal)},
-      {'type': 'hint', 't': text},
-      {'type': 'button', 't': method == 'Transfer' ? 'SUDAH DITRANSFER' : 'SUDAH LUNAS', 'primary': true, 'i': 1},
-      {'type': 'button', 't': 'BATAL', 'primary': false, 'i': 2},
+      {'type': 'ao', 'kind': 'qris', 'qr': qrisValid(qris) ? qrisDynamic(qris, _cartTotal) : '', 'total': rpSpaced(_cartTotal)},
     ]));
   }
 
   List<Map<String, dynamic>> _cashItems() {
     final total = _cartTotal, got = parseRupiah(_form['amount']);
     return [
-      {'type': 'title', 't': 'Pembayaran Tunai', 's': ''},
-      {'type': 'pair', 't': 'Total Tagihan', 'v': rpSpaced(total)},
-      {'type': 'input', 'v': '${_form['amount']}', 'ph': '0', 'numeric': true, 'pre': 'Rp', 'label': 'Uang diterima', 'i': 0},
-      {'type': 'buttons', 'options': [{'t': 'Uang pas', 'i': 10}, {'t': '50rb', 'i': 11}, {'t': '100rb', 'i': 12}]},
-      {'type': 'pair', 't': 'Kembalian', 'v': got >= total && got > 0 ? rpSpaced(got - total) : '—', 'tone': got >= total && got > 0 ? 'g' : ''},
-      {'type': 'button', 't': got == 0 || got == total ? 'SUDAH DIBAYAR (UANG PAS)' : 'SUDAH DIBAYAR', 'primary': true, 'i': 1},
-      {'type': 'button', 't': 'BATAL', 'primary': false, 'i': 2},
+      {
+        'type': 'ao', 'kind': 'cash', 'v': '${_form['amount']}', 'total': rpSpaced(total),
+        'chips': [{'t': 'Uang pas', 'i': 10}, {'t': '20rb', 'i': 13}, {'t': '50rb', 'i': 11}, {'t': '100rb', 'i': 12}],
+        'change': got >= total && got > 0 ? rpSpaced(got - total) : '—', 'changeOk': got >= total && got > 0,
+        'ok': got == 0 || got == total ? 'SUDAH DIBAYAR (UANG PAS)' : 'SUDAH DIBAYAR',
+      },
     ];
   }
 
   void _cashButton(int index) {
     if (index >= 10) {
-      _form['amount'] = '${index == 10 ? _cartTotal : (index == 11 ? 50000 : 100000)}';
+      _form['amount'] = '${index == 10 ? _cartTotal : (index == 11 ? 50000 : (index == 13 ? 20000 : 100000))}';
       return _open(_Sheet('cash', _cashItems()));
     }
     if (index == 1) {
@@ -1266,14 +1262,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   List<Map<String, dynamic>> _dpItems() => [
-        {'type': 'title', 't': 'DP / Uang Muka', 's': ''},
-        {'type': 'hint', 't': 'Total tagihan ${rpSpaced(_cartTotal)}'},
-        {'type': 'input', 'v': '${_form['amount']}', 'ph': '0', 'numeric': true, 'pre': 'Rp', 'label': 'Jumlah DP', 'i': 0},
-        {'type': 'buttons', 'options': [{'t': '30%', 'i': 10}, {'t': '50%', 'i': 11}, {'t': '70%', 'i': 12}]},
-        {'type': 'buttons', 'options': [for (var k = 0; k < 3; k++) {'t': const ['Tunai', 'QRIS', 'Transfer'][k], 'on': _form['dpMethod'] == const ['Tunai', 'QRIS', 'Transfer'][k], 'i': 20 + k}]},
-        {'type': 'pair', 't': 'Sisa tagihan (piutang)', 'v': rpSpaced((_cartTotal - parseRupiah(_form['amount'])).clamp(0, _cartTotal))},
-        {'type': 'button', 't': 'Simpan DP', 'primary': true, 'i': 1},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
+        {'type': 'ao', 'kind': 'dp', 'v': '${_form['amount']}', 'method': '${_form['dpMethod']}', 'sub': '$_aoCustomer · sisa tagihan ${rp(_cartTotal)}'},
       ];
 
   void _dpButton(int index) {
@@ -1389,7 +1378,11 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       child: Stack(children: [
         Positioned.fill(child: page),
         for (final s in _sheets)
-          Positioned.fill(child: NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this, full: s.full)),
+          Positioned.fill(
+            child: isAoPopup(s.items)
+                ? AoPopup(key: ValueKey('pure-ao-${s.id}'), id: s.id, data: s.items.first, actions: this)
+                : NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this, full: s.full),
+          ),
         if (_toast.isNotEmpty)
           Positioned(left: 24, right: 24, bottom: 130, child: IgnorePointer(child: Center(child: NativeToast(text: _toast)))),
       ]),
