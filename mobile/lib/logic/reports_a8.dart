@@ -221,7 +221,7 @@ List<T> _sortedDesc<T>(List<T> a, num Function(T) key) {
   return [for (final i in idx) a[i]];
 }
 
-List<Object> _kpi(String a, String b, String c, [String? tone]) => [a, b, c, if (tone != null) tone];
+List<Object> _kpi(String a, String b, String c, [String? tone]) => [a, b, c, ?tone];
 
 Object _jsonNum(Object? v) => v is num ? _norm(v) : v!;
 
