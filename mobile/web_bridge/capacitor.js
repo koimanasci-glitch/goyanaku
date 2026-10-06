@@ -1216,21 +1216,23 @@
   window.__goyanaReportsA8 = function (key, ids) {
     var c = window.__rep170ctx && window.__rep170ctx();
     if (!c) return null;
-    var prev = c.P.k, pf = c.P.from, pt = c.P.to;
+    var prev = c.P.k, pf = c.P.from, pt = c.P.to, own = key != null;
     try {
-      c.P.k = key; c.P.from = c.P.to = null;
-      var r = c.range(), expected = {};
-      (ids || []).forEach(function (id) {
+      if (own) { c.P.k = key; c.P.from = c.P.to = null; }
+      var r = c.range(), expected = {}, cur = c.getCur ? c.getCur() : null;
+      var want = ids && ids.length ? ids : (cur ? [cur.id] : []);
+      want.forEach(function (id) {
         var x = c.REP.filter(function (y) { return y.id === id; })[0];
         if (x && x.f) expected[id] = JSON.parse(JSON.stringify(x.f(r)));
         else if (x && x.exp) expected[id] = JSON.parse(JSON.stringify(x.exp(r)));
       });
       return JSON.parse(JSON.stringify({
-        tz: -new Date().getTimezoneOffset(), now: c.now, t0: c.T0, key: key,
+        tz: -new Date().getTimezoneOffset(), now: c.now, t0: c.T0, key: c.P.k, period: { k: c.P.k, from: c.P.from, to: c.P.to },
+        cur: cur ? { id: cur.id, n: cur.n, d: cur.d, cat: c.C[cur.c][0], exp: !!cur.exp } : null,
         ord: window.ORD170 || [], exp: c.EXP, inc: c.INC, att: c.ATT, stock: c.STOCK, staff: c.STAFF, expected: expected,
         range: { s: r.s, e: r.e, days: r.days }
       }));
-    } finally { c.P.k = prev; c.P.from = pf; c.P.to = pt; }
+    } finally { if (own) { c.P.k = prev; c.P.from = pf; c.P.to = pt; } }
   };
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {

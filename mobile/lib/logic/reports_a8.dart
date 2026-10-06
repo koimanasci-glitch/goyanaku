@@ -124,10 +124,15 @@ class RepCtx {
     required this.exp,
     required this.inc,
     required this.first,
+    this.tzMs = 0,
     this.att = const [],
     this.stock = const [],
     this.staff = const ['Rina', 'Dewi', 'Andi'],
   });
+  /// Selisih zona perangkat (ms) yang dipakai untuk mengubah waktu epoch menjadi jam dinding.
+  final int tzMs;
+  DateTime wallOf(Object? v) =>
+      _ms((v is num ? v.toInt() : DateTime.parse('$v').millisecondsSinceEpoch) + tzMs);
   final List<RepAtt> att;
   final List<RepStock> stock;
   final List<String> staff;
@@ -160,6 +165,7 @@ class RepCtx {
           RepStock('${x['n']}', _num(x['now']), _num(x['min']), '${x['u'] ?? ''}', _num(x['per']), _num(x['buy']))
       ],
       staff: [for (final x in (state['staff'] as List? ?? const ['Rina', 'Dewi', 'Andi'])) '$x'],
+      tzMs: tz,
       now: w(state['now']),
       t0: w(state['t0']),
       orders: orders,
@@ -1028,3 +1034,25 @@ Object? reportA8(String id, RepCtx c, RepRange r) {
 }
 
 List<List<Object>> _chart(List<List<Object>> b) => [for (final x in b) [x[0], _jsonNum(x[1]), x[2]]];
+
+/// Singkatan uang untuk grafik (sh() di HTML): Rp1,5jt, Rp250rb, Rp2,1M.
+String shA8(num n) {
+  final a = n.abs(), s = n < 0 ? '−' : '';
+  if (a >= 1e9) return '${s}Rp${(a / 1e9).toStringAsFixed(1).replaceAll('.', ',')}M';
+  if (a >= 1e6) {
+    final t = (a / 1e6).toStringAsFixed(a >= 1e7 ? 1 : 2).replaceAll('.', ',').replaceFirst(RegExp(r',?0+$'), '');
+    return '${s}Rp${t}jt';
+  }
+  if (a >= 1e3) return '${s}Rp${jsRound(a / 1e3)}rb';
+  return rpA8(n);
+}
+
+const reportPeriodsA8 = [
+  ('today', 'Hari ini'), ('7', '7 hari'), ('30', '30 hari'), ('month', 'Bulan ini'), ('last', 'Bulan lalu'), ('custom', 'Pilih tanggal'),
+];
+
+/// Label periode seperti plabel() di HTML.
+String periodLabelA8(String key, RepRange r) {
+  if (key == 'custom') return '${_dmy(r.s)} – ${_dmy(r.e.subtract(const Duration(milliseconds: _day)))}';
+  return reportPeriodsA8.firstWhere((p) => p.$1 == key, orElse: () => ('', key)).$2;
+}

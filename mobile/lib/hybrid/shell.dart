@@ -18,6 +18,7 @@ import '../logic/order_detail.dart';
 import '../logic/orders.dart';
 import '../logic/payments.dart';
 import '../logic/reports_a8.dart';
+import '../native/report_detail.dart';
 import '../logic/status_auto.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
@@ -92,7 +93,7 @@ class GoyanaShell extends StatefulWidget {
   State<GoyanaShell> createState() => _GoyanaShellState();
 }
 
-class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions, ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions, CashCloseActions, ServicesActions, FormActions {
+class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions, ShellHost, HomeActions, OrdersActions, AddOrderActions, CustomersActions, ReportsActions, SettingsActions, CashActions, CashCloseActions, ServicesActions, FormActions, ReportDetailActions {
   late final WebViewController _web;
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
@@ -268,6 +269,11 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         if (page == 'reports' || page == 'rp170d') unawaited(_reportsParityA8());
+        if (page == 'rp170d') {
+          unawaited(_reportDetailA8());
+        } else {
+          _repDetail = null;
+        }
         if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
         if ((page == 'cashin' || page == 'cashout') && model != null) _cash = CashModel.fromJson(model);
         _pageMirror = model != null && model['mirror'] is Map ? Map<String, dynamic>.from(model['mirror'] as Map) : null;
@@ -808,6 +814,129 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     return m;
   }
 
+  // A8: halaman detail laporan digambar & dihitung Dart bila hasilnya sama dengan HTML (selain itu tetap halaman HTML).
+  ReportDetailModel? _repDetail;
+  RepCtx? _repCtx;
+  String _repId = '', _repKey = '30';
+  DateTime? _repFrom, _repTo;
+  Map<String, dynamic> _repMeta = const {};
+  int _repDetailSeq = 0;
+
+  Future<Map<String, dynamic>?> _reportState(String? key, List<String> ids) async {
+    final raw = await _web.runJavaScriptReturningResult(
+        'JSON.stringify(window.__goyanaReportsA8 ? __goyanaReportsA8(${key == null ? 'null' : jsonEncode(key)}, ${jsonEncode(ids)}) : null)');
+    var text = raw.toString();
+    final outer = jsonDecode(text);
+    if (outer is String) text = outer;
+    final state = jsonDecode(text);
+    return state is Map ? Map<String, dynamic>.from(state) : null;
+  }
+
+  Future<void> _reportDetailA8() async {
+    final seq = ++_repDetailSeq;
+    try {
+      final state = await _reportState(null, const []);
+      if (state == null || !mounted || seq != _repDetailSeq || _nativePage != 'rp170d') return;
+      final cur = state['cur'];
+      final id = cur is Map ? '${cur['id']}' : '';
+      if (!reportIdsA8.contains(id)) {
+        setState(() => _repDetail = null);
+        return;
+      }
+      final ctx = RepCtx.fromJson(state);
+      final per = state['period'] as Map;
+      final key = '${per['k']}';
+      final from = per['from'] == null ? null : ctx.wallOf(per['from']);
+      final to = per['to'] == null ? null : ctx.wallOf(per['to']);
+      final got = reportA8(id, ctx, ctx.range(key, from: from, to: to));
+      final want = (state['expected'] as Map)[id];
+      if (jsonEncode(_canonical(got)) != jsonEncode(_canonical(want))) {
+        await _parityLog(const DeviceKvStore(), 'report-detail-a8-$id-$key', want, got);
+        if (mounted && seq == _repDetailSeq) setState(() => _repDetail = null);
+        return;
+      }
+      _repCtx = ctx;
+      _repId = id;
+      _repKey = key;
+      _repFrom = from;
+      _repTo = to;
+      _repMeta = Map<String, dynamic>.from(cur as Map);
+      if (mounted && seq == _repDetailSeq && _nativePage == 'rp170d') setState(_repRebuild);
+    } catch (_) {/* tetap memakai HTML */}
+  }
+
+  void _repRebuild() {
+    final ctx = _repCtx;
+    if (ctx == null) return;
+    final range = ctx.range(_repKey, from: _repFrom, to: _repTo);
+    final data = reportA8(_repId, ctx, range);
+    if (data == null) {
+      _repDetail = null;
+      return;
+    }
+    _repDetail = ReportDetailModel(
+      id: _repId, title: '${_repMeta['n']}', category: '${_repMeta['cat']}', desc: '${_repMeta['d']}',
+      periodKey: _repKey, periodLabel: periodLabelA8(_repKey, range), data: data, isExport: _repMeta['exp'] == true,
+    );
+  }
+
+  @override
+  void rdBack() => fmBack();
+  @override
+  void rdScan() => scan();
+  @override
+  void rdNav(String page) => nav(page);
+  @override
+  void rdCsv() => _web.runJavaScript('window.csv170&&csv170()');
+  @override
+  void rdShare() => _web.runJavaScript('window.share170&&share170()');
+  @override
+  void rdOpen(String page) => _web.runJavaScript('openPage(${jsonEncode(page)})');
+  @override
+  void rdPeriod(String key) {
+    if (key == 'custom') {
+      unawaited(_repPickRange());
+      return;
+    }
+    setState(() {
+      _repKey = key;
+      _repFrom = _repTo = null;
+      _repRebuild();
+    });
+    _web.runJavaScript('window.per170&&per170({dataset:{k:${jsonEncode(key)}}})');
+  }
+
+  Future<void> _repPickRange() async {
+    final ctx = _repCtx;
+    if (ctx == null || !mounted) return;
+    final r = ctx.range(_repKey, from: _repFrom, to: _repTo);
+    DateTime local(DateTime d) => DateTime(d.year, d.month, d.day);
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(ctx.t0.year + 1, 12, 31),
+      initialDateRange: DateTimeRange(start: local(r.s), end: local(r.e.subtract(const Duration(days: 1)))),
+      helpText: 'Pilih periode laporan',
+    );
+    if (picked == null || !mounted) return;
+    var a = DateTime.utc(picked.start.year, picked.start.month, picked.start.day);
+    var b = DateTime.utc(picked.end.year, picked.end.month, picked.end.day);
+    if (b.isBefore(a)) {
+      final t = a;
+      a = b;
+      b = t;
+    }
+    String iso(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    setState(() {
+      _repKey = 'custom';
+      _repFrom = a;
+      _repTo = b;
+      _repRebuild();
+    });
+    _web.runJavaScript(
+        "(function(){var c=window.__rep170ctx&&__rep170ctx();if(!c||!window.per170)return;c.P.from=new Date('${iso(a)}T00:00');c.P.to=new Date('${iso(b)}T00:00');per170({dataset:{k:'custom'}})})()");
+  }
+
   // A8: hitungan laporan Keuangan di Dart dibandingkan dengan HTML pada data HP yang sama (selisih dicatat, tampilan tetap HTML).
   int _reportsSeq = 0;
   Future<void> _reportsParityA8() async {
@@ -1314,6 +1443,8 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
               ),
             if (_formPages.contains(_nativePage) && _pageMirror == null && !_loading)
               Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2, 'customeradd': 0, 'crm': 0, 'today187': 1, 'notif': 0, 'printlabel': 1}[_nativePage] ?? 3)),
+            if (_nativePage == 'rp170d' && _repDetail != null && !_loading)
+              Positioned.fill(child: NativeReportDetail(key: const ValueKey('native-report-detail'), model: _repDetail!, actions: this)),
             if (_nativePage == 'services' && !_loading)
               Positioned.fill(child: NativeServices(model: _services, actions: this)),
             if (_nativePage == 'cashclose' && !_loading)
