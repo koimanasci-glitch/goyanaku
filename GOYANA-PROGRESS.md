@@ -1368,4 +1368,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Belum diuji / ragu: kelancaran di HP asli; balik badan memakai skala horizontal sehingga ada sekejap merpati tampak sangat tipis di tengah putaran (batas minimum lebar 12%).
 
 ### CI untuk animasi merpati + panduan baru (branch flutter/panduan-baru)
-- Dijalankan memakai jatah tambahan Paduka ("Kamu bebas uji"): jatah CI Flutter tambahan sebelum ini 1/3 terpakai; run ini menjadi 2/3, sisa 1.
+- Dijalankan atas izin "Kamu bebas uji". Run 37416347206: analyze gagal (override salah tempat). Run 37416789429: analyze lulus, 1 tes unit gagal (perbandingan float di tes baru). Jatah tambahan sebelum ini 1/3 terpakai; dua run ini membuatnya 3/3 (habis). Run berikutnya hanya karena izin "bebas uji" dan dicatat di bawah.

@@ -96,8 +96,8 @@ void main() {
     final start = doveAt(0);
     expect(start.opacity, 0, reason: 'invisible at the very start');
     final rest = doveAt(.25);
-    expect(rest.scaleX, 1);
-    expect(rest.opacity, 1);
+    expect(rest.scaleX, closeTo(1, 1e-9));
+    expect(rest.opacity, closeTo(1, 1e-9));
     expect(rest.lift, closeTo(0, 1e-9));
     expect(doveAt(.5).scaleX, closeTo(-1, 1e-9), reason: 'facing left');
     expect(doveAt(.9).scaleX, closeTo(1, 1e-9), reason: 'back to facing right');
