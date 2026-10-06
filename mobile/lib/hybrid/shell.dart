@@ -19,6 +19,7 @@ import '../logic/orders.dart';
 import '../logic/payments.dart';
 import '../logic/reports_a8.dart';
 import '../native/report_detail.dart';
+import '../native/crm_page.dart';
 import '../logic/status_auto.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
@@ -247,6 +248,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
       final model = data['model'] is Map ? Map<String, dynamic>.from(data['model'] as Map) : null;
       if (!mounted) return;
       setState(() {
+        final prevPage = _nativePage;
         _nativePage = page;
         if (page == 'cashclose' && model != null) {
           _cashClose = model;
@@ -269,6 +271,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
         if (page == 'reports' || page == 'rp170d') unawaited(_reportsParityA8());
+        if (page == 'crm' && prevPage != 'crm') _crmOpen++;
         if (page == 'rp170d') {
           unawaited(_reportDetailA8());
         } else {
@@ -815,6 +818,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   }
 
   // A8: halaman detail laporan digambar & dihitung Dart bila hasilnya sama dengan HTML (selain itu tetap halaman HTML).
+  int _crmOpen = 0;
   ReportDetailModel? _repDetail;
   RepCtx? _repCtx;
   String _repId = '', _repKey = '30';
@@ -1443,6 +1447,17 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
               ),
             if (_formPages.contains(_nativePage) && _pageMirror == null && !_loading)
               Positioned.fill(child: NativeForm(key: ValueKey(_nativePage), model: _form, actions: this, navActive: const {'rp170d': 2, 'ralat139': 2, 'finreport': 2, 'customeradd': 0, 'crm': 0, 'today187': 1, 'notif': 0, 'printlabel': 1}[_nativePage] ?? 3)),
+            if (_nativePage == 'crm' && !_loading)
+              Positioned.fill(
+                child: NativeCrm(
+                  key: ValueKey('native-crm-$_crmOpen'),
+                  store: const DeviceKvStore(),
+                  onBack: fmBack,
+                  onNav: nav,
+                  onScan: scan,
+                  openUrl: (u) => const MethodChannel('id.goyana/device').invokeMethod('App.openUrl', {'url': u}).catchError((_) => null),
+                ),
+              ),
             if (_nativePage == 'rp170d' && _repDetail != null && !_loading)
               Positioned.fill(child: NativeReportDetail(key: const ValueKey('native-report-detail'), model: _repDetail!, actions: this)),
             if (_nativePage == 'services' && !_loading)
