@@ -86,10 +86,11 @@ void main() {
     expect(find.text('Rincian'), findsOneWidget);
     expect(find.text('30 baris'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('rd-per-7')));
+    await tester.tap(find.byKey(const ValueKey('rd-back')));
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('rd-csv')), 600, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.byKey(const ValueKey('rd-csv')));
     await tester.tap(find.byKey(const ValueKey('rd-wa')));
-    await tester.tap(find.byKey(const ValueKey('rd-back')));
-    expect(a.log, ['per:7', 'csv', 'wa', 'back']);
+    expect(a.log, ['per:7', 'back', 'csv', 'wa']);
     // 30 baris = batas awal, tombol "lebih banyak" tidak ada.
     expect(find.byKey(const ValueKey('rd-more')), findsNothing);
   });
