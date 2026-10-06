@@ -154,7 +154,7 @@ class _NativeCrmState extends State<NativeCrm> {
           Row(children: [
             Expanded(child: Text(title, style: gText(13, w: FontWeight.w600, c: _ink))),
             if (sub.isNotEmpty) Text(sub, style: gText(11, c: _muted)),
-            if (trailing != null) trailing,
+            ?trailing,
           ]),
           const SizedBox(height: 8),
           ...children,
