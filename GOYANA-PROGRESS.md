@@ -1366,3 +1366,6 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - File utama: mobile/lib/native/brand_intro.dart, mobile/test/brand_test.dart, mobile/assets/branding/README.md
 - Tes: belum dijalankan (SDK Flutter tidak ada di cloud); 1 CI akan dipakai bersama panduan baru.
 - Belum diuji / ragu: kelancaran di HP asli; balik badan memakai skala horizontal sehingga ada sekejap merpati tampak sangat tipis di tengah putaran (batas minimum lebar 12%).
+
+### CI untuk animasi merpati + panduan baru (branch flutter/panduan-baru)
+- Dijalankan memakai jatah tambahan Paduka ("Kamu bebas uji"): jatah CI Flutter tambahan sebelum ini 1/3 terpakai; run ini menjadi 2/3, sisa 1.

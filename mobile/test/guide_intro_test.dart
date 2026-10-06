@@ -57,12 +57,14 @@ void main() {
     expect(await store.get(guideSeenKey), '1');
   });
 
-  testWidgets('Missing illustration shows a placeholder instead of crashing', (
-    tester,
-  ) async {
+  testWidgets('Each slide shows its illustration without errors', (tester) async {
     await _open(tester, MemoryKvStore(), () {});
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.byType(Icon), findsWidgets);
+    expect(find.byType(Image), findsOneWidget);
+    await tester.tap(find.byKey(const Key('guide-next')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Image), findsOneWidget);
   });
 }

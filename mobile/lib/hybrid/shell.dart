@@ -1050,7 +1050,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   Future<void> _onBack() async {
     if (_guideOpen) {
       // Back on the guide = skip it (same as "Lewati").
-      try { await const DeviceKvStore().set(guideSeenKey, '1'); } catch (_) {}
+      try { await const DeviceKvStore().set(guideSeenKey, '1'); } catch (_) {/* storage problem: the guide just shows once more */}
       if (mounted) setState(() => _guideOpen = false);
       return;
     }
