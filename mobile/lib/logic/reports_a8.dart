@@ -3,6 +3,8 @@
 // Waktu dipakai sebagai "jam dinding" (UTC yang sudah digeser zona perangkat) agar hasil sama di tiap mesin uji.
 import 'dart:math' as math;
 
+import '../core/models.dart' show Order, durationHours;
+
 const reportIdsA8 = [
   // Keuangan
   'omzet', 'arus', 'ptrx', 'metode', 'lain', 'keluar', 'piutang', 'diskon', 'bulat', 'laba',
@@ -1053,4 +1055,110 @@ const reportPeriodsA8 = [
 String periodLabelA8(String key, RepRange r) {
   if (key == 'custom') return '${_dmy(r.s)} – ${_dmy(r.e.subtract(const Duration(milliseconds: _day)))}';
   return reportPeriodsA8.firstWhere((p) => p.$1 == key, orElse: () => ('', key)).$2;
+}
+
+/// Susun data laporan langsung dari database Dart (`goyana-business177`), meniru `reports()` di HTML
+/// (goyana-local-transactions177). Hasilnya berbentuk sama dengan keluaran `__goyanaReportsA8`.
+Map<String, Object?> reportStateFromBusiness(Map<String, dynamic> business, {required DateTime now, int? tzMinutes}) {
+  final tz = tzMinutes ?? now.timeZoneOffset.inMinutes;
+  final details = business['details'] is Map ? Map<String, dynamic>.from(business['details'] as Map) : <String, dynamic>{};
+  String idOf(Map c) {
+    final f = c['fields'];
+    return f is List && f.length > 1 && f[1] is List && (f[1] as List).isNotEmpty ? '${(f[1] as List).first}'.trim() : '';
+  }
+
+  final ord = <Map<String, Object?>>[];
+  for (final c in (business['orders'] as List? ?? const []).whereType<Map>()) {
+    final card = Map<String, dynamic>.from(c);
+    final id = idOf(card);
+    final d = details[id] is Map ? Map<String, dynamic>.from(details[id] as Map) : <String, dynamic>{};
+    final o = Order(card, d);
+    final created = o.created ?? now;
+    final total = o.total;
+    final paid = math.min(total, o.paid);
+    final st = o.status;
+    final items = o.items;
+    final disc = _num(o.dataset['disc']);
+    final dur = o.dur;
+    final due = o.due ?? created.add(Duration(hours: durationHours(dur)));
+    ord.add({
+      'id': id, 't': created.millisecondsSinceEpoch, 'c': o.name, 'f': false,
+      'items': [for (final it in items) {'n': it.name, 'u': it.unit, 'q': it.qty, 'p': it.price, 't': (it.qty * it.price).round()}],
+      'kg': items.fold<num>(0, (s, it) => s + (it.unit == 'kg' ? it.qty : 0)),
+      'sub': total + disc, 'disc': disc, 'ong': o.ongkir, 'rd': 0, 'total': total, 'paid': paid,
+      'm': st == 'batal' ? 'Batal' : (paid > 0 ? o.method : 'Belum'),
+      'payments178': o.payments,
+      'st': const {'cuci', 'kering', 'setrika', 'packing'}.contains(st) ? 'proses' : st,
+      'staff': '', 'antar': o.antar, 'dur': dur,
+      'due': due.millisecondsSinceEpoch,
+      'done': (o.due ?? created).millisecondsSinceEpoch,
+      'pts': paid ~/ 10000,
+    });
+  }
+  final kas = business['kas'] is Map ? business['kas'] as Map : const {};
+  int at(Object? v) => (DateTime.tryParse('${v ?? ''}') ?? now).millisecondsSinceEpoch;
+  final t0 = DateTime.fromMillisecondsSinceEpoch(now.millisecondsSinceEpoch + tz * 60000, isUtc: true);
+  final midnight = DateTime.utc(t0.year, t0.month, t0.day).millisecondsSinceEpoch - tz * 60000;
+  return {
+    'tz': tz, 'now': now.millisecondsSinceEpoch, 't0': midnight, 'ord': ord,
+    'exp': [
+      for (final x in (kas['outs'] as List? ?? const []).whereType<Map>())
+        {'t': at(x['at']), 'a': _num(x['a']), 'cat': (x['t'] == null || '${x['t']}'.isEmpty) ? 'Lain-Lain' : '${x['t']}', 'note': '${x['t'] ?? ''}'}
+    ],
+    'inc': [
+      for (final x in (kas['ins'] as List? ?? const []).whereType<Map>()) {'t': at(x['at']), 'a': _num(x['a']), 'note': '${x['t'] ?? ''}', 'deposit178': x['deposit178'] == true}
+    ],
+    'att': const [], 'stock': const [], 'staff': const ['Rina', 'Dewi', 'Andi'],
+  };
+}
+
+String _stripHtml(Object? v) => '${v ?? ''}'
+    .replaceAll('<small>', ' · ')
+    .replaceAll(RegExp(r'<[^>]+>'), '')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&amp;', '&')
+    .trim();
+
+/// Isi CSV (pemisah ';', seperti csv170 di HTML) dari hasil laporan atau baris export.
+String reportCsvA8(Object data) {
+  late final List<List<Object?>> lines;
+  if (data is List) {
+    lines = [for (final r in data) (r as List).cast<Object?>()];
+  } else {
+    final o = data as Map;
+    lines = [(o['cols'] as List).cast<Object?>(), for (final r in (o['rows'] as List)) (r as List).cast<Object?>()];
+  }
+  String cell(Object? v) {
+    final s = _stripHtml(v);
+    return RegExp(r'[",;\n]').hasMatch(s) ? '"${s.replaceAll('"', '""')}"' : s;
+  }
+
+  return lines.map((r) => r.map(cell).join(';')).join('\n');
+}
+
+/// Teks kiriman WhatsApp (share170 di HTML).
+String reportShareTextA8(String title, String period, Object data) {
+  final b = StringBuffer('*LAPORAN ${title.toUpperCase()}*\nGOYANA Laundry · $period\n━━━━━━━━━━━━━━━━━━━━\n');
+  if (data is Map) {
+    for (final k in (data['k'] as List? ?? const [])) {
+      final l = k as List;
+      b.writeln('• ${l[0]}: *${l[1]}*${l.length > 2 && '${l[2]}'.isNotEmpty ? ' (${l[2]})' : ''}');
+    }
+    final rows = (data['rows'] as List? ?? const []);
+    if (rows.isNotEmpty) {
+      b.writeln('━━━━━━━━━━━━━━━━━━━━');
+      b.write(rows.take(10).map((r) => (r as List).map(_stripHtml).where((x) => x.isNotEmpty).join(' | ')).join('\n'));
+      if (rows.length > 10) b.write('\n… +${rows.length - 10} baris lagi');
+    }
+  } else {
+    final rows = data as List;
+    b.writeln('${rows.length - 1} baris data siap diexport');
+    b.writeln('━━━━━━━━━━━━━━━━━━━━');
+    b.write(rows.skip(1).take(10).map((r) => (r as List).map(_stripHtml).where((x) => x.isNotEmpty).join(' | ')).join('\n'));
+    if (rows.length - 1 > 10) b.write('\n… +${rows.length - 11} baris lagi');
+  }
+  return b.toString();
 }

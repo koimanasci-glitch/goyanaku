@@ -19,9 +19,14 @@ import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/home_page.dart';
+import '../logic/reports_a8.dart';
 import '../native/orders_page.dart';
+import '../native/report_detail.dart';
+import '../native/reports_page.dart';
 import '../native/settings_page.dart';
+import '../logic/reports_catalog.dart';
 import 'pages.dart';
+import 'reports_dart.dart';
 import 'scan_page.dart';
 import 'settings_menu.dart';
 import 'views.dart';
@@ -46,7 +51,7 @@ class _Sheet {
   final bool full;
 }
 
-class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, PureHost {
+class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, PureHost {
   static const _device = MethodChannel('id.goyana/device');
   Business? _b;
   AppSettings? _settings;
@@ -79,6 +84,124 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   AppSettings get settings => _settings!;
   @override
   MethodChannel get device => _device;
+  // ---- Laporan (A8): dihitung Dart dari database yang sama ----
+  String _rpKey = '30', _rpCat = 'all', _rpQuery = '', _rpId = 'omzet';
+  DateTime? _rpFrom, _rpTo;
+
+  RepCtx _rpCtx() => RepCtx.fromJson(reportStateFromBusiness(_b!.raw, now: now));
+  String _activeOutletName() {
+    final b = _b;
+    if (b == null) return '';
+    for (final o in b.outlets) {
+      if (o.id == b.activeOutlet) return o.name;
+    }
+    return b.outlets.isNotEmpty ? b.outlets.first.name : '';
+  }
+
+  Widget _rpDetail() {
+    final ctx = _rpCtx();
+    final range = ctx.range(_rpKey, from: _rpFrom, to: _rpTo);
+    final ent = reportCatalogA8.firstWhere((e) => e.$1 == _rpId, orElse: () => reportCatalogA8.first);
+    return NativeReportDetail(
+      key: ValueKey('rp-$_rpId'),
+      actions: this,
+      model: ReportDetailModel(
+        id: ent.$1, title: ent.$3, category: reportCategoryName(ent.$1), desc: ent.$5, periodKey: _rpKey,
+        periodLabel: periodLabelA8(_rpKey, range), data: reportA8(ent.$1, ctx, range) ?? const {}, isExport: ent.$1.startsWith('x-'),
+      ),
+    );
+  }
+
+  Object? _rpData() {
+    final ctx = _rpCtx();
+    return reportA8(_rpId, ctx, ctx.range(_rpKey, from: _rpFrom, to: _rpTo));
+  }
+
+  @override
+  void rpOutlet() {}
+  @override
+  void rpPeriod(int index) => rdPeriod(reportPeriodsA8[index].$1);
+  @override
+  void rpKpi(int index) {
+    setState(() => _rpId = const ['keluar', 'laba', 'piutang', 'tumbuh'][index]);
+    nav('rp');
+  }
+
+  @override
+  void rpQuick(int index) {
+    if (index == 3) return toast('Ralat transaksi ada di versi lengkap');
+    nav('kas');
+  }
+
+  @override
+  void rpSearch(String text) => setState(() => _rpQuery = text);
+  @override
+  void rpCategory(int index) => setState(() => _rpCat = index == 0 ? 'all' : reportCategoryIds[index - 1]);
+  @override
+  void rpOpen(int index) {
+    final ids = reportVisibleIds(cat: _rpCat, query: _rpQuery);
+    if (index < 0 || index >= ids.length) return;
+    final id = ids[index];
+    if (id == 'tutup') return nav('kas');
+    if (id == 'ralat') return toast('Ralat transaksi ada di versi lengkap');
+    setState(() => _rpId = id);
+    nav('rp');
+  }
+
+  @override
+  void rdBack() => nav('reports');
+  @override
+  void rdScan() => scan();
+  @override
+  void rdNav(String page) => nav(page);
+  @override
+  void rdOpen(String page) => nav(page);
+  @override
+  void rdPeriod(String key) {
+    if (key == 'custom') {
+      unawaited(_rpPick());
+      return;
+    }
+    setState(() {
+      _rpKey = key;
+      _rpFrom = _rpTo = null;
+    });
+  }
+
+  Future<void> _rpPick() async {
+    final ctx = _rpCtx();
+    final r = ctx.range(_rpKey, from: _rpFrom, to: _rpTo);
+    DateTime local(DateTime d) => DateTime(d.year, d.month, d.day);
+    final picked = await showDateRangePicker(
+      context: context, firstDate: DateTime(2020), lastDate: DateTime(ctx.t0.year + 1, 12, 31),
+      initialDateRange: DateTimeRange(start: local(r.s), end: local(r.e.subtract(const Duration(days: 1)))), helpText: 'Pilih periode laporan',
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _rpKey = 'custom';
+      _rpFrom = DateTime.utc(picked.start.year, picked.start.month, picked.start.day);
+      _rpTo = DateTime.utc(picked.end.year, picked.end.month, picked.end.day);
+    });
+  }
+
+  @override
+  void rdCsv() {
+    final d = _rpData();
+    if (d == null) return;
+    Clipboard.setData(ClipboardData(text: reportCsvA8(d)));
+    toast('Data CSV disalin · tempel di Excel / Google Sheets');
+  }
+
+  @override
+  void rdShare() {
+    final d = _rpData();
+    if (d == null) return;
+    final ctx = _rpCtx();
+    final label = periodLabelA8(_rpKey, ctx.range(_rpKey, from: _rpFrom, to: _rpTo));
+    final ent = reportCatalogA8.firstWhere((e) => e.$1 == _rpId);
+    _device.invokeMethod('App.openUrl', {'url': 'https://wa.me/?text=${Uri.encodeComponent(reportShareTextA8(ent.$3, label, d))}'}).catchError((_) => null);
+  }
+
   @override
   void go(String page) => nav(page);
   @override
@@ -1225,6 +1348,10 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch)), actions: this);
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
+      case 'reports':
+        page = NativeReports(model: reportsHubA8(_rpCtx(), periodKey: _rpKey, from: _rpFrom, to: _rpTo, cat: _rpCat, query: _rpQuery, outlet: _activeOutletName()), actions: this);
+      case 'rp':
+        page = _rpDetail();
       case 'settings':
         page = NativeSettings(model: SettingsModel.fromJson(_settingsJson()), actions: this);
       default:
