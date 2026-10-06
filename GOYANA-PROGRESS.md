@@ -1333,3 +1333,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Screenshot, kirim ci-screens, build Flutter, artifact APK dan publikasi release dilewati karena unit gagal. Belum menyatakan screenshot atau APK baru lulus. Tag flutter-uji/release diverifikasi masih e7e28bb0e3b2a299d8d9170d6730997b0a4536c3, build 309, asset 53.711.883 byte diperbarui 2026-10-06T00:11:11Z; belum berisi branding/koreksi terbaru.
 - Jatah: A7 awal 2/2, tambahan CI3 berizin 1/1, tambahan CI4 berizin 1/1. Tidak rerun atau CI5 tanpa izin baru. Perbaikan ekspektasi dan laporan dipublikasikan terpisah [skip ci].
 - Status: SETENGAH JALAN. Implementasi dan analyze selesai, 223 tes unit lulus; satu koreksi tes terakhir belum diuji ulang, screenshot dan APK belum selesai. A8 tidak dikerjakan. Menunggu izin verifikasi berikutnya sesuai aturan batas CI proyek.
+
+
+### [GPT] Izin 3 jatah CI A7/branding/APK — 6 Oktober 2026, 08:36 WIB
+- Paduka: "Sekarang aku kasih 3 jatah tulis di md". Dicatat sebagai 3 jatah CI Flutter tambahan baru untuk verifikasi A7, branding dan APK. Empat run A7 sebelumnya tetap historis; tidak mengurangi tiga jatah baru.
+- Counter awal: 0/3 terpakai, 3 tersisa. Setiap run atau rerun memakai satu; counter dibawa antar sesi. Tidak perlu meminta izin lagi selama jatah masih tersedia. Hasil run dan sisa harus dicatat; berhenti bila habis.
+- File: GOYANA-CATATAN-PADUKA.md (keputusan), GOYANA-SAMPAI-SELESAI.md (pengecualian aturan 0.6 dan tabel A7), GOYANA-DART-SOLANA.md (tabel A7), GOYANA-PROGRESS.md (laporan).
+- Pencatatan memakai commit [skip ci], sehingga tidak menggunakan jatah. Status pemeriksaan/APK tetap menunggu verifikasi; tidak mengubah kode aplikasi, workflow, dependensi atau A8.

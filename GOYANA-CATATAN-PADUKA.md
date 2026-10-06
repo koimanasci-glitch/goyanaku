@@ -61,3 +61,14 @@ Paduka menjawab "Ijinkan" atas permintaan satu CI tambahan untuk memverifikasi p
 
 ### Hasil CI4 berizin
 CI4 run 37399330785, job 112062731315, commit dd0d458f2c3abededd8ab3d682af38b23a9abadf: browser 69 PASS, flutter analyze No issues found, unit 223 lulus dan satu gagal. Gagal pada pure_test.dart:50 karena ekspektasi header lama GOYANA; widget sebenarnya memakai Goyana sesuai branding baru. Ekspektasi diperbaiki menjadi Goyana, dan pencarian seluruh tes Dart memastikan tidak ada lagi find.text GOYANA yang sama. Tes pembukaan/penanda dan hitungan A7 tidak dilaporkan gagal. Screenshot/build/publikasi APK dilewati. Izin satu CI pada 08:27 WIB sudah 1/1 terpakai; perbaikan tes dan laporan disimpan [skip ci], tidak menjalankan CI5 otomatis. APK terakhir tetap build 309.
+
+## 6 Oktober 2026, 08:36 WIB — 3 jatah CI tambahan
+
+Paduka menyatakan: "Sekarang aku kasih 3 jatah tulis di md".
+
+- Tambahan baru: **3 kali CI Flutter** untuk menuntaskan verifikasi A7, branding dan APK baru. Jatah ini terpisah dari empat CI A7 yang sudah dijalankan.
+- Pemakaian awal: **0/3 terpakai, 3 tersisa**. Berlaku bersama lintas putaran sampai digunakan; tidak direset tiap sesi.
+- Setiap CI atau rerun mengurangi satu jatah. Gunakan kode terbaru yang sudah diperbaiki; jangan rerun SHA lama yang masih gagal.
+- Tidak perlu meminta izin lagi selama masih dalam tiga jatah ini. Catat nomor run, hasil dan sisa jatah sesudah setiap pemakaian.
+- Hentikan percobaan bila ketiganya habis, lalu laporkan penyebab yang tersisa. Batas ini khusus pekerjaan A7/branding/APK sekarang; tidak mengubah aturan CI bagian lain atau mengizinkan perubahan workflow/dependensi.
+- Status saat dicatat: analyze terakhir bersih; unit 223 lulus/1 gagal akibat acuan GOYANA yang sudah diperbaiki menjadi Goyana. Screenshot dan APK baru masih perlu diverifikasi.
