@@ -72,3 +72,6 @@ Paduka menyatakan: "Sekarang aku kasih 3 jatah tulis di md".
 - Tidak perlu meminta izin lagi selama masih dalam tiga jatah ini. Catat nomor run, hasil dan sisa jatah sesudah setiap pemakaian.
 - Hentikan percobaan bila ketiganya habis, lalu laporkan penyebab yang tersisa. Batas ini khusus pekerjaan A7/branding/APK sekarang; tidak mengubah aturan CI bagian lain atau mengizinkan perubahan workflow/dependensi.
 - Status saat dicatat: analyze terakhir bersih; unit 223 lulus/1 gagal akibat acuan GOYANA yang sudah diperbaiki menjadi Goyana. Screenshot dan APK baru masih perlu diverifikasi.
+
+### Pemakaian jatah baru — CI5
+Jatah pertama dari tiga tambahan dipakai untuk CI5 pada kode terbaru dengan acuan header Goyana yang sudah diperbaiki. Counter saat run dimulai: **1/3 terpakai, 2 tersisa**. Hasil run dan APK akan dicatat sesudah verifikasi.
