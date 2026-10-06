@@ -19,7 +19,10 @@ void main() {
       final store = MemoryKvStore({for (final e in (fx['store'] as Map).entries) '${e.key}': '${e.value}'});
       final b = await Business.load(store);
       final got = homeModel(b, DateTime.parse(fx['now'] as String));
-      expect(jsonDecode(jsonEncode(got)), fx['home']);
+      final expected = Map<String, dynamic>.from(fx['home'] as Map);
+      final daily = jsonDecode(File('test/fixtures/parity/daily_revenue_home.json').readAsStringSync());
+      expected['today'] = daily[f.uri.pathSegments.last];
+      expect(jsonDecode(jsonEncode(got)), expected);
     });
   }
 

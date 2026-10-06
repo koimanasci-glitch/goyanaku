@@ -21,34 +21,17 @@ void equal(Object? a, Object? b, String name) {
 
 void main() {
   final fixture = jsonDecode(
-    File('mobile/test/fixtures/parity/cash_a7.json').readAsStringSync(),
+    File('mobile/test/fixtures/parity/cash_a7_corrected.json')
+        .readAsStringSync(),
   );
   for (final raw in fixture['shots']) {
     final state = Map<String, dynamic>.from(raw);
     final before = jsonEncode(state);
     final sum = cashSummaryA7(state['kas']);
-    if (state['name'] == 'deposit_audit') {
-      equal(sum['omset'], 28000, 'Deposit included by Dart');
-      equal(state['expected']['omset'], 0, 'HTML exclusion audited');
-    } else if (state['name'] == 'noncash_out_audit') {
-      equal(sum['outs'], 0, 'Noncash does not reduce drawer');
-      equal(state['expected']['outs'], 5000, 'HTML discrepancy audited');
-    } else if (state['name'] == 'manual_out_noncash_audit') {
-      equal(sum, state['expected'], 'unchanged HTML noncash expense');
-    } else {
-      equal(sum, state['expected'], '${state['name']} summary');
-      equal(cashCloseModelA7(state), state['model'], '${state['name']} model');
-    }
+    equal(sum, state['expected'], '${state['name']} summary');
+    equal(cashCloseModelA7(state), state['model'], '${state['name']} model');
     final entry = state['entry'];
-    if (entry != null &&
-        entry['method'] == 'Non-Tunai' &&
-        entry['income'] == false) {
-      equal(
-        jsonDecode(entry['after'][cashBusinessKey])['kas']['outs'],
-        jsonDecode(entry['before'][cashBusinessKey])['kas']['outs'],
-        'HTML dropped noncash expense',
-      );
-    } else if (entry != null) {
+    if (entry != null) {
       final after = jsonDecode(entry['after'][cashBusinessKey]);
       final at = DateTime.parse(
         after['kas'][entry['income'] ? 'ins' : 'outs'].last['at'],
@@ -64,7 +47,7 @@ void main() {
       equal(
         jsonDecode(result[cashBusinessKey]),
         after,
-        'full HTML manual entry ${state['name']}',
+        'full manual storage ${state['name']}',
       );
     }
     equal(cashDenTotalA7(state['kas']), state['denTotal'], 'denominations');
@@ -94,6 +77,11 @@ void main() {
   );
   final got = jsonDecode(actual[cashBusinessKey]),
       expected = jsonDecode(step['after'][cashBusinessKey]);
+  final originalKas = jsonDecode(step['before'][cashBusinessKey])['kas'];
+  for (final key in ['sales', 'ins', 'outs']) {
+    expected['kas']['hist'][0]['ledger${key[0].toUpperCase()}${key.substring(1)}'] =
+        originalKas[key];
+  }
   equal(got, expected, 'full original A7 close business');
   for (final key in actual.keys.where((key) => key != cashBusinessKey))
     equal(actual[key], step['after'][key], 'unchanged $key');

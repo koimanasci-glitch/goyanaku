@@ -8,7 +8,7 @@ PATCHES = [f'goyana-v{v}-{name}.js' for v, name in [
     (181, 'system-fixes'), (182, 'finance-hpp'),
     (183, 'delivery-transport'), (184, 'owner-transport-settings'),
     (185, 'qris-stability'), (187, 'home-navigation'), (188, 'mobile-polish'),
-    (189, 'getting-started'), (190, 'subscription-layout'), (191, 'chatbot-settings'), (193, 'qris-map'), (195, 'wa-devices'), (196, 'small-screen'), (197, 'sync'), (198, 'flow-fixes')]]
+    (189, 'getting-started'), (190, 'subscription-layout'), (191, 'chatbot-settings'), (193, 'qris-map'), (195, 'wa-devices'), (196, 'small-screen'), (197, 'sync'), (198, 'flow-fixes'), (200, 'cash'), (201, 'brand')]]
 
 TEST_PATCH = 'goyana-v192-test-mode.js'
 SYNC_CORE = 'goyana-sync-core.js'
@@ -17,6 +17,9 @@ SYNC_TAG = f'<script src="{SYNC_CORE}"></script>'
 def prepare(source, target, test_mode=False, api_url=None):
     source, target = Path(source), Path(target)
     target.mkdir(parents=True, exist_ok=True)
+    branding = source / 'mobile' / 'assets' / 'branding'
+    if branding.exists():
+        shutil.copytree(branding, target / 'branding', dirs_exist_ok=True)
     text = (source / 'index.html').read_text(encoding='utf-8')
     patches = PATCHES + ([TEST_PATCH] if test_mode else [])
     for name in PATCHES + [TEST_PATCH]:

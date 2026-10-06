@@ -13,7 +13,14 @@ Map<String, dynamic> _clone(Map m) =>
     Map<String, dynamic>.from(jsonDecode(jsonEncode(m)) as Map);
 
 Map<String, int> cashSummaryA7(Map kas) {
-  var t = 0, q = 0, f = 0, deposit = 0, ins = 0, ntIns = 0, outs = 0;
+  var t = 0,
+      q = 0,
+      f = 0,
+      deposit = 0,
+      ins = 0,
+      ntIns = 0,
+      outs = 0,
+      ntOuts = 0;
   for (final s in (kas['sales'] as List? ?? const []).whereType<Map>()) {
     switch (s['m']) {
       case 'Tunai':
@@ -36,7 +43,11 @@ Map<String, int> cashSummaryA7(Map kas) {
     }
   }
   for (final s in (kas['outs'] as List? ?? const []).whereType<Map>()) {
-    if (s['m'] != 'Non-Tunai') outs += _n(s['a']);
+    if (s['m'] == 'Non-Tunai') {
+      ntOuts += _n(s['a']);
+    } else {
+      outs += _n(s['a']);
+    }
   }
   return {
     't': t,
@@ -46,7 +57,7 @@ Map<String, int> cashSummaryA7(Map kas) {
     'ins': ins,
     'outs': outs,
     'expect': _n(kas['start']) + t + ins - outs,
-    'nt': q + f + ntIns,
+    'nt': q + f + ntIns - ntOuts,
   };
 }
 
@@ -110,6 +121,9 @@ Map<String, dynamic> closeCashA7({
     'diff': diff,
     'setor': setor,
     'note': note.trim(),
+    'ledgerSales': k['sales'] ?? [],
+    'ledgerIns': k['ins'] ?? [],
+    'ledgerOuts': k['outs'] ?? [],
   });
   k.addAll(<String, dynamic>{
     'hist': hist,
@@ -139,9 +153,6 @@ Map<String, dynamic> cashEntryA7({
   required String note,
 }) {
   if (amount <= 0 || amount > _maxSafe) throw StateError('Invalid amount');
-  if (!income && method != 'Tunai') {
-    throw StateError('Non-cash expense requires HTML correction approval');
-  }
   if (method != 'Tunai' && method != 'Non-Tunai') {
     throw StateError('Choose a cash method');
   }
@@ -158,6 +169,7 @@ Map<String, dynamic> cashEntryA7({
             'at': at.toUtc().toIso8601String(),
           }
         : <String, dynamic>{
+            if (method == 'Non-Tunai') 'm': method,
             't': note.isEmpty ? 'Pengeluaran' : note,
             'a': amount,
             'at': at.toUtc().toIso8601String(),

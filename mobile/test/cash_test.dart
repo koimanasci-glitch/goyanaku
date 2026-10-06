@@ -6,12 +6,11 @@ import 'package:goyana_flutter/logic/cash.dart';
 
 void main() {
   final fixture = jsonDecode(
-    File('test/fixtures/parity/cash_a7.json').readAsStringSync(),
+    File('test/fixtures/parity/cash_a7_corrected.json').readAsStringSync(),
   );
   for (final raw in fixture['shots']) {
     final state = Map<String, dynamic>.from(raw);
-    if ('${state['name']}'.endsWith('_audit')) continue;
-    test('A7 original cash ${state['name']}', () {
+    test('A7 corrected cash ${state['name']}', () {
       final original = jsonEncode(state);
       expect(cashSummaryA7(state['kas']), state['expected']);
       expect(cashDenTotalA7(state['kas']), state['denTotal']);
@@ -34,8 +33,8 @@ void main() {
   }
   for (final state in fixture['shots']) {
     final entry = state['entry'];
-    if (entry == null || state['name'].endsWith('_audit')) continue;
-    test('A7 original manual storage ${state['name']}', () {
+    if (entry == null) continue;
+    test('A7 corrected manual storage ${state['name']}', () {
       final after = jsonDecode(entry['after'][cashBusinessKey]);
       final at = DateTime.parse(
         after['kas'][entry['income'] ? 'ins' : 'outs'].last['at'],
@@ -79,10 +78,13 @@ void main() {
       'qrisReal': '0',
       'tfReal': '0',
     });
-    expect(
-      jsonDecode(result[cashBusinessKey]),
-      jsonDecode(old['after'][cashBusinessKey]),
-    );
+    final expected = jsonDecode(old['after'][cashBusinessKey]);
+    final originalKas = jsonDecode(before[cashBusinessKey])['kas'];
+    for (final key in ['sales', 'ins', 'outs']) {
+      expected['kas']['hist'][0]['ledger${key[0].toUpperCase()}${key.substring(1)}'] =
+          originalKas[key];
+    }
+    expect(jsonDecode(result[cashBusinessKey]), expected);
     for (final key in before.keys.where((k) => k != cashBusinessKey)) {
       expect(result[key], old['after'][key]);
     }
@@ -167,16 +169,20 @@ void main() {
             : {'t': 'Uji', 'a': 5000, 'at': '2026-10-06T00:00:00.000Z'},
       );
     }
-    expect(
-      () => cashEntryA7(
+    final noncash = jsonDecode(
+      cashEntryA7(
         before: before,
         at: DateTime.utc(2026, 10, 6),
         income: false,
         method: 'Non-Tunai',
         amount: 5000,
         note: '',
-      ),
-      throwsStateError,
+      )[cashBusinessKey],
+    );
+    expect(noncash['kas']['outs'].last['m'], 'Non-Tunai');
+    expect(
+      cashSummaryA7(noncash['kas'])['expect'],
+      cashSummaryA7(jsonDecode(before[cashBusinessKey])['kas'])['expect'],
     );
     expect(
       () => cashEntryA7(
@@ -190,13 +196,16 @@ void main() {
       throwsStateError,
     );
   });
-  test('A7 known HTML discrepancy uses runtime fallback', () {
-    final audit = fixture['shots'].firstWhere(
+  test('A7 historical discrepancy retained for audit', () {
+    final originalFixture = jsonDecode(
+      File('test/fixtures/parity/cash_a7.json').readAsStringSync(),
+    );
+    final audit = originalFixture['shots'].firstWhere(
       (s) => s['name'] == 'deposit_audit',
     );
     expect(cashSummaryA7(audit['kas'])['omset'], 28000);
     expect(audit['expected']['omset'], 0);
-    final noncash = fixture['shots'].firstWhere(
+    final noncash = originalFixture['shots'].firstWhere(
       (s) => s['name'] == 'noncash_out_audit',
     );
     expect(cashSummaryA7(noncash['kas'])['outs'], 0);

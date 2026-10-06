@@ -3,6 +3,7 @@
 
 import '../core/business.dart';
 import '../core/money.dart';
+import 'cash_day.dart';
 
 const _slides = [
   {'brand': 'GOYANA SMART SERVICE', 'title': 'Chatbot Pintar\nLayani Pelanggan 24 Jam', 'sub': 'Balasan cepat & otomatis'},
@@ -25,12 +26,7 @@ Map<String, dynamic> homeModel(Business b, DateTime now) {
   // Siap diambil / Terlambat: jumlah kartu berstatus siap / telat.
   final ready = orders.where((o) => o.status == 'siap').length;
   final late = orders.where((o) => o.status == 'telat').length;
-  // Omset: total penjualan di kas (shift berjalan).
-  var omzet = 0;
-  for (final s in (b.kas['sales'] as List? ?? const []).whereType<Map>()) {
-    final a = s['a'];
-    omzet += a is num ? a.round() : parseRupiah(a);
-  }
+  final omzet = cashDayRevenue(b.kas, now, business: b.raw);
   // Lencana "Hari Ini": jatuh tempo hari ini (WIB), status belum selesai, di outlet aktif.
   const excluded = {'siap', 'telat', 'diantar', 'diambil', 'selesai', 'batal'};
   final today = _jktDay(now);

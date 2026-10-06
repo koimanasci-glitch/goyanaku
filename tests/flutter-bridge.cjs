@@ -552,7 +552,7 @@ try{
   assert.equal(payments.status,0,payments.stderr||payments.stdout);
   console.log('PASS A5 payment corrections: methods, amounts, deposit refund once, rollback, legacy and reload');
   {const a6=spawnSync(process.execPath,[path.join(root,'tests/parity/status-a6.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(a6.status,0,a6.stdout+'\n'+a6.stderr);console.log('PASS A6 status timers: seven settings, exact boundaries, delivery exclusions, manual ready and reminder plans');}
-  {const a7=spawnSync(process.execPath,[path.join(root,'tests/parity/cash-a7.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(a7.status,0,a7.stdout+'\n'+a7.stderr);console.log('PASS A7 cash: 14 original states, manual entries, close and persisted history reload; financial discrepancies audited');}
+  {const a7=spawnSync(process.execPath,[path.join(root,'tests/parity/cash-a7.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(a7.status,0,a7.stdout+'\n'+a7.stderr);console.log('PASS A7 cash: 14 corrected states, Deposit revenue, noncash expenses, close and persisted history reload');}
   await require('./customer-status.cjs')(b);
   const checkoutCases=await require('./parity/checkout111.cjs')(b);
   assert.deepEqual(checkoutCases,JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/checkout111_cases.json'),'utf8')));
@@ -591,3 +591,10 @@ try{
   assert.deepEqual(stablePopups(remainingPopups),stablePopups(expectedRemaining));
   for(const id of [...new Set(remainingPopups.map(c=>c.id))]) console.log('PASS B12 '+id+' fixtures 390/320 and scoped close without saving');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
+
+// Pure dated revenue checks run with the same fixture used by Dart.
+{const r=spawnSync(process.execPath,[path.join(root,'tests/parity/cash-day.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(r.status,0,r.stdout+'\n'+r.stderr);console.log(r.stdout.trim());}
+
+{const r=spawnSync(process.execPath,[path.join(root,'tests/parity/cash-day-ui.cjs')],{env:process.env,encoding:'utf8'});assert.equal(r.status,0,r.stdout+'\n'+r.stderr);console.log(r.stdout.trim());}
+
+{const r=spawnSync(process.execPath,[path.join(root,'tests/parity/home-day.cjs'),'--verify-only'],{env:process.env,encoding:'utf8'});assert.equal(r.status,0,r.stdout+'\n'+r.stderr);console.log(r.stdout.trim());}

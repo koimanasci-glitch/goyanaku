@@ -7873,8 +7873,8 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   var DEN=[100000,50000,20000,10000,5000,2000,1000,500];
   function sum(arr,f){return arr.reduce(function(s,x){return s+(f?f(x):x.a)},0)}
   function by(m){return K.sales.filter(function(x){return x.m===m})}
-  function calc(){var t=sum(by('Tunai')),q=sum(by('QRIS')),f=sum(by('Transfer')),i=sum(K.ins.filter(function(x){return x.m!=='Non-Tunai'})),o=sum(K.outs);
-    return {t:t,q:q,f:f,omset:t+q+f,ins:i,outs:o,expect:K.start+t+i-o,nt:q+f+sum(K.ins.filter(function(x){return x.m==='Non-Tunai'}))}}
+  function calc(){var t=sum(by('Tunai')),q=sum(by('QRIS')),f=sum(by('Transfer')),i=sum(K.ins.filter(function(x){return x.m!=='Non-Tunai'})),o=sum(K.outs.filter(function(x){return x.m!=='Non-Tunai'}));
+    return {t:t,q:q,f:f,omset:t+q+f+sum(by('Deposit')),ins:i,outs:o,expect:K.start+t+i-o,nt:q+f+sum(K.ins.filter(function(x){return x.m==='Non-Tunai'}))-sum(K.outs.filter(function(x){return x.m==='Non-Tunai'}))}}
   function unpaid(){var n=0,a=0;document.querySelectorAll('#orders .g62-ordercard').forEach(function(c){var em=c.querySelector('.g62-order-body strong em');if(em&&/Belum/i.test(em.textContent)&&c.dataset.st!=='batal'){n++;var st=c.querySelector('.g62-order-body strong');a+=amt(st)}});return {n:n,a:a}}
   function amt(st){var x='';if(st)[].forEach.call(st.childNodes,function(n){if(n.nodeType===3)x+=n.textContent});return num(x)}
   function denTotal(){return DEN.reduce(function(s,d){return s+d*(K.den[d]||0)},0)}
@@ -7947,9 +7947,11 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
       lastTxt='*TUTUP KAS · GOYANA '+K.outlet.toUpperCase()+'*\n'+tgl(now)+' · '+K.openAt+'–'+hm(now)+'\nKasir: '+K.kasir+'\n\n'+
         '*Penjualan* ('+K.sales.length+' trx)\nTunai     : '+rp(c.t)+'\nQRIS      : '+rp(c.q)+(dq==null?'':dq===0?' ✓':' ⚠ selisih '+(dq<0?'−':'+')+rp(Math.abs(dq)))+'\nTransfer  : '+rp(c.f)+(dfr==null?'':dfr===0?' ✓':' ⚠ selisih '+(dfr<0?'−':'+')+rp(Math.abs(dfr)))+'\n*Omset     : '+rp(c.omset)+'*\n'+(u.n?'Belum bayar: '+u.n+' pesanan ('+rp(u.a)+')\n':'')+
         '\n*Laci*\nModal awal : '+rp(K.start)+'\nKas masuk  : '+rp(c.ins)+'\nPengeluaran: '+rp(c.outs)+'\nSeharusnya : '+rp(c.expect)+'\nUang fisik : '+rp(phys)+'\n*Selisih    : '+(d===0?'PAS ✓':(d<0?'KURANG ':'LEBIH ')+rp(Math.abs(d)))+'*\n\nDisetor : '+rp(setor)+'\nSisa laci: '+rp(phys-setor)+(note?'\nCatatan: '+note:'');
-      K.hist.unshift({d:now,kasir:K.kasir,omset:c.omset,diff:d,setor:setor,note:note});
-      audit('✓','Tutup kas',K.kasir+' · omset '+rp(c.omset)+' · '+(d===0?'pas':(d<0?'kurang ':'lebih ')+rp(Math.abs(d))));
+      var previous=JSON.parse(JSON.stringify(K));
+      K.hist.unshift({d:now,kasir:K.kasir,omset:c.omset,diff:d,setor:setor,note:note,ledgerSales:JSON.parse(JSON.stringify(K.sales)),ledgerIns:JSON.parse(JSON.stringify(K.ins)),ledgerOuts:JSON.parse(JSON.stringify(K.outs))});
       K.start=phys-setor;K.openAt=hm(now);K.sales=[];K.ins=[];K.outs=[];K.den={};K.phys=null;K.qrisReal='';K.tfReal='';K.setor=null;
+      if(window.flushTransactions177&&!window.flushTransactions177()){Object.assign(K,previous);['sales','ins','outs','hist'].forEach(function(key){K[key].forEach(function(x){['at','d','voidAt'].forEach(function(f){if(x[f])x[f]=new Date(x[f])})})});toast90('Gagal menyimpan tutup kas. Coba lagi.');return}
+      audit('✓','Tutup kas',K.kasir+' · omset '+rp(c.omset)+' · '+(d===0?'pas':(d<0?'kurang ':'lebih ')+rp(Math.abs(d))));
       ['kc-phys','kc-qr','kc-fr','kc-note','kc-setor'].forEach(function(id){$(id).value=''});box.querySelectorAll('#kc-den input').forEach(function(i){i.value=0});
       paint();$('kc137s-sub').textContent='Shift baru dimulai '+hm(now)+' · modal laci '+rp(K.start);$('kc137s-txt').textContent=lastTxt;openSheet91('kc137s');
     });
@@ -7972,7 +7974,7 @@ body.flow121 #addorder .flow61-wrap{padding-bottom:150px!important}
   var se=window.saveExpense107;
   if(se)window.saveExpense107=function(){var a=num(($('ex107-amt')||{}).value),c=($('ex107-cat')||{}).value||'Lain-lain',n=($('ex107-note')||{}).value||'';se.apply(this,arguments);if(a)K.outs.push({t:c+(n?' · '+n:''),a:a})};
   document.addEventListener('click',function(e){var b=e.target.closest('#cashin .cash-submit,#cashout .cash-submit');if(!b)return;var pg=b.closest('.page'),a=num((pg.querySelector('input[placeholder="Jumlah"]')||{}).value),t=(pg.querySelector('select.cash-input')||{}).value||'Tunai',k=(pg.querySelector('input[placeholder="Keterangan"]')||{}).value||'';
-    if(!a)return; if(pg.id==='cashin')K.ins.push({m:/Non/.test(t)?'Non-Tunai':'Tunai',a:a,t:k});else if(!/Non/.test(t))K.outs.push({t:k||'Pengeluaran',a:a});},true);
+    if(!a)return; if(pg.id==='cashin')K.ins.push({m:/Non/.test(t)?'Non-Tunai':'Tunai',a:a,t:k});else K.outs.push(Object.assign({t:k||'Pengeluaran',a:a},/Non/.test(t)?{m:'Non-Tunai'}:{}));},true);
   function statCash(){var c=calc();['cashin','cashout'].forEach(function(id){var st=document.querySelectorAll('#'+id+' .cash-stat-list strong');if(st[0])st[0].textContent=rp(c.expect);if(st[1])st[1].textContent=rp(c.nt)})}
 
   /* =====================================================
@@ -10983,7 +10985,7 @@ html,body{overflow-x:clip!important}
   if(window.counts108)counts108();if(window.apply108)apply108();
   function summary(){
     var cs=cards(),K=window.KAS137||{sales:[]};
-    var omzet=(K.sales||[]).reduce(function(t,x){return t+(x.a||0)},0);
+    var omzet=window.cashDayRevenue200?window.cashDayRevenue200(K,new Date()):(K.sales||[]).reduce(function(t,x){return t+(x.a||0)},0);
     var values=[cs.length,cs.filter(function(c){return c.dataset.st==='siap'}).length,cs.filter(function(c){return c.dataset.st==='telat'}).length];
     document.querySelectorAll('#home .stats b').forEach(function(e,i){e.textContent=String(values[i]||0)});
     ['gy155-in','gy155-progress','gy155-ready'].forEach(function(id,i){if($(id))$(id).textContent=String(values[i])});
@@ -11390,7 +11392,7 @@ const op=window.openPage;window.openPage=function(id){if(['checkout111','invoice
 // App purchases require actual billing integration; legacy demo confirmations must not activate subscriptions.
 window.confirmUpgradePaid=()=>toast90('Pembelian belum tersedia. Google Play Billing dan server akun perlu dihubungkan.');
 window.selectUpgradePayment=window.placeOrder111=window.checkPay111=()=>toast90('Pembelian belum tersedia. Google Play Billing dan server akun perlu dihubungkan.');
-async function ready(){await Promise.all([new Promise(r=>setTimeout(r,950)),Promise.race([document.fonts?.ready||Promise.resolve(),new Promise(r=>setTimeout(r,2500))]),Promise.race([window.device178?device178.insets().then(r=>document.documentElement.style.setProperty('--goyana-safe-top',r.top+'px')).catch(()=>{}):Promise.resolve(),new Promise(r=>setTimeout(r,2500))])]);requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.classList.remove('boot180');$('boot180')?.remove()}))}
+async function ready(){await Promise.all([Promise.race([document.fonts?.ready||Promise.resolve(),new Promise(r=>setTimeout(r,2500))]),Promise.race([window.device178?device178.insets().then(r=>document.documentElement.style.setProperty('--goyana-safe-top',r.top+'px')).catch(()=>{}):Promise.resolve(),new Promise(r=>setTimeout(r,2500))])]);requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.classList.remove('boot180');$('boot180')?.remove()}))}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 </script>

@@ -23,6 +23,7 @@ import '../native/cash_page.dart';
 import '../native/cashclose_page.dart';
 import '../native/cat99_sheet.dart';
 import '../native/common.dart';
+import '../native/brand_intro.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/gs107_sheet.dart';
@@ -94,6 +95,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
   late final NativeBridge _bridge;
   final _device = const MethodChannel('id.goyana/device');
   bool _loading = true;
+  bool _brandIntroDone = false;
   String? _nativePage; // 'home' | 'orders' while a native page covers the WebView
   HomeModel _home = const HomeModel();
   OrdersModel _orders = const OrdersModel();
@@ -1458,13 +1460,10 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
                 left: 24, right: 24, bottom: 130,
                 child: IgnorePointer(child: Center(child: NativeToast(text: _toast))),
               ),
-            if (_loading && _loadError == null)
-              const Positioned.fill(
-                child: ColoredBox(
-                  color: Colors.white,
-                  child: Center(child: CircularProgressIndicator(color: _brand)),
-                ),
-              ),
+            if (!_brandIntroDone && _loadError == null)
+              Positioned.fill(child: BrandIntro(ready: !_loading, onDone: () {
+                if (mounted) { setState(() => _brandIntroDone = true); }
+              })),
             if (_loadError != null)
               Positioned.fill(
                 child: ColoredBox(

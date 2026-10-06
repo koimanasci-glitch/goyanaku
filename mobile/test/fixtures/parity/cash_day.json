@@ -1,0 +1,207 @@
+{
+  "shots": [
+    {
+      "name": "WIB midnight and month boundary",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [
+          {
+            "m": "Tunai",
+            "a": 10000,
+            "at": "2026-10-31T16:59:59Z"
+          },
+          {
+            "m": "Deposit",
+            "a": 28000,
+            "at": "2026-10-31T17:00:00Z"
+          }
+        ],
+        "ins": [
+          {
+            "a": 50000,
+            "deposit178": true
+          }
+        ],
+        "hist": []
+      },
+      "expected": 28000
+    },
+    {
+      "name": "multiple closed shifts and signed refund",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [
+          {
+            "m": "Tunai",
+            "a": -3000,
+            "at": "2026-11-01T00:00:00Z"
+          }
+        ],
+        "hist": [
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "ledgerSales": [
+              {
+                "m": "Deposit",
+                "a": 28000,
+                "at": "2026-10-31T17:00:00Z"
+              }
+            ]
+          },
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "ledgerSales": [
+              {
+                "m": "Tunai",
+                "a": 10000,
+                "at": "2026-10-31T16:59:59Z"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": 25000
+    },
+    {
+      "name": "aggregate date is not receipt date",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [],
+        "hist": [
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "omset": 10000
+          }
+        ]
+      },
+      "business": {
+        "orders": [
+          {
+            "dataset": {
+              "payments178": "[{\"m\":\"Tunai\",\"a\":10000,\"at\":\"2026-10-31T16:59:59Z\"}]"
+            }
+          }
+        ]
+      },
+      "expected": 0
+    },
+    {
+      "name": "legacy dated receipts with archive and active dedup",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [
+          {
+            "m": "Tunai",
+            "a": -3000,
+            "at": "2026-11-01T00:00:00Z"
+          }
+        ],
+        "hist": [
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "omset": 38000
+          },
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "ledgerSales": [
+              {
+                "m": "Deposit",
+                "a": 28000,
+                "at": "2026-10-31T17:00:00Z"
+              }
+            ]
+          }
+        ]
+      },
+      "business": {
+        "orders": [
+          {
+            "dataset": {
+              "payments178": "[{\"m\":\"Tunai\",\"a\":10000,\"at\":\"2026-10-31T16:59:59Z\"},{\"m\":\"Deposit\",\"a\":28000,\"at\":\"2026-10-31T17:00:00Z\"},{\"m\":\"Tunai\",\"a\":-3000,\"at\":\"2026-11-01T00:00:00Z\"}]"
+            }
+          }
+        ]
+      },
+      "expected": 25000
+    },
+    {
+      "name": "identical receipts remain separate transactions",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [],
+        "hist": [
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "omset": 56000
+          },
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "ledgerSales": [
+              {
+                "m": "Deposit",
+                "a": 28000,
+                "at": "2026-10-31T17:00:00Z"
+              }
+            ]
+          }
+        ]
+      },
+      "business": {
+        "orders": [
+          {
+            "dataset": {
+              "payments178": "[{\"m\":\"Deposit\",\"a\":28000,\"at\":\"2026-10-31T17:00:00Z\"},{\"m\":\"Deposit\",\"a\":28000,\"at\":\"2026-10-31T17:00:00Z\"}]"
+            }
+          }
+        ]
+      },
+      "expected": 56000
+    },
+    {
+      "name": "topup alone is not revenue",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [],
+        "hist": [],
+        "ins": [
+          {
+            "a": 50000,
+            "deposit178": true
+          }
+        ]
+      },
+      "expected": 0
+    },
+    {
+      "name": "reload preserves dated archives",
+      "now": "2026-11-01T01:00:00Z",
+      "kas": {
+        "sales": [
+          {
+            "m": "Tunai",
+            "a": -3000,
+            "at": "2026-11-01T00:00:00Z"
+          }
+        ],
+        "hist": [
+          {
+            "d": "2026-11-01T01:00:00Z",
+            "ledgerSales": [
+              {
+                "m": "Deposit",
+                "a": 28000,
+                "at": "2026-10-31T17:00:00Z"
+              },
+              {
+                "m": "Tunai",
+                "a": 10000,
+                "at": "2026-10-31T16:59:59Z"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": 25000
+    }
+  ]
+}

@@ -43,3 +43,11 @@ Paduka mengirim tiga gambar dan menjelaskan fungsi masing-masing. Permintaan log
 - 162922.png: Library libfile_fd6ca8ba96dc8191b7ef00ee462c195f; lampiran file_0000000036f081fa9e12683b87481b56; PNG RGB 1536 x 1024.
 
 Ketiga berkas asli berhasil dibaca dari salinan lampiran setelah jalur upload awal tidak tersedia. Tidak membuat ulang atau mengedit gambar dalam putaran pencatatan ini.
+
+## 6 Oktober 2026, 07:25 WIB — Gas: implementasi disetujui
+
+Persetujuan terbaru mencakup ketiga koreksi A7 dan pemasangan ikon/logo/animasi yang sebelumnya dicatat. Kode sekarang mencatat Deposit sebagai pembayaran laundry, menyimpan pengeluaran Non-Tunai dan mengarsipkan rincian transaksi setiap tutup shift. Omzet harian memakai tanggal transaksi WIB, bukan tanggal tutup kas.
+
+Launcher asli terpasang untuk lima kepadatan Android. Simbol PNG transparan memakai outline bersih dari ikon acuan; tulisan Goyana dibuat lewat Flutter Text. Animasi Flutter lengkap 3000ms sekali pada pembukaan pertama, berikutnya transisi 350ms bersama inisialisasi. Penanda tersimpan terpisah dari onboarding. Jeda lama 950ms telah dihapus.
+
+Tes lokal hitungan, batas hari/bulan, dua shift, batal, kegagalan penyimpanan dan buka ulang sudah lulus. Satu CI tambahan yang disetujui akan dipakai untuk memeriksa keseluruhan Flutter dan menghasilkan APK. A8 tetap pekerjaan setelah A7 selesai dan dilaporkan.

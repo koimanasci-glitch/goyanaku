@@ -63,9 +63,9 @@ class GTopBar extends StatelessWidget {
           Positioned(
             left: 16, right: 16, top: top, height: 64,
             child: Row(children: [
-              GWhiteSquare(onTap: null, child: gSvg(svgLogo, 24)),
+              Image.asset('assets/branding/mark.png', width: 34, height: 34),
               const SizedBox(width: 9),
-              Text('GOYANA', style: gText(31, w: FontWeight.w500, c: Colors.white, h: 34, ls: .2)),
+              Text('Goyana', style: gText(31, w: FontWeight.w500, c: Colors.white, h: 34, ls: .2)),
               const Spacer(),
               GWhiteSquare(onTap: onScan, child: gSvg(svgScan, 22)),
             ]),

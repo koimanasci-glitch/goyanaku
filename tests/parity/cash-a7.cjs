@@ -35,7 +35,7 @@ const original=JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/p
    await page.clock.runFor(400);
    entry.after=await page.evaluate(()=>{flushTransactions177();return {'goyana-business177':localStorage.getItem('goyana-business177')}});
    await page.evaluate(()=>openPage('cashclose'));await page.clock.runFor(200);
-   if(name==='manual_out_noncash_audit')assert.deepEqual(JSON.parse(entry.before['goyana-business177']).kas.outs,JSON.parse(entry.after['goyana-business177']).kas.outs,'Non-Tunai expense silently not recorded');
+   if(name==='manual_out_noncash_audit'){const after=JSON.parse(entry.after['goyana-business177']).kas.outs;assert.equal(after.length,JSON.parse(entry.before['goyana-business177']).kas.outs.length+1);assert.equal(after.at(-1).m,'Non-Tunai');}
   }
   const shot=await page.evaluate(name=>({name,...__goyanaCashA7()}),name);if(entry)shot.entry=entry;shots.push(shot);
   if(name==='balanced'){
@@ -48,11 +48,11 @@ const original=JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/p
   await page.close();
  }
  assert.deepEqual(errors,[]);
- const file=path.join(root,'mobile/test/fixtures/parity/cash_a7.json');
+ const file=path.join(root,'mobile/test/fixtures/parity/cash_a7_corrected.json');
  if(process.argv.includes('--verify-only')) {
   const stable=s=>({name:s.name,expected:s.expected,denTotal:s.denTotal,unpaid:s.unpaid,model:s.model,restoredModel:s.restored?.model});
   assert.deepEqual(shots.map(stable),JSON.parse(fs.readFileSync(file)).shots.map(stable));
  }else fs.writeFileSync(file,JSON.stringify({shots},null,2)+'\n');
- console.log('PASS A7 '+shots.length+' original cash states; close and SQLite-adapter reload');
+ console.log('PASS A7 '+shots.length+' corrected cash states; close and SQLite-adapter reload');
  } finally {await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
