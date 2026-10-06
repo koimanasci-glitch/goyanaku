@@ -1377,3 +1377,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Perbaikan: ikon splash Android 12+ diganti transparan (`values-v31/styles.xml`); `launch_background.xml` (Android 11 ke bawah) tidak lagi memuat ikon dan memakai gradasi merah yang sama dengan animasi pembuka.
 - Tes: belum dibangun/dicoba di HP; perlu 1 CI dan uji di perangkat. Jatah CI tambahan sudah habis (3/3), menunggu izin.
 - Catatan: Android 12+ tetap menampilkan layar sistem sekejap (warna polos #FF493C) sebelum frame pertama; yang hilang adalah ikonnya. Warna ini tidak bisa berupa gradasi.
+
+## [Claude] Ikon Android baru dan teks tombol tidak huruf besar semua — 6 Oktober 2026 (branch flutter/panduan-baru)
+- Ikon aplikasi diganti dengan gambar baru dari Paduka (G + tulisan GOYANA): ikon lama `ic_launcher.png` 5 kepadatan, ditambah ikon adaptif Android 8+ (`mipmap-anydpi-v26/ic_launcher.xml`, latar buram + gambar di zona aman) supaya tidak terpotong oleh bentuk ikon HP. Sudut hitam gambar sumber dibuang. Dicek pratinjau bentuk lingkaran dan kotak membulat; belum dipasang di HP.
+- Teks tombol panduan: "Kembali / Lanjut / Mulai" (bukan huruf kapital semua). Tulisan "KASIR LAUNDRY" di bawah logo pembuka tetap kapital karena bagian dari logo; menunggu keputusan Paduka.
+- Tes: belum dijalankan; CI tambahan habis (3/3), menunggu izin.
