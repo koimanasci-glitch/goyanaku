@@ -1,9 +1,14 @@
-// A8 Laporan — kelompok Keuangan (omzet, arus, ptrx, metode, lain, keluar, piutang, diskon, bulat, laba).
+// A8 Laporan — kelompok Keuangan (10) dan Transaksi (7).
 // Menyalin hitungan mesin HTML (goyana-v170-reports-script) apa adanya; HTML tetap pembanding (paritas).
 // Waktu dipakai sebagai "jam dinding" (UTC yang sudah digeser zona perangkat) agar hasil sama di tiap mesin uji.
 import 'dart:math' as math;
 
-const reportIdsA8 = ['omzet', 'arus', 'ptrx', 'metode', 'lain', 'keluar', 'piutang', 'diskon', 'bulat', 'laba'];
+const reportIdsA8 = [
+  // Keuangan
+  'omzet', 'arus', 'ptrx', 'metode', 'lain', 'keluar', 'piutang', 'diskon', 'bulat', 'laba',
+  // Transaksi
+  'semua', 'layanan', 'durasi', 'status', 'batal', 'telat', 'antar',
+];
 const _day = Duration.millisecondsPerDay;
 const _bl = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const _hr = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -44,14 +49,23 @@ class RepOrder {
         rd = _num(raw['rd']),
         ong = _num(raw['ong']),
         kg = _num(raw['kg']),
+        dur = '${raw['dur'] ?? ''}',
+        antar = raw['antar'] == true,
+        items = [
+          for (final it in (raw['items'] as List? ?? const []).whereType<Map>())
+            (n: '${it['n'] ?? ''}', u: '${it['u'] ?? ''}', q: _num(it['q']), t: _num(it['t']))
+        ],
         payments = [
           for (final p in (raw['payments178'] as List? ?? const []).whereType<Map>()) (m: '${p['m'] ?? ''}', a: _num(p['a']))
         ];
   final Map raw;
-  final String id, c, m, st;
+  final String id, c, m, st, dur;
+  final bool antar;
+  final List<({String n, String u, num q, num t})> items;
   final num total, paid, disc, rd, ong, kg;
   final List<({String m, num a})> payments;
   late DateTime t;
+  DateTime? done;
 
   num get received => m == 'Batal' ? 0 : math.max(0, math.min(total, paid));
   num get cashReceived {
@@ -90,7 +104,9 @@ class RepCtx {
     final tz = _num(state['tz']).toInt() * 60000;
     DateTime w(Object? v) => _ms((v is num ? v.toInt() : DateTime.parse('$v').millisecondsSinceEpoch) + tz);
     final orders = [
-      for (final o in (state['ord'] as List).whereType<Map>()) RepOrder(o)..t = w(o['t'])
+      for (final o in (state['ord'] as List).whereType<Map>()) RepOrder(o)
+        ..t = w(o['t'])
+        ..done = o['done'] == null ? null : w(o['done'])
     ];
     final first = <String, DateTime>{};
     for (final o in orders) {
@@ -222,6 +238,16 @@ List<T> _sortedDesc<T>(List<T> a, num Function(T) key) {
 }
 
 List<Object> _kpi(String a, String b, String c, [String? tone]) => [a, b, c, ?tone];
+
+/// toLocaleString('id-ID'): titik ribuan, koma desimal (maks. 3 angka di belakang koma).
+String _idNum(num n) {
+  final neg = n < 0;
+  var s = n.abs().toStringAsFixed(3);
+  var parts = s.split('.');
+  var frac = parts[1].replaceFirst(RegExp(r'0+$'), '');
+  final out = _group(int.parse(parts[0])) + (frac.isEmpty ? '' : ',$frac');
+  return neg ? '-$out' : out;
+}
 
 Object _jsonNum(Object? v) => v is num ? _norm(v) : v!;
 
@@ -420,6 +446,135 @@ Map<String, Object?>? reportA8(String id, RepCtx c, RepRange r) {
           ],
           'raw': 1,
           'pv': _norm(l),
+        };
+      }
+    case 'semua':
+      {
+        final o = c.ords(r, all: true).reversed.toList();
+        return {
+          'k': [
+            _kpi('Pesanan', '${o.length}', '', 'w'),
+            _kpi('Selesai', '${o.where((x) => x.st == 'diambil').length}', ''),
+            _kpi('Dalam proses', '${o.where((x) => RegExp('antrian|proses|siap|telat').hasMatch(x.st)).length}', ''),
+          ],
+          'cols': ['Order', 'Pelanggan', 'Total'],
+          'rows': [
+            for (final x in o)
+              [
+                '${x.id}<small>${_dmy(x.t)} · ${x.dur}</small>',
+                '${_esc(x.c)}<small><span class="tag ${_stn[x.st]![1]}">${_stn[x.st]![0]}</span> ${x.m}</small>',
+                rpA8(x.total),
+              ]
+          ],
+          'raw': 1,
+          'pv': o.length,
+          'unit': 'order',
+        };
+      }
+    case 'layanan':
+      {
+        final m = <String, ({String n, String u, num q, int c, num v})>{};
+        for (final o in c.ords(r)) {
+          for (final it in o.items) {
+            final x = m[it.n];
+            m[it.n] = (n: it.n, u: x?.u ?? it.u, q: (x?.q ?? 0) + it.q, c: (x?.c ?? 0) + 1, v: (x?.v ?? 0) + it.t);
+          }
+        }
+        final a = _sortedDesc(m.values.toList(), (x) => x.v);
+        return {
+          'k': [
+            _kpi('Layanan terlaris', a.isNotEmpty ? a.first.n : '-', a.isNotEmpty ? rpA8(a.first.v) : '', 'w'),
+            _kpi('Jenis layanan', '${a.length}', ''),
+          ],
+          'ch': {'t': 'hb', 'd': [for (final x in a.take(6)) [x.n, _norm(x.v)]], 'money': 1, 'title': 'Pendapatan per layanan'},
+          'cols': ['Layanan', 'Jumlah', 'Pendapatan'],
+          'rows': [for (final x in a) ['${_esc(x.n)}<small>${x.c} order</small>', '${_idNum(jsRound(x.q * 10) / 10)} ${x.u}', rpA8(x.v)]],
+          'raw': 1,
+          'pv': a.isNotEmpty ? a.first.n : '-',
+          'txt': 1,
+        };
+      }
+    case 'durasi':
+      {
+        final o = c.ords(r);
+        final a = [
+          for (final d in const ['Reguler', 'Express', 'Kilat'])
+            () {
+              final x = o.where((y) => y.dur == d).toList();
+              return <Object>[d, x.length, _sum(x, (y) => y.total)];
+            }()
+        ];
+        return {
+          'k': [for (final x in a) [x[0], '${x[1]} order', rpA8(x[2] as num)]],
+          'ch': {'t': 'hb', 'd': [for (final x in a) [x[0], _jsonNum(x[2])]], 'money': 1, 'title': 'Omzet per durasi'},
+          'cols': ['Durasi', 'Order', 'Omzet'],
+          'rows': [for (final x in a) [x[0], x[1], rpA8(x[2] as num)]],
+          'pv': '${a[1][1]} express',
+          'txt': 1,
+        };
+      }
+    case 'status':
+      {
+        final o = c.ords(r, all: true);
+        final a = [
+          for (final k in const ['antrian', 'proses', 'siap', 'telat', 'diambil', 'batal']) [_stn[k]![0], o.where((x) => x.st == k).length]
+        ];
+        return {
+          'k': [for (final x in a.take(4)) [x[0], '${x[1]}', '']],
+          'ch': {'t': 'hb', 'd': a, 'title': 'Jumlah per status'},
+          'cols': ['Status', 'Jumlah', ''],
+          'rows': [for (final x in a) [x[0], x[1], '']],
+          'pv': '${a[3][1]} telat',
+          'txt': 1,
+        };
+      }
+    case 'batal':
+      {
+        final o = c.ords(r, all: true).where((x) => x.st == 'batal').toList();
+        const why = ['Pelanggan batal', 'Salah input', 'Barang tidak jadi dicuci'];
+        return {
+          'k': [_kpi('Dibatalkan', '${o.length} order', rpA8(_sum(o, (x) => x.total)), 'w')],
+          'cols': ['Order', 'Pelanggan', 'Nilai'],
+          'rows': [
+            for (final x in o.reversed)
+              [
+                '${x.id}<small>${_dmy(x.t)}</small>',
+                '${_esc(x.c)}<small>${why[x.id.codeUnitAt(x.id.length - 1) % 3]}</small>',
+                rpA8(x.total),
+              ]
+          ],
+          'raw': 1,
+          'pv': o.length,
+          'unit': 'order',
+          'empty': 'Tidak ada pesanan batal 👍',
+        };
+      }
+    case 'telat':
+      {
+        final o = [for (final x in c.orders) if (x.st == 'telat') x];
+        String lama(RepOrder x) => x.done == null
+            ? 'NaN hari'
+            : '${jsRound((c.now.millisecondsSinceEpoch - x.done!.millisecondsSinceEpoch) / _day)} hari';
+        return {
+          'k': [_kpi('Telat ambil', '${o.length} order', rpA8(_sum(o, (x) => x.total)), 'w')],
+          'cols': ['Order', 'Pelanggan', 'Lama'],
+          'rows': [for (final x in o) ['${x.id}<small>${rpA8(x.total)}</small>', _esc(x.c), lama(x)]],
+          'raw': 1,
+          'pv': o.length,
+          'unit': 'order',
+          'empty': 'Tidak ada cucian telat ambil',
+        };
+      }
+    case 'antar':
+      {
+        final o = c.ords(r).where((x) => x.antar).toList();
+        return {
+          'k': [_kpi('Pesanan antar', '${o.length}', '${rpA8(_sum(o, (x) => x.ong))} ongkir', 'w')],
+          'cols': ['Order', 'Pelanggan', 'Ongkir'],
+          'rows': [for (final x in o.reversed) ['${x.id}<small>${_dmy(x.t)}</small>', _esc(x.c), rpA8(x.ong)]],
+          'raw': 1,
+          'pv': o.length,
+          'unit': 'antar',
         };
       }
   }

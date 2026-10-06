@@ -1416,8 +1416,9 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Tes: `tests/antar-jemput.cjs` 11 skenario lulus lokal; regression dan 6 suite browser lain lulus; `flutter-bridge.cjs` hanya gagal di langkah anak yang meluncurkan browser (batas lingkungan, sama seperti sebelum perubahan).
 - Belum: tombol Tugaskan di HP kurir sendiri butuh server; pilihan ongkos memakai opsi Jemput di Tambah Transaksi (belum ada layar ongkos khusus).
 
-## A8 Laporan — kelompok Keuangan (omzet, arus kas, pendapatan transaksi, metode, pendapatan lain, pengeluaran, piutang, diskon, pembulatan, laba rugi)
+## A8 Laporan — kelompok Keuangan + Transaksi (omzet, arus kas, pendapatan transaksi, metode, pendapatan lain, pengeluaran, piutang, diskon, pembulatan, laba rugi)
 - `mobile/lib/logic/reports_a8.dart`: hitungan 10 laporan dipindah ke Dart (waktu jam-dinding agar sama di tiap mesin; pembulatan gaya JavaScript; urutan stabil).
 - HTML dijadikan pembanding: `window.__goyanaReportsA8(periode, ids)` (capacitor.js) + `__rep170ctx` (index.html). `tests/parity/reports-a8.cjs` merekam 2 skenario (data nyata + 44 pesanan sintetis, termasuk batal, deposit, bayar sebagian, jam 23:59/00:00) × 5 periode ke `mobile/test/fixtures/parity/reports_a8_keu.json`; `test/reports_a8_test.dart` mencocokkan 10 laporan × 5 periode × 2 skenario.
 - Di aplikasi: `_reportsParityA8` membandingkan Dart vs HTML tiap buka Laporan; selisih masuk `goyana-parity-log`. Tampilan masih dari HTML (belum dipindah tampilannya).
-- Sisa A8: Transaksi (8), Pelanggan (6), Pegawai (4), Stok (4), Operasional (4), Export (5).
+- Kelompok Transaksi (semua, top layanan, durasi, status, batal, telat ambil, antar-jemput) menyusul di fixture yang sama (`reports_a8.json`, daftar id dibaca dari `reportIdsA8`). `ralat` & `tutup` hanya tautan ke halaman lain.
+- Sisa A8: Pelanggan (6), Pegawai (4), Stok (4), Operasional (4), Export (5).

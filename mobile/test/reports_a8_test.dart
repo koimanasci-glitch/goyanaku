@@ -12,8 +12,8 @@ Object? _canon(Object? v) {
 }
 
 void main() {
-  for (final group in ['keu']) {
-    final fx = jsonDecode(File('test/fixtures/parity/reports_a8_$group.json').readAsStringSync()) as Map;
+  for (final group in ['semua']) {
+    final fx = jsonDecode(File('test/fixtures/parity/reports_a8.json').readAsStringSync()) as Map;
     final ids = (fx['ids'] as List).cast<String>();
     for (final sc in (fx['scenarios'] as List).cast<Map>()) {
       final ctx = RepCtx.fromJson(sc['state'] as Map);

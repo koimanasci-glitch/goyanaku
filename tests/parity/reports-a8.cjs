@@ -2,8 +2,8 @@
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const {spawnSync}=require('child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..');
-const IDS=process.env.A8_IDS?process.env.A8_IDS.split(','):['omzet','arus','ptrx','metode','lain','keluar','piutang','diskon','bulat','laba'];
-const GROUP=process.env.A8_GROUP||'keu';
+// Daftar laporan yang sudah dipindah dibaca dari sumber Dart supaya satu sumber kebenaran.
+const IDS=[...fs.readFileSync(path.join(__dirname,'../../mobile/lib/logic/reports_a8.dart'),'utf8').match(/const reportIdsA8 = \[([\s\S]*?)\];/)[1].matchAll(/'([a-z-]+)'/g)].map(m=>m[1]);
 const original=JSON.parse(fs.readFileSync(path.join(root,'mobile/test/fixtures/parity/flows_a4_a5_a7.json'))).steps.find(s=>s.part==='A7');
 const KEYS=['today','7','30','month','last'];
 function synthetic(){
@@ -17,7 +17,8 @@ function synthetic(){
   const paid=m==='Batal'||m==='Belum'?0:(i%7===3?Math.round(total/2):total);
   const pay=i%5===1?[{m:'Tunai',a:Math.round(total/3)},{m:'QRIS',a:Math.round(total/3)},{m:'Deposit',a:total-2*Math.round(total/3)}]:[];
   const disc=i%5===0?5000:0,rd=i%4===0?500*((i%3)-1):0;
-  ord.push({t0:t,id:'GY-'+String(i).padStart(4,'0'),t,c:names[i%8],f:false,items:[{n:'Cuci',u:'kg',q:3,p:7000,t:21000}],kg:2.5+(i%5)*1.1,sub:total+disc,disc,ong:i%6===0?5000:0,rd,total,paid:m==='Deposit'?total:paid,m,payments178:pay,st,staff:'',antar:i%6===0});
+  ord.push({t0:t,id:'GY-'+String(i).padStart(4,'0'),t,c:names[i%8],f:false,items:[{n:'Cuci',u:'kg',q:3,p:7000,t:21000}],kg:2.5+(i%5)*1.1,sub:total+disc,disc,ong:i%6===0?5000:0,rd,total,paid:m==='Deposit'?total:paid,m,payments178:pay,st,staff:'',antar:i%6===0,dur:['Reguler','Express','Kilat'][i%3],due:t+72*36e5,done:i%9===0?t:t+((i*11)%50)*36e5,pts:Math.floor(paid/1e4)});
+  if(i%3===1)ord[ord.length-1].items.push({n:i%2?'Bed Cover':'Setrika',u:i%2?'pcs':'kg',q:1+(i%4)*0.5,p:25000,t:25000*(1+(i%4)*0.5)});
  }
  ord.forEach(o=>{o.t0=undefined});
  const exp=[],ins=[],cats=['Bahan Baku','Sewa','Listrik','Lain-Lain','Bahan Baku'];
@@ -41,7 +42,7 @@ function synthetic(){
    await page.goto(require('url').pathToFileURL(path.join(root,'mobile/assets/web/index.html')).href);await page.clock.runFor(3500);
    await page.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('reports')});await page.clock.runFor(300);
    if(name==='synthetic'){
-    await page.evaluate(d=>{const R=o=>Object.assign(o,{t:new Date(o.t)});KAS137.outs=d.exp;KAS137.ins=d.ins;setReportOrders177(d.ord.map(R))},synthetic());
+    await page.evaluate(d=>{const R=o=>Object.assign(o,{t:new Date(o.t),due:new Date(o.due),done:new Date(o.done)});KAS137.outs=d.exp;KAS137.ins=d.ins;setReportOrders177(d.ord.map(R))},synthetic());
    }
    const out={name,periods:{}};
    for(const k of KEYS){
@@ -54,7 +55,7 @@ function synthetic(){
   }
   assert.deepEqual(errors,[]);
   assert.ok(scenarios[1].state.ord.length>=40);
-  fs.writeFileSync(path.join(root,`mobile/test/fixtures/parity/reports_a8_${GROUP}.json`),JSON.stringify({ids:IDS,scenarios})+'\n');
-  console.log('PASS A8 '+GROUP+' fixtures: '+scenarios.map(s=>s.name+' '+s.state.ord.length+' ord').join(', '));
+  fs.writeFileSync(path.join(root,`mobile/test/fixtures/parity/reports_a8.json`),JSON.stringify({ids:IDS,scenarios})+'\n');
+  console.log('PASS A8 '+IDS.length+' laporan, fixtures: '+scenarios.map(s=>s.name+' '+s.state.ord.length+' ord').join(', '));
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
