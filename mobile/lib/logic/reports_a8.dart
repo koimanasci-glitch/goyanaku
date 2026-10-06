@@ -650,22 +650,20 @@ Object? reportA8(String id, RepCtx c, RepRange r) {
       }
     case 'toppl':
       {
+        // Patch v181 mengganti laporan ini: urut total belanja (bukan sisa tagihan), tanpa grafik & medali.
         final m = <String, ({String c, int n, num v})>{};
         for (final o in c.ords(r)) {
           final x = m[o.c];
-          m[o.c] = (c: o.c, n: (x?.n ?? 0) + 1, v: (x?.v ?? 0) + o.owed);
+          m[o.c] = (c: o.c, n: (x?.n ?? 0) + 1, v: (x?.v ?? 0) + o.total);
         }
         final a = _sortedDesc(m.values.toList(), (x) => x.v);
         return {
           'k': [
-            _kpi('Pelanggan #1', a.isNotEmpty ? a.first.c : '-', a.isNotEmpty ? rpA8(a.first.v) : '', 'w'),
+            _kpi('Pelanggan teratas', a.isNotEmpty ? a.first.c : '-', a.isNotEmpty ? rpA8(a.first.v) : '', 'w'),
             _kpi('Pelanggan aktif', '${a.length}', ''),
           ],
-          'ch': {'t': 'hb', 'd': [for (final x in a.take(6)) [x.c, _norm(x.v)]], 'money': 1, 'title': 'Top 6 belanja'},
           'cols': ['Pelanggan', 'Order', 'Belanja'],
-          'rows': [
-            for (var i = 0; i < a.length; i++) ['${i < 3 ? '${const ['🥇', '🥈', '🥉'][i]} ' : ''}${_esc(a[i].c)}', a[i].n, rpA8(a[i].v)]
-          ],
+          'rows': [for (final x in a) [_esc(x.c), x.n, rpA8(x.v)]],
           'raw': 1,
           'pv': a.isNotEmpty ? a.first.c : '-',
           'txt': 1,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,7 +52,17 @@ Future<_Act> _pump(WidgetTester tester, String id, {String key = '30'}) async {
   return a;
 }
 
+Future<void> _loadFonts() async {
+  final loader = FontLoader('Poppins');
+  for (final f in ['Regular', 'Medium', 'SemiBold']) {
+    final bytes = File('assets/fonts/Poppins-$f.ttf').readAsBytesSync();
+    loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+  }
+  await loader.load();
+}
+
 void main() {
+  setUpAll(_loadFonts);
   test('parseRepCell memisahkan teks utama, teks kecil, label dan tebal', () {
     final (main, small) = parseRepCell('GY-1<small>05/10/2026 · Reguler</small>');
     expect(main.single.text, 'GY-1');
