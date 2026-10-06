@@ -1392,3 +1392,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 ### Perbaikan: animasi pembuka mengulang + sayap terlalu cepat (branch flutter/panduan-baru)
 - [Claude] Koiman melaporkan animasi pembuka terulang dan minta kepakan sayap + terbang diperlambat (6 Okt 14:54 WIB). Dugaan penyebab ulang: `BrandIntro` di `Stack` shell tidak punya key, sedangkan daftar anak Stack berubah posisi saat `_loading` selesai (halaman native muncul di depannya), jadi elemen dibuat ulang dan animasi mulai dari awal. Perbaikan: `Positioned.fill` BrandIntro dan GuideIntro diberi `ValueKey` tetap supaya state tidak dibuat ulang. Belum dibuktikan di HP.
 - Animasi diperlambat: 3 detik (sebelumnya 2,2), kepakan saat terbang 2 kali (sebelumnya 3), kepakan saat hinggap 1 kali.
+
+### Catatan revisi dari Koiman, 6 Okt 2026 (belum dikerjakan kecuali yang bertanda selesai)
+- [Claude] Selesai: panduan 5 slide menggantikan tutorial lama; ikon baru; nama di bawah ikon "Goyana"; layar awal Android tanpa ikon; tombol KEMBALI tidak kepotong; animasi pembuka burung gambar-kode (3 detik) + perbaikan agar tidak mengulang (belum dibuktikan di HP).
+- [Claude] Belum: layar login seperti contoh Koiman (butuh gambar latar tanpa teks, nama font, OAuth/backend untuk tombol Google).
+- [Claude] Baru: menu Antar Jemput di beranda. Grid beranda sekarang 6 (Tambah Transaksi, Cari Transaksi, Kurir, Pelanggan, Hari Ini, Chatbot); Koiman ingin jadi 9 dengan Antar Jemput + 2 menu lagi (pilihan menunggu Koiman).
