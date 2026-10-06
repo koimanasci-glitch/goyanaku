@@ -17,6 +17,7 @@ import '../logic/cash.dart';
 import '../logic/order_detail.dart';
 import '../logic/orders.dart';
 import '../logic/payments.dart';
+import '../logic/reports_a8.dart';
 import '../logic/status_auto.dart';
 import '../native/addorder_page.dart';
 import '../native/cash_page.dart';
@@ -266,6 +267,7 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
         }
         if (page == 'customers' && model != null) _customers = CustomersModel.fromJson(model);
         if (page == 'reports' && model != null) _reports = ReportsModel.fromJson(model);
+        if (page == 'reports' || page == 'rp170d') unawaited(_reportsParityA8());
         if (page == 'settings' && model != null) _settings = SettingsModel.fromJson(model);
         if ((page == 'cashin' || page == 'cashout') && model != null) _cash = CashModel.fromJson(model);
         _pageMirror = model != null && model['mirror'] is Map ? Map<String, dynamic>.from(model['mirror'] as Map) : null;
@@ -804,6 +806,32 @@ class _GoyanaShellState extends State<GoyanaShell> implements OrderDetailActions
     if (m is Map) return {for (final e in m.entries) '${e.key}': (e.key == 'auto' && m.containsKey('id')) ? null : _stable(e.value)};
     if (m is List) return [for (final x in m) _stable(x)];
     return m;
+  }
+
+  // A8: hitungan laporan Keuangan di Dart dibandingkan dengan HTML pada data HP yang sama (selisih dicatat, tampilan tetap HTML).
+  int _reportsSeq = 0;
+  Future<void> _reportsParityA8() async {
+    final seq = ++_reportsSeq;
+    try {
+      for (final key in const ['today', '7', '30', 'month', 'last']) {
+        final raw = await _web.runJavaScriptReturningResult(
+            'JSON.stringify(window.__goyanaReportsA8 ? __goyanaReportsA8(${jsonEncode(key)}, ${jsonEncode(reportIdsA8)}) : null)');
+        var text = raw.toString();
+        final outer = jsonDecode(text);
+        if (outer is String) text = outer;
+        final state = jsonDecode(text);
+        if (state is! Map || !mounted || seq != _reportsSeq) return;
+        final ctx = RepCtx.fromJson(state);
+        final range = ctx.range(key);
+        final expected = state['expected'] as Map;
+        for (final id in reportIdsA8) {
+          final got = reportA8(id, ctx, range);
+          if (jsonEncode(_canonical(got)) != jsonEncode(_canonical(expected[id]))) {
+            await _parityLog(const DeviceKvStore(), 'report-a8-$id-$key', expected[id], got);
+          }
+        }
+      }
+    } catch (_) {/* tetap memakai HTML */}
   }
 
   Future<void> _parityLog(KvStore store, String page, Object? html, Object? dart) async {

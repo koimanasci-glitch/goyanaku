@@ -1212,6 +1212,25 @@
     state.model = cashcloseModel();
     return state;
   };
+  // A8: data + hasil laporan HTML untuk dibandingkan dengan hitungan Dart (lib/logic/reports_a8.dart).
+  window.__goyanaReportsA8 = function (key, ids) {
+    var c = window.__rep170ctx && window.__rep170ctx();
+    if (!c) return null;
+    var prev = c.P.k, pf = c.P.from, pt = c.P.to;
+    try {
+      c.P.k = key; c.P.from = c.P.to = null;
+      var r = c.range(), expected = {};
+      (ids || []).forEach(function (id) {
+        var x = c.REP.filter(function (y) { return y.id === id; })[0];
+        if (x && x.f) expected[id] = JSON.parse(JSON.stringify(x.f(r)));
+      });
+      return JSON.parse(JSON.stringify({
+        tz: -new Date().getTimezoneOffset(), now: c.now, t0: c.T0, key: key,
+        ord: window.ORD170 || [], exp: c.EXP, inc: c.INC, expected: expected,
+        range: { s: r.s, e: r.e, days: r.days }
+      }));
+    } finally { c.P.k = prev; c.P.from = pf; c.P.to = pt; }
+  };
   // HTML toast notifications ("… ditambahkan") are drawn by Flutter while a native page covers the WebView.
   function toastText() {
     var t = document.querySelector('#toast90.show, .toast.show');
