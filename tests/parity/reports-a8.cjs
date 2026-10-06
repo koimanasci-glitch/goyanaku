@@ -17,7 +17,7 @@ function synthetic(){
   const paid=m==='Batal'||m==='Belum'?0:(i%7===3?Math.round(total/2):total);
   const pay=i%5===1?[{m:'Tunai',a:Math.round(total/3)},{m:'QRIS',a:Math.round(total/3)},{m:'Deposit',a:total-2*Math.round(total/3)}]:[];
   const disc=i%5===0?5000:0,rd=i%4===0?500*((i%3)-1):0;
-  ord.push({t0:t,id:'GY-'+String(i).padStart(4,'0'),t,c:names[i%8],f:false,items:[{n:'Cuci',u:'kg',q:3,p:7000,t:21000}],kg:2.5+(i%5)*1.1,sub:total+disc,disc,ong:i%6===0?5000:0,rd,total,paid:m==='Deposit'?total:paid,m,payments178:pay,st,staff:'',antar:i%6===0,dur:['Reguler','Express','Kilat'][i%3],due:t+72*36e5,done:i%9===0?t:t+((i*11)%50)*36e5,pts:Math.floor(paid/1e4)});
+  ord.push({t0:t,id:'GY-'+String(i).padStart(4,'0'),t,c:names[i%8],f:false,items:[{n:'Cuci',u:'kg',q:3,p:7000,t:21000}],kg:2.5+(i%5)*1.1,sub:total+disc,disc,ong:i%6===0?5000:0,rd,total,paid:m==='Deposit'?total:paid,m,payments178:pay,st,staff:'',antar:i%6===0,dur:['Reguler','Express','Kilat'][i%3],due:t+72*36e5,done:i%9===0?t:t+((i*11)%110)*36e5,pts:Math.floor(paid/1e4)});
   if(i%3===1)ord[ord.length-1].items.push({n:i%2?'Bed Cover':'Setrika',u:i%2?'pcs':'kg',q:1+(i%4)*0.5,p:25000,t:25000*(1+(i%4)*0.5)});
  }
  ord.forEach(o=>{o.t0=undefined});
@@ -25,7 +25,9 @@ function synthetic(){
  for(let i=0;i<26;i++)exp.push({a:(8+(i*13)%90)*1000,t:cats[i%5],at:now-((i*3)%70)*DAY-(i%3)*36e5});
  exp.push({a:12000,t:'Bahan Baku',at:now-3*DAY},{a:12000,t:'Bahan Baku',at:now-3*DAY});
  for(let i=0;i<8;i++)ins.push({a:(5+i*7)*1000,t:i%2?'Tambah modal':'Jual hanger',at:now-(i*9)*DAY-i*36e5,deposit178:i%3===2});
- return {ord,exp,ins};
+ const stock=[{n:'Deterjen',now:3,min:5,u:'L',per:0.05,buy:18000},{n:'Pewangi',now:12.5,min:4,u:'L',per:0.03,buy:30000},{n:'Plastik',now:40,min:40,u:'pcs',per:0.4,buy:500}],att=[];
+ for(let i=0;i<20;i++)['Rina','Dewi','Andi'].forEach((s,si)=>{if((i+si)%4)att.push({d:now-((i*3)%70)*DAY-(now%DAY)+0,s,in:now-((i*3)%70)*DAY-3*36e5+((i*7+si*11)%90)*6e4,out:now-((i*3)%70)*DAY+5*36e5})});
+ return {ord,exp,ins,stock,att};
 }
 (async()=>{
  const prep=spawnSync('python',[path.join(root,'tools/prepare_flutter_web.py'),root,path.join(root,'tests/node_modules/@zxing/library/umd/index.min.js')],{encoding:'utf8'});assert.equal(prep.status,0,prep.stderr);
@@ -42,7 +44,7 @@ function synthetic(){
    await page.goto(require('url').pathToFileURL(path.join(root,'mobile/assets/web/index.html')).href);await page.clock.runFor(3500);
    await page.evaluate(()=>{document.getElementById('ob189').hidden=true;openPage('reports')});await page.clock.runFor(300);
    if(name==='synthetic'){
-    await page.evaluate(d=>{const R=o=>Object.assign(o,{t:new Date(o.t),due:new Date(o.due),done:new Date(o.done)});KAS137.outs=d.exp;KAS137.ins=d.ins;setReportOrders177(d.ord.map(R))},synthetic());
+    await page.evaluate(d=>{const R=o=>Object.assign(o,{t:new Date(o.t),due:new Date(o.due),done:new Date(o.done)});KAS137.outs=d.exp;KAS137.ins=d.ins;setReportOrders177(d.ord.map(R));const c=__rep170ctx();c.STOCK.splice(0,c.STOCK.length,...d.stock);c.ATT.splice(0,c.ATT.length,...d.att.map(a=>({d:new Date(a.d),s:a.s,in:new Date(a.in),out:new Date(a.out)})));ORD170.forEach((o,i)=>{o.staff=['Rina','Dewi','Andi','','Rina'][i%5]})},synthetic());
    }
    const out={name,periods:{}};
    for(const k of KEYS){

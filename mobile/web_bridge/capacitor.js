@@ -1226,7 +1226,7 @@
       });
       return JSON.parse(JSON.stringify({
         tz: -new Date().getTimezoneOffset(), now: c.now, t0: c.T0, key: key,
-        ord: window.ORD170 || [], exp: c.EXP, inc: c.INC, expected: expected,
+        ord: window.ORD170 || [], exp: c.EXP, inc: c.INC, att: c.ATT, stock: c.STOCK, staff: c.STAFF, expected: expected,
         range: { s: r.s, e: r.e, days: r.days }
       }));
     } finally { c.P.k = prev; c.P.from = pf; c.P.to = pt; }

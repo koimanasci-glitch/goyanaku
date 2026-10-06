@@ -1,4 +1,4 @@
-// A8 Laporan — kelompok Keuangan (10) dan Transaksi (7).
+// A8 Laporan — kelompok Keuangan (10), Transaksi (7), Pelanggan (6), Pegawai (4), Stok (4), Operasional (4).
 // Menyalin hitungan mesin HTML (goyana-v170-reports-script) apa adanya; HTML tetap pembanding (paritas).
 // Waktu dipakai sebagai "jam dinding" (UTC yang sudah digeser zona perangkat) agar hasil sama di tiap mesin uji.
 import 'dart:math' as math;
@@ -8,6 +8,14 @@ const reportIdsA8 = [
   'omzet', 'arus', 'ptrx', 'metode', 'lain', 'keluar', 'piutang', 'diskon', 'bulat', 'laba',
   // Transaksi
   'semua', 'layanan', 'durasi', 'status', 'batal', 'telat', 'antar',
+  // Pelanggan
+  'tumbuh', 'toppl', 'lamabaru', 'poin', 'pasif', 'kasbon',
+  // Pegawai
+  'kinerja', 'presensi', 'komisi', 'kurir',
+  // Stok & Bahan
+  'stok', 'pakai', 'beli', 'nilai',
+  // Operasional
+  'jam', 'hari', 'waktu', 'kapasitas',
 ];
 const _day = Duration.millisecondsPerDay;
 const _bl = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -51,6 +59,7 @@ class RepOrder {
         kg = _num(raw['kg']),
         dur = '${raw['dur'] ?? ''}',
         antar = raw['antar'] == true,
+        pts = _num(raw['pts']),
         items = [
           for (final it in (raw['items'] as List? ?? const []).whereType<Map>())
             (n: '${it['n'] ?? ''}', u: '${it['u'] ?? ''}', q: _num(it['q']), t: _num(it['t']))
@@ -62,10 +71,11 @@ class RepOrder {
   final String id, c, m, st, dur;
   final bool antar;
   final List<({String n, String u, num q, num t})> items;
-  final num total, paid, disc, rd, ong, kg;
+  final num total, paid, disc, rd, ong, kg, pts;
+  String get staff => '${raw['staff'] ?? ''}';
   final List<({String m, num a})> payments;
   late DateTime t;
-  DateTime? done;
+  DateTime? done, due;
 
   num get received => m == 'Batal' ? 0 : math.max(0, math.min(total, paid));
   num get cashReceived {
@@ -92,8 +102,33 @@ class RepRange {
   final int days;
 }
 
+class RepAtt {
+  RepAtt(this.d, this.s, this.inAt, this.outAt);
+  final DateTime d, inAt, outAt;
+  final String s;
+}
+
+class RepStock {
+  RepStock(this.n, this.now, this.min, this.u, this.per, this.buy);
+  final String n, u;
+  final num now, min, per, buy;
+}
+
 class RepCtx {
-  RepCtx({required this.now, required this.t0, required this.orders, required this.exp, required this.inc, required this.first});
+  RepCtx({
+    required this.now,
+    required this.t0,
+    required this.orders,
+    required this.exp,
+    required this.inc,
+    required this.first,
+    this.att = const [],
+    this.stock = const [],
+    this.staff = const ['Rina', 'Dewi', 'Andi'],
+  });
+  final List<RepAtt> att;
+  final List<RepStock> stock;
+  final List<String> staff;
   final DateTime now, t0;
   final List<RepOrder> orders;
   final List<RepMoney> exp, inc;
@@ -107,6 +142,7 @@ class RepCtx {
       for (final o in (state['ord'] as List).whereType<Map>()) RepOrder(o)
         ..t = w(o['t'])
         ..done = o['done'] == null ? null : w(o['done'])
+        ..due = o['due'] == null ? null : w(o['due'])
     ];
     final first = <String, DateTime>{};
     for (final o in orders) {
@@ -114,6 +150,14 @@ class RepCtx {
       if (f == null || f.isAfter(o.t)) first[o.c] = o.t;
     }
     return RepCtx(
+      att: [
+        for (final x in (state['att'] as List? ?? const []).whereType<Map>()) RepAtt(w(x['d']), '${x['s']}', w(x['in']), w(x['out']))
+      ],
+      stock: [
+        for (final x in (state['stock'] as List? ?? const []).whereType<Map>())
+          RepStock('${x['n']}', _num(x['now']), _num(x['min']), '${x['u'] ?? ''}', _num(x['per']), _num(x['buy']))
+      ],
+      staff: [for (final x in (state['staff'] as List? ?? const ['Rina', 'Dewi', 'Andi'])) '$x'],
       now: w(state['now']),
       t0: w(state['t0']),
       orders: orders,
@@ -575,6 +619,353 @@ Map<String, Object?>? reportA8(String id, RepCtx c, RepRange r) {
           'raw': 1,
           'pv': o.length,
           'unit': 'antar',
+        };
+      }
+    case 'tumbuh':
+      {
+        final list = [for (final e in c.first.entries) if (c._in(e.value, r)) (t: e.value, c: e.key)];
+        final byTime = List<int>.generate(list.length, (i) => i)
+          ..sort((a, b) {
+            final cmp = list[b].t.compareTo(list[a].t);
+            return cmp != 0 ? cmp : a.compareTo(b);
+          });
+        return {
+          'k': [_kpi('Pelanggan baru', '${list.length}', '', 'w'), _kpi('Total pelanggan', '${c.first.length}', '')],
+          'ch': {'t': 'bar', 'd': _chart(_buckets(r, _tv(list, (x) => x.t, (_) => 1))), 'title': 'Pelanggan baru'},
+          'cols': ['Pelanggan', 'Order pertama', ''],
+          'rows': [for (final i in byTime) [_esc(list[i].c), _dmy(list[i].t), '']],
+          'raw': 1,
+          'pv': list.length,
+          'unit': 'baru',
+          'empty': 'Belum ada pelanggan baru di periode ini',
+        };
+      }
+    case 'toppl':
+      {
+        final m = <String, ({String c, int n, num v})>{};
+        for (final o in c.ords(r)) {
+          final x = m[o.c];
+          m[o.c] = (c: o.c, n: (x?.n ?? 0) + 1, v: (x?.v ?? 0) + o.owed);
+        }
+        final a = _sortedDesc(m.values.toList(), (x) => x.v);
+        return {
+          'k': [
+            _kpi('Pelanggan #1', a.isNotEmpty ? a.first.c : '-', a.isNotEmpty ? rpA8(a.first.v) : '', 'w'),
+            _kpi('Pelanggan aktif', '${a.length}', ''),
+          ],
+          'ch': {'t': 'hb', 'd': [for (final x in a.take(6)) [x.c, _norm(x.v)]], 'money': 1, 'title': 'Top 6 belanja'},
+          'cols': ['Pelanggan', 'Order', 'Belanja'],
+          'rows': [
+            for (var i = 0; i < a.length; i++) ['${i < 3 ? '${const ['🥇', '🥈', '🥉'][i]} ' : ''}${_esc(a[i].c)}', a[i].n, rpA8(a[i].v)]
+          ],
+          'raw': 1,
+          'pv': a.isNotEmpty ? a.first.c : '-',
+          'txt': 1,
+        };
+      }
+    case 'lamabaru':
+      {
+        final o = c.ords(r);
+        var nw = 0, od = 0;
+        num vn = 0, vo = 0;
+        for (final x in o) {
+          final f = c.first[x.c]!;
+          if (c._in(f, r) && f.millisecondsSinceEpoch == x.t.millisecondsSinceEpoch) {
+            nw++;
+            vn += x.total;
+          } else {
+            od++;
+            vo += x.total;
+          }
+        }
+        return {
+          'k': [_kpi('Order langganan', '$od', rpA8(vo), 'w'), _kpi('Order pelanggan baru', '$nw', rpA8(vn))],
+          'ch': {'t': 'hb', 'd': [['Langganan', od], ['Baru', nw]], 'title': 'Jumlah order'},
+          'cols': ['Tipe', 'Order', 'Omzet'],
+          'rows': [['Langganan', od, rpA8(vo)], ['Baru', nw, rpA8(vn)]],
+          'pv': '${o.isNotEmpty ? jsRound(od / o.length * 100) : 0}% kembali',
+          'txt': 1,
+        };
+      }
+    case 'poin':
+      {
+        final m = <String, num>{};
+        for (final o in c.ords(r).where((x) => x.isPaid)) {
+          m[o.c] = (m[o.c] ?? 0) + o.pts;
+        }
+        final a = _sortedDesc(m.entries.toList(), (x) => x.value);
+        final total = _sum(a, (x) => x.value);
+        return {
+          'k': [_kpi('Poin diberikan', '${_norm(total)} poin', '1 poin / Rp10.000', 'w'), _kpi('Penerima', '${a.length} pelanggan', '')],
+          'cols': ['Pelanggan', 'Poin', ''],
+          'rows': [for (final x in a) [_esc(x.key), '${_norm(x.value)} ⭐', '']],
+          'raw': 1,
+          'pv': '${_norm(total)} poin',
+          'txt': 1,
+        };
+      }
+    case 'pasif':
+      {
+        final last = <String, DateTime>{};
+        for (final o in c.orders) {
+          final l = last[o.c];
+          if (l == null || l.isBefore(o.t)) last[o.c] = o.t;
+        }
+        final a = [
+          for (final e in last.entries)
+            if (c.now.millisecondsSinceEpoch - e.value.millisecondsSinceEpoch > 30 * _day) e
+        ];
+        final idx = List<int>.generate(a.length, (i) => i)
+          ..sort((x, y) {
+            final cmp = a[x].value.compareTo(a[y].value);
+            return cmp != 0 ? cmp : x.compareTo(y);
+          });
+        return {
+          'k': [_kpi('Tidak aktif', '${a.length} pelanggan', '> 30 hari tanpa order', 'w')],
+          'cols': ['Pelanggan', 'Order terakhir', 'Lama'],
+          'rows': [
+            for (final i in idx)
+              [_esc(a[i].key), _dmy(a[i].value), '${jsRound((c.now.millisecondsSinceEpoch - a[i].value.millisecondsSinceEpoch) / _day)} hari']
+          ],
+          'raw': 1,
+          'pv': a.length,
+          'unit': 'orang',
+          'empty': 'Semua pelanggan masih aktif 👍',
+          'note': 'Kirim voucher lewat menu CRM Pelanggan untuk mengajak mereka kembali.',
+        };
+      }
+    case 'kasbon':
+      {
+        final m = <String, ({String c, int n, num v})>{};
+        for (final o in c.orders.where((x) => x.owed > 0 && x.st != 'batal')) {
+          final x = m[o.c];
+          m[o.c] = (c: o.c, n: (x?.n ?? 0) + 1, v: (x?.v ?? 0) + o.owed);
+        }
+        final a = _sortedDesc(m.values.toList(), (x) => x.v);
+        return {
+          'k': [_kpi('Total kasbon', rpA8(_sum(a, (x) => x.v)), '${a.length} pelanggan', 'w')],
+          'cols': ['Pelanggan', 'Order', 'Tagihan'],
+          'rows': [for (final x in a) [_esc(x.c), x.n, rpA8(x.v)]],
+          'raw': 1,
+          'pv': _norm(_sum(a, (x) => x.v)),
+          'empty': 'Tidak ada kasbon',
+        };
+      }
+    case 'kinerja':
+      {
+        final o = c.ords(r);
+        final a = [
+          for (final st in c.staff)
+            () {
+              final x = o.where((y) => y.staff == st).toList();
+              return <Object>[st, x.length, jsRound(_sum(x, (y) => y.kg)), _sum(x, (y) => y.total)];
+            }()
+        ];
+        final top = _sortedDesc(a, (x) => x[1] as num);
+        return {
+          'k': [for (final x in a) [x[0], '${x[1]} order', '${x[2]} kg']],
+          'ch': {'t': 'hb', 'd': [for (final x in a) [x[0], x[1]]], 'title': 'Order ditangani'},
+          'cols': ['Pegawai', 'Order', 'Berat'],
+          'rows': [for (final x in a) ['${x[0]}<small>${rpA8(x[3] as num)}</small>', x[1], '${x[2]} kg']],
+          'raw': 1,
+          'pv': top.first[0],
+          'txt': 1,
+        };
+      }
+    case 'presensi':
+      {
+        final a = [for (final x in c.att) if (c._in(x.d, r)) x];
+        bool late(RepAtt y) => y.inAt.hour + y.inAt.minute / 60 > 7.5;
+        final per = [
+          for (final st in c.staff)
+            () {
+              final x = a.where((y) => y.s == st).toList();
+              return <Object>[st, x.length, x.where(late).length];
+            }()
+        ];
+        return {
+          'k': [for (final x in per) [x[0], '${x[1]} hari hadir', '${x[2]}× terlambat']],
+          'cols': ['Tanggal', 'Pegawai', 'Masuk – Pulang'],
+          'rows': [
+            for (final x in a.reversed)
+              [
+                _dmy(x.d),
+                '${x.s}${late(x) ? ' <span class="tag y">telat</span>' : ''}',
+                '${_pad(x.inAt.hour)}:${_pad(x.inAt.minute)} – ${_pad(x.outAt.hour)}:${_pad(x.outAt.minute)}',
+              ]
+          ],
+          'raw': 1,
+          'pv': '${per.first[1]} hari',
+          'txt': 1,
+          'note': 'Jam masuk normal 07.30. Presensi dicatat saat pegawai login di aplikasi.',
+        };
+      }
+    case 'komisi':
+      {
+        final o = c.ords(r);
+        const g = {'Rina': 2300000, 'Dewi': 2100000, 'Andi': 1900000};
+        final a = [
+          for (final st in c.staff)
+            () {
+              final kg = jsRound(_sum(o.where((y) => y.staff == st), (y) => y.kg));
+              return <Object>[st, kg, kg * 300, g[st] ?? 0];
+            }()
+        ];
+        final total = _sum(a, (x) => x[2] as num);
+        return {
+          'k': [
+            _kpi('Total komisi', rpA8(total), 'Rp300 per kg', 'w'),
+            for (final x in a) [x[0], rpA8(x[2] as num), '${x[1]} kg'],
+          ],
+          'cols': ['Pegawai', 'Komisi', 'Gaji pokok'],
+          'rows': [for (final x in a) ['${x[0]}<small>${x[1]} kg</small>', rpA8(x[2] as num), rpA8(x[3] as num)]],
+          'raw': 1,
+          'pv': _norm(total),
+        };
+      }
+    case 'kurir':
+      {
+        final o = c.ords(r).where((x) => x.antar).toList();
+        return {
+          'k': [_kpi('Budi (Kurir)', '${o.length} antar', '${rpA8(_sum(o, (x) => x.ong))} ongkir', 'w')],
+          'cols': ['Order', 'Pelanggan', 'Ongkir'],
+          'rows': [for (final x in o.reversed) ['${x.id}<small>${_dmy(x.t)}</small>', _esc(x.c), rpA8(x.ong)]],
+          'raw': 1,
+          'pv': o.length,
+          'unit': 'antar',
+        };
+      }
+    case 'stok':
+      {
+        final low = c.stock.where((s) => s.now <= s.min).toList();
+        return {
+          'k': [_kpi('Hampir habis', '${low.length} bahan', low.isEmpty ? 'Aman' : low.map((s) => s.n).join(', '), 'w')],
+          'cols': ['Bahan', 'Sisa', 'Status'],
+          'rows': [
+            for (final s in c.stock)
+              [s.n, '${_norm(s.now)} ${s.u}', s.now <= s.min ? '<span class="tag r">Beli lagi</span>' : '<span class="tag g">Aman</span>']
+          ],
+          'raw': 1,
+          'pv': low.isNotEmpty ? '${low.length} habis' : 'Aman',
+          'txt': 1,
+          'go2': 'inventory',
+        };
+      }
+    case 'pakai':
+      {
+        final kg = _sum(c.ords(r), (x) => x.kg);
+        return {
+          'k': [_kpi('Cucian diproses', '${jsRound(kg)} kg', '', 'w')],
+          'cols': ['Bahan', 'Terpakai', 'Biaya'],
+          'rows': [
+            for (final s in c.stock) [s.n, '${_idNum(jsRound(kg * s.per * 10) / 10)} ${s.u}', rpA8(kg * s.per * s.buy)]
+          ],
+          'pv': '${jsRound(kg)} kg',
+          'txt': 1,
+          'note': 'Dihitung dari takaran rata-rata per kg. Ubah takaran di menu Stok Bahan.',
+        };
+      }
+    case 'beli':
+      {
+        final e = c.exps(r).where((x) => x.cat == 'Bahan Baku').toList();
+        return {
+          'k': [_kpi('Total belanja', rpA8(_sum(e, (x) => x.a)), '${e.length} kali', 'w')],
+          'ch': {'t': 'bar', 'd': _chart(_buckets(r, _tv(e, (x) => x.t, (x) => x.a))), 'money': 1, 'title': 'Belanja bahan'},
+          'cols': ['Tanggal', 'Item', 'Nominal'],
+          'rows': [for (final x in e.reversed) [_dmy(x.t), _esc(x.note), rpA8(x.a)]],
+          'raw': 1,
+          'pv': _norm(_sum(e, (x) => x.a)),
+        };
+      }
+    case 'nilai':
+      {
+        final a = [for (final s in c.stock) <Object>[s.n, '${_norm(s.now)} ${s.u}', s.now * s.buy]];
+        final total = _sum(a, (x) => x[2] as num);
+        return {
+          'k': [_kpi('Nilai persediaan', rpA8(total), 'Harga beli terakhir', 'w')],
+          'cols': ['Bahan', 'Stok', 'Nilai'],
+          'rows': [for (final x in a) [x[0], x[1], rpA8(x[2] as num)]],
+          'pv': _norm(total),
+        };
+      }
+    case 'jam':
+      {
+        final o = c.ords(r);
+        final m = <int, int>{for (var h = 7; h <= 21; h++) h: 0};
+        for (final x in o) {
+          m[x.t.hour] = (m[x.t.hour] ?? 0) + 1;
+        }
+        final a = [for (final h in (m.keys.toList()..sort())) <Object>[_pad(h), m[h]!]];
+        final top = _sortedDesc(a, (x) => x[1] as num).first;
+        return {
+          'k': [_kpi('Paling ramai', '${top[0]}.00', '${top[1]} order', 'w')],
+          'ch': {'t': 'bar', 'd': a, 'title': 'Order per jam'},
+          'cols': ['Jam', 'Order', ''],
+          'rows': [for (final x in a) ['${x[0]}.00 – ${x[0]}.59', x[1], '']],
+          'pv': '${top[0]}.00',
+          'txt': 1,
+        };
+      }
+    case 'hari':
+      {
+        final o = c.ords(r);
+        final m = List<int>.filled(7, 0);
+        final v = List<num>.filled(7, 0);
+        for (final x in o) {
+          m[_jsDay(x.t)]++;
+          v[_jsDay(x.t)] += x.total;
+        }
+        final a = [for (final i in const [1, 2, 3, 4, 5, 6, 0]) <Object>[_hr[i], m[i], v[i]]];
+        final top = _sortedDesc(a, (x) => x[1] as num).first;
+        return {
+          'k': [_kpi('Hari teramai', top[0] as String, '${top[1]} order', 'w')],
+          'ch': {'t': 'bar', 'd': [for (final x in a) [x[0], x[1]]], 'title': 'Order per hari'},
+          'cols': ['Hari', 'Order', 'Omzet'],
+          'rows': [for (final x in a) [x[0], x[1], rpA8(x[2] as num)]],
+          'pv': top[0],
+          'txt': 1,
+        };
+      }
+    case 'waktu':
+      {
+        final o = c.ords(r).where((x) => x.st == 'diambil' || x.st == 'siap' || x.st == 'telat').toList();
+        bool onTime(RepOrder x) => x.done != null && x.due != null && !x.done!.isAfter(x.due!);
+        bool late(RepOrder x) => x.done != null && x.due != null && x.done!.isAfter(x.due!);
+        final on = o.where(onTime).toList();
+        final pct = o.isNotEmpty ? jsRound(on.length / o.length * 100) : 0;
+        return {
+          'k': [
+            _kpi('Tepat waktu', '$pct%', '${on.length} dari ${o.length} pesanan', 'w'),
+            _kpi('Terlambat', '${o.length - on.length} pesanan', '', 'r'),
+          ],
+          'cols': ['Order', 'Estimasi', 'Selesai'],
+          'rows': [
+            for (final x in o.where(late).toList().reversed)
+              [
+                '${x.id}<small>${x.dur}</small>',
+                '${_dmy(x.due!)}<small>${_pad(x.due!.hour)}:${_pad(x.due!.minute)}</small>',
+                '<span class="tag r">+${math.max(1, jsRound((x.done!.millisecondsSinceEpoch - x.due!.millisecondsSinceEpoch) / 36e5))} jam</span>',
+              ]
+          ],
+          'raw': 1,
+          'pv': '$pct% tepat',
+          'txt': 1,
+        };
+      }
+    case 'kapasitas':
+      {
+        final o = c.ords(r);
+        final b = [for (final x in _buckets(r, _tv(o, (x) => x.t, (x) => x.kg))) <Object>[x[0], jsRound(x[1] as num), x[2]]];
+        final mx = b.fold<int>(0, (s, x) => math.max(s, x[1] as int));
+        final kg = jsRound(_sum(o, (x) => x.kg));
+        return {
+          'k': [_kpi('Total berat', '$kg kg', '', 'w'), _kpi('Tertinggi', '$mx kg', mx > 60 ? 'Melebihi kapasitas' : 'Masih aman')],
+          'ch': {'t': 'bar', 'd': b, 'title': 'Kg per ${r.days <= 1 ? 'jam' : r.days > 45 ? 'minggu' : 'hari'}'},
+          'cols': ['Periode', 'Berat', ''],
+          'rows': [for (final x in b) [x[2], '${x[1]} kg', (x[1] as int) > 60 ? '<span class="tag r">Penuh</span>' : '']],
+          'raw': 1,
+          'pv': '$kg kg',
+          'txt': 1,
         };
       }
   }
