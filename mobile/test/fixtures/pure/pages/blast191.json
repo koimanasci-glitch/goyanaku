@@ -1,0 +1,75 @@
+{
+ "title": "WHATSAPP BLAST",
+ "items": [
+  {
+   "type": "hint",
+   "t": "Pengaturan tersimpan di perangkat ini. Pengiriman WhatsApp dan AI belum terhubung ke server."
+  },
+  {
+   "type": "label",
+   "t": "Nama kampanye"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Pesan promo (gunakan {nama} untuk nama pelanggan)"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Gambar balasan / promo"
+  },
+  {
+   "type": "button",
+   "t": "Pilih Gambar",
+   "primary": false,
+   "file": "blast-image191",
+   "i": -1
+  },
+  {
+   "type": "label",
+   "t": "Pilih penerima"
+  },
+  {
+   "type": "hint",
+   "t": "Belum ada pelanggan dengan nomor WhatsApp valid."
+  },
+  {
+   "type": "toggle",
+   "t": "Penerima yang dipilih telah setuju menerima promo",
+   "s": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Simpan Draft Promo",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  }
+ ]
+}

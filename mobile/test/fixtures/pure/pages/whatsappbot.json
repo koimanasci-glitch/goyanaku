@@ -1,0 +1,180 @@
+{
+ "title": "WHATSAPP & CHATBOT",
+ "items": [
+  {
+   "type": "title",
+   "t": "Pengaturan & Promo"
+  },
+  {
+   "type": "button",
+   "t": "Balasan Cepat & Trigger ›",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Pengaturan Chatbot AI ›",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  },
+  {
+   "type": "button",
+   "t": "WhatsApp Blast ›",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Gambar balasan / promo"
+  },
+  {
+   "type": "button",
+   "t": "Pilih Gambar",
+   "primary": false,
+   "file": "chat-image191",
+   "i": -1
+  },
+  {
+   "type": "hint",
+   "t": "Gambar default untuk balasan cepat tanpa gambar khusus. Maksimal 1 MB."
+  },
+  {
+   "type": "title",
+   "t": "Perangkat WhatsApp per Cabang"
+  },
+  {
+   "type": "hint",
+   "t": "Tambah nomor dan pilih cabang untuk setiap perangkat."
+  },
+  {
+   "type": "button",
+   "t": "Kelola Perangkat WhatsApp",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 3
+  },
+  {
+   "type": "title",
+   "t": "Fitur otomatis",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "Menyala otomatis saat upgrade · bisa dimatikan per fitur."
+  },
+  {
+   "type": "toggle",
+   "t": "Pesanan diterima",
+   "s": "Konfirmasi order + nota elektronik saat transaksi dibuat",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Siap ambil otomatis",
+   "s": "Pelanggan dikabari begitu status jadi Siap Ambil",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Pengingat telat ambil",
+   "s": "Otomatis kirim saat cucian 7 hari belum diambil",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Chatbot AI 24 jam",
+   "s": "Membalas pertanyaan pelanggan dari nomor outlet",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Balas cepat & trigger",
+   "s": "Jawaban template berdasarkan kata kunci",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "title",
+   "t": "Chatbot bisa menjawab",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "Bot hanya membaca data, tidak bisa mengubah transaksi."
+  },
+  {
+   "type": "toggle",
+   "t": "Cek status cucian",
+   "s": "",
+   "on": true,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Cek total tagihan",
+   "s": "",
+   "on": true,
+   "i": 6
+  },
+  {
+   "type": "toggle",
+   "t": "Info harga & layanan",
+   "s": "",
+   "on": true,
+   "i": 7
+  },
+  {
+   "type": "toggle",
+   "t": "Jam buka & alamat outlet",
+   "s": "",
+   "on": true,
+   "i": 8
+  },
+  {
+   "type": "toggle",
+   "t": "Pesan antar-jemput",
+   "s": "",
+   "on": true,
+   "i": 9
+  },
+  {
+   "type": "toggle",
+   "t": "Teruskan ke admin (CS manusia)",
+   "s": "",
+   "on": true,
+   "i": 10
+  },
+  {
+   "type": "button",
+   "t": "Atur balas cepat & trigger ›",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 4
+  },
+  {
+   "type": "title",
+   "t": "Riwayat pesan",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "Pesan otomatis dari nomor outlet."
+  },
+  {
+   "type": "title",
+   "t": "Layanan WhatsApp belum terhubung"
+  }
+ ]
+}

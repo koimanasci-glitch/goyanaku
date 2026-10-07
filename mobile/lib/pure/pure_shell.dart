@@ -38,6 +38,7 @@ import 'scan_page.dart';
 import 'service_icons.dart';
 import 'settings_menu.dart';
 import 'views.dart';
+import 'wa_pages.dart';
 
 /// Kunci penanda mode (dibaca main.dart).
 const pureModeKey = 'goyana-pure-mode';
@@ -65,6 +66,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   AppSettings? _settings;
   late final Map<String, PurePage> _pages = {
     ...templatePages(this),
+    ...whatsappPages(this),
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
@@ -482,6 +484,15 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     _open(_Sheet('cat99', _catItems()));
   }
 
+  /// Popup "terkunci" (lock111) untuk fitur chatbot.
+  void _lockSheet(String name) => _open(_Sheet('lock111', [
+        {'type': 'title', 't': '🔒'},
+        {'type': 'title', 't': '$name terkunci', 's': ''},
+        {'type': 'hint', 't': 'Fitur ini butuh minimal 1 nomor chatbot WhatsApp. Pilih paket PRO CHATBOT, atau tambah nomor di paket kamu sekarang.'},
+        {'type': 'button', 't': 'Lihat PRO CHATBOT · Rp100.000/bulan', 'primary': true, 'file': '', 'after': false, 'i': 0},
+        {'type': 'button', 't': 'Tambah 1 nomor saja · Rp30.000/bulan', 'primary': false, 'file': '', 'after': false, 'i': 1},
+      ]));
+
   // ---------------- popup milik halaman ----------------
   final Set<String> _pageSheets = {};
   @override
@@ -632,14 +643,18 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     '0/0': 'profile', '1/0': 'outlets', '1/1': 'superbilling',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
     '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
-    '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
-    '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
+    '4/0': 'customers', '4/1': 'crm', '4/2': 'wadevices195', '4/3': 'whatsappbot', '4/4': 'quickreply', '4/5': 'automation',
+    '5': 'wadevices195', '6': 'triggers191', '7': 'ai191', '8': 'blast191',
     '9/0': 'qris', '9/1': 'finance', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
     '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
   };
   void _stGo(String key) {
     final r = _stRoutes[key];
     if (r == null) return toast('Halaman ini sedang dipindahkan');
+    // Kunci paket khusus menu WhatsApp/Chatbot (sama dengan HTML): grup Chatbot butuh paket AI, lainnya sesuai fiturnya.
+    if (const ['4/3', '4/4', '4/5'].contains(key) && !planAccess.has('ai', now)) return _lockSheet(const {'4/3': 'WhatsApp & Chatbot', '4/4': 'Balas Cepat & Trigger', '4/5': 'Otomasi Pelanggan'}[key]!);
+    final need = const {'6': 'quick', '7': 'ai', '8': 'blast'}[key];
+    if (need != null && !planAccess.has(need, now)) return toast(planAccess.lockedText(need));
     nav(r);
   }
 
@@ -916,6 +931,11 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     if (b == null) return;
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
     if (scope == 'cat99') return _catEvent(kind, index, value);
+    if (scope == 'lock111') {
+      _close('lock111');
+      if (kind == 'button') nav('plan');
+      return;
+    }
     if (_pageSheets.contains(scope)) {
       if (kind == 'close') return closePageSheet(scope);
       return _pages[_page]?.sheetEvent(scope, kind, index, value);

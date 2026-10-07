@@ -1,0 +1,161 @@
+{
+ "title": "PENGATURAN CHATBOT AI",
+ "items": [
+  {
+   "type": "hint",
+   "t": "Pengaturan tersimpan di perangkat ini. Pengiriman WhatsApp dan AI belum terhubung ke server."
+  },
+  {
+   "type": "toggle",
+   "t": "Aktifkan Chatbot AI",
+   "s": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Nama asisten"
+  },
+  {
+   "type": "input",
+   "v": "Asisten Laundry",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Cara menjawab"
+  },
+  {
+   "type": "input",
+   "v": "Jawab dengan ramah dan singkat. Gunakan data aplikasi; jangan mengarang harga atau status.",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Pengetahuan tambahan (alamat, jam buka, ketentuan)"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Baca harga layanan dari aplikasi",
+   "s": "",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Baca status pesanan sesuai nomor pelanggan",
+   "s": "",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Gambar balasan / promo"
+  },
+  {
+   "type": "button",
+   "t": "Pilih Gambar",
+   "primary": false,
+   "file": "ai-image191",
+   "i": -1
+  },
+  {
+   "type": "button",
+   "t": "Simpan Pengaturan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Pengetahuan aplikasi"
+  },
+  {
+   "type": "hint",
+   "t": "Harga mengikuti layanan aktif. Status dibatasi ke outlet aktif dan nomor pelanggan yang cocok."
+  },
+  {
+   "type": "hint",
+   "t": "Cuci Baju · Reguler: Rp7.000/kg Cuci Baju · Express: Rp10.500/kg Cuci Baju · Kilat: Rp14.000/kg Sprei · Reguler: Rp15.000/pcs Sprei · Express: Rp22.500/pcs Sprei · Kilat: Rp30.000/pcs Boneka · Reguler: Rp20.000/pcs Boneka · Express: Rp30.000/pcs Boneka · Kilat: Rp40.000/pcs Bedcover · Reguler: Rp30.000/pcs Bedcover · Express: Rp45.000/pcs Bedcover · Kilat: Rp60.000/pcs Karpet · Reguler: Rp15.000/m Karpet · Express: Rp22.500/m Karpet · Kilat: Rp30.000/m Gorden · Reguler: Rp12.000/m Gorden · Express: Rp18.000/m Gorden · Kilat: Rp24.000/m Sepatu · Reguler: Rp35.000/pcs Sepatu · Express: Rp52.500/pcs Sepatu · Kilat: Rp70.000/pcs Setrika · Reguler: Rp5.000/kg Setrika · Express: Rp7.500/kg Setrika · Kilat: Rp10.000/kg Selimut · Reguler: Rp20.000/pcs Selimut · Express: Rp30.000/pcs Selimut · Kilat: Rp40.000/pcs Jas · Reguler: Rp35.000/pcs Jas · Express: Rp52.500/pcs Jas · Kilat: Rp70.000/pcs"
+  },
+  {
+   "type": "button",
+   "t": "Perbarui Pratinjau",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  },
+  {
+   "type": "title",
+   "t": "Uji Jawaban dari Data Aplikasi"
+  },
+  {
+   "type": "label",
+   "t": "Nomor pelanggan"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 4
+  },
+  {
+   "type": "label",
+   "t": "Pertanyaan"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 5
+  },
+  {
+   "type": "button",
+   "t": "Uji Jawaban",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 2
+  }
+ ]
+}

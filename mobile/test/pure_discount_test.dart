@@ -160,11 +160,14 @@ void servicesTests() {
 // ---- Halaman berpola tetap (butir = tangkapan HTML) ----
 void templateTests() {
   testWidgets('Halaman pola tetap: butir sama persis dengan HTML dan bisa digambar', (tester) async {
+    planAccess.testPlan = 'PLATINUM';
+    addTearDown(() => planAccess.testPlan = null);
     final kv = _store();
     final s = await _pump(tester, kv);
     for (final f in Directory('test/fixtures/pure/pages').listSync().whereType<File>()) {
       final id = f.uri.pathSegments.last.replaceAll('.json', '');
       final fx = jsonDecode(f.readAsStringSync()) as Map;
+      if (id == 'wadevices195') continue; // tangkapan dibuat tanpa pesanan/outlet lain; diuji terpisah
       if (id == 'datacenter') {
         // Tangkapan HTML dari data kosong; data uji punya 1 pelanggan & 1 transaksi.
         final cells = (fx['items'] as List)[0]['cells'] as List;
@@ -644,6 +647,38 @@ void templateTests() {
     s.fmButton(1);
     await _settle(tester);
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['monitor']));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Balasan Cepat & Trigger: formulir, simpan dan edit sama dengan HTML; menu chatbot terkunci tanpa paket', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/triggers.json').readAsStringSync()) as Map;
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    await _settle(tester);
+    s.stItem(4, 3);
+    await _settle(tester);
+    expect(find.text('WhatsApp & Chatbot terkunci'), findsOneWidget);
+    s.fmScoped('lock111', 'close', 0);
+    s.stGroup(6, false);
+    expect(s.debugToast, 'Balasan Cepat membutuhkan paket Silver');
+    planAccess.testPlan = 'PLATINUM';
+    addTearDown(() => planAccess.testPlan = null);
+    s.stGroup(6, false);
+    await _settle(tester);
+    s.fmButton(0);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['form']));
+    s.fmButton(1);
+    expect(s.debugToast, 'Isi nama, pemicu dan teks atau gambar.');
+    s.fmInput(0, 'Harga');
+    s.fmInput(1, 'harga, biaya');
+    s.fmInput(3, 'Mulai Rp7.000/kg');
+    s.fmButton(1);
+    await _settle(tester);
+    expect(s.debugToast, 'Balasan tersimpan');
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['saved']));
+    s.fmButton(1);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['edit']));
+    expect(kv.data.keys.any((k) => k.startsWith('goyana-chat191:')), isTrue);
     expect(tester.takeException(), isNull);
   });
 }

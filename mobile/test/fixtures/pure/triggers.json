@@ -1,0 +1,308 @@
+{
+ "form": [
+  {
+   "type": "hint",
+   "t": "Pengaturan tersimpan di perangkat ini. Pengiriman WhatsApp dan AI belum terhubung ke server."
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Balasan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Nama balasan"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Kata pemicu (pisahkan dengan koma)"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Cara mencocokkan"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Mengandung kata/frasa",
+    "Pesan sama persis"
+   ],
+   "index": 0,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Isi balasan"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "label",
+   "t": "Gambar balasan / promo"
+  },
+  {
+   "type": "button",
+   "t": "Pilih Gambar",
+   "primary": false,
+   "file": "rule-image191",
+   "i": -1
+  },
+  {
+   "type": "toggle",
+   "t": "Aktif",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Simpan",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    },
+    {
+     "t": "Batal",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "Belum ada balasan. Tambahkan kata pemicu dan jawabannya."
+  }
+ ],
+ "saved": [
+  {
+   "type": "hint",
+   "t": "Pengaturan tersimpan di perangkat ini. Pengiriman WhatsApp dan AI belum terhubung ke server."
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Balasan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "entry",
+   "t": "Harga",
+   "lines": [
+    "harga, biaya · Mengandung kata/frasa",
+    "Mulai Rp7.000/kg"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Edit",
+     "on": false,
+     "i": 1
+    },
+    {
+     "t": "Aktif",
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "Hapus",
+     "on": false,
+     "i": 3
+    }
+   ]
+  }
+ ],
+ "edit": [
+  {
+   "type": "hint",
+   "t": "Pengaturan tersimpan di perangkat ini. Pengiriman WhatsApp dan AI belum terhubung ke server."
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Balasan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Nama balasan"
+  },
+  {
+   "type": "input",
+   "v": "Harga",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Kata pemicu (pisahkan dengan koma)"
+  },
+  {
+   "type": "input",
+   "v": "harga, biaya",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Cara mencocokkan"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Mengandung kata/frasa",
+    "Pesan sama persis"
+   ],
+   "index": 0,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Isi balasan"
+  },
+  {
+   "type": "input",
+   "v": "Mulai Rp7.000/kg",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "label",
+   "t": "Gambar balasan / promo"
+  },
+  {
+   "type": "button",
+   "t": "Pilih Gambar",
+   "primary": false,
+   "file": "rule-image191",
+   "i": -1
+  },
+  {
+   "type": "toggle",
+   "t": "Aktif",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Simpan",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    },
+    {
+     "t": "Batal",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Harga",
+   "lines": [
+    "harga, biaya · Mengandung kata/frasa",
+    "Mulai Rp7.000/kg"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Edit",
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Aktif",
+     "on": false,
+     "i": 4
+    },
+    {
+     "t": "Hapus",
+     "on": false,
+     "i": 5
+    }
+   ]
+  }
+ ]
+}
