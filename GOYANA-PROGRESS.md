@@ -1516,4 +1516,12 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Aturan Status Otomatis hanya di memori (kembali ke bawaan tiap aplikasi dibuka). Murni menyimpannya.
   - "Ubah Status Pembayaran" (pay91) lama masih ada tersembunyi di rincian dan memakai data contoh (GY-260927-0132, Saldo Koiman Rp50.000).
   - Pesanan "Jemput & Antar" dari Tambah Transaksi mulai dari Penjemputan walau layanan sudah diisi (Murni kini sama).
-- Belum: popup Riwayat/Foto/Nota WA/Struk masih lembar umum (belum widget khusus `hist115`/`photo115`/`wa131`/`rc106`); Edit Transaksi belum bisa tambah/hapus layanan seperti `edit115`; lembar Transfer (rekening) & popup jumlah/tunai/DP belum dicek ulang terhadap bundel; halaman Cetak Label (`printlabel`); poin CRM otomatis saat lunas.
+- Popup rincian memakai widget khusus Hibrida dengan isi dari Dart: Riwayat Status (`hist115`), Foto Dokumentasi (`photo115`, foto tersimpan di pesanan), Nota WhatsApp (`wa131`, teks sama persis dengan `waNota131` termasuk aturan CRM).
+- Struk Pesanan (`rc106`): gambar struk digambar Dart (`lib/pure/receipt_image.dart`) mengikuti kanvas HTML — logo, kepala outlet, rincian, barcode Code128, QR status — dengan Kirim WA / Cetak / Simpan Gambar / Bagikan Gambar.
+- Edit Transaksi (`edit115`): tambah layanan, −/＋ jumlah, hapus, estimasi, keterangan, parfum, diskon, "Total baru"; pesan & catatan Audit sama.
+- Cetak Label Cucian (`printlabel`) + Cek Kelengkapan Kantong (`bg137`): pilih pesanan, jumlah kantong, ukuran, pratinjau barcode per kantong, cetak, tandai kantong terscan.
+- Kurir · Tugas: kartu tugas lengkap (pilih kurir, Navigasi, WhatsApp, Bayar, Sudah Dijemput / Mulai Antar / Sudah Diterima); riwayat mencatat nama kurir.
+- Lembar Transfer Bank (`gy154-transfer`), popup jumlah/Tunai/DP/Saldo Deposit memakai butir HTML (`qty116`, `gy154-cash`, `dp178`, `depositpay178`); pecahan cepat Tunai mengikuti total.
+- Harus Selesai Hari Ini mengikuti aturan lencana Beranda; Ranking Pelanggan (`rk138`) dari pesanan asli; tab Penjemputan/Diantar hilang bila layanan dimatikan.
+- **Anomali HTML tambahan:** tombol "Kirim ke WhatsApp Pelanggan" di Nota WA versi lama memakai nomor tertanam `6285212348626`; riwayat status mencatat "oleh Koko" (nama tertanam); tautan `goyana.id/s/<nota>` di struk/nota belum ada servernya; Ranking Pelanggan HTML memakai angka contoh.
+- Belum: Edit Transaksi untuk pesanan sudah diproses belum meminta PIN Admin + alasan ralat (`rs139`); popup QRIS (`f61-qris`) belum dicek ulang; toast poin CRM saat lunas; label dicetak sebagai teks (HTML: label gambar 58×40 mm).
