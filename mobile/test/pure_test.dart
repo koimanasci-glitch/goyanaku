@@ -191,16 +191,13 @@ void main() {
 
     s.nav('services');
     await _settle(tester);
-    s.fmInput(1, '12000'); // layanan 0, Express
-    s.fmButton(0);
+    s.svEdit(0);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 2, '12000'); // Harga Express
+    s.fmScoped('gs107', 'button', 0);
     await _settle(tester);
     b = await Business.load(kv);
     expect(b.services.first.priceFor('Express'), 12000);
-
-    s.nav('perfume');
-    s.fmInput(0, 'Melati');
-    s.fmButton(1);
-    await _settle(tester);
     expect(tester.takeException(), isNull);
   });
 

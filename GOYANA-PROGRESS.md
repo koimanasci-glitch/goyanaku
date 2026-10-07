@@ -1453,3 +1453,9 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - `lib/pure/mirror_pages.dart`: pohon tampilan Parfum/Durasi dibuat dari data Dart, dirender oleh `NativePerfumePage`/`NativeDurationPage` (widget Hibrida yang sama persis).
 - Parfum: tambah/ubah/hapus lewat popup `gs107` seperti HTML, warna label disimpan `rgb(r, g, b)`.
 - Durasi: 3 durasi utama (jam bisa diubah, simpan `goyana-durations199`, dipakai Tambah Transaksi), hapus ditolak dengan pesan HTML, durasi tambahan sementara seperti HTML. `_stRoutes` Durasi diperbaiki (sebelumnya masuk Layanan).
+
+## Jalur C — Diskon & Layanan Mode Murni disamakan dengan HTML (uji kesetaraan butir per langkah)
+- Alat tangkap `cap.cjs` (Playwright + `capacitor.js`): merekam model halaman/popup yang dikirim HTML ke Hibrida; hasilnya jadi fixture `mobile/test/fixtures/pure/*.json` dan dibandingkan persis (JSON) dengan butir Mode Murni.
+- Diskon (`lib/pure/discounts.dart`, `DiscountPage`): halaman, popup `disc127`, konfirmasi hapus, Aturan Kasir; di Atur Pesanan: pilihan "Tidak" + diskon aktif + "Diskon manual (Rp)…", cakupan Kiloan/Satuan/Meteran, minimal transaksi, batas % kasir, toast sama. 4 diskon bawaan karangan Mode Murni (5%/10%/Rp5.000/Rp10.000) dibuang.
+- Layanan: memakai `NativeServices` (widget Hibrida), popup `cat99` Kategori Baru (22 ikon, satuan, alur proses) dan Edit Layanan; halaman karangan lama dibuang.
+- **Anomali HTML (dilaporkan):** (1) daftar diskon & Aturan Kasir di HTML hanya di memori — hilang saat aplikasi ditutup; Mode Murni menyimpannya permanen. (2) Ikon kategori layanan tidak ikut disimpan HTML (semua layanan tampil ikon keranjang setelah dibuka ulang); Mode Murni menyimpan ikon. (3) Durasi tambahan ("+ Tambah Durasi") di HTML tidak tersimpan dan tidak dipakai di transaksi.

@@ -33,6 +33,7 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
+  servicesTests();
   setUpAll(() async {
     final loader = FontLoader('Poppins');
     for (final f in ['Regular', 'Medium', 'SemiBold']) {
@@ -105,6 +106,49 @@ void main() {
     await _settle(tester);
     expect(find.text('Diskon manual'), findsOneWidget);
     expect(find.text('Potongan (Rp)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
+
+// ---- Layanan ----
+void servicesTests() {
+  testWidgets('Layanan: model halaman, popup Kategori Baru dan Edit Layanan sama dengan HTML', (tester) async {
+    final fx = (jsonDecode(File('test/fixtures/pure/services.json').readAsStringSync()) as List).cast<Map>();
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('services');
+    await _settle(tester);
+    expect(jsonEncode(s.servicesJson()), jsonEncode(fx[0]['model']), reason: 'halaman Layanan');
+    s.svAdd();
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('cat99')), jsonEncode(fx[1]['sheet']['items']), reason: 'popup Kategori Baru');
+    s.fmScoped('cat99', 'close', 0);
+    await _settle(tester);
+    s.svEdit(0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('gs107')), jsonEncode(fx[2]['sheet']['items']), reason: 'popup Edit Layanan');
+    s.fmScoped('gs107', 'button', 1);
+    await _settle(tester);
+    s.svToggle(0, 0);
+    await _settle(tester);
+    expect(jsonEncode(s.servicesJson()), jsonEncode(fx[3]['model']), reason: 'Reguler dimatikan');
+
+    // Kategori baru: harga Express 1,4× dibulatkan Rp500, Kilat 2×.
+    s.svAdd();
+    await _settle(tester);
+    s.fmScoped('cat99', 'button', 29);
+    expect(s.debugToast, 'Isi nama kategori dulu');
+    s.fmScoped('cat99', 'input', 0, 'Cuci Tas');
+    s.fmScoped('cat99', 'input', 1, '25000');
+    s.fmScoped('cat99', 'button', 19); // ikon Tas
+    s.fmScoped('cat99', 'button', 23); // pcs
+    s.fmScoped('cat99', 'button', 29);
+    await _settle(tester);
+    expect(s.debugToast, 'Kategori "Cuci Tas" tersimpan · harga Express & Kilat bisa diubah');
+    final first = (jsonDecode(kv.data[Keys.services]!) as List).first as Map;
+    expect(first['prices'], {'Reguler': 25000, 'Express': 35000, 'Kilat': 50000});
+    expect(first['unit'], 'pcs');
+    expect(first['proc'], ['Cuci', 'Kering', 'Packing']);
     expect(tester.takeException(), isNull);
   });
 }

@@ -26,11 +26,13 @@ import '../logic/reports_a8.dart';
 import '../native/orders_page.dart';
 import '../native/report_detail.dart';
 import '../native/reports_page.dart';
+import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import '../logic/reports_catalog.dart';
 import 'pages.dart';
 import 'reports_dart.dart';
 import 'scan_page.dart';
+import 'service_icons.dart';
 import 'settings_menu.dart';
 import 'views.dart';
 
@@ -54,13 +56,13 @@ class _Sheet {
   final bool full;
 }
 
-class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, PureHost {
+class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, ServicesActions, PureHost {
   static const _device = MethodChannel('id.goyana/device');
   Business? _b;
   AppSettings? _settings;
   late final Map<String, PurePage> _pages = {
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
-    'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
+    'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
     'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
@@ -308,6 +310,172 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @visibleForTesting
   String get debugToast => _toast;
 
+  // ---------------- Layanan (halaman & popup sama dengan HTML sv99/cat99) ----------------
+  static const _svDurs = ['Reguler', 'Express', 'Kilat'];
+  static const _svSteps = ['Cuci', 'Kering', 'Setrika', 'Packing'];
+  static const _svUnits = ['kg', 'pcs', 'm'];
+  String _svQuery = '';
+  String _catName = '', _catPrice = '', _catScore = '';
+  int _catIcon = 1, _catUnit = 0;
+  final Set<int> _catProc = {0, 1, 3};
+
+  @visibleForTesting
+  Map<String, dynamic> servicesJson() {
+    final list = _b!.services;
+    final q = _svQuery.toLowerCase();
+    return {
+      'title': 'LAYANAN',
+      'search': {'v': _svQuery, 'ph': 'Cari layanan…'},
+      'add': '+ Kategori',
+      'cats': [
+        for (var i = 0; i < list.length; i++)
+          if (list[i].name.toLowerCase().contains(q))
+            {
+              'i': i,
+              'svg': serviceIconSvg('${list[i].raw['icon'] ?? 'Kiloan'}'),
+              't': list[i].name,
+              's': 'Per ${list[i].unit}',
+              'edit': true,
+              'chain': [for (final st in _svSteps) {'t': st, 'on': list[i].proc.contains(st)}],
+              'vars': [
+                for (var j = 0; j < _svDurs.length; j++)
+                  {
+                    'j': j,
+                    't': _svDurs[j],
+                    's': '${durationHours(_svDurs[j])} jam',
+                    'price': list[i].enabledFor(_svDurs[j]) && list[i].priceFor(_svDurs[j]) > 0 ? '${rp(list[i].priceFor(_svDurs[j]))} / ${list[i].unit}' : (list[i].priceFor(_svDurs[j]) > 0 ? 'Nonaktif' : 'Isi harga'),
+                    'on': list[i].enabledFor(_svDurs[j]) && list[i].priceFor(_svDurs[j]) > 0,
+                    'toggle': true,
+                  },
+              ],
+            },
+      ],
+      'empty': list.isEmpty ? 'Belum ada layanan. Tambahkan layanan pertama Anda.' : '',
+      'note': 'Alur proses menentukan tahap produksi & hak akses pegawai. Varian Reguler / Express / Kilat otomatis dari menu Durasi — isi harga atau matikan.',
+    };
+  }
+
+  @override
+  void svBack() => nav('settings');
+  @override
+  void svSearch(String text) => setState(() => _svQuery = text.trim());
+  @override
+  void svToggle(int index, int variant) {
+    final list = _b!.services;
+    if (index < 0 || index >= list.length || variant < 0 || variant > 2) return;
+    final s = list[index], d = _svDurs[variant];
+    final on = s.enabledFor(d) && s.priceFor(d) > 0;
+    (s.raw.putIfAbsent('enabled', () => <String, dynamic>{}) as Map)[d] = !on;
+    _b!.saveServices();
+    setState(() {});
+  }
+
+  @override
+  void svEdit(int index) {
+    final list = _b!.services;
+    if (index < 0 || index >= list.length) return;
+    final s = list[index];
+    openFormSheet(FormSheetDef(
+      'Edit Layanan',
+      [
+        FormSheetField('Nama layanan', value: s.name, required: true),
+        for (final d in _svDurs) FormSheetField('Harga $d (0 untuk nonaktif)', value: '${s.priceFor(d)}', numeric: true),
+      ],
+      'Simpan',
+      (v) {
+        final prices = <String, int>{};
+        for (var i = 0; i < 3; i++) {
+          if (!RegExp(r'^\d+$').hasMatch(v[i + 1])) {
+            toast('Harga harus berupa angka tanpa titik atau koma');
+            return false;
+          }
+          prices[_svDurs[i]] = int.parse(v[i + 1]);
+        }
+        if (!prices.values.any((n) => n > 0)) {
+          toast('Aktifkan minimal satu harga layanan');
+          return false;
+        }
+        final name = v[0].trim();
+        if (list.any((r) => r != s && r.name.toLowerCase() == name.toLowerCase())) {
+          toast('Nama layanan sudah digunakan');
+          return false;
+        }
+        s.raw
+          ..['name'] = name
+          ..['prices'] = Map<String, dynamic>.from(prices)
+          ..['enabled'] = {for (final d in _svDurs) d: prices[d]! > 0};
+        _b!.saveServices();
+        toast('Layanan dan harga diperbarui');
+        return null;
+      },
+      sub: 'Harga per ${s.unit}',
+    ));
+  }
+
+  @override
+  void svAdd() => _open(_Sheet('cat99', _catItems()));
+
+  List<Map<String, dynamic>> _catItems() {
+    Map<String, dynamic> input(String v, String ph, bool numeric, int i) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    Map<String, dynamic> opt(String t, String svg, bool on, int i) => {'t': t, 'svg': svg, 'file': '', 'after': false, 'on': on, 'i': i};
+    final icons = serviceIcons.keys.toList();
+    return [
+      {'type': 'title', 't': 'Kategori Baru', 's': ''},
+      {'type': 'hint', 't': 'Varian durasi dibuat otomatis dari menu Durasi'},
+      {'type': 'label', 't': 'Nama kategori'},
+      input(_catName, 'Contoh: Cuci Biasa', false, 0),
+      {'type': 'label', 't': 'Pilih ikon'},
+      {'type': 'buttons', 'options': [for (var k = 0; k < icons.length; k++) opt(icons[k], serviceIconSvg(icons[k], 30), k == _catIcon, k)]},
+      {'type': 'label', 't': 'Satuan'},
+      {'type': 'buttons', 'options': [for (var k = 0; k < 3; k++) opt(_svUnits[k], '', k == _catUnit, 22 + k)]},
+      {'type': 'label', 't': 'Alur proses'},
+      {'type': 'buttons', 'options': [for (var k = 0; k < 4; k++) opt(_svSteps[k], '', _catProc.contains(k), 25 + k)]},
+      {'type': 'label', 't': 'Harga Reguler (per satuan)'},
+      input(_catPrice, 'Contoh: 5000', true, 1),
+      {'type': 'label', 't': 'Poin kinerja pegawai (opsional)'},
+      input(_catScore, 'Contoh: 80', true, 2),
+      {'type': 'button', 't': 'Simpan Kategori', 'primary': true, 'file': '', 'after': false, 'i': 29},
+    ];
+  }
+
+  void _catEvent(String kind, int index, Object? value) {
+    if (kind == 'close') return _close('cat99');
+    if (kind == 'input') {
+      final v = '${value ?? ''}';
+      if (index == 0) _catName = v;
+      if (index == 1) _catPrice = v;
+      if (index == 2) _catScore = v;
+      return;
+    }
+    if (kind != 'button') return;
+    if (index < 22) {
+      _catIcon = index;
+    } else if (index < 25) {
+      _catUnit = index - 22;
+    } else if (index < 29) {
+      _catProc.contains(index - 25) ? _catProc.remove(index - 25) : _catProc.add(index - 25);
+    } else {
+      final name = _catName.trim();
+      if (name.isEmpty) return toast('Isi nama kategori dulu');
+      final price = parseRupiah(_catPrice);
+      // Harga Express = 1,4× dibulatkan ke Rp500, Kilat = 2× (sama dengan saveCat99).
+      final prices = {'Reguler': price, 'Express': (price * 1.4 / 500).round() * 500, 'Kilat': price * 2};
+      _b!.services.insert(0, Service({
+        'key': name.toLowerCase(), 'name': name, 'unit': _svUnits[_catUnit], 'prices': prices,
+        'enabled': {for (final d in _svDurs) d: prices[d]! > 0},
+        'proc': [for (var k = 0; k < 4; k++) if (_catProc.contains(k)) _svSteps[k]],
+        'icon': serviceIcons.keys.elementAt(_catIcon),
+        if (_catScore.trim().isNotEmpty) 'score': _catScore.trim(),
+      }));
+      _b!.saveServices();
+      _catName = _catPrice = _catScore = '';
+      _close('cat99');
+      return toast('Kategori "$name" tersimpan · harga Express & Kilat bisa diubah');
+    }
+    _open(_Sheet('cat99', _catItems()));
+  }
+
   // ---------------- popup milik halaman ----------------
   final Set<String> _pageSheets = {};
   @override
@@ -341,12 +509,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       for (var k = 0; k < d.fields.length; k++) ...[
         {'type': 'label', 't': d.fields[k].label},
         if (d.fields[k].colors == null)
-          {'type': 'input', 'v': _fsVals[k], 'ph': d.fields[k].placeholder, 'multiline': false, 'numeric': d.fields[k].numeric, 'ro': false, 'secret': false, 'email': false, 'i': k}
+          {'type': 'input', 'v': _fsVals[k], 'ph': d.fields[k].placeholder, 'multiline': false, 'numeric': d.fields[k].numeric, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': k}
         else
           {'type': 'swatches', 'colors': d.fields[k].colors, 'sel': d.fields[k].colors!.indexWhere((c) => c.toLowerCase() == _fsVals[k].toLowerCase()), 'i': k},
       ],
-      {'type': 'button', 't': d.okText, 'primary': true, 'file': '', 'i': 0},
-      {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'i': 1},
+      {'type': 'button', 't': d.okText, 'primary': true, 'file': '', 'after': false, 'i': 0},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
     ]));
   }
 
@@ -726,6 +894,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final b = _b;
     if (b == null) return;
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
+    if (scope == 'cat99') return _catEvent(kind, index, value);
     if (_pageSheets.contains(scope)) {
       if (kind == 'close') return closePageSheet(scope);
       return _pages[_page]?.sheetEvent(scope, kind, index, value);
@@ -1523,6 +1692,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         page = NativeReports(model: reportsHubA8(_rpCtx(), periodKey: _rpKey, from: _rpFrom, to: _rpTo, cat: _rpCat, query: _rpQuery, outlet: _activeOutletName()), actions: this);
       case 'rp':
         page = _rpDetail();
+      case 'services':
+        page = NativeServices(model: ServicesModel.fromJson(servicesJson()), actions: this);
       case 'settings':
         page = NativeSettings(model: SettingsModel.fromJson(_settingsJson()), actions: this);
       default:
