@@ -1,0 +1,1082 @@
+{
+ "empty": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "0",
+     "t": "Jenis bahan",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Stok menipis",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "Rp0",
+     "t": "Nilai stok",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "t": "Tambah Bahan",
+   "s": "Stok awal, minimum, harga",
+   "svg": "",
+   "ic": "＋",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Mutasi Stok",
+   "s": "Masuk / pemakaian",
+   "svg": "",
+   "ic": "↕",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Stock Opname",
+   "s": "Fisik vs sistem",
+   "svg": "",
+   "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Transfer Cabang",
+   "s": "Antar outlet",
+   "svg": "",
+   "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Supplier",
+   "s": "Tambah pemasok",
+   "svg": "",
+   "ic": "🏭",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Pembelian",
+   "s": "Lunas / hutang supplier",
+   "svg": "",
+   "ic": "🛒",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "Resep HPP",
+   "s": "Pemakaian saat mulai produksi",
+   "svg": "",
+   "ic": "🫧",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Stok",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 7
+    },
+    {
+     "t": "Hutang",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 8
+    },
+    {
+     "t": "Riwayat",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 9
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Belum ada bahan."
+  },
+  {
+   "type": "hint",
+   "t": "Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama."
+  }
+ ],
+ "add": [
+  {
+   "type": "title",
+   "t": "Tambah Bahan",
+   "s": ""
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Nama bahan",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Stok awal",
+   "multiline": false,
+   "numeric": true,
+   "decimal": true,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Satuan",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Minimum",
+   "multiline": false,
+   "numeric": true,
+   "decimal": true,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Harga/unit",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 4
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "one": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "1",
+     "t": "Jenis bahan",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Stok menipis",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "Rp150.000",
+     "t": "Nilai stok",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "t": "Tambah Bahan",
+   "s": "Stok awal, minimum, harga",
+   "svg": "",
+   "ic": "＋",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Mutasi Stok",
+   "s": "Masuk / pemakaian",
+   "svg": "",
+   "ic": "↕",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Stock Opname",
+   "s": "Fisik vs sistem",
+   "svg": "",
+   "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Transfer Cabang",
+   "s": "Antar outlet",
+   "svg": "",
+   "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Supplier",
+   "s": "Tambah pemasok",
+   "svg": "",
+   "ic": "🏭",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Pembelian",
+   "s": "Lunas / hutang supplier",
+   "svg": "",
+   "ic": "🛒",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "Resep HPP",
+   "s": "Pemakaian saat mulai produksi",
+   "svg": "",
+   "ic": "🫧",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Stok",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 7
+    },
+    {
+     "t": "Hutang",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 8
+    },
+    {
+     "t": "Riwayat",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 9
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Deterjen",
+   "lines": [
+    "Minimum 3 liter · Outlet Aktif"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "10 liter",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama."
+  }
+ ],
+ "move": [
+  {
+   "type": "title",
+   "t": "Mutasi Stok",
+   "s": ""
+  },
+  {
+   "type": "select",
+   "options": [
+    "Deterjen · liter"
+   ],
+   "index": 0,
+   "i": 0
+  },
+  {
+   "type": "select",
+   "options": [
+    "Stok Masuk",
+    "Pemakaian / Keluar"
+   ],
+   "index": 0,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Jumlah",
+   "multiline": false,
+   "numeric": true,
+   "decimal": true,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Catatan",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "op": [
+  {
+   "type": "title",
+   "t": "Stock Opname",
+   "s": ""
+  },
+  {
+   "type": "select",
+   "options": [
+    "Deterjen · liter"
+   ],
+   "index": 0,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Stok fisik",
+   "multiline": false,
+   "numeric": true,
+   "decimal": true,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Alasan jika ada selisih",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "hint",
+   "t": "Sistem akan mencatat selisih, bukan mengganti histori stok."
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "sup": [
+  {
+   "type": "title",
+   "t": "Tambah Supplier",
+   "s": ""
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Nama supplier",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "WhatsApp",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "buy": [
+  {
+   "type": "title",
+   "t": "Pembelian Bahan",
+   "s": ""
+  },
+  {
+   "type": "select",
+   "options": [
+    "Tanpa supplier"
+   ],
+   "index": 0,
+   "i": 0
+  },
+  {
+   "type": "select",
+   "options": [
+    "Deterjen · liter"
+   ],
+   "index": 0,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Jumlah",
+   "multiline": false,
+   "numeric": true,
+   "decimal": true,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Harga/unit",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "select",
+   "options": [
+    "Lunas",
+    "Hutang Supplier"
+   ],
+   "index": 0,
+   "i": 4
+  },
+  {
+   "type": "date",
+   "v": "",
+   "i": 5
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "bought": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "1",
+     "t": "Jenis bahan",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Stok menipis",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "Rp200.000",
+     "t": "Nilai stok",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "t": "Tambah Bahan",
+   "s": "Stok awal, minimum, harga",
+   "svg": "",
+   "ic": "＋",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Mutasi Stok",
+   "s": "Masuk / pemakaian",
+   "svg": "",
+   "ic": "↕",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Stock Opname",
+   "s": "Fisik vs sistem",
+   "svg": "",
+   "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Transfer Cabang",
+   "s": "Antar outlet",
+   "svg": "",
+   "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Supplier",
+   "s": "Tambah pemasok",
+   "svg": "",
+   "ic": "🏭",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Pembelian",
+   "s": "Lunas / hutang supplier",
+   "svg": "",
+   "ic": "🛒",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "Resep HPP",
+   "s": "Pemakaian saat mulai produksi",
+   "svg": "",
+   "ic": "🫧",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Stok",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 7
+    },
+    {
+     "t": "Hutang",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 8
+    },
+    {
+     "t": "Riwayat",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 9
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Deterjen",
+   "lines": [
+    "Minimum 3 liter · Outlet Aktif"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "12,5 liter",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama."
+  }
+ ],
+ "debt": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "1",
+     "t": "Jenis bahan",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Stok menipis",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "Rp200.000",
+     "t": "Nilai stok",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "t": "Tambah Bahan",
+   "s": "Stok awal, minimum, harga",
+   "svg": "",
+   "ic": "＋",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Mutasi Stok",
+   "s": "Masuk / pemakaian",
+   "svg": "",
+   "ic": "↕",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Stock Opname",
+   "s": "Fisik vs sistem",
+   "svg": "",
+   "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Transfer Cabang",
+   "s": "Antar outlet",
+   "svg": "",
+   "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Supplier",
+   "s": "Tambah pemasok",
+   "svg": "",
+   "ic": "🏭",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Pembelian",
+   "s": "Lunas / hutang supplier",
+   "svg": "",
+   "ic": "🛒",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "Resep HPP",
+   "s": "Pemakaian saat mulai produksi",
+   "svg": "",
+   "ic": "🫧",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Stok",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 7
+    },
+    {
+     "t": "Hutang",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 8
+    },
+    {
+     "t": "Riwayat",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 9
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Deterjen · Sisa Rp40.000",
+   "lines": [
+    "Toko Sabun · jatuh tempo -"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Tandai Lunas",
+     "on": false,
+     "i": 10
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama."
+  }
+ ],
+ "hist": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "1",
+     "t": "Jenis bahan",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Stok menipis",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "Rp200.000",
+     "t": "Nilai stok",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "card",
+   "t": "Tambah Bahan",
+   "s": "Stok awal, minimum, harga",
+   "svg": "",
+   "ic": "＋",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Mutasi Stok",
+   "s": "Masuk / pemakaian",
+   "svg": "",
+   "ic": "↕",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Stock Opname",
+   "s": "Fisik vs sistem",
+   "svg": "",
+   "ic": "✓",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Transfer Cabang",
+   "s": "Antar outlet",
+   "svg": "",
+   "ic": "⇄",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Supplier",
+   "s": "Tambah pemasok",
+   "svg": "",
+   "ic": "🏭",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Pembelian",
+   "s": "Lunas / hutang supplier",
+   "svg": "",
+   "ic": "🛒",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "Resep HPP",
+   "s": "Pemakaian saat mulai produksi",
+   "svg": "",
+   "ic": "🫧",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Stok",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 7
+    },
+    {
+     "t": "Hutang",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 8
+    },
+    {
+     "t": "Riwayat",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 9
+    }
+   ]
+  },
+  {
+   "type": "entry",
+   "t": "Pembelian · Deterjen",
+   "lines": [
+    "7/10/2026, 12.12.03 · Toko Sabun"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "+2.5 liter",
+   "btns": []
+  },
+  {
+   "type": "entry",
+   "t": "Stok Awal · Deterjen",
+   "lines": [
+    "7/10/2026, 12.11.59 · Stok awal"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "+10 liter",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama."
+  }
+ ]
+}

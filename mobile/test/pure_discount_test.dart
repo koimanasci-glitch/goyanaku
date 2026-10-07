@@ -541,4 +541,60 @@ void templateTests() {
     expect(jsonEncode(got.sublist(1)), jsonEncode((fx['none'] as List).sublist(1)).replaceFirst('Belum ada perangkat dipasangkan. Buka Pengaturan Bluetooth HP.', 'Pasangkan printer di Bluetooth HP, lalu Cari Ulang Printer.'));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Stok & Bahan: halaman, popup alat, pembelian hutang dan riwayat sama dengan HTML', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/stock.json').readAsStringSync().replaceAll('· Outlet Aktif', '· Uji')) as Map;
+    planAccess.testPlan = 'PLATINUM';
+    addTearDown(() => planAccess.testPlan = null);
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('stock');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+    s.fmButton(1);
+    expect(s.debugToast, 'Tambahkan bahan dulu');
+    s.fmButton(0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx['add']));
+    for (final (k, v) in ['Deterjen', '10', 'liter', '3', '15000'].indexed) {
+      s.fmScoped('g181-modal', 'input', k, v);
+    }
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
+    for (final (i, name) in [(1, 'move'), (2, 'op'), (4, 'sup'), (5, 'buy')]) {
+      s.fmButton(i);
+      await _settle(tester);
+      expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx[name]), reason: name);
+      s.fmScoped('g181-modal', 'button', 1);
+      await _settle(tester);
+    }
+    s.fmButton(3);
+    expect(s.debugToast, 'Minimal 2 outlet');
+    s.fmButton(4);
+    await _settle(tester);
+    s.fmScoped('g181-modal', 'input', 0, 'Toko Sabun');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    s.fmButton(5);
+    await _settle(tester);
+    s.fmScoped('g181-modal', 'input', 0, 1);
+    s.fmScoped('g181-modal', 'input', 2, '2.5');
+    s.fmScoped('g181-modal', 'input', 3, '16000');
+    s.fmScoped('g181-modal', 'input', 4, 1);
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['bought']));
+    s.fmButton(8);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['debt']));
+    s.fmButton(9);
+    // Jam di riwayat mengikuti waktu pencatatan; yang dibandingkan judul & jumlahnya.
+    String rows(Object items) => jsonEncode([for (final it in (items as List).cast<Map>()) if (it['type'] == 'entry') [it['t'], it['amount'], '${(it['lines'] as List).first}'.split(' · ').last]]);
+    expect(rows(s.debugItems()), rows(fx['hist']));
+    s.fmButton(8);
+    s.fmButton(10); // Tandai Lunas
+    await _settle(tester);
+    expect(s.debugItems().any((e) => e['t'] == 'Tidak ada hutang supplier.'), isTrue);
+    expect(tester.takeException(), isNull);
+  });
 }

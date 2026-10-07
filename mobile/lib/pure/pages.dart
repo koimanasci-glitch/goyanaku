@@ -1046,78 +1046,210 @@ class DataPage extends PurePage {
   }
 }
 
+/// Stok & Bahan (inventory v181/v190): ledger stok, opname, supplier, pembelian/hutang, transfer cabang.
+/// Data di `goyana-stock181` (sama dengan Hibrida). Semua popup memakai id `g181-modal` seperti HTML.
 class StockPage extends PurePage {
   StockPage(super.host);
   StockBook? book;
-  String mode = ''; // '', 'add', 'move:<id>', 'opname:<id>'
-  final Map<String, String> f = {};
+  String tab = 'stock'; // stock / debt / hist
+  String tool = ''; // add / move / op / tr / sup / buy / recv:<id>
+  final Map<int, String> f = {};
+  final Map<int, int> sel = {};
   @override
-  String get title => 'Stok Bahan';
+  String get title => 'STOK & BAHAN';
+
   @override
   void opened() {
-    mode = '';
+    tab = 'stock';
     StockBook.load(host.kv).then((b) {
       book = b;
       host.refresh();
     });
   }
 
-  String get outletId => host.business.activeOutlet;
+  String get outletId => host.business.activeOutlet.isNotEmpty ? host.business.activeOutlet : (host.business.outlets.isEmpty ? 'default' : host.business.outlets.first.id);
+  List<List<String>> get _outs => host.business.outlets.isEmpty ? [['default', 'Outlet Aktif']] : [for (final o in host.business.outlets) [o.id, o.name]];
+  String _outName(String id) => _outs.where((o) => o[0] == id).firstOrNull?[1] ?? id;
+  List<Map<String, dynamic>> _l(String k) => ((book?.raw[k] as List?) ?? const []).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+  static String _js(Object? v) {
+    final n = v is num ? v : num.tryParse('$v') ?? 0;
+    return n == n.roundToDouble() ? '${n.round()}' : '$n';
+  }
+
+  static double _num(String? v) => parseQty(v);
 
   @override
   List<Map<String, dynamic>> items() {
     final b = book;
-    if (b == null) return [{'type': 'hint', 't': 'Memuat…'}];
-    if (mode == 'add') {
-      return [
-        {'type': 'title', 't': 'Tambah Bahan'},
-        {'type': 'input', 'v': f['name'] ?? '', 'ph': 'Nama bahan, contoh: Deterjen', 'i': 0},
-        {'type': 'input', 'v': f['unit'] ?? '', 'ph': 'Satuan, contoh: liter / kg / pcs', 'i': 1},
-        {'type': 'input', 'label': 'Stok minimum', 'v': f['min'] ?? '', 'numeric': true, 'i': 2},
-        {'type': 'input', 'label': 'Harga per satuan', 'pre': 'Rp', 'v': f['cost'] ?? '', 'numeric': true, 'i': 3},
-        {'type': 'input', 'label': 'Stok awal', 'v': f['initial'] ?? '', 'numeric': true, 'i': 4},
-        {'type': 'button', 't': 'Simpan Bahan', 'primary': true, 'i': 10},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 11},
-      ];
+    if (b == null) return const [];
+    final its = b.items, o = outletId;
+    final low = its.where((e) => b.balance('${e['id']}', o) <= ((e['min'] as num?) ?? 0)).length;
+    final value = its.fold<double>(0, (a, e) {
+      final bal = b.balance('${e['id']}', o);
+      return a + (bal < 0 ? 0 : bal) * ((e['cost'] as num?) ?? 0);
+    });
+    Map<String, dynamic> toolCard(String t, String sub, String ic, int i) => {'type': 'card', 't': t, 's': sub, 'svg': '', 'ic': ic, 'badge': '', 'meta': '', 'on': false, 'i': i};
+    Map<String, dynamic> row(String t, String line, String amount, [List<Map<String, dynamic>> btns = const []]) =>
+        {'type': 'entry', 't': t, 'lines': [line], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': amount, 'btns': btns};
+    final list = <Map<String, dynamic>>[];
+    var next = 10;
+    if (tab == 'stock') {
+      if (its.isEmpty) list.add({'type': 'title', 't': 'Belum ada bahan.'});
+      for (final e in its) {
+        list.add(row('${e['name']}', 'Minimum ${_js(e['min'])} ${e['unit']} · ${_outName(o)}', '${qtyText(b.balance('${e['id']}', o))} ${e['unit']}'));
+      }
+    } else if (tab == 'debt') {
+      final debts = _debts;
+      if (debts.isEmpty) list.add({'type': 'title', 't': 'Tidak ada hutang supplier.'});
+      for (final p in debts) {
+        final item = its.where((e) => e['id'] == p['itemId']).firstOrNull;
+        final sup = _l('suppliers').where((x) => x['id'] == p['supplierId']).firstOrNull;
+        final due = '${p['due'] ?? ''}';
+        list.add(row('${item?['name'] ?? 'Bahan'} · Sisa ${rp(((p['total'] as num?) ?? 0) - ((p['paid'] as num?) ?? 0))}', '${sup?['name'] ?? 'Supplier'} · jatuh tempo ${due.isEmpty ? '-' : due}', '',
+            [{'t': 'Tandai Lunas', 'on': false, 'i': next++}]));
+      }
+    } else {
+      final led = _l('ledger').reversed.toList();
+      if (led.isEmpty) list.add({'type': 'title', 't': 'Belum ada mutasi.'});
+      for (final x in led) {
+        final item = its.where((e) => e['id'] == x['itemId']).firstOrNull;
+        final at = DateTime.tryParse('${x['at']}')?.toLocal();
+        final when = at == null ? '' : '${at.day}/${at.month}/${at.year}, ${at.hour.toString().padLeft(2, '0')}.${at.minute.toString().padLeft(2, '0')}.${at.second.toString().padLeft(2, '0')}';
+        final q = (x['qty'] as num?) ?? 0;
+        list.add(row('${x['type']} · ${item?['name'] ?? 'Bahan'}', '$when · ${x['note'] ?? ''}', '${q > 0 ? '+' : ''}${_js(q)} ${item?['unit'] ?? ''}'));
+      }
     }
-    if (mode.startsWith('move:') || mode.startsWith('opname:')) {
-      final id = mode.split(':')[1];
-      final it = b.items.firstWhere((e) => e['id'] == id, orElse: () => const {});
-      final opname = mode.startsWith('opname:');
-      return [
-        {'type': 'title', 't': '${opname ? 'Stock Opname' : 'Mutasi Stok'} · ${it['name']}'},
-        {'type': 'pair', 't': 'Stok sistem', 'v': '${qtyText(b.balance(id, outletId))} ${it['unit']}'},
-        if (!opname) {'type': 'buttons', 'options': [{'t': 'Stok Masuk', 'on': f['dir'] != 'out', 'i': 20}, {'t': 'Pemakaian', 'on': f['dir'] == 'out', 'i': 21}]},
-        {'type': 'input', 'label': opname ? 'Stok fisik' : 'Jumlah', 'suf': '${it['unit'] ?? ''}', 'v': f['qty'] ?? '', 'numeric': true, 'i': 5},
-        {'type': 'input', 'v': f['note'] ?? '', 'ph': 'Catatan', 'i': 6},
-        {'type': 'button', 't': 'Simpan', 'primary': true, 'i': opname ? 13 : 12},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 11},
-      ];
-    }
-    final list = b.items;
-    final low = list.where((e) => b.balance('${e['id']}', outletId) <= ((e['min'] as num?) ?? 0)).length;
-    final value = list.fold<double>(0, (a, e) => a + b.balance('${e['id']}', outletId) * ((e['cost'] as num?) ?? 0));
+    final transfers = _l('transfers').where((t) => t['from'] == o || t['to'] == o).toList().reversed;
     return [
-      {'type': 'stats', 'cells': [{'v': '${list.length}', 't': 'Jenis bahan'}, {'v': '$low', 't': 'Stok menipis', 'tone': low > 0 ? 'r' : ''}, {'v': rp(value), 't': 'Nilai stok'}]},
-      {'type': 'button', 't': '+ Tambah Bahan', 'primary': true, 'i': 1},
-      if (list.isEmpty) {'type': 'hint', 't': 'Belum ada bahan.'},
-      for (var k = 0; k < list.length; k++)
-        {
-          'type': 'entry', 't': '${list[k]['name']}',
-          'lines': ['Stok ${qtyText(b.balance('${list[k]['id']}', outletId))} ${list[k]['unit']} · min ${qtyText((list[k]['min'] as num?) ?? 0)}'],
-          'badge': b.balance('${list[k]['id']}', outletId) <= ((list[k]['min'] as num?) ?? 0) ? 'Menipis' : '',
-          'btns': [{'t': 'Mutasi', 'i': 100 + k}, {'t': 'Opname', 'i': 200 + k}],
-        },
-      {'type': 'hint', 't': 'Stok memakai catatan mutasi. Opname mencatat selisih sebagai penyesuaian, bukan menimpa angka lama.'},
+      {'type': 'stats', 'cells': [
+        {'v': '${its.length}', 't': 'Jenis bahan', 'n': '', 'tone': ''}, {'v': '$low', 't': 'Stok menipis', 'n': '', 'tone': ''}, {'v': rp(value), 't': 'Nilai stok', 'n': '', 'tone': ''},
+      ]},
+      toolCard('Tambah Bahan', 'Stok awal, minimum, harga', '＋', 0),
+      toolCard('Mutasi Stok', 'Masuk / pemakaian', '↕', 1),
+      toolCard('Stock Opname', 'Fisik vs sistem', '✓', 2),
+      toolCard('Transfer Cabang', 'Antar outlet', '⇄', 3),
+      toolCard('Supplier', 'Tambah pemasok', '🏭', 4),
+      toolCard('Pembelian', 'Lunas / hutang supplier', '🛒', 5),
+      toolCard('Resep HPP', 'Pemakaian saat mulai produksi', '🫧', 6),
+      {'type': 'buttons', 'options': [
+        for (final (k, t) in const [['stock', 'Stok'], ['debt', 'Hutang'], ['hist', 'Riwayat']].indexed) {'t': t[1], 'svg': '', 'file': '', 'after': false, 'on': tab == t[0], 'i': 7 + k},
+      ]},
+      ...list,
+      {'type': 'hint', 't': 'Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama.'},
+      for (final t in transfers)
+        row('${its.where((e) => e['id'] == t['itemId']).firstOrNull?['name'] ?? 'Bahan'} · ${_js(t['qty'])}',
+            '${_outName('${t['from']}')} → ${_outName('${t['to']}')} · ${t['status'] == 'received' ? 'Diterima' : 'Dalam perjalanan'}', '',
+            [if (t['status'] == 'sent' && t['to'] == o) {'t': 'Konfirmasi diterima lengkap', 'on': false, 'i': 1000 + _l('transfers').indexWhere((x) => x['id'] == t['id'])}]),
     ];
   }
 
-  @override
-  void input(int i, Object value) => f[const ['name', 'unit', 'min', 'cost', 'initial', 'qty', 'note'][i.clamp(0, 6)]] = '$value';
+  List<Map<String, dynamic>> get _debts => _l('purchases').where((p) => ((p['total'] as num?) ?? 0) > ((p['paid'] as num?) ?? 0)).toList();
 
-  void _mode(String m) {
-    mode = m;
+  void _open(String t) {
+    tool = t;
     f.clear();
+    sel.clear();
+    host.openPageSheet('g181-modal');
+  }
+
+  @override
+  List<Map<String, dynamic>>? sheetItems(String id) {
+    final b = book;
+    if (id != 'g181-modal' || b == null) return null;
+    Map<String, dynamic> inp(String ph, int i, {bool numeric = false, bool decimal = false}) =>
+        {'type': 'input', 'v': f[i] ?? '', 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': decimal, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    Map<String, dynamic> pick(List<String> options, int i) => {'type': 'select', 'options': options, 'index': sel[i] ?? 0, 'i': i};
+    final itemOpt = [for (final e in b.items) '${e['name']} · ${e['unit']}'];
+    final outOpt = [for (final o in _outs) o[1]];
+    const ok = [
+      {'type': 'button', 't': 'Simpan', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
+    ];
+    Map<String, dynamic> title(String t) => {'type': 'title', 't': t, 's': ''};
+    return switch (tool) {
+      'add' => [title('Tambah Bahan'), inp('Nama bahan', 0), inp('Stok awal', 1, numeric: true, decimal: true), inp('Satuan', 2), inp('Minimum', 3, numeric: true, decimal: true), inp('Harga/unit', 4, numeric: true), ...ok],
+      'move' => [title('Mutasi Stok'), pick(itemOpt, 0), pick(const ['Stok Masuk', 'Pemakaian / Keluar'], 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Catatan', 3), ...ok],
+      'op' => [title('Stock Opname'), pick(itemOpt, 0), inp('Stok fisik', 1, numeric: true, decimal: true), inp('Alasan jika ada selisih', 2),
+          {'type': 'hint', 't': 'Sistem akan mencatat selisih, bukan mengganti histori stok.'}, ...ok],
+      'tr' => [title('Kirim Transfer Cabang'), {'type': 'label', 't': 'Bahan'}, pick(itemOpt, 0), {'type': 'label', 't': 'Cabang asal'}, pick(outOpt, 1), {'type': 'label', 't': 'Cabang tujuan'}, pick(outOpt, 2),
+          inp('Jumlah dikirim', 3, numeric: true, decimal: true), {'type': 'hint', 't': 'Stok tujuan bertambah setelah cabang tujuan menerima barang.'}, ...ok],
+      'sup' => [title('Tambah Supplier'), inp('Nama supplier', 0), inp('WhatsApp', 1), ...ok],
+      'buy' => [title('Pembelian Bahan'), pick(['Tanpa supplier', for (final x in _l('suppliers')) '${x['name']}'], 0), pick(itemOpt, 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Harga/unit', 3, numeric: true),
+          pick(const ['Lunas', 'Hutang Supplier'], 4), {'type': 'date', 'v': f[5] ?? '', 'i': 5}, ...ok],
+      _ => [title('Terima transfer'), {'type': 'hint', 't': 'Pastikan seluruh jumlah kiriman sudah diterima. Jika ada selisih, jangan konfirmasi dulu.'}, ...ok],
+    };
+  }
+
+  @override
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    final b = book;
+    if (b == null) return;
+    if (kind == 'input') {
+      if (value is int) {
+        sel[index] = value;
+        return host.refresh();
+      }
+      f[index] = '$value';
+      if (index == 5 && tool == 'buy') host.refresh();
+      return;
+    }
+    if (kind != 'button') return;
+    if (index == 1) return host.closePageSheet('g181-modal');
+    final its = b.items, o = outletId, now = host.now;
+    String itemId(int k) => its.isEmpty ? '' : '${its[(sel[k] ?? 0).clamp(0, its.length - 1)]['id']}';
+    void led(Map<String, dynamic> x) => (b.raw['ledger'] as List).add({'id': 'mut-${now.microsecondsSinceEpoch}-${(b.raw['ledger'] as List).length}', 'at': now.toUtc().toIso8601String(), ...x});
+    switch (tool) {
+      case 'add':
+        final n = (f[0] ?? '').trim(), q = _num(f[1]), u = (f[2] ?? '').trim(), m = _num(f[3]), c = parseRupiah(f[4]);
+        if (n.isEmpty || u.isEmpty || q < 0 || m < 0) return host.toast('Isi nama, satuan dan jumlah stok yang benar');
+        final iid = 'bahan-${now.microsecondsSinceEpoch}';
+        (b.raw['items'] as List).add({'id': iid, 'name': n, 'unit': u, 'min': m == m.roundToDouble() ? m.round() : m, 'cost': c});
+        if (q != 0) led({'itemId': iid, 'outletId': o, 'type': 'Stok Awal', 'qty': q == q.roundToDouble() ? q.round() : q, 'note': 'Stok awal'});
+      case 'move':
+        final iid = itemId(0), q = _num(f[2]), out = (sel[1] ?? 0) == 1;
+        if (q <= 0 || (out && q > b.balance(iid, o))) return host.toast('Jumlah tidak valid atau stok tidak cukup');
+        led({'itemId': iid, 'outletId': o, 'type': out ? 'Pemakaian' : 'Stok Masuk', 'qty': out ? -q : q, 'note': f[3] ?? ''});
+      case 'op':
+        if (!planAccess.has('opname', now)) return host.toast(planAccess.lockedText('opname'));
+        final iid = itemId(0), raw = (f[1] ?? '').trim(), phys = double.tryParse(raw.replaceAll(',', '.')), sys = b.balance(iid, o), note = (f[2] ?? '').trim();
+        if (phys == null || phys < 0) return host.toast('Isi stok fisik');
+        if (phys != sys && note.isEmpty) return host.toast('Isi alasan selisih');
+        led({'itemId': iid, 'outletId': o, 'type': 'Stock Opname', 'qty': phys - sys, 'note': note.isEmpty ? 'Stok cocok' : note, 'systemQty': sys, 'physicalQty': phys});
+      case 'tr':
+        final outs = _outs, iid = itemId(0), from = outs[(sel[1] ?? 0).clamp(0, outs.length - 1)][0], to = outs[(sel[2] ?? 0).clamp(0, outs.length - 1)][0], q = _num(f[3]);
+        if (from != o) return host.toast('Pilih cabang asal yang sedang aktif');
+        if (from == to) return host.toast('Cabang tujuan tidak valid');
+        if (q <= 0 || q > b.balance(iid, from)) return host.toast('Jumlah tidak valid atau stok tidak cukup');
+        final tid = 'transfer-${now.microsecondsSinceEpoch}';
+        ((b.raw['transfers'] ??= <dynamic>[]) as List).add({'id': tid, 'itemId': iid, 'from': from, 'to': to, 'qty': q, 'status': 'sent', 'sentAt': now.toUtc().toIso8601String()});
+        led({'itemId': iid, 'outletId': from, 'type': 'Transfer Keluar', 'qty': -q, 'ref': tid, 'note': 'Dalam perjalanan ke $to'});
+      case 'sup':
+        final n = (f[0] ?? '').trim();
+        if (n.isEmpty) return;
+        (b.raw['suppliers'] as List).add({'id': 'sup-${now.microsecondsSinceEpoch}', 'name': n, 'phone': f[1] ?? ''});
+      case 'buy':
+        final sups = _l('suppliers'), si = (sel[0] ?? 0) - 1, iid = itemId(1), q = _num(f[2]), c = parseRupiah(f[3]);
+        if (q <= 0 || c <= 0) return host.toast('Isi jumlah dan harga');
+        final total = (q * c).round(), sup = si >= 0 && si < sups.length ? sups[si] : null;
+        (b.raw['purchases'] as List).add({'id': 'buy-${now.microsecondsSinceEpoch}', 'itemId': iid, 'supplierId': sup?['id'] ?? '', 'qty': q, 'total': total, 'paid': (sel[4] ?? 0) == 0 ? total : 0, 'due': f[5] ?? '', 'at': now.toUtc().toIso8601String()});
+        for (final e in (b.raw['items'] as List).whereType<Map>()) {
+          if (e['id'] == iid) e['cost'] = c;
+        }
+        led({'itemId': iid, 'outletId': o, 'type': 'Pembelian', 'qty': q, 'note': '${sup?['name'] ?? 'Pembelian'}'});
+      default:
+        final tid = tool.startsWith('recv:') ? tool.substring(5) : '';
+        final t = (b.raw['transfers'] as List? ?? const []).whereType<Map>().where((x) => x['id'] == tid).firstOrNull;
+        if (t == null) return host.toast('Transfer tidak ditemukan');
+        if (t['to'] != o) return host.toast('Hanya cabang tujuan dapat menerima');
+        if (t['status'] == 'sent') {
+          led({'itemId': t['itemId'], 'outletId': t['to'], 'type': 'Transfer Masuk', 'qty': t['qty'], 'ref': tid, 'note': 'Diterima dari ${t['from']}'});
+          t['status'] = 'received';
+          t['receivedAt'] = now.toUtc().toIso8601String();
+        }
+    }
+    b.save();
+    tab = 'stock';
+    host.closePageSheet('g181-modal');
     host.refresh();
   }
 
@@ -1125,30 +1257,38 @@ class StockPage extends PurePage {
   void button(int i) async {
     final b = book;
     if (b == null) return;
-    final list = b.items;
-    if (i == 1) return _mode('add');
-    if (i == 11) return _mode('');
-    if (i == 20 || i == 21) {
-      f['dir'] = i == 21 ? 'out' : 'in';
+    if (i >= 7 && i <= 9) {
+      tab = const ['stock', 'debt', 'hist'][i - 7];
       return host.refresh();
     }
-    if (i >= 200 && i - 200 < list.length) return _mode('opname:${list[i - 200]['id']}');
-    if (i >= 100 && i - 100 < list.length) return _mode('move:${list[i - 100]['id']}');
-    String? err;
-    final now = host.now;
-    if (i == 10) {
-      err = b.addItem(name: f['name'] ?? '', unit: f['unit'] ?? '', min: parseQty(f['min']), cost: parseRupiah(f['cost']), initial: parseQty(f['initial']), outletId: outletId, now: now);
-    } else if (i == 12) {
-      final q = parseQty(f['qty']);
-      err = b.move(itemId: mode.split(':')[1], qty: f['dir'] == 'out' ? -q : q, outletId: outletId, note: f['note'] ?? '', now: now);
-    } else if (i == 13) {
-      if ((f['qty'] ?? '').isEmpty) return host.toast('Isi stok fisik');
-      b.opname(itemId: mode.split(':')[1], physical: parseQty(f['qty']), outletId: outletId, note: f['note'] ?? '', now: now);
+    if (i >= 1000) {
+      final tr = _l('transfers');
+      if (i - 1000 < tr.length) _open('recv:${tr[i - 1000]['id']}');
+      return;
     }
-    if (err != null) return host.toast(err);
-    await b.save();
-    host.toast('Stok tersimpan');
-    _mode('');
+    if (i >= 10) {
+      final debts = _debts;
+      if (tab != 'debt' || i - 10 >= debts.length) return;
+      final id = debts[i - 10]['id'];
+      for (final p in (b.raw['purchases'] as List).whereType<Map>()) {
+        if (p['id'] == id) {
+          p['paid'] = p['total'];
+          p['paidAt'] = host.now.toUtc().toIso8601String();
+          p['method'] = 'Pelunasan Hutang';
+        }
+      }
+      await b.save();
+      return host.refresh();
+    }
+    if (i == 6) return host.toast('Resep HPP belum tersedia di Mode Murni');
+    if (i == 0) return _open('add');
+    if (b.items.isEmpty) return host.toast('Tambahkan bahan dulu');
+    if (i == 2 && !planAccess.has('opname', host.now)) return host.toast(planAccess.lockedText('opname'));
+    if (i == 3) {
+      if (!planAccess.has('transfer', host.now)) return host.toast(planAccess.lockedText('transfer'));
+      if (_outs.length < 2) return host.toast('Minimal 2 outlet');
+    }
+    _open(const ['add', 'move', 'op', 'tr', 'sup', 'buy'][i]);
   }
 }
 

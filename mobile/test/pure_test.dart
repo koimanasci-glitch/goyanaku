@@ -256,22 +256,28 @@ void main() {
     final s = await _pump(tester, kv);
     s.nav('stock');
     await _settle(tester);
-    s.fmButton(1);
-    s.fmInput(0, 'Deterjen');
-    s.fmInput(1, 'liter');
-    s.fmInput(2, '2');
-    s.fmInput(3, '15000');
-    s.fmInput(4, '10');
-    s.fmButton(10);
+    s.fmButton(0); // Tambah Bahan
     await _settle(tester);
-    s.fmButton(100); // mutasi item 0
-    s.fmButton(21); // pemakaian
-    s.fmInput(5, '3');
-    s.fmButton(12);
+    s.fmScoped('g181-modal', 'input', 0, 'Deterjen');
+    s.fmScoped('g181-modal', 'input', 1, '10');
+    s.fmScoped('g181-modal', 'input', 2, 'liter');
+    s.fmScoped('g181-modal', 'input', 3, '2');
+    s.fmScoped('g181-modal', 'input', 4, '15000');
+    s.fmScoped('g181-modal', 'button', 0);
     await _settle(tester);
-    s.fmButton(200); // opname
-    s.fmInput(5, '6');
-    s.fmButton(13);
+    s.fmButton(1); // Mutasi Stok
+    await _settle(tester);
+    s.fmScoped('g181-modal', 'input', 1, 1); // Pemakaian / Keluar
+    s.fmScoped('g181-modal', 'input', 2, '3');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    s.fmButton(2); // Stock Opname
+    await _settle(tester);
+    s.fmScoped('g181-modal', 'input', 1, '6');
+    s.fmScoped('g181-modal', 'button', 0);
+    expect(s.debugToast, 'Isi alasan selisih');
+    s.fmScoped('g181-modal', 'input', 2, 'tumpah');
+    s.fmScoped('g181-modal', 'button', 0);
     await _settle(tester);
     final raw = jsonDecode((await kv.get('goyana-stock181'))!) as Map<String, dynamic>;
     final ledger = (raw['ledger'] as List).cast<Map>();
