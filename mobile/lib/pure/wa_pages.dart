@@ -204,12 +204,54 @@ class AiPage extends TemplatePage {
     final out = super.items();
     final k = out.indexWhere((e) => e['t'] == 'Pengetahuan aplikasi');
     if (k >= 0 && k + 2 < out.length) out[k + 2]['t'] = knowledge;
+    if (_answer.isNotEmpty) out.add({'type': 'hint', 't': _answer});
     return out;
+  }
+
+  String _answer = '';
+  static String _phone(Object? p) {
+    var d = '${p ?? ''}'.replaceAll(RegExp(r'\D'), '');
+    if (d.startsWith('0')) d = '62${d.substring(1)}';
+    return d;
+  }
+
+  /// Jawaban uji dari data aplikasi (HTML v191 answer()): status pesanan per nomor, atau daftar harga.
+  String answer(String message, String sender) {
+    if (!planAccess.has('ai', host.now)) return 'Fitur AI membutuhkan paket Gold.';
+    if (!toggleValue(0)) return 'Chatbot AI belum diaktifkan.';
+    final m = message.toLowerCase();
+    if (RegExp('status|cucian|pesanan').hasMatch(m) && toggleValue(2)) {
+      final p = _phone(sender);
+      if (p.isEmpty) return 'Nomor WhatsApp pelanggan diperlukan untuk memeriksa pesanan.';
+      const statuses = {
+        'antrian': 'Antrian', 'cuci': 'Sedang dicuci', 'kering': 'Sedang dikeringkan', 'setrika': 'Sedang disetrika', 'packing': 'Dalam proses', 'siap': 'Siap diambil',
+        'telat': 'Siap diambil', 'diantar': 'Sedang diantar', 'diambil': 'Sudah diambil', 'batal': 'Dibatalkan', 'jemput': 'Menunggu penjemputan',
+      };
+      final b = host.business;
+      final found = [
+        for (final o in b.orders)
+          if ((b.activeOutlet.isEmpty || o.outlet == b.activeOutlet) && _phone(o.phone.isNotEmpty ? o.phone : b.customerByName(o.name)?.phone) == p)
+            '${o.id}: ${statuses[o.status] ?? 'Status belum dikenali'}',
+      ];
+      return found.isEmpty ? 'Tidak ada pesanan untuk nomor ini pada outlet aktif.' : found.join('\n');
+    }
+    if (RegExp('harga|tarif|layanan').hasMatch(m) && toggleValue(1)) {
+      final list = [
+        for (final s in host.business.services)
+          for (final e in s.prices.entries)
+            if (s.enabledFor(e.key) && e.value > 0) '${s.name} · ${e.key}: ${rp(e.value)}/${s.unit}',
+      ];
+      return list.isEmpty ? 'Belum ada harga layanan aktif. Hubungi kasir.' : list.join('\n');
+    }
+    return 'Pertanyaan ini membutuhkan koneksi AI. Pengetahuan tambahan sudah tersimpan, tetapi layanan AI belum terhubung.';
   }
 
   @override
   void button(int i) async {
-    if (i == 2) return host.toast('Uji jawaban AI belum tersedia di Mode Murni');
+    if (i == 2) {
+      _answer = answer(_test[5] ?? '', _test[4] ?? '');
+      return host.refresh();
+    }
     if (!_gate(host, 'ai')) return;
     if (!await saveChat(host, st)) return host.toast('Penyimpanan penuh. Kurangi ukuran gambar.');
     host.toast('Pengaturan AI tersimpan');

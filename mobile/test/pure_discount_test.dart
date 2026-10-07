@@ -1137,4 +1137,27 @@ void templateTests() {
     expect(kv.data['goyana-couriers181'], '[{"id":"k1"}]');
     expect(kv.data.containsKey('kunci-asing'), isFalse);
   });
+
+  testWidgets('Chatbot AI: Uji Jawaban dari data aplikasi (status pesanan per nomor, daftar harga)', (tester) async {
+    planAccess.testPlan = 'PLATINUM';
+    final s = await _pump(tester, _store());
+    s.nav('ai191');
+    await _settle(tester);
+    String last() => '${s.debugItems().last['t']}';
+    s.fmInput(5, 'cek status cucian saya');
+    s.fmButton(2);
+    if (last() == 'Chatbot AI belum diaktifkan.') {
+      s.fmToggle(0);
+      s.fmButton(2);
+    }
+    expect(last(), anyOf('Nomor WhatsApp pelanggan diperlukan untuk memeriksa pesanan.', startsWith('Pertanyaan ini membutuhkan koneksi AI')));
+    s.fmInput(4, '0812-0000-0001');
+    s.fmButton(2);
+    expect(last(), anyOf(contains('GY-'), startsWith('Pertanyaan ini membutuhkan koneksi AI')));
+    s.fmInput(5, 'halo');
+    s.fmButton(2);
+    expect(last(), startsWith('Pertanyaan ini membutuhkan koneksi AI'));
+    planAccess.testPlan = null;
+    expect(tester.takeException(), isNull);
+  });
 }
