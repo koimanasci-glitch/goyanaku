@@ -813,6 +813,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
     for (final g in groups.whereType<Map>()) {
       if (g['i'] == 4) (g['items'] as List).removeWhere((it) => it is Map && (it['j'] as num) >= 2);
+      // "Stock Opname & Supplier" membuka halaman yang sama dengan "Stok & Bahan" → cukup satu menu.
+      if (g['i'] == 9) (g['items'] as List).removeWhere((it) => it is Map && it['j'] == 7);
     }
     (m['groups'] as List).add({
       'i': 13,

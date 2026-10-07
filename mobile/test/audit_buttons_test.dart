@@ -39,7 +39,9 @@ List<_Hit> _hits(Object? node, [List<_Hit>? out]) {
   } else if (node is Map) {
     final type = '${node['type'] ?? ''}';
     final label = '${node['t'] ?? node['btn'] ?? node['v'] ?? ''}'.replaceAll('\n', ' ');
-    if (node['i'] is int && !const {'input', 'select', 'date', 'stepper', 'labelprev'}.contains(type) && '${node['file'] ?? ''}'.isEmpty) {
+    // Dilewati: isian, pilihan yang sudah terpilih (menekannya memang tidak mengubah apa pun), dan pemindai kamera.
+    final skip = node['on'] == true && type != 'toggle' || RegExp(r'^(Scan|📷)').hasMatch(label);
+    if (!skip && node['i'] is int && !const {'input', 'select', 'date', 'stepper', 'labelprev'}.contains(type) && '${node['file'] ?? ''}'.isEmpty) {
       out.add(_Hit(type == 'toggle' ? 'toggle' : (type == 'radio' ? 'radio' : 'button'), node['i'] as int, label));
     }
     if (node['tap'] is int && (node['tap'] as int) >= 0) out.add(_Hit('tap', node['tap'] as int, label));
@@ -101,7 +103,8 @@ void main() {
       return s;
     }
 
-    String snap(PureShellState s) => '${s.debugState()}|${jsonEncode(s.debugItems())}|${jsonEncode(kv.data)}|$device|${find.byType(BottomSheet).evaluate().length}';
+    String snap(PureShellState s) =>
+        '${s.debugState()}|${jsonEncode(s.debugItems())}|${jsonEncode([for (final id in s.debugSheetIds()) s.debugSheet(id)])}|${jsonEncode(kv.data)}|$device|${find.byType(BottomSheet).evaluate().length}';
     final dead = <String>[], stub = <String>[], errors = <String>[], ok = <String>[];
     final unreachable = <String>[];
     final stubRe = RegExp('belum tersedia|belum aktif|belum terhubung|sedang dipindah|menunggu (layanan|server)|segera hadir', caseSensitive: false);
@@ -135,7 +138,7 @@ void main() {
     for (final (name, act) in <(String, void Function(PureShellState))>[
       for (var k = 0; k < 6; k++) ('Beranda · ikon $k', (s) => s.tile(k)),
       ('Beranda · MANAGE OUTLET', (s) => s.manageOutlet()), ('Beranda · QR', (s) => s.qr()), ('Beranda · Bulanan', (s) => s.monthly()),
-      ('Beranda · Butuh bantuan', (s) => s.helpChat()), ('Beranda · banner 0', (s) => s.slide(0)), ('Beranda · tombol scan', (s) => s.scan()),
+      ('Beranda · Butuh bantuan', (s) => s.helpChat()), ('Beranda · banner 0', (s) => s.slide(0)),
     ]) {
       final s = await fresh();
       await judge(name, s, snap(s), () => act(s));
