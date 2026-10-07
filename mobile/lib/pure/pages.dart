@@ -52,6 +52,8 @@ abstract class PureHost {
   Future<void> printText(String text, String title, String done);
   /// Buka pemindai barcode/QR.
   void scanCode();
+  /// Muat ulang semua data dari penyimpanan (sesudah restore cadangan).
+  Future<void> reloadAll();
   /// Buka Rincian Pesanan lalu lembar Pembayaran untuk sisa tagihannya.
   void payOrder(String id);
 }
@@ -2542,6 +2544,45 @@ class DataCenterPage extends TemplatePage {
     return false;
   }
 
+  /// Restore: pilih file cadangan (.json), konfirmasi, lalu timpa data & muat ulang.
+  Future<void> _pickRestore() async {
+    Object? data;
+    try {
+      final uris = await host.device.invokeListMethod<String>('Files.pick', {'accept': ['application/json', 'text/plain', 'application/octet-stream'], 'multiple': false, 'capture': false});
+      if (uris == null || uris.isEmpty) return;
+      final f = await host.device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
+      data = jsonDecode(utf8.decode(base64Decode('${f?['data'] ?? ''}')));
+    } catch (_) {
+      return host.toast('File cadangan tidak dapat dibaca');
+    }
+    if (data is! Map || data['app'] != 'GOYANA' || data['business'] is! Map) return host.toast('File ini bukan cadangan GOYANA');
+    final biz = data['business'] as Map;
+    final at = '${data['at'] ?? ''}';
+    host.openFormSheet(FormSheetDef(
+      'Pulihkan cadangan?',
+      const [FormSheetField('Ketik PULIHKAN', placeholder: 'PULIHKAN', required: true)],
+      'Pulihkan Data',
+      (v) {
+        if (v[0].toUpperCase() != 'PULIHKAN') {
+          host.toast('Ketik PULIHKAN untuk konfirmasi');
+          return false;
+        }
+        restoreBackup(host.kv, data).then((err) async {
+          if (err != null) {
+            host.toast(err);
+            return;
+          }
+          await host.reloadAll();
+          host.toast('Data dipulihkan dari cadangan');
+        });
+        return null;
+      },
+      sub: 'Cadangan ${at.length >= 10 ? at.substring(0, 10) : 'tanpa tanggal'} · ${(biz['orders'] as List? ?? const []).length} pesanan · ${(biz['customers'] as List? ?? const []).length} pelanggan. '
+          'Semua data di HP ini diganti dengan isi cadangan. Ketik PULIHKAN untuk lanjut.',
+      danger: true,
+    ));
+  }
+
   @override
   void button(int i) async {
     final d = host.now.toIso8601String().substring(0, 10);
@@ -2555,10 +2596,17 @@ class DataCenterPage extends TemplatePage {
         final c = a && await _save('goyana-pelanggan-$d.csv', 'text/csv', '﻿${host.business.customersCsv()}');
         if (c) host.toast('Data diekspor ke CSV (bisa dibuka di Excel)');
       case 4:
+        // Cadangan lengkap: data utama + semua kunci tambahan (stok, CRM, kurir, pegawai, tarif, QRIS, …).
+        final extra = <String, String>{};
+        for (final k in backupKeys) {
+          final v = await host.kv.get(k);
+          if (v != null && v.isNotEmpty) extra[k] = v;
+        }
         final ok = await _save('goyana-backup-$d.json', 'application/json', jsonEncode({
-          'app': 'GOYANA', 'version': 1, 'at': host.now.toIso8601String(),
+          'app': 'GOYANA', 'version': 2, 'at': host.now.toIso8601String(),
           'business': host.business.raw, 'services': host.business.services.map((e) => e.raw).toList(),
           'outlets': host.business.outlets.map((e) => e.raw).toList(), 'settings': host.settings.raw, 'perfumes': host.settings.perfumes,
+          'kv': extra,
         }));
         if (!ok) return;
         _state['backupAt'] = host.now.toIso8601String();
@@ -2567,7 +2615,7 @@ class DataCenterPage extends TemplatePage {
         host.toast('Backup tersimpan di folder Download/GOYANA');
         host.refresh();
       case 5:
-        host.toast('Restore dari file cadangan belum tersedia di Mode Murni');
+        await _pickRestore();
       case 6:
         host.openFormSheet(FormSheetDef(
           'Hapus data trial?',
@@ -2595,6 +2643,29 @@ class DataCenterPage extends TemplatePage {
   }
 }
 
+
+/// Kunci tambahan yang ikut dicadangkan / dipulihkan.
+const backupKeys = [
+  'goyana-active-outlet180', 'goyana-stock181', 'goyana-crm203', 'goyana-couriers181', 'goyana_employees_v157', 'goyana-durations199', 'goyana-transport183',
+  'goyana-qris-text', 'goyana-qris-image', 'goyana-qris-options185', 'gy154-bank', 'gy154-account', 'gy154-holder', 'goyana-pickup202',
+];
+
+/// Tulis isi cadangan ke penyimpanan. Mengembalikan pesan salah atau null.
+Future<String?> restoreBackup(KvStore kv, Object? data) async {
+  if (data is! Map || data['app'] != 'GOYANA' || data['business'] is! Map) return 'File ini bukan cadangan GOYANA';
+  await kv.set(Keys.business, jsonEncode(data['business']));
+  if (data['services'] is List) await kv.set(Keys.services, jsonEncode(data['services']));
+  if (data['outlets'] is List) await kv.set(Keys.outlets, jsonEncode(data['outlets']));
+  if (data['settings'] is Map) await kv.set(AppSettings.key, jsonEncode(data['settings']));
+  if (data['perfumes'] is List) await kv.set(Keys.perfumes, jsonEncode(data['perfumes']));
+  final extra = data['kv'];
+  if (extra is Map) {
+    for (final k in backupKeys) {
+      if (extra[k] is String) await kv.set(k, extra[k] as String);
+    }
+  }
+  return null;
+}
 
 /// Keuangan & Kas → Kategori Pengeluaran (sama dengan HTML; di HTML daftar ini tidak tersimpan, di sini tersimpan).
 class FinancePage extends PurePage {

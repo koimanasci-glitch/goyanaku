@@ -14,6 +14,7 @@ import 'package:goyana_flutter/pure/delivery.dart';
 import 'package:goyana_flutter/native/cash_page.dart';
 import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
+import 'package:goyana_flutter/pure/pages.dart' show restoreBackup;
 import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
@@ -1109,5 +1110,22 @@ void templateTests() {
     expect(((await StockBook.load(kv)).raw['ledger'] as List).where((x) => (x as Map)['type'] == 'Pemakaian Otomatis').length, 1);
     expect(s.debugToast, isNotNull);
     expect(tester.takeException(), isNull);
+  });
+
+  test('Restore cadangan: menolak file asing, menimpa data utama & kunci tambahan', () async {
+    final src = _store();
+    final b = await Business.load(src);
+    final kv = MemoryKvStore({});
+    expect(await restoreBackup(kv, {'app': 'LAIN'}), 'File ini bukan cadangan GOYANA');
+    expect(await restoreBackup(kv, {
+      'app': 'GOYANA', 'version': 2, 'business': b.raw, 'services': b.services.map((e) => e.raw).toList(), 'outlets': b.outlets.map((e) => e.raw).toList(),
+      'settings': {'x': 1}, 'perfumes': [], 'kv': {'goyana-couriers181': '[{"id":"k1"}]', 'kunci-asing': 'x'},
+    }), isNull);
+    final r = await Business.load(kv);
+    expect(r.orders.length, b.orders.length);
+    expect(r.customers.single.name, 'Budi Native');
+    expect(r.outlets.single.name, b.outlets.single.name);
+    expect(kv.data['goyana-couriers181'], '[{"id":"k1"}]');
+    expect(kv.data.containsKey('kunci-asing'), isFalse);
   });
 }

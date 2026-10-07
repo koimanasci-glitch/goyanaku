@@ -865,6 +865,21 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void scanCode() => scan();
   @override
+  Future<void> reloadAll() async {
+    final r = await Future.wait([Business.load(widget.store), AppSettings.load(widget.store)]);
+    await planAccess.load(widget.store, now);
+    await loadTransport(widget.store);
+    if (!mounted) return;
+    setState(() {
+      _b = r[0] as Business;
+      _settings = r[1] as AppSettings;
+      _detailId = null;
+      _sheets.clear();
+    });
+    _loadCrmRule();
+    _hppSync();
+  }
+  @override
   void payOrder(String id) {
     openOrder(id);
     final o = _b!.orderById(id);
