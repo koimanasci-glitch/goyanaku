@@ -615,7 +615,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
     '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
     '9/0': 'qris', '9/1': 'kas', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
-    '10/0': 'printer', '10/1': 'barcode', '11': 'data', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
+    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
   };
   void _stGo(String key) {
     final r = _stRoutes[key];

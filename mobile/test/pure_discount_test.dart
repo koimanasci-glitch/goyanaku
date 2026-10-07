@@ -162,6 +162,12 @@ void templateTests() {
     for (final f in Directory('test/fixtures/pure/pages').listSync().whereType<File>()) {
       final id = f.uri.pathSegments.last.replaceAll('.json', '');
       final fx = jsonDecode(f.readAsStringSync()) as Map;
+      if (id == 'datacenter') {
+        // Tangkapan HTML dari data kosong; data uji punya 1 pelanggan & 1 transaksi.
+        final cells = (fx['items'] as List)[0]['cells'] as List;
+        cells[0]['v'] = '1';
+        cells[1]['v'] = '1';
+      }
       s.nav(id);
       await _settle(tester);
       expect(jsonEncode(s.debugItems()), jsonEncode(fx['items']), reason: id);
@@ -216,6 +222,29 @@ void templateTests() {
     await tester.tap(find.text('Coba Sekarang'));
     await _settle(tester);
     expect(find.text('Coba Sekarang'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Pusat Data: hapus data trial sungguhan setelah ketik HAPUS', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('datacenter');
+    await _settle(tester);
+    s.fmButton(1);
+    await _settle(tester);
+    expect(find.text('Import Layanan & Harga'), findsNWidgets(2));
+    s.fmButton(6);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 0, 'hapuz');
+    s.fmScoped('gs107', 'button', 0);
+    expect(s.debugToast, 'Ketik HAPUS untuk konfirmasi');
+    s.fmScoped('gs107', 'input', 0, 'hapus');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Data trial dihapus · siap mulai dari nol');
+    final raw = jsonDecode(kv.data[Keys.business]!) as Map;
+    expect(raw['orders'], isEmpty);
+    expect(raw['customers'], isEmpty);
     expect(tester.takeException(), isNull);
   });
 }

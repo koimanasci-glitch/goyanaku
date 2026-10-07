@@ -1,0 +1,137 @@
+{
+ "title": "PUSAT DATA",
+ "items": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "0",
+     "t": "Pelanggan",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Transaksi",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Backup",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Import Data"
+  },
+  {
+   "type": "hint",
+   "t": "Pindah dari aplikasi lama tanpa mengetik ulang."
+  },
+  {
+   "type": "card",
+   "t": "Import Pelanggan",
+   "s": "CSV / Excel · mapping kolom · cek duplikat",
+   "svg": "",
+   "ic": "👥",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Import Layanan & Harga",
+   "s": "Nama layanan, satuan, harga dan durasi",
+   "svg": "",
+   "ic": "🧺",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Import Transaksi Lama",
+   "s": "Histori order dan pembayaran",
+   "svg": "",
+   "ic": "🧾",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "title",
+   "t": "Backup & Export"
+  },
+  {
+   "type": "hint",
+   "t": "Amankan dan pindahkan data usaha."
+  },
+  {
+   "type": "card",
+   "t": "Export Semua Data",
+   "s": "Excel / CSV",
+   "svg": "",
+   "ic": "↓",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "Backup Database",
+   "s": "Belum ada backup",
+   "svg": "",
+   "ic": "☁",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Restore Backup",
+   "s": "Pilih titik pemulihan",
+   "svg": "",
+   "ic": "↻",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "title",
+   "t": "Preview Import"
+  },
+  {
+   "type": "hint",
+   "t": "Pilih jenis import di atas. Sebelum disimpan, GOYANA akan menampilkan preview, mapping kolom, data valid, duplikat dan data gagal."
+  },
+  {
+   "type": "title",
+   "t": "Masa Trial"
+  },
+  {
+   "type": "hint",
+   "t": "Mulai dari nol sebelum dipakai sungguhan."
+  },
+  {
+   "type": "card",
+   "t": "Hapus Data Trial",
+   "s": "Hapus order, pelanggan & laporan percobaan. Pengaturan outlet tetap.",
+   "svg": "",
+   "ic": "🗑",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  }
+ ]
+}

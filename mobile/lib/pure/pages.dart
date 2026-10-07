@@ -1699,6 +1699,7 @@ Map<String, PurePage> templatePages(PureHost host) => {
       }),
       'reminder': TemplatePage(host, 'reminder'),
       'helpcenter': HelpCenterPage(host),
+      'datacenter': DataCenterPage(host),
       'aboutgoyana': TemplatePage(host, 'aboutgoyana'),
       'cashier': TemplatePage(host, 'cashier', onButton: (p, i) => host.go('employees')),
       'barcode': TemplatePage(host, 'barcode', onButton: (p, i) => i == 0 ? host.go('printer') : host.toast('Label test dikirim ke printer')),
@@ -1766,5 +1767,110 @@ class HelpCenterPage extends TemplatePage {
   String guideTarget(int k) {
     final go = '${(_guides[k] as Map)['go']}';
     return const {'whatsappbot': 'whatsapp'}[go] ?? go;
+  }
+}
+
+
+/// Pusat Data: tampilan dari HTML, tetapi ekspor/backup/hapus trial sungguhan
+/// (di HTML semuanya masih contoh: CSV berisi data contoh, backup & hapus trial tidak menyentuh data).
+class DataCenterPage extends TemplatePage {
+  // ignore: use_super_parameters
+  DataCenterPage(PureHost host) : super(host, 'datacenter');
+  String _preview = '';
+
+  String get _lastBackup {
+    final at = DateTime.tryParse('${_state['backupAt'] ?? ''}');
+    if (at == null) return 'Belum ada backup';
+    final n = host.now;
+    final hm = '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
+    final today = at.year == n.year && at.month == n.month && at.day == n.day;
+    return 'Backup terakhir: ${today ? 'Hari ini' : '${at.day.toString().padLeft(2, '0')}/${at.month.toString().padLeft(2, '0')}/${at.year}'} $hm';
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = super.items();
+    final b = host.business;
+    (out[0]['cells'] as List)
+      ..[0]['v'] = '${b.customers.length}'
+      ..[1]['v'] = '${b.orders.length}'
+      ..[2]['v'] = '${_state['backups'] ?? 0}';
+    for (final it in out) {
+      if (it['type'] == 'card' && it['i'] == 4) it['s'] = _lastBackup;
+    }
+    if (_preview.isNotEmpty) {
+      final k = out.indexWhere((e) => e['t'] == 'Preview Import');
+      if (k >= 0 && k + 1 < out.length) {
+        out[k]['t'] = _preview;
+        out[k + 1]['t'] = 'File belum dipilih. Pada sistem final: pilih CSV/Excel → mapping kolom → preview → deteksi duplikat/error → konfirmasi import.';
+      }
+    }
+    return out;
+  }
+
+  @override
+  void opened() => _preview = '';
+
+  Future<bool> _save(String name, String mime, String text) async {
+    try {
+      await host.device.invokeMethod<dynamic>('Files.save', {'name': name, 'mime': mime, 'data': base64Encode(utf8.encode(text))});
+      return true;
+    } on PlatformException catch (e) {
+      host.toast(e.message ?? 'Gagal menyimpan file');
+    } catch (_) {
+      host.toast('Gagal menyimpan file');
+    }
+    return false;
+  }
+
+  @override
+  void button(int i) async {
+    final d = host.now.toIso8601String().substring(0, 10);
+    switch (i) {
+      case 0 || 1 || 2:
+        _preview = const ['Import Pelanggan', 'Import Layanan & Harga', 'Import Transaksi Lama'][i];
+        return host.refresh();
+      case 3:
+        final a = await _save('goyana-pesanan-$d.csv', 'text/csv', '﻿${host.business.ordersCsv()}');
+        final c = a && await _save('goyana-pelanggan-$d.csv', 'text/csv', '﻿${host.business.customersCsv()}');
+        if (c) host.toast('Data diekspor ke CSV (bisa dibuka di Excel)');
+      case 4:
+        final ok = await _save('goyana-backup-$d.json', 'application/json', jsonEncode({
+          'app': 'GOYANA', 'version': 1, 'at': host.now.toIso8601String(),
+          'business': host.business.raw, 'services': host.business.services.map((e) => e.raw).toList(),
+          'outlets': host.business.outlets.map((e) => e.raw).toList(), 'settings': host.settings.raw, 'perfumes': host.settings.perfumes,
+        }));
+        if (!ok) return;
+        _state['backupAt'] = host.now.toIso8601String();
+        _state['backups'] = ((_state['backups'] as num?)?.toInt() ?? 0) + 1;
+        await host.saveAll();
+        host.toast('Backup tersimpan di folder Download/GOYANA');
+        host.refresh();
+      case 5:
+        host.toast('Restore dari file cadangan belum tersedia di Mode Murni');
+      case 6:
+        host.openFormSheet(FormSheetDef(
+          'Hapus data trial?',
+          const [FormSheetField('Ketik HAPUS', placeholder: 'HAPUS', required: true)],
+          'Hapus Data Trial',
+          (v) {
+            if (v[0].toUpperCase() != 'HAPUS') {
+              host.toast('Ketik HAPUS untuk konfirmasi');
+              return false;
+            }
+            final raw = host.business.raw;
+            (raw['orders'] as List?)?.clear();
+            (raw['customers'] as List?)?.clear();
+            (raw['details'] as Map?)?.clear();
+            (raw['deposits178'] as Map?)?.clear();
+            host.saveAll();
+            host.toast('Data trial dihapus · siap mulai dari nol');
+            host.refresh();
+            return null;
+          },
+          sub: 'Semua order, pelanggan dan laporan selama trial dihapus permanen. Outlet, layanan, harga & pegawai tetap. Ketik HAPUS untuk lanjut.',
+          danger: true,
+        ));
+    }
   }
 }
