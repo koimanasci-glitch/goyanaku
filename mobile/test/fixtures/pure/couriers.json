@@ -1,0 +1,322 @@
+{
+ "manage": [
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Tugas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 0
+    },
+    {
+     "t": "Management Kurir",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "button",
+   "t": "+ Tambah Kurir",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  }
+ ],
+ "form": [
+  {
+   "type": "title",
+   "t": "Tambah Kurir",
+   "s": ""
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Nama kurir",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "WhatsApp",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Email login (server nanti)",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": true,
+   "i": 2
+  },
+  {
+   "type": "title",
+   "t": "Hak akses outlet"
+  },
+  {
+   "type": "toggle",
+   "t": "Outlet Aktif",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "one": [
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Tugas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 0
+    },
+    {
+     "t": "Management Kurir",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "button",
+   "t": "+ Tambah Kurir",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  },
+  {
+   "type": "entry",
+   "t": "Budi",
+   "lines": [
+    "081233334444 · Aktif",
+    "Akses: Outlet Aktif"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Edit",
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Nonaktifkan",
+     "on": false,
+     "i": 4
+    },
+    {
+     "t": "Hapus",
+     "on": false,
+     "i": 5
+    }
+   ]
+  }
+ ],
+ "edit": [
+  {
+   "type": "title",
+   "t": "Edit Kurir",
+   "s": ""
+  },
+  {
+   "type": "input",
+   "v": "Budi",
+   "ph": "Nama kurir",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "v": "081233334444",
+   "ph": "WhatsApp",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Email login (server nanti)",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": true,
+   "i": 2
+  },
+  {
+   "type": "title",
+   "t": "Hak akses outlet"
+  },
+  {
+   "type": "toggle",
+   "t": "Outlet Aktif",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Simpan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Batal",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "off": [
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Tugas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 0
+    },
+    {
+     "t": "Management Kurir",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "button",
+   "t": "+ Tambah Kurir",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  },
+  {
+   "type": "entry",
+   "t": "Budi",
+   "lines": [
+    "081233334444 · Nonaktif",
+    "Akses: Outlet Aktif"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Edit",
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Aktifkan",
+     "on": false,
+     "i": 4
+    },
+    {
+     "t": "Hapus",
+     "on": false,
+     "i": 5
+    }
+   ]
+  }
+ ],
+ "tasks": [
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Tugas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 0
+    },
+    {
+     "t": "Management Kurir",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "Tidak ada tugas kurir. Pesanan antar-jemput akan muncul otomatis."
+  }
+ ]
+}

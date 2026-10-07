@@ -452,4 +452,34 @@ void templateTests() {
     expect(jsonEncode(got), jsonEncode(fx[4]).replaceFirst('"v":"rani"', '"v":""'), reason: 'cari');
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Kurir: Management Kurir (tambah, edit, nonaktifkan) sama dengan HTML', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/couriers.json').readAsStringSync().replaceAll('Outlet Aktif', 'Uji')) as Map;
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('couriers');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['tasks']));
+    s.fmButton(1);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['manage']));
+    s.fmButton(2);
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx['form']));
+    s.fmScoped('g181-modal', 'input', 0, 'Budi');
+    s.fmScoped('g181-modal', 'input', 1, '0812');
+    s.fmScoped('g181-modal', 'button', 0);
+    expect(s.debugToast, 'Lengkapi nama dan WhatsApp');
+    s.fmScoped('g181-modal', 'input', 1, '081233334444');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
+    s.fmButton(3);
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx['edit']));
+    s.fmScoped('g181-modal', 'button', 1);
+    s.fmButton(4);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['off']));
+    expect(tester.takeException(), isNull);
+  });
 }

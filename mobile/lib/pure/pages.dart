@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/business.dart';
-import '../core/models.dart' show durationOverrides;
+import '../core/models.dart' show Order, durationOverrides;
 import '../core/money.dart';
 import '../core/qris.dart';
 import '../core/receipt.dart';
@@ -935,61 +935,181 @@ class StockPage extends PurePage {
   }
 }
 
+/// Kurir (courier181): tab Tugas dan Management Kurir; data di `goyana-couriers181` (sama dengan Hibrida).
+/// Catatan: kartu tugas masih versi ringkas Mode Murni (buka pesanan); pilih kurir/Navigasi/WA per tugas belum dipindah.
 class CourierPage extends PurePage {
   CourierPage(super.host);
   Couriers? c;
-  String name = '', phone = '';
+  bool manage = false;
+  String? _editId;
+  String _name = '', _phone = '', _email = '';
+  final Set<String> _outs = {};
   @override
-  String get title => 'Kurir';
+  String get title => 'KURIR';
+
   @override
-  String get back => 'home';
-  @override
-  void opened() => Couriers.load(host.kv).then((v) {
-        c = v;
-        host.refresh();
-      });
+  void opened() {
+    manage = false;
+    Couriers.load(host.kv).then((v) {
+      c = v;
+      host.refresh();
+    });
+  }
+
+  List<Map<String, dynamic>> get _live => [for (final k in c?.list ?? const <Map<String, dynamic>>[]) if (k['deleted'] != true) k];
+  List<Order> get _tasks => host.business.orders.where((o) => o.status == 'jemput' || o.status == 'diantar' || (o.status == 'siap' && o.antar)).toList();
+  /// Outlet pilihan hak akses; tanpa outlet tersimpan HTML memakai satu "Outlet Aktif".
+  List<List<String>> get _outlets => host.business.outlets.isEmpty ? [['default', 'Outlet Aktif']] : [for (final o in host.business.outlets) [o.id, o.name]];
 
   @override
   List<Map<String, dynamic>> items() {
-    final list = c?.list ?? const [];
-    final tasks = host.business.orders.where((o) => o.status == 'jemput' || o.status == 'diantar' || (o.status == 'siap' && o.antar)).toList();
+    final tabs = {
+      'type': 'buttons',
+      'options': [
+        {'t': 'Tugas', 'svg': '', 'file': '', 'after': false, 'on': !manage, 'i': 0},
+        {'t': 'Management Kurir', 'svg': '', 'file': '', 'after': false, 'on': manage, 'i': 1},
+      ],
+    };
+    if (!manage) {
+      final tasks = _tasks;
+      return [
+        tabs,
+        if (tasks.isEmpty) {'type': 'hint', 't': 'Tidak ada tugas kurir. Pesanan antar-jemput akan muncul otomatis.'},
+        for (var k = 0; k < tasks.length; k++)
+          {
+            'type': 'card',
+            't': '${tasks[k].status == 'jemput' ? '📍 Penjemputan' : (tasks[k].status == 'siap' ? '📦 Siap Diantar' : '🚚 Pengantaran')} · ${tasks[k].name}',
+            's': tasks[k].id, 'svg': '', 'ic': '', 'badge': '', 'meta': '', 'on': false, 'i': 500 + k,
+          },
+      ];
+    }
+    final live = _live, outs = _outlets;
     return [
-      {'type': 'title', 't': 'Tugas antar-jemput', 's': '${tasks.length} tugas'},
-      if (tasks.isEmpty) {'type': 'hint', 't': 'Tidak ada tugas kurir. Pesanan antar-jemput muncul otomatis.'},
-      for (var k = 0; k < tasks.length; k++)
-        {'type': 'card', 't': tasks[k].name, 's': '${tasks[k].id} · ${tasks[k].status == 'jemput' ? 'Jemput cucian' : 'Antar cucian'}', 'ic': tasks[k].status == 'jemput' ? '🛵' : '📦', 'i': 500 + k},
-      {'type': 'title', 't': 'Kurir', 's': '${list.length} orang'},
-      for (var k = 0; k < list.length; k++)
-        {'type': 'entry', 't': '${list[k]['name']}', 'lines': ['${list[k]['phone']}'], 'avatar': '${list[k]['name']}'.isEmpty ? '' : '${list[k]['name']}'.substring(0, 1).toUpperCase(),
-          'badge': list[k]['active'] == false ? '' : 'Aktif', 'btns': [{'t': list[k]['active'] == false ? 'Aktifkan' : 'Nonaktifkan', 'i': 100 + k}]},
-      {'type': 'input', 'v': name, 'ph': 'Nama kurir', 'i': 0},
-      {'type': 'input', 'v': phone, 'ph': 'No WhatsApp kurir', 'numeric': true, 'i': 1},
-      {'type': 'button', 't': '+ Tambah Kurir', 'primary': true, 'i': 1},
+      tabs,
+      {'type': 'button', 't': '+ Tambah Kurir', 'primary': true, 'file': '', 'after': false, 'i': 2},
+      for (var k = 0; k < live.length; k++)
+        {
+          'type': 'entry', 't': '${live[k]['name']}',
+          'lines': [
+            '${live[k]['phone']} · ${live[k]['active'] == false ? 'Nonaktif' : 'Aktif'}',
+            'Akses: ${() {
+              final ids = (live[k]['outlets'] as List? ?? const []).map((e) => '$e').toList();
+              return ids.isEmpty ? 'Semua Outlet' : ids.map((id) => outs.where((o) => o[0] == id).firstOrNull?[1] ?? 'Semua').join(', ');
+            }()}',
+          ],
+          'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '',
+          'btns': [
+            {'t': 'Edit', 'on': false, 'i': 3 + 3 * k},
+            {'t': live[k]['active'] == false ? 'Aktifkan' : 'Nonaktifkan', 'on': false, 'i': 4 + 3 * k},
+            {'t': 'Hapus', 'on': false, 'i': 5 + 3 * k},
+          ],
+        },
+    ];
+  }
+
+  void _form(Map<String, dynamic>? k) {
+    _editId = k == null ? null : '${k['id']}';
+    _name = '${k?['name'] ?? ''}';
+    _phone = '${k?['phone'] ?? ''}';
+    _email = '${k?['email'] ?? ''}';
+    final have = (k?['outlets'] as List? ?? const []).map((e) => '$e').toSet();
+    _outs
+      ..clear()
+      ..addAll([for (final o in _outlets) if (k == null || have.isEmpty || have.contains(o[0])) o[0]]);
+    host.openPageSheet('g181-modal');
+  }
+
+  @override
+  List<Map<String, dynamic>>? sheetItems(String id) {
+    if (id != 'g181-modal') return null;
+    Map<String, dynamic> inp(String v, String ph, int i, {bool email = false}) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': email, 'i': i};
+    final outs = _outlets;
+    return [
+      {'type': 'title', 't': _editId == null ? 'Tambah Kurir' : 'Edit Kurir', 's': ''},
+      inp(_name, 'Nama kurir', 0),
+      inp(_phone, 'WhatsApp', 1),
+      inp(_email, 'Email login (server nanti)', 2, email: true),
+      {'type': 'title', 't': 'Hak akses outlet'},
+      for (var k = 0; k < outs.length; k++) {'type': 'toggle', 't': outs[k][1], 's': '', 'on': _outs.contains(outs[k][0]), 'i': k},
+      {'type': 'button', 't': 'Simpan', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
     ];
   }
 
   @override
-  void input(int i, Object value) => i == 0 ? name = '$value' : phone = '$value';
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    final v = c;
+    if (v == null) return;
+    if (kind == 'input') {
+      if (index == 0) _name = '$value';
+      if (index == 1) _phone = '$value';
+      if (index == 2) _email = '$value';
+      return;
+    }
+    if (kind == 'toggle') {
+      final o = _outlets;
+      if (index < 0 || index >= o.length) return;
+      _outs.contains(o[index][0]) ? _outs.remove(o[index][0]) : _outs.add(o[index][0]);
+      return host.refresh();
+    }
+    if (kind != 'button') return;
+    if (index == 1) return host.closePageSheet('g181-modal');
+    final n = _name.trim(), p = _phone.trim();
+    if (n.isEmpty || p.replaceAll(RegExp(r'\D'), '').length < 9) return host.toast('Lengkapi nama dan WhatsApp');
+    final outs = [for (final o in _outlets) if (_outs.contains(o[0])) o[0]];
+    final cur = v.list.where((k) => '${k['id']}' == _editId).firstOrNull;
+    if (cur != null) {
+      cur.addAll({'name': n, 'phone': p, 'email': _email.trim(), 'outlets': outs});
+    } else {
+      v.list.add({'id': 'kurir-${host.now.microsecondsSinceEpoch}', 'name': n, 'phone': p, 'email': _email.trim(), 'outlets': outs, 'active': true});
+    }
+    v.save();
+    host.closePageSheet('g181-modal');
+    host.refresh();
+  }
+
   @override
   void button(int i) async {
     final v = c;
+    if (i == 0 || i == 1) {
+      manage = i == 1;
+      return host.refresh();
+    }
     if (v == null) return;
     if (i >= 500) {
-      final tasks = host.business.orders.where((o) => o.status == 'jemput' || o.status == 'diantar' || (o.status == 'siap' && o.antar)).toList();
+      final tasks = _tasks;
       if (i - 500 < tasks.length) host.openOrder(tasks[i - 500].id);
       return;
     }
-    if (i >= 100 && i - 100 < v.list.length) {
-      v.list[i - 100]['active'] = v.list[i - 100]['active'] == false;
-    } else {
-      final err = v.add(name, phone, host.business.activeOutlet, host.now);
-      if (err != null) return host.toast(err);
-      name = '';
-      phone = '';
-      host.toast('Kurir ditambahkan');
+    if (i == 2) return _form(null);
+    final live = _live, k = (i - 3) ~/ 3;
+    if (k < 0 || k >= live.length) return;
+    final row = live[k];
+    switch ((i - 3) % 3) {
+      case 0:
+        return _form(row);
+      case 1:
+        row['active'] = row['active'] == false;
+        await v.save();
+        return host.refresh();
+      default:
+        host.openFormSheet(FormSheetDef(
+          'Hapus kurir ${row['name']}?',
+          const [],
+          'Ya, Hapus',
+          (_) {
+            row['deleted'] = true;
+            row['active'] = false;
+            v.save();
+            host.toast('Kurir dihapus');
+            host.refresh();
+            return null;
+          },
+          sub: 'Riwayat tugasnya tetap tercatat.',
+          danger: true,
+        ));
     }
-    await v.save();
-    host.refresh();
   }
 }
 
