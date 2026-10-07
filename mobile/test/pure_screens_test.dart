@@ -81,5 +81,24 @@ void main() {
     await shot('settings');
     s.stGroup(4, true);
     await shot('settings_pelanggan');
+    s.stGroup(4, true);
+    s.stGroup(5, true);
+    await shot('settings_whatsapp');
+    s.nav('upgrade');
+    await shot('upgrade');
+    await tester.drag(find.text('Pilih Paket'), const Offset(0, -520));
+    await shot('upgrade_bawah');
+    await tester.tap(find.text('GOLD'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await shot('upgrade_rincian');
+    await tester.tap(find.text('Tutup'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    s.nav('customers');
+    s.cuAdd();
+    await shot('customeradd_gender');
+    s.fmScoped('gp128', 'button', 0);
+    await shot('customeradd');
   });
 }
