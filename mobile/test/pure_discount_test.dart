@@ -253,7 +253,7 @@ void templateTests() {
     await _settle(tester);
     s.fmButton(1);
     await _settle(tester);
-    expect(s.debugItems().where((e) => e['t'] == 'Import Layanan & Harga').length, 2, reason: 'kartu + judul preview');
+    expect(s.debugToast, 'File tidak dapat dibaca', reason: 'Import membuka pemilih file (tidak ada di tes)');
     s.fmButton(6);
     await _settle(tester);
     s.fmScoped('gs107', 'input', 0, 'hapuz');
