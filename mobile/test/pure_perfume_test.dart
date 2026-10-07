@@ -115,7 +115,7 @@ void main() {
     for (final n in ['Reguler', 'Express', 'Kilat']) {
       expect(find.text(n), findsOneWidget);
     }
-    s.fmButton(8); // hapus Kilat
+    s.fmButton(9); // hapus Kilat
     await _settle(tester);
     expect(find.text('Durasi Kilat tidak bisa dihapus. Matikan per layanan di Pengaturan → Layanan & Harga.'), findsOneWidget);
     s.fmButton(6); // ubah Express
