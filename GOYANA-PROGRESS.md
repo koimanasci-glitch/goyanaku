@@ -1534,3 +1534,7 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Chatbot AI · "Uji Jawaban" menjawab dari data aplikasi (status pesanan per nomor, daftar harga) seperti HTML; gambar balasan/promo WhatsApp bisa dipilih & tersimpan; toast poin member sesudah bayar; "Menampilkan Logo → Konfigurasi" membuka Outlet.
 - Belum (butuh server / HP asli): menautkan device WhatsApp, kirim Blast, jawaban AI sungguhan, halaman status `goyana.id/s/…`, uji di HP asli (printer, kamera foto, restore, simpan/bagikan struk).
 - Catatan lama: popup QRIS (`f61-qris`) belum dicek ulang; toast poin CRM saat lunas; label dicetak sebagai teks (HTML: label gambar 58×40 mm).
+
+## Catatan permintaan Koiman (belum dikerjakan)
+- **7 Okt · Penjemputan Baru (`jemputnew202`)**: jangan isi nama/No WA/alamat/link Maps dengan mengetik ulang. Ganti jadi **pilih pelanggan dari daftar Pelanggan** (dengan cari) atau **Tambah Pelanggan** bila belum ada; alamat & Maps ikut dari data pelanggan. Lalu **Atur Jam Jemput** dibuat jelas (pilihan waktu/jam penjemputan). Ini mengubah alur dibanding HTML — dikerjakan setelah Koiman bilang lanjut.
+- **7 Okt · menu "Sinkronisasi server"** di Pengaturan: tampil tapi belum berfungsi (server belum ada). Menunggu keputusan: disembunyikan dulu di Mode Murni atau dibiarkan.
