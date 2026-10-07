@@ -1,0 +1,422 @@
+[
+ [
+  {
+   "type": "title",
+   "t": "⌕"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Cari pegawai / Order ID...",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "≡",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Semua",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    },
+    {
+     "t": "Transaksi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "Kas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Login",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "HARI INI"
+  },
+  {
+   "type": "hint",
+   "t": "Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan."
+  }
+ ],
+ [
+  {
+   "type": "title",
+   "t": "⌕"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Cari pegawai / Order ID...",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "≡",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Semua",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    },
+    {
+     "t": "Transaksi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "Kas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Login",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "HARI INI"
+  },
+  {
+   "type": "entry",
+   "t": "Tutup kas",
+   "lines": [
+    "Kasir · omset Rp10.000"
+   ],
+   "badge": "",
+   "avatar": "✓",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "entry",
+   "t": "Ralat transaksi",
+   "lines": [
+    "Rani · 1 → 2"
+   ],
+   "badge": "",
+   "avatar": "✎",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan."
+  }
+ ],
+ [
+  {
+   "type": "title",
+   "t": "⌕"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Cari pegawai / Order ID...",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "≡",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Semua",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    },
+    {
+     "t": "Transaksi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "Kas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 3
+    },
+    {
+     "t": "Login",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "HARI INI"
+  },
+  {
+   "type": "entry",
+   "t": "Tutup kas",
+   "lines": [
+    "Kasir · omset Rp10.000"
+   ],
+   "badge": "",
+   "avatar": "✓",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan."
+  }
+ ],
+ [
+  {
+   "type": "title",
+   "t": "⌕"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Cari pegawai / Order ID...",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "≡",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Semua",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    },
+    {
+     "t": "Transaksi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 2
+    },
+    {
+     "t": "Kas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Login",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "HARI INI"
+  },
+  {
+   "type": "entry",
+   "t": "Ralat transaksi",
+   "lines": [
+    "Rani · 1 → 2"
+   ],
+   "badge": "",
+   "avatar": "✎",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan."
+  }
+ ],
+ [
+  {
+   "type": "title",
+   "t": "⌕"
+  },
+  {
+   "type": "input",
+   "v": "rani",
+   "ph": "Cari pegawai / Order ID...",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "≡",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Semua",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    },
+    {
+     "t": "Transaksi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "Kas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Login",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "HARI INI"
+  },
+  {
+   "type": "entry",
+   "t": "Ralat transaksi",
+   "lines": [
+    "Rani · 1 → 2"
+   ],
+   "badge": "",
+   "avatar": "✎",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hint",
+   "t": "Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan."
+  }
+ ]
+]

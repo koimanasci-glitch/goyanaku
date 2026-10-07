@@ -384,4 +384,72 @@ void templateTests() {
     planAccess.testPlan = null;
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Pegawai: formulir, validasi, simpan dan edit sama dengan HTML', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/employees.json').readAsStringSync()) as Map;
+    planAccess.testPlan = 'SILVER';
+    addTearDown(() => planAccess.testPlan = null);
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('employees');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+    s.fmButton(0);
+    expect(s.debugToast, 'Isi nama pegawai');
+    s.fmInput(0, 'Rani');
+    s.fmInput(1, '0812');
+    s.fmButton(0);
+    expect(s.debugToast, 'Periksa nomor handphone');
+    s.fmInput(1, '081211112222');
+    s.fmInput(2, 'rani');
+    s.fmButton(0);
+    expect(s.debugToast, 'Periksa alamat email');
+    s.fmInput(2, 'rani@x.co');
+    s.fmInput(3, '123');
+    s.fmButton(0);
+    expect(s.debugToast, 'Password minimal 6 karakter');
+    s.fmInput(3, 'rahasia');
+    s.fmToggle(0);
+    s.fmToggle(12);
+    s.fmButton(0);
+    await _settle(tester);
+    expect(s.debugToast, 'Data pegawai tersimpan di perangkat ini');
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['saved']));
+    expect(jsonDecode(kv.data['goyana_employees_v157']!), [
+      {'name': 'Rani', 'phone': '081211112222', 'email': 'rani@x.co', 'permissions': ['order_create', 'revenue']},
+    ]);
+    s.fmButton(1); // Edit
+    await _settle(tester);
+    final it = s.debugItems();
+    expect(it[1]['v'], 'Rani');
+    expect(it.where((e) => e['type'] == 'toggle' && e['on'] == true).map((e) => e['i']), [0, 12]);
+    expect(it.firstWhere((e) => e['type'] == 'button')['t'], 'SIMPAN PERUBAHAN PEGAWAI');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Audit Aktivitas: daftar, chip dan pencarian sama dengan HTML', (tester) async {
+    final fx = (jsonDecode(File('test/fixtures/pure/audit.json').readAsStringSync()) as List);
+    final kv = _store();
+    final at = DateTime(2026, 10, 3, 9).toIso8601String();
+    kv.data['goyana-pure-settings'] = jsonEncode({
+      'audit': [
+        {'ic': '✓', 't': 'Tutup kas', 's': 'Kasir · omset Rp10.000', 'at': at},
+        {'ic': '✎', 't': 'Ralat transaksi', 's': 'Rani · 1 → 2', 'at': at},
+      ],
+    });
+    final s = await _pump(tester, kv);
+    s.nav('audit');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[1]));
+    s.fmButton(3);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[2]), reason: 'Kas');
+    s.fmButton(2);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[3]), reason: 'Transaksi');
+    s.fmButton(1);
+    s.fmInput(0, 'rani');
+    final got = s.debugItems();
+    got[1]['v'] = '';
+    expect(jsonEncode(got), jsonEncode(fx[4]).replaceFirst('"v":"rani"', '"v":""'), reason: 'cari');
+    expect(tester.takeException(), isNull);
+  });
 }

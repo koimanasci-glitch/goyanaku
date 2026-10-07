@@ -1,0 +1,406 @@
+{
+ "empty": [
+  {
+   "type": "label",
+   "t": "Nama Pegawai"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Nama Pegawai",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "No Handphone"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan No Handphone",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Email"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Alamat Email",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": true,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Password"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Password untuk pegawai login",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": true,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "title",
+   "t": "Hak Akses"
+  },
+  {
+   "type": "toggle",
+   "t": "Membuat Order / Transaksi",
+   "s": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Membuat Order Backdate (Tanggal Mundur)",
+   "s": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Edit Order / Transaksi",
+   "s": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Membatalkan Order / Transaksi",
+   "s": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Membuat Pengeluaran",
+   "s": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "toggle",
+   "t": "Cuci (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Kering (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "toggle",
+   "t": "Setrika (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 7
+  },
+  {
+   "type": "toggle",
+   "t": "Packing (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 8
+  },
+  {
+   "type": "toggle",
+   "t": "Mengelola Layanan / Produk",
+   "s": "",
+   "on": false,
+   "i": 9
+  },
+  {
+   "type": "toggle",
+   "t": "Mengelola Data Pelanggan",
+   "s": "",
+   "on": false,
+   "i": 10
+  },
+  {
+   "type": "toggle",
+   "t": "Mengelola Data Pegawai",
+   "s": "",
+   "on": false,
+   "i": 11
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Nilai Omset",
+   "s": "",
+   "on": false,
+   "i": 12
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Transaksi",
+   "s": "",
+   "on": false,
+   "i": 13
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Keuangan",
+   "s": "",
+   "on": false,
+   "i": 14
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Kinerja",
+   "s": "",
+   "on": false,
+   "i": 15
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Pelanggan",
+   "s": "",
+   "on": false,
+   "i": 16
+  },
+  {
+   "type": "button",
+   "t": "SIMPAN DATA PEGAWAI",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  }
+ ],
+ "saved": [
+  {
+   "type": "label",
+   "t": "Nama Pegawai"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Nama Pegawai",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "No Handphone"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan No Handphone",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Email"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Alamat Email",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": true,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "Password"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Password untuk pegawai login",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": true,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "title",
+   "t": "Hak Akses"
+  },
+  {
+   "type": "toggle",
+   "t": "Membuat Order / Transaksi",
+   "s": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Membuat Order Backdate (Tanggal Mundur)",
+   "s": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Edit Order / Transaksi",
+   "s": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Membatalkan Order / Transaksi",
+   "s": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Membuat Pengeluaran",
+   "s": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "toggle",
+   "t": "Cuci (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Kering (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "toggle",
+   "t": "Setrika (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 7
+  },
+  {
+   "type": "toggle",
+   "t": "Packing (Khusus Paket Premium)",
+   "s": "",
+   "on": false,
+   "i": 8
+  },
+  {
+   "type": "toggle",
+   "t": "Mengelola Layanan / Produk",
+   "s": "",
+   "on": false,
+   "i": 9
+  },
+  {
+   "type": "toggle",
+   "t": "Mengelola Data Pelanggan",
+   "s": "",
+   "on": false,
+   "i": 10
+  },
+  {
+   "type": "toggle",
+   "t": "Mengelola Data Pegawai",
+   "s": "",
+   "on": false,
+   "i": 11
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Nilai Omset",
+   "s": "",
+   "on": false,
+   "i": 12
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Transaksi",
+   "s": "",
+   "on": false,
+   "i": 13
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Keuangan",
+   "s": "",
+   "on": false,
+   "i": 14
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Kinerja",
+   "s": "",
+   "on": false,
+   "i": 15
+  },
+  {
+   "type": "toggle",
+   "t": "Akses Laporan Pelanggan",
+   "s": "",
+   "on": false,
+   "i": 16
+  },
+  {
+   "type": "button",
+   "t": "SIMPAN DATA PEGAWAI",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Pegawai tersimpan"
+  },
+  {
+   "type": "row",
+   "t": "Rani · 081211112222",
+   "btn": "Edit",
+   "i": 1
+  }
+ ]
+}

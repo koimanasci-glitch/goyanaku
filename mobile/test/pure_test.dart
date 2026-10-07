@@ -278,7 +278,7 @@ void main() {
     expect(ledger.map((e) => e['type']), ['Stok Awal', 'Pemakaian', 'Stock Opname']);
     expect(ledger.last['qty'], -1, reason: 'sistem 7, fisik 6');
 
-    s.nav('employees');
+    s.nav('pinlock');
     await _settle(tester);
     s.fmInput(0, 'Rina');
     s.fmInput(2, '1234');

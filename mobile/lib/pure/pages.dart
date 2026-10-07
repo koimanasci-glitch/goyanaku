@@ -599,6 +599,7 @@ class KasPage extends PurePage {
         final s = b.shift();
         if (parseRupiah(physical) != s.cashExpected && note.trim().isEmpty) return host.toast('Isi catatan karena ada selisih');
         b.closeShift(physical: parseRupiah(physical), note: note, now: host.now);
+        addAudit(host, '✓', 'Tutup kas', 'omset ${rp(s.sales)}');
         await host.saveAll();
         host.toast('Kas ditutup · shift baru dimulai');
         return _reset('');
@@ -1164,9 +1165,12 @@ class DiscountPage extends PurePage {
   }
 }
 
-class EmployeesPage extends PurePage {
-  EmployeesPage(super.host);
+/// Kunci PIN kasir rancangan Mode Murni lama (tidak ada di HTML); hanya ditautkan bila masih dipakai.
+class PinLockPage extends PurePage {
+  PinLockPage(super.host);
   String name = '', phone = '', pin = '';
+  @override
+  String get back => 'employees';
   @override
   String get title => 'Pegawai & PIN';
   List<dynamic> get _list => (host.settings.raw['employees'] as List?) ?? (host.settings.raw['employees'] = <dynamic>[]);
@@ -2270,5 +2274,201 @@ class TestModePage extends PurePage {
       host.toast('Mode Uji ditutup · kembali ke paket asli');
     }
     host.refresh();
+  }
+}
+
+
+/// Pengaturan → Pegawai (emp157/v158): data pegawai + hak akses di kunci `goyana_employees_v157` (sama dengan Hibrida).
+/// Seperti HTML, password tidak disimpan di perangkat.
+class EmployeesPage extends PurePage {
+  EmployeesPage(super.host);
+  static const key = 'goyana_employees_v157';
+  static const perms = [
+    ['order_create', 'Membuat Order / Transaksi'], ['order_backdate', 'Membuat Order Backdate (Tanggal Mundur)'], ['order_edit', 'Edit Order / Transaksi'],
+    ['order_cancel', 'Membatalkan Order / Transaksi'], ['expense_create', 'Membuat Pengeluaran'], ['wash', 'Cuci (Khusus Paket Premium)'],
+    ['dry', 'Kering (Khusus Paket Premium)'], ['iron', 'Setrika (Khusus Paket Premium)'], ['pack', 'Packing (Khusus Paket Premium)'],
+    ['services', 'Mengelola Layanan / Produk'], ['customers', 'Mengelola Data Pelanggan'], ['employees', 'Mengelola Data Pegawai'],
+    ['revenue', 'Menampilkan Nilai Omset'], ['transactions_report', 'Akses Laporan Transaksi'], ['finance_report', 'Akses Laporan Keuangan'],
+    ['performance_report', 'Akses Laporan Kinerja'], ['customers_report', 'Akses Laporan Pelanggan'],
+  ];
+  List<Map<String, dynamic>> list = [];
+  int _editing = -1;
+  String _name = '', _phone = '', _email = '', _pass = '';
+  final Set<String> _on = {};
+  @override
+  String get title => 'PENGATURAN PEGAWAI';
+
+  void _reset() {
+    _editing = -1;
+    _name = _phone = _email = _pass = '';
+    _on.clear();
+  }
+
+  @override
+  void opened() {
+    _reset();
+    host.kv.get(key).then((raw) {
+      try {
+        final v = jsonDecode(raw ?? '[]');
+        list = v is List ? [for (final e in v.whereType<Map>()) Map<String, dynamic>.from(e)] : [];
+      } catch (_) {
+        list = [];
+      }
+      host.refresh();
+    });
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    Map<String, dynamic> inp(String v, String ph, int i, {bool numeric = false, bool secret = false, bool email = false}) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': secret, 'email': email, 'i': i};
+    final legacyPin = host.settings.raw['pinLock'] == true || ((host.settings.raw['employees'] as List?)?.isNotEmpty ?? false);
+    return [
+      {'type': 'label', 't': 'Nama Pegawai'},
+      inp(_name, 'Masukkan Nama Pegawai', 0),
+      {'type': 'label', 't': 'No Handphone'},
+      inp(_phone, 'Masukkan No Handphone', 1, numeric: true),
+      {'type': 'label', 't': 'Email'},
+      inp(_email, 'Masukkan Alamat Email', 2, email: true),
+      {'type': 'label', 't': 'Password'},
+      inp(_pass, _editing < 0 ? 'Masukkan Password untuk pegawai login' : 'Kosongkan jika tidak diganti', 3, secret: true),
+      {'type': 'title', 't': 'Hak Akses'},
+      for (var k = 0; k < perms.length; k++) {'type': 'toggle', 't': perms[k][1], 's': '', 'on': _on.contains(perms[k][0]), 'i': k},
+      {'type': 'button', 't': _editing < 0 ? 'SIMPAN DATA PEGAWAI' : 'SIMPAN PERUBAHAN PEGAWAI', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      if (list.isNotEmpty) {'type': 'title', 't': 'Pegawai tersimpan'},
+      for (var k = 0; k < list.length; k++) {'type': 'row', 't': '${list[k]['name']} · ${list[k]['phone']}', 'btn': 'Edit', 'i': 1 + k},
+      if (legacyPin) card('Kunci PIN kasir', 'Fitur Mode Murni lama · atur atau matikan', '🔒', 900),
+    ];
+  }
+
+  @override
+  void input(int i, Object value) {
+    final v = '$value';
+    if (i == 0) _name = v;
+    if (i == 1) _phone = v;
+    if (i == 2) _email = v;
+    if (i == 3) _pass = v;
+  }
+
+  @override
+  void toggle(int i) {
+    if (i < 0 || i >= perms.length) return;
+    final p = perms[i][0];
+    _on.contains(p) ? _on.remove(p) : _on.add(p);
+    host.refresh();
+  }
+
+  @override
+  void button(int i) async {
+    if (i == 900) return host.go('pinlock');
+    if (i >= 1) {
+      final k = i - 1;
+      if (k >= list.length) return;
+      final row = list[k];
+      _editing = k;
+      _name = '${row['name']}';
+      _phone = '${row['phone']}';
+      _email = '${row['email'] ?? ''}';
+      _pass = '';
+      _on
+        ..clear()
+        ..addAll([for (final p in (row['permissions'] as List? ?? const [])) '$p']);
+      return host.refresh();
+    }
+    final name = _name.trim(), phone = _phone.replaceAll(RegExp(r'[^0-9+]'), ''), email = _email.trim();
+    if (name.isEmpty) return host.toast('Isi nama pegawai');
+    if (!RegExp(r'^\+?\d{9,15}$').hasMatch(phone)) return host.toast('Periksa nomor handphone');
+    if (!RegExp(r'^\S+@\S+\.\S+$').hasMatch(email)) return host.toast('Periksa alamat email');
+    if ((_editing < 0 || _pass.isNotEmpty) && _pass.length < 6) return host.toast('Password minimal 6 karakter');
+    for (var k = 0; k < list.length; k++) {
+      if (k != _editing && '${list[k]['email']}'.toLowerCase() == email.toLowerCase()) return host.toast('Email pegawai sudah digunakan');
+    }
+    final row = <String, dynamic>{'name': name, 'phone': phone, 'email': email, 'permissions': [for (final p in perms) if (_on.contains(p[0])) p[0]]};
+    final next = [...list];
+    _editing < 0 ? next.add(row) : next[_editing] = row;
+    if (!await host.kv.set(key, jsonEncode(next))) return host.toast('Penyimpanan perangkat penuh');
+    list = next;
+    _reset();
+    host.toast('Data pegawai tersimpan di perangkat ini');
+    host.refresh();
+  }
+}
+
+
+/// Catat aktivitas ke Audit (di HTML hanya ada di memori; di sini tersimpan, paling banyak 300 terakhir).
+void addAudit(PureHost host, String icon, String title, String sub) {
+  final list = host.settings.raw.putIfAbsent('audit', () => <dynamic>[]) as List;
+  list.insert(0, {'ic': icon, 't': title, 's': sub, 'at': host.now.toIso8601String()});
+  if (list.length > 300) list.removeRange(300, list.length);
+}
+
+/// Pengaturan → Audit Aktivitas: cari, saring Semua/Transaksi/Kas/Login (aturan kata sama dengan HTML).
+class AuditPage extends PurePage {
+  AuditPage(super.host);
+  String _q = '';
+  int _chip = 0;
+  static const _chips = ['Semua', 'Transaksi', 'Kas', 'Login'];
+  static final _re = [null, RegExp('transaksi|pesanan|harga', caseSensitive: false), RegExp('kas|pengeluaran', caseSensitive: false), RegExp('login', caseSensitive: false)];
+  @override
+  String get title => 'AUDIT AKTIVITAS';
+
+  @override
+  void opened() {
+    _q = '';
+    _chip = 0;
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final n = host.now;
+    final rows = <Map<String, dynamic>>[];
+    for (final e in (host.settings.raw['audit'] as List? ?? const []).whereType<Map>()) {
+      final at = DateTime.tryParse('${e['at']}');
+      final today = at != null && at.year == n.year && at.month == n.month && at.day == n.day;
+      final sub = today || at == null ? '${e['s']}' : '${at.day.toString().padLeft(2, '0')}/${at.month.toString().padLeft(2, '0')} · ${e['s']}';
+      final text = '${e['ic']}${e['t']}$sub';
+      // Seperti HTML: pencarian (bila diisi) mengalahkan chip; selain itu chip menyaring dengan kata kunci.
+      final show = _q.isNotEmpty ? text.toLowerCase().contains(_q.toLowerCase()) : (_re[_chip]?.hasMatch(text) ?? true);
+      if (show) rows.add({'type': 'entry', 't': '${e['t']}', 'lines': [sub], 'badge': '', 'avatar': '${e['ic']}', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]});
+    }
+    return [
+      {'type': 'title', 't': '⌕'},
+      {'type': 'input', 'v': _q, 'ph': 'Cari pegawai / Order ID...', 'multiline': false, 'numeric': false, 'ro': false, 'secret': false, 'email': false, 'i': 0},
+      {'type': 'button', 't': '≡', 'primary': false, 'file': '', 'after': false, 'i': 0},
+      {'type': 'buttons', 'options': [for (var k = 0; k < _chips.length; k++) {'t': _chips[k], 'svg': '', 'file': '', 'after': false, 'on': k == _chip, 'i': 1 + k}]},
+      {'type': 'title', 't': 'HARI INI'},
+      ...rows,
+      {'type': 'hint', 't': 'Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan.'},
+    ];
+  }
+
+  @override
+  void input(int i, Object value) {
+    _q = '$value';
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    if (i >= 1) {
+      _chip = (i - 1).clamp(0, 3);
+      _q = '';
+      return host.refresh();
+    }
+    final d = host.now;
+    host.openFormSheet(FormSheetDef(
+      'Filter Audit',
+      [
+        FormSheetField('Dari tanggal', value: '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}'),
+        const FormSheetField('Nama pegawai (opsional)', placeholder: 'Contoh: Rani'),
+      ],
+      'Terapkan',
+      (v) {
+        if (v[1].isNotEmpty) _q = v[1];
+        host.toast('Filter audit diterapkan');
+        host.refresh();
+        return null;
+      },
+    ));
   }
 }

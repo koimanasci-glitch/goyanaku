@@ -67,7 +67,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -630,7 +630,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   static const Map<String, String> _stRoutes = {
     '0/0': 'profile', '1/0': 'outlets', '1/1': 'branches',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
-    '3/0': 'employees', '3/1': 'cashier', '3/3': 'couriers',
+    '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
     '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
     '9/0': 'qris', '9/1': 'finance', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
@@ -1009,7 +1009,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
           final note = '${_form['note'] ?? ''}'.trim();
           final err = b.cancel(o, reason: note.isEmpty ? reason : (reason.isEmpty ? '' : '$reason · $note'), now: now);
           if (err != null) return toast(err);
-          _save();
+          addAudit(this, '✕', 'Pesanan dibatalkan', '$_kasir · ${o.id}');
+          saveAll();
           _close('cancel');
           toast('Pesanan dibatalkan');
           _refreshDetail();
@@ -1025,7 +1026,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
               perfume: _perfumeValue((_form['perfume'] as int?) ?? 0),
               discKey: _editDiscList[((_form['disc'] as int?) ?? 0).clamp(0, _editDiscList.length - 1)][1],
               due: dueDays == null ? null : (o.masuk ?? now).add(Duration(days: dueDays)));
-          _save();
+          addAudit(this, '✎', 'Edit transaksi', '$_kasir · ${o.id}');
+          saveAll();
           _close('edit');
           toast('Perubahan tersimpan');
           _refreshDetail();
