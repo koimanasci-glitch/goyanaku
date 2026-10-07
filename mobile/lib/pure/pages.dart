@@ -59,6 +59,8 @@ abstract class PureHost {
   Future<void> reloadAll();
   /// Buka Rincian Pesanan lalu lembar Pembayaran untuk sisa tagihannya.
   void payOrder(String id);
+  /// Pelanggan tersimpan dari halaman Tambah/Edit Pelanggan: lanjut ke Tambah Transaksi bila [forOrder], selain itu kembali ke Pelanggan.
+  void customerSaved(String name, {bool forOrder = false});
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.

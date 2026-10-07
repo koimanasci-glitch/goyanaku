@@ -1,0 +1,151 @@
+{
+ "page": {
+  "title": "TAMBAH PELANGGAN",
+  "items": [
+   {
+    "type": "button",
+    "t": "Pilih dari Kontak HP",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "row",
+    "t": "Pria",
+    "s": "Jenis kelamin · untuk avatar",
+    "btn": "Ganti",
+    "svg": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M17 54c1.2-8.4 6.1-12.6 15-12.6S45.8 45.6 47 54\" fill=\"#5C97F8\"></path><circle cx=\"32\" cy=\"26\" r=\"11\" fill=\"#FFD6B3\"></circle><path d=\"M21 24.5c0-8.5 4.5-13.5 11-13.5 6.6 0 11 5 11 13.5v2.1H21v-2.1z\" fill=\"#26384D\"></path><circle cx=\"28\" cy=\"26\" r=\"1.3\" fill=\"#26384D\"></circle><circle cx=\"36\" cy=\"26\" r=\"1.3\" fill=\"#26384D\"></circle><path d=\"M29 31c1.6 1.6 4.4 1.6 6 0\" stroke=\"#D58A78\" stroke-width=\"1.7\" fill=\"none\" stroke-linecap=\"round\"></path></svg>",
+    "i": 1
+   },
+   {
+    "type": "input",
+    "label": "",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "",
+    "ph": "Nama Pelanggan",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 0
+   },
+   {
+    "type": "input",
+    "label": "",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "",
+    "ph": "No Handphone",
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "i": 1
+   },
+   {
+    "type": "input",
+    "label": "",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "",
+    "ph": "Alamat",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 2
+   },
+   {
+    "type": "input",
+    "label": "",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "",
+    "ph": "Lokasi pelanggan / tautan Maps (opsional)",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 3
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "Pilih Titik di Peta",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 4
+     },
+     {
+      "t": "📍 Lokasi saya",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 5
+     },
+     {
+      "t": "📋 Tempel link",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 6
+     }
+    ]
+   },
+   {
+    "type": "button",
+    "t": "Tambahkan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 7
+   },
+   {
+    "type": "hint",
+    "t": "Opsional · tempel link Maps atau share lokasi WA pelanggan untuk kurir."
+   },
+   {
+    "type": "hint",
+    "t": "Nama dan no handphone wajib diisi. Alamat dan Maps boleh dikosongkan."
+   }
+  ]
+ },
+ "gp128": [
+  {
+   "type": "title",
+   "t": "Pelanggan ini pria atau wanita?"
+  },
+  {
+   "type": "hint",
+   "t": "Untuk avatar pelanggan di daftar & pesanan"
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Pria",
+     "svg": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M17 54c1.2-8.4 6.1-12.6 15-12.6S45.8 45.6 47 54\" fill=\"#5C97F8\"></path><circle cx=\"32\" cy=\"26\" r=\"11\" fill=\"#FFD6B3\"></circle><path d=\"M21 24.5c0-8.5 4.5-13.5 11-13.5 6.6 0 11 5 11 13.5v2.1H21v-2.1z\" fill=\"#26384D\"></path><circle cx=\"28\" cy=\"26\" r=\"1.3\" fill=\"#26384D\"></circle><circle cx=\"36\" cy=\"26\" r=\"1.3\" fill=\"#26384D\"></circle><path d=\"M29 31c1.6 1.6 4.4 1.6 6 0\" stroke=\"#D58A78\" stroke-width=\"1.7\" fill=\"none\" stroke-linecap=\"round\"></path></svg>",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 0
+    },
+    {
+     "t": "Wanita",
+     "svg": "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M17 54c1.2-8.4 6.1-12.6 15-12.6S45.8 45.6 47 54\" fill=\"#E56A8C\"></path><circle cx=\"32\" cy=\"26\" r=\"11\" fill=\"#FFD8C7\"></circle><path d=\"M18.5 26.2c0-9.6 5.1-15 13.5-15s13.5 5.4 13.5 15c0 4.5-1.7 8.4-4.4 11-1.1-6.9-4.3-10.6-9.1-10.6s-8 3.7-9.1 10.6c-2.7-2.6-4.4-6.5-4.4-11z\" fill=\"#6D4A3C\"></path><circle cx=\"28\" cy=\"26\" r=\"1.3\" fill=\"#453126\"></circle><circle cx=\"36\" cy=\"26\" r=\"1.3\" fill=\"#453126\"></circle><path d=\"M29 31c1.6 1.6 4.4 1.6 6 0\" stroke=\"#D88A86\" stroke-width=\"1.7\" fill=\"none\" stroke-linecap=\"round\"></path></svg>",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    }
+   ]
+  }
+ ]
+}

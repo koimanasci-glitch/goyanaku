@@ -66,10 +66,17 @@ void main() {
     await _settle(tester);
     s.aoAddCustomer();
     await _settle(tester);
-    s.fmScoped('custform', 'input', 0, 'Rina');
-    s.fmScoped('custform', 'input', 1, '081277788899');
-    s.fmScoped('custform', 'button', 1);
+    // Tambah Pelanggan = halaman customeradd (seperti Hibrida): popup pria/wanita dulu, lalu data.
+    expect(s.debugSheet('gp128')!.first['t'], 'Pelanggan ini pria atau wanita?');
+    s.fmScoped('gp128', 'button', 1);
     await _settle(tester);
+    s.fmInput(0, 'Rina');
+    s.fmInput(1, '081277788899');
+    s.fmInput(3, '-6.261500, 107.152000');
+    s.fmButton(7);
+    await _settle(tester);
+    expect((await Business.load(kv)).customerByName('Rina')!.gender, 'female');
+    expect((await Business.load(kv)).customerByName('Rina')!.maps, '-6.261500, 107.152000');
     // Setelah pelanggan baru tersimpan, lembar durasi terbuka.
     s.fmScoped('dur', 'button', 1); // Express
     await _settle(tester);

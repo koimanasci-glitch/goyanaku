@@ -1160,4 +1160,33 @@ void templateTests() {
     planAccess.testPlan = null;
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Tambah Pelanggan (customeradd): popup pria/wanita lalu susunan halaman sama dengan HTML; lokasi Maps tersimpan', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/customeradd.json').readAsStringSync()) as Map;
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('customers');
+    s.cuAdd();
+    await _settle(tester);
+    List<String> shape(List items) => [
+          for (final it in items.cast<Map>())
+            it['type'] == 'buttons' ? 'buttons|${(it['options'] as List).map((o) => '${(o as Map)['t']}:${o['i']}').join(',')}' : '${it['type']}|${it['t'] ?? ''}|${it['s'] ?? ''}|${it['ph'] ?? ''}|${it['btn'] ?? ''}|${it['i'] ?? 0}',
+        ];
+    expect(shape(s.debugSheet('gp128')!), shape(fx['gp128'] as List), reason: 'popup jenis kelamin');
+    s.fmScoped('gp128', 'button', 0);
+    await _settle(tester);
+    expect(shape(s.debugItems()), shape((fx['page'] as Map)['items'] as List), reason: 'halaman');
+    s.fmInput(0, 'Sari');
+    s.fmButton(7);
+    expect(s.debugToast, isNot('Pelanggan Sari ditambahkan'), reason: 'no HP wajib');
+    s.fmInput(1, '081299990000');
+    s.fmInput(3, 'bukan link');
+    s.fmButton(7);
+    expect(s.debugToast, 'Link Maps tidak dikenali · kosongkan atau perbaiki dulu');
+    s.fmInput(3, 'https://maps.app.goo.gl/abc');
+    s.fmButton(7);
+    await _settle(tester);
+    expect((await Business.load(kv)).customerByName('Sari')!.maps, 'https://maps.app.goo.gl/abc');
+    expect(tester.takeException(), isNull);
+  });
 }

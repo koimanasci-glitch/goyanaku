@@ -32,6 +32,7 @@ import 'addorder_assets.dart';
 import 'access.dart';
 import 'addorder_popups.dart';
 import 'cash_pages.dart';
+import 'customer_add_page.dart';
 import 'delivery.dart';
 import 'discounts.dart';
 import '../native/common.dart';
@@ -88,7 +89,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -1679,7 +1680,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
     if (kind == 'input') {
       final key = switch (scope) {
-        'custform' => const ['name', 'phone', 'address'][index.clamp(0, 2)],
         'cancel' => index == 0 ? 'reason' : 'note',
         'items' => 'item$index',
         'setup' => const ['oname', 'oaddr', 'ophone'][index.clamp(0, 2)],
@@ -1757,8 +1757,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         }
       case 'history':
         _close('history');
-      case 'custform':
-        _saveCustomerForm(index);
       case 'dur':
         _aoPickDuration(index);
       case 'qty':
@@ -1908,48 +1906,21 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void cuCrm() => nav('crm');
 
-  String? _editingCustomer;
-  bool _custForOrder = false;
 
+  /// Tambah / Edit Pelanggan = halaman `customeradd` (sama dengan Hibrida): jenis kelamin dulu, lalu data & lokasi Maps.
   void _openCustomerForm(Customer? c, {bool forOrder = false}) {
-    _editingCustomer = c?.name;
-    _custForOrder = forOrder;
-    _form
-      ..clear()
-      ..['name'] = c?.name ?? ''
-      ..['phone'] = c?.phone ?? ''
-      ..['address'] = c?.address ?? ''
-      ..['gender'] = c?.gender ?? 'male';
-    _open(_Sheet('custform', _customerItems()));
+    (_pages['customeradd'] as CustomerAddPage).start(c, forOrder: forOrder);
+    nav('customeradd');
   }
 
-  List<Map<String, dynamic>> _customerItems() => [
-        {'type': 'title', 't': _editingCustomer == null ? 'Tambah Pelanggan' : 'Edit Pelanggan', 's': ''},
-        {'type': 'input', 'v': '${_form['name']}', 'ph': 'Nama Pelanggan', 'i': 0},
-        {'type': 'input', 'v': '${_form['phone']}', 'ph': 'No Handphone', 'numeric': true, 'i': 1},
-        {'type': 'input', 'v': '${_form['address']}', 'ph': 'Alamat (opsional)', 'i': 2},
-        {'type': 'buttons', 'options': [
-          {'t': 'Pria', 'on': _form['gender'] != 'female', 'i': 10},
-          {'t': 'Wanita', 'on': _form['gender'] == 'female', 'i': 11},
-        ]},
-        {'type': 'button', 't': _editingCustomer == null ? 'Tambahkan' : 'Simpan', 'primary': true, 'i': 1},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
-        {'type': 'hint', 't': 'Nama dan no handphone wajib diisi. Alamat boleh dikosongkan.'},
-      ];
-
-  void _saveCustomerForm(int index) {
-    if (index == 10 || index == 11) {
-      _form['gender'] = index == 11 ? 'female' : 'male';
-      return _open(_Sheet('custform', _customerItems()));
-    }
-    if (index != 1) return _close('custform');
-    final c = Customer(name: '${_form['name']}'.trim(), phone: '${_form['phone']}'.trim(), address: '${_form['address']}'.trim(), gender: '${_form['gender']}');
-    final err = _b!.saveCustomer(c, originalName: _editingCustomer);
-    if (err != null) return toast(err);
-    _save();
-    _close('custform');
-    toast(_editingCustomer == null ? 'Pelanggan ${c.name} ditambahkan' : 'Data pelanggan disimpan');
-    if (_custForOrder) _aoPickName(c.name);
+  @override
+  void customerSaved(String name, {bool forOrder = false}) {
+    if (!forOrder) return nav('customers');
+    setState(() {
+      _pageSheets.clear();
+      _page = 'addorder';
+    });
+    _aoPickName(name);
   }
 
   // ---------------- Tambah Transaksi ----------------
