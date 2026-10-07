@@ -9,7 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/pure/delivery.dart';
+import 'package:goyana_flutter/native/cash_page.dart';
+import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
+import 'package:goyana_flutter/pure/cash_pages.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 
 MemoryKvStore _store() {
@@ -775,6 +778,46 @@ void templateTests() {
     after = await Business.load(kv);
     expect(after.orders.first.paid, 0);
     expect((after.kas['voided'] as List).length, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Kas: Penambahan Kas, Pengeluaran dan Tutup Kasir memakai halaman Hibrida dan hitungan A7', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.rpQuick(0);
+    await _settle(tester);
+    expect(find.byType(NativeCash), findsOneWidget);
+    final cashin = CashEntryPage(s, income: true);
+    expect(cashin.model()['submit'], 'Tambah Kas');
+    cashin.submit();
+    expect(s.debugToast, 'Isi jumlah terlebih dahulu');
+    cashin.amount = '100000';
+    cashin.submit();
+    await _settle(tester);
+    expect(s.debugToast, 'Penambahan kas tersimpan');
+    var b = await Business.load(kv);
+    expect((b.kas['ins'] as List).single['a'], 100000);
+
+    s.rpQuick(2);
+    await _settle(tester);
+    expect(find.byType(NativeCashClose), findsOneWidget);
+    final page = CashClosePage(s);
+    final m = page.model();
+    expect(m['title'], 'TUTUP KASIR');
+    expect(m['date'], 'Sabtu, 3 Okt 2026');
+    expect(((m['sections'] as List)[1]['rows'] as List)[4]['v'], 'Rp100.000', reason: 'seharusnya di laci');
+    page.tap('#cashclose .kc137-go', 0, null);
+    expect(s.debugToast, 'Hitung uang di laci dulu');
+    page.tap('#kc-den label', 0, 'button:last-of-type'); // 1 lembar 100rb
+    page.tap('#cashclose .kc137-go', 0, null);
+    await _settle(tester);
+    expect(find.text('Tutup kas sekarang?'), findsOneWidget);
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect((b.kas['hist'] as List).length, 1);
+    expect((b.kas['hist'] as List).first['diff'], 0);
+    expect(b.kas['ins'], isEmpty);
     expect(tester.takeException(), isNull);
   });
 }

@@ -16,5 +16,7 @@ for f in sorted((root / 'test/fixtures/pure/pages').glob('*.json')):
 out.append('};')
 guides = json.loads((root / 'test/fixtures/pure/guides.json').read_text(encoding='utf-8'))
 out += ['', '/// Popup panduan Pusat Bantuan (guide135): pohon tampilan dari HTML + halaman tujuan "Coba Sekarang".', "const guideSheets = r'''" + json.dumps([{'mirror': g['mirror'], 'go': g['go']} for g in guides], ensure_ascii=False, separators=(',', ':')) + "''';"]
+cc = json.loads((root / 'test/fixtures/cashclose.json').read_text(encoding='utf-8'))
+out += ['', '/// Susunan halaman Tutup Kasir (cashclose) dari HTML; angka diisi oleh logika A7.', "const cashCloseTemplate = r'''" + json.dumps(cc, ensure_ascii=False, separators=(',', ':')) + "''';"]
 (root / 'lib/pure/page_templates.dart').write_text('\n'.join(out) + '\n', encoding='utf-8')
 print('ok', len(out) - 4)

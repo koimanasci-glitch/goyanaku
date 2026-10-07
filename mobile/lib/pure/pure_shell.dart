@@ -18,6 +18,7 @@ import '../native/addorder_page.dart';
 import 'addorder_assets.dart';
 import 'access.dart';
 import 'addorder_popups.dart';
+import 'cash_pages.dart';
 import 'delivery.dart';
 import 'discounts.dart';
 import '../native/common.dart';
@@ -71,7 +72,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'ralat139': RalatPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'ralat139': RalatPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -141,8 +142,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   @override
   void rpQuick(int index) {
-    if (index == 3) return toast('Ralat transaksi ada di versi lengkap');
-    nav('kas');
+    nav(const ['cashin', 'cashout', 'cashclose', 'ralat139'][index.clamp(0, 3)]);
   }
 
   @override
@@ -154,8 +154,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final ids = reportVisibleIds(cat: _rpCat, query: _rpQuery);
     if (index < 0 || index >= ids.length) return;
     final id = ids[index];
-    if (id == 'tutup') return nav('kas');
-    if (id == 'ralat') return toast('Ralat transaksi ada di versi lengkap');
+    if (id == 'tutup') return nav('cashclose');
+    if (id == 'ralat') return nav('ralat139');
     setState(() => _rpId = id);
     nav('rp');
   }
