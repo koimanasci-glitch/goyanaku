@@ -1544,3 +1544,6 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **7 Okt · Harga Paket (dikerjakan, tampilan baru Mode Murni):** kartu paket dalam grid 2 kolom dengan ikon berwarna per paket, kartu "Paket saat ini", Riwayat transaksi, PLATINUM lebar "PALING LENGKAP", Tambahan (3 kartu), Ketentuan Paket. Ketuk kartu → rincian fitur paket (sebelumnya hanya pesan server belum aktif). Batas cabang & fitur mengikuti aturan paket di aplikasi (1 pusat + 1/2/3/5 cabang), bukan angka di gambar referensi. Pembayaran tetap belum tersedia (butuh server/Google Play); pilihan Bulanan/Tahunan tidak dibuat karena harga tahunan belum ditentukan.
 
 - **Otomasi Pelanggan (Murni)**: daftar tetap diganti sakelar aktif/nonaktif per pesan (Pesanan diterima, Siap diambil, Belum diambil N hari + pilihan 1/2/3/5/7 hari, Chatbot status). Tersimpan di perangkat; pengiriman otomatis tetap menunggu server WhatsApp. Hybrid tidak diubah.
+
+### Daftar revisi dari uji HP (dicatat dulu, dikerjakan sekaligus saat Koiman bilang mulai)
+- **Revisi 1 — Footer (menu bawah)**: ikon & teks Beranda/Pesanan/Laporan/Pengaturan terlalu ke bawah, tertimpa garis navigasi/lengkung layar HP. Naikkan sedikit (beri jarak aman bawah / safe area) supaya pas.
