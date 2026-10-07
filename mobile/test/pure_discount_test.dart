@@ -702,4 +702,74 @@ void templateTests() {
     expect(find.text('Izin Aplikasi'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Ralat & Log Koreksi: halaman sama dengan HTML; ralat pembayaran dan pengeluaran tercatat di log', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/ralat.json').readAsStringSync()) as Map;
+    final kv = _store();
+    kv.data['goyana-pure-settings'] = jsonEncode({'adminName': 'Koko'});
+    var s = await _pump(tester, kv);
+    s.nav('ralat139');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+
+    // Siapkan 1 pembayaran tunai Rp10.000 dan 1 pengeluaran.
+    final b = await Business.load(kv);
+    final o = b.orders.first;
+    expect(b.pay(o, method: 'Tunai', amount: 10000, now: DateTime(2026, 10, 3, 9)), isNull);
+    b.kasEntry(income: false, type: 'Listrik', amount: 50000, note: 'token', now: DateTime(2026, 10, 3, 9, 30));
+    await b.save();
+    s = await _pump(tester, kv);
+    s.nav('ralat139');
+    await _settle(tester);
+    var rows = s.debugItems().where((e) => e['type'] == 'entry').toList();
+    expect(rows[1]['t'], o.id);
+    expect(rows[1]['amount'], 'Rp10.000');
+    s.fmButton(5);
+    await _settle(tester);
+    s.fmScoped('rs139', 'button', 1); // QRIS
+    s.fmScoped('rs139', 'button', 8);
+    expect(s.debugToast, 'Pilih alasan ralat dulu');
+    s.fmScoped('rs139', 'button', 3);
+    s.fmScoped('rs139', 'button', 8);
+    await _settle(tester);
+    expect(s.debugToast, 'Ralat tersimpan · tercatat di Log Ralat');
+    var after = await Business.load(kv);
+    expect((after.kas['sales'] as List).single['m'], 'QRIS');
+    expect(after.orders.first.paid, 10000);
+
+    s.fmButton(3); // Pengeluaran
+    s.fmButton(5);
+    await _settle(tester);
+    s.fmScoped('rs139', 'input', 1, '45.000');
+    s.fmScoped('rs139', 'button', 0);
+    s.fmScoped('rs139', 'button', 5);
+    await _settle(tester);
+    after = await Business.load(kv);
+    expect((after.kas['outs'] as List).single['a'], 45000);
+    s.fmButton(4); // Log
+    rows = s.debugItems().where((e) => e['type'] == 'entry').toList();
+    expect(rows.length, 3, reason: 'baris login + 2 log');
+    expect(rows[1]['t'], 'Ralat pengeluaran');
+
+    // Kasir butuh PIN Admin Utama.
+    s.fmButton(1);
+    s.fmButton(2);
+    s.fmButton(5);
+    await _settle(tester);
+    s.fmScoped('rs139', 'button', 5);
+    s.fmScoped('rs139', 'button', 7); // Batalkan Bayar
+    await _settle(tester);
+    expect(find.text('PIN Admin Utama'), findsOneWidget);
+    s.fmScoped('pin139', 'input', 0, '0000');
+    s.fmScoped('pin139', 'button', 0);
+    expect(s.debugToast, 'PIN salah');
+    s.fmScoped('pin139', 'input', 0, '1234');
+    s.fmScoped('pin139', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Pembayaran dibatalkan · pesanan jadi Belum Bayar');
+    after = await Business.load(kv);
+    expect(after.orders.first.paid, 0);
+    expect((after.kas['voided'] as List).length, 1);
+    expect(tester.takeException(), isNull);
+  });
 }

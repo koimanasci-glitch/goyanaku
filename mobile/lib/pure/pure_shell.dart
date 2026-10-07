@@ -33,6 +33,7 @@ import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import '../logic/reports_catalog.dart';
 import 'pages.dart';
+import 'ralat.dart';
 import 'reports_dart.dart';
 import 'scan_page.dart';
 import 'service_icons.dart';
@@ -70,7 +71,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'ralat139': RalatPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -699,7 +700,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'wadevices195', '4/3': 'whatsappbot', '4/4': 'quickreply', '4/5': 'automation',
     '5': 'wadevices195', '6': 'triggers191', '7': 'ai191', '8': 'blast191',
-    '9/0': 'qris', '9/1': 'finance', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',
+    '9/0': 'qris', '9/1': 'finance', '9/2': 'ralat139', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',
     '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana', '12/2': 'sheet:perm178',
   };
   void _stGo(String key) {
