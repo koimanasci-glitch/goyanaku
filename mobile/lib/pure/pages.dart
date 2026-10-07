@@ -2342,6 +2342,16 @@ class DurationPage extends PurePage {
 
 /// Halaman yang susunannya tetap: butir diambil dari tangkapan HTML ([pageTemplates]) sehingga tampilannya
 /// sama persis dengan Mode Hibrida; isian dan saklar disimpan di pengaturan Mode Murni.
+/// Butir pratinjau gambar terpilih.
+Map<String, dynamic> pickedImageItem(String src) => {'type': 'image', 'src': src, 'svg': '', 'mark': '', 't': '', 's': '', 'w': 160};
+
+/// Validasi gambar balasan/promo (PNG/JPG/WebP, maks 1 MB). Null = boleh.
+String? pickedImageError(String mime, String data) {
+  if (!RegExp(r'^image/(png|jpeg|webp)$').hasMatch(mime)) return 'Pilih gambar PNG, JPG, atau WebP';
+  if (data.length * 3 ~/ 4 > 1024 * 1024) return 'Gambar maksimal 1 MB';
+  return null;
+}
+
 class TemplatePage extends PurePage {
   TemplatePage(super.host, this.id, {this.onButton, this.onTap, this.transient = const {}, this.backTo = 'settings'});
   final String id, backTo;
@@ -2394,7 +2404,23 @@ class TemplatePage extends PurePage {
       if (it['type'] == 'input') it['v'] = inputValue(i);
       if (it['type'] == 'toggle') it['on'] = toggleValue(i);
     }
+    // Gambar yang dipilih lewat tombol "Pilih Gambar" tampil di bawah tombolnya.
+    final img = _bag('img');
+    for (var k = out.length - 1; k >= 0; k--) {
+      final src = img['${out[k]['file'] ?? ''}'];
+      if (out[k]['type'] == 'button' && src is String && src.isNotEmpty) out.insert(k + 1, pickedImageItem(src));
+    }
     return out;
+  }
+
+  @override
+  void file(String inputId, String name, String mime, String data) {
+    final err = pickedImageError(mime, data);
+    if (err != null) return host.toast(err);
+    _bag('img')[inputId] = 'data:$mime;base64,$data';
+    host.saveAll();
+    host.toast('Gambar dipilih');
+    host.refresh();
   }
 
   @override

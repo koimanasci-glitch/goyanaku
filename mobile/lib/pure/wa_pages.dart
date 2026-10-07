@@ -76,6 +76,7 @@ class TriggersPage extends PurePage {
         inp(reply, 3, multi: true),
         {'type': 'label', 't': 'Gambar balasan / promo'},
         {'type': 'button', 't': 'Pilih Gambar', 'primary': false, 'file': 'rule-image191', 'i': -1},
+        if (image.isNotEmpty) pickedImageItem(image),
         {'type': 'toggle', 't': 'Aktif', 's': '', 'on': enabled, 'i': 0},
         {'type': 'buttons', 'options': [
           {'t': 'Simpan', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1},
@@ -102,6 +103,7 @@ class TriggersPage extends PurePage {
     name = '${r?['name'] ?? ''}';
     keys = '${r?['keys'] ?? ''}';
     reply = '${r?['reply'] ?? ''}';
+    image = '${r?['image'] ?? ''}';
     mode = r?['mode'] == 'exact' ? 1 : 0;
     enabled = r?['enabled'] != false;
     host.refresh();
@@ -124,6 +126,15 @@ class TriggersPage extends PurePage {
     host.refresh();
   }
 
+  String image = '';
+  @override
+  void file(String inputId, String name, String mime, String data) {
+    final err = pickedImageError(mime, data);
+    if (err != null) return host.toast(err);
+    image = 'data:$mime;base64,$data';
+    host.refresh();
+  }
+
   @override
   void button(int i) async {
     if (i == 0) return _form(null);
@@ -136,7 +147,7 @@ class TriggersPage extends PurePage {
       if (!_gate(host, 'quick')) return;
       final ks = keys.split(',').map((x) => x.trim().toLowerCase()).where((x) => x.isNotEmpty).toList();
       if (name.trim().isEmpty || ks.isEmpty || reply.trim().isEmpty) return host.toast('Isi nama, pemicu dan teks atau gambar.');
-      final entry = <String, dynamic>{'id': editing ?? host.now.microsecondsSinceEpoch.toRadixString(36), 'name': name.trim(), 'keys': ks.join(', '), 'reply': reply.trim(), 'image': '', 'mode': mode == 1 ? 'exact' : 'contains', 'enabled': enabled};
+      final entry = <String, dynamic>{'id': editing ?? host.now.microsecondsSinceEpoch.toRadixString(36), 'name': name.trim(), 'keys': ks.join(', '), 'reply': reply.trim(), 'image': image, 'mode': mode == 1 ? 'exact' : 'contains', 'enabled': enabled};
       final k = list.indexWhere((x) => x is Map && '${x['id']}' == entry['id']);
       k < 0 ? list.add(entry) : list[k] = entry;
       if (!await saveChat(host, st)) return host.toast('Penyimpanan penuh. Kurangi ukuran gambar.');
@@ -264,14 +275,14 @@ Map<String, PurePage> whatsappPages(PureHost host) => {
       'whatsappbot': TemplatePage(host, 'whatsappbot', onButton: (p, i) {
         const go = ['triggers191', 'ai191', 'blast191', 'wadevices195', 'quickreply'];
         const need = ['quick', 'ai', 'blast', '', 'quick'];
-        if (i < 0 || i >= go.length) return host.toast('Gambar balasan belum tersedia di Mode Murni');
+        if (i < 0 || i >= go.length) return;
         if (need[i].isNotEmpty && !_gate(host, need[i])) return;
         host.go(go[i]);
       }),
       'triggers191': TriggersPage(host),
       'ai191': AiPage(host),
       'blast191': TemplatePage(host, 'blast191', backTo: 'whatsappbot', onButton: (p, i) {
-        if (i < 0) return host.toast('Gambar promo belum tersedia di Mode Murni');
+        if (i < 0) return;
         if (!_gate(host, 'blast')) return;
         host.toast('Isi promo, pilih penerima dan konfirmasi persetujuan.');
       }),
