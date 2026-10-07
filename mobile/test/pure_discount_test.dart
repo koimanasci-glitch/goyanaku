@@ -6,7 +6,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/pure/delivery.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 
 MemoryKvStore _store() {
@@ -276,6 +278,53 @@ void templateTests() {
     s.fmScoped('gs107', 'button', 0);
     await _settle(tester);
     expect(s.debugItems().length, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Antar-Jemput: butir tiap mode tarif sama dengan HTML; ongkir masuk total pesanan', (tester) async {
+    final kv = _store();
+    kv.data['goyana-pure-settings'] = jsonEncode({
+      'delivery': {'couriers': [{'n': 'Andi', 'p': '0857-2233-4455'}, {'n': 'Dimas', 'p': '0813-5566-7788'}]},
+    });
+    final s = await _pump(tester, kv);
+    final b = await Business.load(kv);
+    final outlet = b.outlets.isEmpty ? 'Outlet Aktif' : (b.outlets.where((o) => o.id == b.activeOutlet).firstOrNull ?? b.outlets.first).name;
+    final fx = (jsonDecode(File('test/fixtures/pure/delivery.json').readAsStringSync().replaceAll('untuk Outlet Aktif.', 'untuk $outlet.')) as List).cast<Map>();
+    s.nav('delivery');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[0]['items']), reason: 'gratis');
+    s.fmRadio(1);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[1]['items']), reason: 'tarif tetap');
+    s.fmRadio(2);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[3]['items']), reason: 'terpisah');
+    s.fmRadio(3);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[4]['items']), reason: 'pulang-pergi');
+    s.fmRadio(4);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[5]['items']), reason: 'jarak');
+
+    s.fmRadio(2);
+    s.fmInput(0, '4000');
+    s.fmInput(1, '6000');
+    s.fmButton(0);
+    await _settle(tester);
+    expect(s.debugToast, 'Tarif transportasi tersimpan');
+    final saved = (jsonDecode(kv.data['goyana-transport183']!) as Map).values.first as Map;
+    expect([saved['mode'], saved['pickup'], saved['delivery']], ['split', 4000, 6000]);
+    expect(transportFee('Antar ke Pelanggan', Map<String, dynamic>.from(saved)), 6000);
+    expect(transportFee('Jemput & Antar', Map<String, dynamic>.from(saved)), 10000);
+    expect(transportFee('Datang Langsung', Map<String, dynamic>.from(saved)), 0);
+
+    s.fmToggle(3); // antar dimatikan → hanya Datang Langsung
+    await _settle(tester);
+    expect(s.debugToast, 'Pengaturan antar-jemput diperbarui');
+    s.fmToggle(1);
+    await _settle(tester);
+    expect(s.debugToast, fx[7]['toast']);
+    transportAll.clear();
     expect(tester.takeException(), isNull);
   });
 }

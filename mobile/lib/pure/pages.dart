@@ -19,6 +19,7 @@ import '../native/guide135_sheet.dart';
 import '../native/popup_components.dart';
 import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
+import 'delivery.dart';
 import 'discounts.dart';
 import 'mirror_pages.dart';
 import 'page_templates.dart';
@@ -1937,5 +1938,131 @@ class FinancePage extends PurePage {
       _done('Perubahan tersimpan');
       return null;
     }));
+  }
+}
+
+
+/// Pengaturan → Antar-Jemput: tarif transportasi (v184), layanan jemput/antar, jam kurir, daftar kurir.
+class DeliveryPage extends PurePage {
+  DeliveryPage(super.host);
+  String? _mode;
+  final Map<String, String> _vals = {};
+  bool? _manual;
+  @override
+  String get title => 'ANTAR-JEMPUT';
+
+  String get _outletId => host.business.activeOutlet.isNotEmpty ? host.business.activeOutlet : (host.business.outlets.isEmpty ? '' : host.business.outlets.first.id);
+  String get _outletName {
+    final o = host.business.outlets;
+    return (o.where((x) => x.id == _outletId).firstOrNull ?? o.firstOrNull)?.name ?? 'Outlet Aktif';
+  }
+
+  Map<String, dynamic> get _cfg => transportCfg(_outletId);
+  Map<String, dynamic> get _d => deliveryOf(host.settings.raw);
+  String get _curMode => _mode ?? '${_cfg['mode']}';
+  List<List<String>> get _fields => transportFields[_curMode] ?? const [];
+
+  @override
+  void opened() {
+    _mode = null;
+    _manual = null;
+    _vals.clear();
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final cfg = _cfg, d = _d, f = _fields;
+    Map<String, dynamic> fld(String key, int i) => {
+          'type': 'input', 'v': _vals[key] ?? '${(cfg[key] as num? ?? 0).round()}', 'ph': '', 'multiline': false, 'numeric': true, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i,
+        };
+    final couriers = (d['couriers'] as List).whereType<Map>().toList();
+    return [
+      {'type': 'title', 't': 'Tarif Transportasi', 's': ''},
+      {'type': 'hint', 't': 'Diatur oleh owner untuk $_outletName. Pilihan pertama selalu Gratis Transportasi.'},
+      {'type': 'choice', 't': '', 'options': [for (var k = 0; k < transportModes.length; k++) {'t': transportModes[k][1], 's': transportModes[k][2], 'on': transportModes[k][0] == _curMode, 'i': k}]},
+      if (_curMode == 'free') {'type': 'hint', 't': 'Tidak ada biaya transportasi. Order Jemput & Antar tetap berjalan, tetapi ongkir Rp0.'},
+      for (var k = 0; k < f.length; k++) ...[
+        {'type': 'label', 't': f[k][1]},
+        fld(f[k][0], k),
+      ],
+      if (_curMode == 'distance') {'type': 'hint', 't': 'Perhitungan jarak otomatis diaktifkan setelah Maps API + Laravel tersedia. Prototype tidak menagih berdasarkan jarak agar tidak salah hitung.'},
+      {'type': 'toggle', 't': 'Izinkan kasir mengubah ongkir manual', 's': 'Nanti wajib tercatat di Audit Log.', 'on': _manual ?? cfg['manual'] == true, 'i': 0},
+      {'type': 'button', 't': 'SIMPAN TARIF', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      {'type': 'toggle', 't': 'Layanan Antar-Jemput', 's': 'Matikan jika outlet hanya melayani pelanggan datang langsung', 'on': d['on'] == true, 'i': 1},
+      {'type': 'toggle', 't': 'Layanan jemput cucian', 's': 'tab Penjemputan di Pesanan', 'on': d['jemput'] == true, 'i': 2},
+      {'type': 'toggle', 't': 'Layanan antar cucian', 's': 'tab Diantar di Pesanan', 'on': d['antar'] == true, 'i': 3},
+      {'type': 'title', 't': 'Jam layanan kurir'},
+      // Indeks isian jam = jumlah isian tarif + 4 (kartu "Ongkos kirim" lama di HTML tersembunyi tetapi tetap terhitung).
+      {'type': 'input', 'label': 'Jemput', 'sub': '', 'pre': '', 'suf': '', 'v': '${d['hJemput']}', 'ph': '', 'numeric': false, 'decimal': false, 'ro': false, 'i': f.length + 4},
+      {'type': 'input', 'label': 'Antar', 'sub': '', 'pre': '', 'suf': '', 'v': '${d['hAntar']}', 'ph': '', 'numeric': false, 'decimal': false, 'ro': false, 'i': f.length + 5},
+      {'type': 'title', 't': 'Kurir'},
+      for (final c in couriers)
+        {'type': 'entry', 't': '${c['n']}', 'lines': ['${c['p']} · motor'], 'badge': 'Aktif', 'avatar': '${c['n']}'.isEmpty ? '' : '${c['n']}'[0].toUpperCase(), 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'button', 't': '+ Tambah Kurir', 'primary': false, 'file': '', 'after': false, 'i': 1},
+      {'type': 'button', 't': 'Simpan Pengaturan', 'primary': true, 'file': '', 'after': false, 'i': 2},
+    ];
+  }
+
+  @override
+  void radio(int i) {
+    _mode = transportModes[i.clamp(0, transportModes.length - 1)][0];
+    host.refresh();
+  }
+
+  @override
+  void input(int i, Object value) {
+    final f = _fields;
+    if (i < f.length) {
+      _vals[f[i][0]] = '$value';
+    } else {
+      _d[i == f.length + 4 ? 'hJemput' : 'hAntar'] = '$value';
+      host.saveAll();
+    }
+  }
+
+  @override
+  void toggle(int i) {
+    if (i == 0) {
+      _manual = !(_manual ?? _cfg['manual'] == true);
+      return host.refresh();
+    }
+    final d = _d, k = const ['on', 'jemput', 'antar'][(i - 1).clamp(0, 2)];
+    d[k] = d[k] != true;
+    host.saveAll();
+    host.toast(d['on'] != true ? 'Antar-jemput dinonaktifkan · tab Penjemputan & Diantar disembunyikan' : 'Pengaturan antar-jemput diperbarui');
+    host.refresh();
+  }
+
+  @override
+  void button(int i) async {
+    if (i == 0) {
+      // Tarif mode lain yang tidak sedang ditampilkan dipertahankan (di HTML ikut menjadi 0).
+      final n = _cfg..['mode'] = _curMode;
+      for (final f in _fields) {
+        n[f[0]] = (num.tryParse(_vals[f[0]] ?? '${n[f[0]]}') ?? 0).clamp(0, double.infinity).round();
+      }
+      n['manual'] = _manual ?? n['manual'] == true;
+      if (!await saveTransport(host.kv, _outletId, n)) return host.toast('Penyimpanan perangkat penuh');
+      opened();
+      host.toast(n['mode'] == 'free' ? 'Transportasi GRATIS tersimpan' : 'Tarif transportasi tersimpan');
+      return host.refresh();
+    }
+    if (i == 1) {
+      return host.openFormSheet(FormSheetDef(
+        'Tambah Kurir',
+        const [FormSheetField('Nama kurir', required: true), FormSheetField('No WhatsApp', numeric: true, required: true)],
+        'Tambah',
+        (v) {
+          (_d['couriers'] as List).add({'n': v[0], 'p': v[1]});
+          host.saveAll();
+          host.toast('Kurir ${v[0]} ditambahkan');
+          host.refresh();
+          return null;
+        },
+      ));
+    }
+    await host.saveAll();
+    host.toast('Pengaturan antar-jemput tersimpan');
+    host.go('settings');
   }
 }

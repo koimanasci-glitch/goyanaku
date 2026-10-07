@@ -17,6 +17,7 @@ import '../core/store.dart';
 import '../native/addorder_page.dart';
 import 'addorder_assets.dart';
 import 'addorder_popups.dart';
+import 'delivery.dart';
 import 'discounts.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
@@ -65,7 +66,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
     'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -256,6 +257,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void initState() {
     super.initState();
+    loadTransport(widget.store);
     widget.store.get(DurationPage.key).then((raw) {
       try {
         for (final e in (jsonDecode(raw ?? '{}') as Map).entries) {
@@ -602,6 +604,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     for (final g in (m['groups'] as List).cast<Map<String, dynamic>>()) {
       final i = (g['i'] as num).toInt();
       g['open'] = _stOpen.contains(i);
+      for (final it in (g['items'] as List? ?? const []).whereType<Map>()) {
+        if (it['t'] == 'Antar-Jemput') it['s'] = deliverySub(_settings!.raw).replaceFirst('jemput & antar', 'ongkir, area & kurir');
+      }
       if (!_stOpen.contains(i)) g['items'] = <dynamic>[];
     }
     return m;
@@ -610,7 +615,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   /// Item menu HTML → halaman mode murni. null = belum dipindah.
   static const Map<String, String> _stRoutes = {
     '0/0': 'profile', '1/0': 'outlet', '1/1': 'outlets',
-    '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'couriers',
+    '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
     '3/0': 'employees', '3/1': 'cashier', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
     '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
@@ -1327,7 +1332,19 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     setState(() => _opt['disc'] = option);
   }
 
-  static const _hands = ['Datang Langsung', 'Antar ke Pelanggan', 'Jemput & Antar'];
+  List<String> get _hands => handoverOptions(_settings!.raw);
+  String get _optHand {
+    final h = _hands;
+    return h[(_opt['hand'] as int).clamp(0, h.length - 1)];
+  }
+
+  /// Ongkir pesanan yang sedang dibuat (Tarif Transportasi outlet aktif); tidak ikut didiskon.
+  int get _optOngkir {
+    final b = _b!;
+    final id = b.activeOutlet.isNotEmpty ? b.activeOutlet : (b.outlets.isEmpty ? '' : b.outlets.first.id);
+    return transportFee(_optHand, transportCfg(id));
+  }
+
 
   Map<String, dynamic> _addOrderJson() {
     final b = _b!;
@@ -1529,7 +1546,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   String _pendingMethod = '';
 
-  int get _cartTotal => calcTotals(_cartItems, _optDiscKey, 0).total;
+  int get _cartTotal => calcTotals(_cartItems, _optDiscKey, _optOngkir).total;
 
   @override
   void aoPay(int index) {
@@ -1623,10 +1640,10 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void _finishOrder(String method, {int change = 0, int? dp, String dpMethod = 'Tunai'}) {
     final b = _b!;
     final cust = b.customerByName(_aoCustomer);
-    final hand = _hands[_opt['hand'] as int];
+    final hand = _optHand;
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
-      discKey: _optDiscKey, perfume: _perfumeValue((_opt['perfume'] as int)),
+      discKey: _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
       payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );

@@ -1,0 +1,1522 @@
+[
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": true,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": false,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": false,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "hint",
+    "t": "Tidak ada biaya transportasi. Order Jemput & Antar tetap berjalan, tetapi ongkir Rp0."
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 4
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 5
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": ""
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": true,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": false,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif transportasi per order"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 5
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 6
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": ""
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": true,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": false,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif transportasi per order"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 5
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 6
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "Tarif transportasi tersimpan"
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": false,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": true,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": false,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif penjemputan"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "label",
+    "t": "Tarif pengantaran"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 6
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 7
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "Tarif transportasi tersimpan"
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": false,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": true,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": false,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif Jemput & Antar"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "label",
+    "t": "Jika hanya jemput"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "label",
+    "t": "Jika hanya antar"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 7
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 8
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": ""
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": false,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": true,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif per km"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "label",
+    "t": "Radius gratis (km)"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "hint",
+    "t": "Perhitungan jarak otomatis diaktifkan setelah Maps API + Laravel tersedia. Prototype tidak menagih berdasarkan jarak agar tidak salah hitung."
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 6
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 7
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": ""
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": false,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": true,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif per km"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "label",
+    "t": "Radius gratis (km)"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "hint",
+    "t": "Perhitungan jarak otomatis diaktifkan setelah Maps API + Laravel tersedia. Prototype tidak menagih berdasarkan jarak agar tidak salah hitung."
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": true,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 6
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 7
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "Tarif transportasi tersimpan"
+ },
+ {
+  "items": [
+   {
+    "type": "title",
+    "t": "Tarif Transportasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Diatur oleh owner untuk Outlet Aktif. Pilihan pertama selalu Gratis Transportasi."
+   },
+   {
+    "type": "choice",
+    "t": "",
+    "options": [
+     {
+      "t": "1. Gratis Transportasi",
+      "s": "Default. Tidak menambah biaya ke pesanan.",
+      "on": false,
+      "i": 0
+     },
+     {
+      "t": "Tarif Tetap",
+      "s": "Satu tarif untuk order yang memakai transportasi.",
+      "on": false,
+      "i": 1
+     },
+     {
+      "t": "Tarif Jemput & Antar Terpisah",
+      "s": "Tarif penjemputan dan pengantaran dapat berbeda.",
+      "on": false,
+      "i": 2
+     },
+     {
+      "t": "Tarif Jemput & Antar",
+      "s": "Satu tarif khusus untuk perjalanan pulang-pergi.",
+      "on": false,
+      "i": 3
+     },
+     {
+      "t": "Tarif per Jarak",
+      "s": "Disiapkan untuk Maps API/Laravel.",
+      "on": true,
+      "i": 4
+     }
+    ]
+   },
+   {
+    "type": "label",
+    "t": "Tarif per km"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "label",
+    "t": "Radius gratis (km)"
+   },
+   {
+    "type": "input",
+    "v": "0",
+    "ph": "",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "hint",
+    "t": "Perhitungan jarak otomatis diaktifkan setelah Maps API + Laravel tersedia. Prototype tidak menagih berdasarkan jarak agar tidak salah hitung."
+   },
+   {
+    "type": "toggle",
+    "t": "Izinkan kasir mengubah ongkir manual",
+    "s": "Nanti wajib tercatat di Audit Log.",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "SIMPAN TARIF",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan Antar-Jemput",
+    "s": "Matikan jika outlet hanya melayani pelanggan datang langsung",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan jemput cucian",
+    "s": "tab Penjemputan di Pesanan",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Layanan antar cucian",
+    "s": "tab Diantar di Pesanan",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "title",
+    "t": "Jam layanan kurir"
+   },
+   {
+    "type": "input",
+    "label": "Jemput",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "08:00 – 17:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 6
+   },
+   {
+    "type": "input",
+    "label": "Antar",
+    "sub": "",
+    "pre": "",
+    "suf": "",
+    "v": "10:00 – 20:00",
+    "ph": "",
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "i": 7
+   },
+   {
+    "type": "title",
+    "t": "Kurir"
+   },
+   {
+    "type": "entry",
+    "t": "Andi",
+    "lines": [
+     "0857-2233-4455 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "A",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "entry",
+    "t": "Dimas",
+    "lines": [
+     "0813-5566-7788 · motor"
+    ],
+    "badge": "Aktif",
+    "avatar": "D",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "button",
+    "t": "+ Tambah Kurir",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "Antar-jemput dinonaktifkan · tab Penjemputan & Diantar disembunyikan"
+ }
+]
