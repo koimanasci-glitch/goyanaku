@@ -1476,3 +1476,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Kunci paket v190 (`lib/pure/access.dart`): trial Basic 2 bulan (`goyana-trial190`), Pegawai/Stok/Ekspor butuh Silver, CRM butuh Gold, batas outlet per paket; pesan sama dengan HTML. Mode Uji v192 (password sama, hash SHA-256) ada di menu Pengaturan.
 - **Anomali HTML (dilaporkan):** kurir "Andi" & "Dimas" di Antar-Jemput adalah data contoh tertanam; kurir tambahan, jam kurir dan saklar jemput/antar tidak tersimpan. Saat SIMPAN TARIF, tarif mode lain ikut jadi 0 (Mode Murni mempertahankannya).
 - Belum: tab Penjemputan/Diantar di Pesanan belum disembunyikan saat layanan dimatikan; Monitoring cabang (`branchmonitor58`) & Manajemen Cabang (`superbilling`) masih halaman sementara.
+
+## Jalur C — batch ke-4 (7 Okt): Pegawai, Audit, Kurir
+- Pegawai (`EmployeesPage`): formulir emp157 + 17 hak akses, validasi & pesan sama, simpan/edit di `goyana_employees_v157` (kunci yang sama dengan Hibrida). Kunci PIN rancangan Mode Murni lama dipindah ke halaman `pinlock`, hanya ditautkan bila masih dipakai.
+- Audit Aktivitas (`AuditPage`): cari, chip Semua/Transaksi/Kas/Login (aturan kata sama), popup Filter Audit. Catatan audit tersimpan (Tutup kas, Pesanan dibatalkan, Edit transaksi).
+- Kurir (`CourierPage`): tab Tugas / Management Kurir, popup Tambah/Edit Kurir + hak akses outlet, Nonaktifkan, Hapus (data `goyana-couriers181`).
+- **Anomali HTML:** password pegawai tidak disimpan (prototype) — login pegawai belum ada; audit hanya di memori dan hanya mencatat 5 jenis kejadian.
+- Belum: kartu tugas kurir lengkap (pilih kurir, Navigasi, WhatsApp, Bayar, Sudah Dijemput/Mulai Antar/Sudah Diterima); popup kurir masih pakai sheet umum, belum widget `g181-modal`.
