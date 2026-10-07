@@ -1202,6 +1202,8 @@ void templateTests() {
     }
     expect(find.text('Paket Aktif'), findsOneWidget, reason: 'FREE (trial) sedang aktif');
     expect(tester.takeException(), isNull);
+    await tester.drag(find.text('Pilih Paket'), const Offset(0, -220));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('SILVER'));
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Paket SILVER'), findsOneWidget);
