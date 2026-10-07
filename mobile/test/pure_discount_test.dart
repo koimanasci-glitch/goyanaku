@@ -8,13 +8,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/hpp.dart';
+import 'package:goyana_flutter/core/settings.dart';
 import 'package:goyana_flutter/core/stock.dart';
 import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/pure/defaults.dart';
 import 'package:goyana_flutter/pure/delivery.dart';
 import 'package:goyana_flutter/native/cash_page.dart';
 import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
-import 'package:goyana_flutter/pure/pages.dart' show restoreBackup;
+import 'package:goyana_flutter/pure/import_csv.dart';
+import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, restoreBackup;
 import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
@@ -134,7 +137,8 @@ void servicesTests() {
     expect(jsonEncode(s.servicesJson()), jsonEncode(fx[0]['model']), reason: 'halaman Layanan');
     s.svAdd();
     await _settle(tester);
-    expect(jsonEncode(s.debugSheet('cat99')), jsonEncode(fx[1]['sheet']['items']), reason: 'popup Kategori Baru');
+    // 'cols' = kisi ikon 5 kolom (revisi Koiman), selebihnya sama dengan HTML.
+    expect(jsonEncode([for (final it in s.debugSheet('cat99')!) Map.of(it)..remove('cols')]), jsonEncode(fx[1]['sheet']['items']), reason: 'popup Kategori Baru');
     s.fmScoped('cat99', 'close', 0);
     await _settle(tester);
     s.svEdit(0);
@@ -167,6 +171,7 @@ void servicesTests() {
 }
 
 // ---- Halaman berpola tetap (butir = tangkapan HTML) ----
+const _redesigned = {'automation', 'datacenter'};
 void templateTests() {
   testWidgets('Halaman pola tetap: butir sama persis dengan HTML dan bisa digambar', (tester) async {
     planAccess.testPlan = 'PLATINUM';
@@ -177,6 +182,7 @@ void templateTests() {
       final id = f.uri.pathSegments.last.replaceAll('.json', '');
       final fx = jsonDecode(f.readAsStringSync()) as Map;
       if (id == 'wadevices195' || id == 'upgrade') continue; // tangkapan dibuat tanpa pesanan/outlet lain; diuji terpisah
+      if (_redesigned.contains(id)) continue; // sengaja berbeda dari HTML (permintaan Koiman), diuji terpisah
       if (id == 'datacenter') {
         // Tangkapan HTML dari data kosong; data uji punya 1 pelanggan & 1 transaksi.
         final cells = (fx['items'] as List)[0]['cells'] as List;
@@ -263,8 +269,51 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Data contoh bawaan: layanan (kiloan/satuan/meteran) & kategori pengeluaran terisi sekali, tidak menimpa data yang ada', (tester) async {
+    final fresh = MemoryKvStore({});
+    await _pump(tester, fresh);
+    await _settle(tester);
+    final sv = (jsonDecode(fresh.data[Keys.services]!) as List).cast<Map>();
+    expect(sv.map((e) => e['unit']).toSet(), {'kg', 'pcs', 'm'});
+    expect(sv.map((e) => e['name']), containsAll(['Cuci Setrika', 'Selimut', 'Bed Cover', 'Boneka', 'Jas', 'Karpet']));
+    expect(sv.first['prices'], {'Reguler': 7000, 'Express': 10500, 'Kilat': 14000});
+    final st = jsonDecode(fresh.data[AppSettings.key]!) as Map;
+    expect(st['expenseCats'], contains('Perawatan Mesin'));
+    expect((st['expenseCats'] as List).length, defaultExpenseCats.length);
+
+    // Sudah punya layanan sendiri: tidak ditambah; kategori buatan sendiri tidak digandakan.
+    final kv = _store();
+    kv.data[AppSettings.key] = jsonEncode({'expenseCats': ['perawatan mesin']});
+    final before = kv.data[Keys.services];
+    var s = await _pump(tester, kv);
+    await _settle(tester);
+    expect(kv.data[Keys.services], before);
+    final cats = (jsonDecode(kv.data[AppSettings.key]!) as Map)['expenseCats'] as List;
+    expect(cats.where((c) => '$c'.toLowerCase() == 'perawatan mesin').length, 1);
+    expect(cats.length, defaultExpenseCats.length);
+    // Kategori yang dihapus pengguna tidak muncul lagi saat aplikasi dibuka ulang.
+    s.nav('finance');
+    await _settle(tester);
+    s.fmButton(1);
+    await _settle(tester);
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    s = await _pump(tester, kv);
+    await _settle(tester);
+    expect(((jsonDecode(kv.data[AppSettings.key]!) as Map)['expenseCats'] as List).length, defaultExpenseCats.length - 1);
+    // Halaman Pengeluaran menampilkan kategori sebagai pilihan cepat.
+    s.nav('cashout');
+    await _settle(tester);
+    expect(find.text('Listrik'), findsOneWidget);
+    await tester.tap(find.text('Listrik'));
+    await tester.pump();
+    expect((s.debugPage('cashout') as CashEntryPage).note, 'Listrik');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Kategori Pengeluaran: tambah, ubah, hapus dengan butir seperti HTML', (tester) async {
     final kv = _store();
+    kv.data[AppSettings.key] = jsonEncode({'seed203': {'services': true, 'expenseCats': true}}); // tanpa kategori contoh
     final s = await _pump(tester, kv);
     s.nav('finance');
     await _settle(tester);
@@ -554,33 +603,75 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Stok & Bahan: halaman, popup alat, pembelian hutang dan riwayat sama dengan HTML', (tester) async {
-    final fx = jsonDecode(File('test/fixtures/pure/stock.json').readAsStringSync().replaceAll('· Outlet Aktif', '· Uji')) as Map;
+  testWidgets('Stok & Bahan (rombakan Koiman): daftar bahan langsung, popup aksi per bahan, belanja hutang, riwayat', (tester) async {
     planAccess.testPlan = 'PLATINUM';
     addTearDown(() => planAccess.testPlan = null);
     final kv = _store();
     final s = await _pump(tester, kv);
     s.nav('stock');
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
-    s.fmButton(1);
+    List<Map> of(String type) => s.debugItems().where((e) => e['type'] == type).toList();
+    List<Map> bahan() => of('card').where((e) => (e['i'] as int) >= 3000).toList();
+    expect(s.debugItems()[1], containsPair('t', '+ Tambah Bahan'));
+    expect([for (final o in of('buttons').first['options'] as List) (o as Map)['t']], ['Semua', 'Menipis', 'Hutang', 'Riwayat']);
+    expect(bahan(), isEmpty);
+    expect([for (final c in of('card')) c['t']], ['Belanja Bahan', 'Supplier', 'Kirim ke Cabang Lain', 'Pemakaian Otomatis per Layanan']);
+    s.fmButton(5);
     expect(s.debugToast, 'Tambahkan bahan dulu');
     s.fmButton(0);
     await _settle(tester);
-    expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx['add']));
+    final add = s.debugSheet('g181-modal')!;
+    expect(add.first['t'], 'Tambah Bahan');
+    expect([for (final it in add.where((e) => e['type'] == 'input')) it['ph']],
+        ['Nama bahan (contoh: Deterjen)', 'Stok awal', 'Satuan (kg / liter / pcs)', 'Batas stok menipis (minimum)', 'Harga beli per satuan']);
     for (final (k, v) in ['Deterjen', '10', 'liter', '3', '15000'].indexed) {
       s.fmScoped('g181-modal', 'input', k, v);
     }
     s.fmScoped('g181-modal', 'button', 0);
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
-    for (final (i, name) in [(1, 'move'), (2, 'op'), (4, 'sup'), (5, 'buy')]) {
-      s.fmButton(i);
-      await _settle(tester);
-      expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx[name]), reason: name);
-      s.fmScoped('g181-modal', 'button', 1);
-      await _settle(tester);
-    }
+    expect(bahan().single['t'], 'Deterjen');
+    expect(bahan().single['s'], 'Sisa 10 liter · batas menipis 3 liter');
+    expect(bahan().single['badge'], '');
+    expect((of('stats').first['cells'] as List)[2]['v'], 'Rp150.000');
+
+    // Ketuk bahan → popup aksi; "− Dipakai" membuka lembar dengan bahan & arah sudah terpilih.
+    s.fmButton(3000);
+    await _settle(tester);
+    final act = s.debugSheet('stockitem')!;
+    expect(act.first['t'], 'Deterjen');
+    expect([for (final it in act) if (it['type'] == 'button') it['t'] else if (it['type'] == 'buttons') ...[for (final o in it['options'] as List) (o as Map)['t']]],
+        ['+ Stok Masuk', '− Dipakai', 'Cek Stok di Rak', 'Riwayat', 'Edit Bahan', 'Tutup']);
+    s.fmScoped('stockitem', 'button', 1);
+    await _settle(tester);
+    expect(s.debugSheet('g181-modal')!.first['t'], 'Stok Dipakai');
+    s.fmScoped('g181-modal', 'input', 2, '8');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(bahan().single['s'], 'Sisa 2 liter · batas menipis 3 liter');
+    expect(bahan().single['badge'], 'Menipis · perlu dibeli');
+    s.fmButton(21); // saringan Menipis
+    expect(bahan().length, 1);
+
+    // Cek Stok di Rak (opname) dan Edit.
+    s.fmButton(3000);
+    s.fmScoped('stockitem', 'button', 2);
+    await _settle(tester);
+    expect(s.debugSheet('g181-modal')!.first['t'], 'Cek Stok di Rak');
+    s.fmScoped('g181-modal', 'input', 1, '5');
+    s.fmScoped('g181-modal', 'input', 2, 'salah hitung');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(bahan().single['s'], 'Sisa 5 liter · batas menipis 3 liter');
+    s.fmButton(3000);
+    s.fmScoped('stockitem', 'button', 4);
+    await _settle(tester);
+    expect(s.debugSheet('g181-modal')!.first['t'], 'Edit Bahan');
+    s.fmScoped('g181-modal', 'input', 0, 'Deterjen Cair');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(bahan().single['t'], 'Deterjen Cair');
+
+    // Supplier + belanja hutang.
     s.fmButton(3);
     expect(s.debugToast, 'Minimal 2 outlet');
     s.fmButton(4);
@@ -590,23 +681,26 @@ void templateTests() {
     await _settle(tester);
     s.fmButton(5);
     await _settle(tester);
+    expect(s.debugSheet('g181-modal')!.first['t'], 'Belanja Bahan');
     s.fmScoped('g181-modal', 'input', 0, 1);
     s.fmScoped('g181-modal', 'input', 2, '2.5');
     s.fmScoped('g181-modal', 'input', 3, '16000');
     s.fmScoped('g181-modal', 'input', 4, 1);
     s.fmScoped('g181-modal', 'button', 0);
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['bought']));
+    expect(bahan().single['s'], 'Sisa 7,5 liter · batas menipis 3 liter');
     s.fmButton(8);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['debt']));
+    expect(of('entry').single['t'], 'Deterjen Cair · Sisa Rp40.000');
     s.fmButton(9);
-    // Jam di riwayat mengikuti waktu pencatatan; yang dibandingkan judul & jumlahnya.
-    String rows(Object items) => jsonEncode([for (final it in (items as List).cast<Map>()) if (it['type'] == 'entry') [it['t'], it['amount'], '${(it['lines'] as List).first}'.split(' · ').last]]);
-    expect(rows(s.debugItems()), rows(fx['hist']));
+    expect([for (final e in of('entry')) '${e['t']}|${e['amount']}'],
+        ['Pembelian · Deterjen Cair|+2.5 liter', 'Cek Stok · Deterjen Cair|+3 liter', 'Dipakai · Deterjen Cair|-8 liter', 'Stok Awal · Deterjen Cair|+10 liter']);
     s.fmButton(8);
     s.fmButton(10); // Tandai Lunas
     await _settle(tester);
     expect(s.debugItems().any((e) => e['t'] == 'Tidak ada hutang supplier.'), isTrue);
+    // Data tersimpan tetap memakai jenis catatan lama (dipakai laporan HPP).
+    final led = (jsonDecode(kv.data['goyana-stock181']!) as Map)['ledger'] as List;
+    expect([for (final x in led) (x as Map)['type']], ['Stok Awal', 'Pemakaian', 'Stock Opname', 'Pembelian']);
     expect(tester.takeException(), isNull);
   });
 
@@ -977,7 +1071,14 @@ void templateTests() {
     for (final step in (fx['odFlow'] as List).cast<Map>()) {
       s.odButton(8);
       await _settle(tester);
-      expect(s.debugToast, step['toast']);
+      if (s.debugHanding) {
+        // Revisi Koiman: serah terima pesanan belum lunas menanyakan pembayaran dulu → "Hutang Dulu".
+        s.aoPayCancel();
+        await _settle(tester);
+        expect(s.debugToast, startsWith('Hutang dulu'));
+      } else {
+        expect(s.debugToast, step['toast']);
+      }
       expect(od(s.debugDetail()), od(step['od']), reason: 'Rincian sesudah ${step['toast']}');
     }
     s.odButton(1);
@@ -998,6 +1099,10 @@ void templateTests() {
     expect(hist, contains('4|Diambil|oleh '));
     s.fmScoped('hist115', 'button', 0);
     s.odButton(s.debugDetail()!['banner'] == null ? 8 : 9);
+    await _settle(tester);
+    // Revisi Koiman: Kirim WA menanyakan dulu Nota Gambar / Nota Teks.
+    expect([for (final it in s.debugSheet('wakind')!.where((e) => e['type'] == 'card')) it['t']], ['Nota Gambar', 'Nota Teks']);
+    s.fmScoped('wakind', 'button', 1);
     await _settle(tester);
     String nota(String t) => t
         .replaceAll(RegExp(r'GY-\d{6}'), 'GY-000000')
@@ -1162,6 +1267,102 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Serah terima belum lunas: popup Pembayaran dengan Hutang Dulu; hutang masuk Belum Bayar; bayar → selesai', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    var b = await Business.load(kv);
+    final id = b.orders.first.id;
+    expect(b.orders.first.remaining, greaterThan(0));
+    s.openOrder(id);
+    await _settle(tester);
+    // Maju sampai Siap Ambil: belum ada pertanyaan pembayaran.
+    for (var k = 0; k < 8 && (await Business.load(kv)).orders.first.status != 'siap'; k++) {
+      s.fmScoped('detail', 'button', 1);
+      await _settle(tester);
+      expect(s.debugHanding, isFalse);
+    }
+    expect((await Business.load(kv)).orders.first.status, 'siap');
+    s.fmScoped('detail', 'button', 1);
+    await _settle(tester);
+    expect(s.debugHanding, isTrue, reason: 'Pembayaran muncul dulu');
+    expect(find.text('HUTANG DULU'), findsOneWidget);
+    expect((await Business.load(kv)).orders.first.status, 'siap', reason: 'status belum berubah');
+    s.aoSheetClose();
+    await _settle(tester);
+    expect((await Business.load(kv)).orders.first.status, 'siap', reason: 'menutup popup = batal serah terima');
+    s.fmScoped('detail', 'button', 1);
+    await _settle(tester);
+    s.aoPayCancel();
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect(b.orders.first.status, anyOf('diambil', 'diantar'));
+    expect(b.orders.first.isPaid, isFalse);
+    expect(b.orders.first.dataset['hutang203'], '1');
+    s.nav('orders');
+    s.tab(8);
+    await _settle(tester);
+    expect((s.debugOrders()['cards'] as List).any((c) => '${(c as Map)['id']}' == id), isTrue, reason: 'tampil di Belum Bayar');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Import Data CSV: pratinjau (baru/duplikat/tidak lengkap) lalu simpan pelanggan, layanan dan transaksi lama', (tester) async {
+    expect(parseCsv('a;b\n"x;1";"dia ""bilang"""\n\n'), [['a', 'b'], ['x;1', 'dia "bilang"']]);
+    expect(importDate('31/12/2025 14.30'), DateTime(2025, 12, 31, 14, 30));
+    expect(importDate('2025-12-31'), DateTime(2025, 12, 31, 12));
+    expect(importPhone('+62 812-3456-7890'), '081234567890');
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    var b = await Business.load(kv);
+    final have = b.customers.first.name, nCust = b.customers.length, nOrd = b.orders.length, nSvc = b.services.length;
+    s.nav('datacenter');
+    await _settle(tester);
+    expect(s.debugItems().any((e) => e['t'] == 'Unduh Contoh File'), isTrue);
+    final page = s.debugPage('datacenter') as DataCenterPage;
+    List<Map> sheet() => s.debugSheet('import203')!;
+
+    page.previewImport(0, 'Kode,Nama\n1,Sari\n');
+    await _settle(tester);
+    expect('${sheet()[1]['t']}', startsWith('Kolom wajib tidak ditemukan: No HP'));
+    s.fmScoped('import203', 'button', 1);
+
+    page.previewImport(0, 'Nama Pelanggan;No. HP;Alamat;JK\nSari Dewi;+62 812-9999-0000;Bekasi;P\n$have;0811111111;;L\nTanpa Nomor;;;\nSari Dewi;0812;;\n');
+    await _settle(tester);
+    expect([for (final c in sheet()[1]['cells'] as List) (c as Map)['v']], ['1', '1', '2']);
+    expect('${sheet()[3]['t']}', contains('No HP ← kolom "No. HP"'));
+    s.fmScoped('import203', 'button', 0);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect(b.customers.length, nCust + 1);
+    expect(b.customerByName('Sari Dewi')!.phone, '081299990000');
+    expect(b.customerByName('Sari Dewi')!.gender, 'female');
+
+    page.previewImport(1, importTemplates[1]);
+    await _settle(tester);
+    s.fmScoped('import203', 'button', 0);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect(b.services.length, greaterThan(nSvc));
+    expect(b.services.firstWhere((x) => x.name == 'Bed Cover').prices, {'Reguler': 25000, 'Express': 37500, 'Kilat': 50000});
+
+    final kasBefore = jsonEncode(b.kas['sales'] ?? []);
+    page.previewImport(2, importTemplates[2]);
+    await _settle(tester);
+    expect([for (final c in sheet()[1]['cells'] as List) (c as Map)['v']], ['2', '0', '0']);
+    s.fmScoped('import203', 'button', 0);
+    await _settle(tester);
+    b = await Business.load(kv);
+    expect(b.orders.length, nOrd + 2);
+    final imp = b.orders.where((o) => o.dataset['import203'] == '1').toList();
+    expect(imp.map((o) => o.status).toSet(), {'diambil'});
+    final budi = imp.firstWhere((o) => o.name == 'Budi Santoso');
+    expect(budi.total, 24500);
+    expect(budi.isPaid, isTrue);
+    expect(budi.created, DateTime(2026, 9, 1, 12));
+    expect(imp.firstWhere((o) => o.name == 'Siti Aminah').isPaid, isFalse);
+    expect(jsonEncode(b.kas['sales'] ?? []), kasBefore, reason: 'transaksi lama tidak masuk kas shift berjalan');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Otomasi Pelanggan: tiap pesan otomatis bisa dinyalakan/dimatikan, hari pengingat bisa dipilih', (tester) async {
     planAccess.testPlan = 'PLATINUM';
     final s = await _pump(tester, _store());
@@ -1198,7 +1399,21 @@ void templateTests() {
     expect(shape(s.debugSheet('gp128')!), shape(fx['gp128'] as List), reason: 'popup jenis kelamin');
     s.fmScoped('gp128', 'button', 0);
     await _settle(tester);
-    expect(shape(s.debugItems()), shape((fx['page'] as Map)['items'] as List), reason: 'halaman');
+    // Revisi Koiman: tombol lokasi cukup "Lokasi saya" & "Tempel link"; titik ditandai di peta dalam aplikasi.
+    final want = shape((fx['page'] as Map)['items'] as List).map((e) => e.replaceFirst('Pilih Titik di Peta:4,', '')).toList();
+    expect(shape(s.debugItems()), want, reason: 'halaman');
+    s.fmButton(5); // GPS tidak tersedia di tes → peta tetap terbuka untuk digeser
+    await _settle(tester);
+    expect(find.text('Tandai Lokasi Ini'), findsOneWidget);
+    await tester.tap(find.text('Tandai Lokasi Ini'));
+    await _settle(tester);
+    expect(s.debugItems().firstWhere((e) => e['type'] == 'input' && e['i'] == 3)['v'], '-6.200000, 106.816666');
+    expect(s.debugItems().any((e) => e['t'] == 'Cek di Peta'), isTrue);
+    s.fmButton(8);
+    await _settle(tester);
+    expect(find.text('TANDAI LOKASI'), findsOneWidget);
+    s.closePageSheet('map203');
+    await _settle(tester);
     s.fmInput(0, 'Sari');
     s.fmButton(7);
     expect(s.debugToast, isNot('Pelanggan Sari ditambahkan'), reason: 'no HP wajib');

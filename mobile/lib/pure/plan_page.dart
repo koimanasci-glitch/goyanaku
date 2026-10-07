@@ -223,18 +223,100 @@ class PlanPricing extends StatelessWidget {
     );
   }
 
-  Widget _addon(String svg, Color a, Color b, String t, String s, int i) => Expanded(
+  /// Tambahan: [judul, harga singkat di kartu, harga di rincian, satuan, penjelasan, butir…].
+  static const addons = [
+    ['Top-up Saldo AI', 'Mulai Rp 50.000', 'Rp 50.000', 'minimal top-up', 'Saldo untuk jawaban Chatbot AI. Dipakai sesuai jumlah percakapan, tidak hangus tiap bulan.',
+      'Minimal top-up Rp 50.000', 'Nominal bisa lebih besar sesuai kebutuhan', 'Berlaku untuk semua paket yang punya Chatbot AI'],
+    ['Tambah Cabang', 'Rp 30.000/bulan', 'Rp 30.000', '/ bulan per cabang', 'Menambah satu outlet/cabang di luar kuota paket Anda.',
+      'Rp 30.000 per bulan untuk tiap cabang tambahan', 'Bisa ditambah di paket apa pun', 'Data, kasir dan laporan tiap cabang terpisah'],
+    ['Nomor Chatbot', 'Rp 30.000/bulan', 'Rp 30.000', '/ bulan per nomor', 'Menambah satu nomor WhatsApp untuk Chatbot & kirim nota otomatis.',
+      'Rp 30.000 per bulan untuk tiap nomor tambahan', 'Untuk semua paket, termasuk FREE', 'Satu nomor bisa dipakai satu outlet'],
+  ];
+
+  void _addonDetail(BuildContext context, String svg, Color a, Color b, int i) {
+    final d = addons[i];
+    showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 16),
+          child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xffd9dde2), borderRadius: BorderRadius.circular(4)))),
+            const SizedBox(height: 16),
+            Row(children: [
+              _tile(svg, a, b, 52),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(d[0], style: gText(18, w: FontWeight.w600, c: _ink)),
+                  Text(d[4], style: gText(12, c: _muted, h: 17)),
+                ]),
+              ),
+            ]),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(color: Color.lerp(a, Colors.white, .82), borderRadius: BorderRadius.circular(14)),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Text(d[2], style: gText(24, w: FontWeight.w600, c: _ink)),
+                const SizedBox(width: 6),
+                Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(d[3], style: gText(12.5, c: _muted)))),
+              ]),
+            ),
+            const SizedBox(height: 14),
+            Text('Rincian', style: gText(13, w: FontWeight.w600, c: _ink)),
+            const SizedBox(height: 8),
+            for (final f in d.skip(5))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(width: 18, height: 18, margin: const EdgeInsets.only(top: 1), alignment: Alignment.center,
+                      decoration: BoxDecoration(color: Color.lerp(a, Colors.white, .82), shape: BoxShape.circle), child: Icon(Icons.check_rounded, size: 13, color: b)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(f, style: gText(13, c: _ink, h: 19))),
+                ]),
+              ),
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(ctx);
+                onAddon(i);
+              },
+              child: Container(height: 50, alignment: Alignment.center, decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(14)),
+                  child: Text('Beli Tambahan Ini', style: gText(14.5, w: FontWeight.w600, c: Colors.white))),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: Container(height: 46, alignment: Alignment.center,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: _line)), child: Text('Tutup', style: gText(14, w: FontWeight.w500, c: _ink))),
+            ),
+          ])),
+        ),
+      ),
+    );
+  }
+
+  Widget _addon(BuildContext context, String svg, Color a, Color b, int i) => Expanded(
         child: GestureDetector(
-          onTap: () => onAddon(i),
+          onTap: () => _addonDetail(context, svg, a, b, i),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
+            padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: _line)),
             child: Column(children: [
               _tile(svg, a, b, 40),
               const SizedBox(height: 8),
-              Text(t, textAlign: TextAlign.center, maxLines: 2, style: gText(11.5, w: FontWeight.w600, c: _ink, h: 15)),
+              Text(addons[i][0], textAlign: TextAlign.center, maxLines: 2, style: gText(11.5, w: FontWeight.w600, c: _ink, h: 15)),
               const SizedBox(height: 3),
-              Text(s, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: gText(10, c: _muted, h: 13.5)),
+              FittedBox(fit: BoxFit.scaleDown, child: Text(addons[i][1], maxLines: 1, style: gText(10.5, w: FontWeight.w500, c: b, h: 14))),
+              const Spacer(),
+              const SizedBox(height: 8),
+              Container(
+                height: 28, alignment: Alignment.center,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), border: Border.all(color: const Color(0xffdfe3e9))),
+                child: Text('Detail', style: gText(11.5, w: FontWeight.w500, c: _ink)),
+              ),
             ]),
           ),
         ),
@@ -329,11 +411,11 @@ class PlanPricing extends StatelessWidget {
               const SizedBox(height: 12),
               IntrinsicHeight(
                 child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  _addon(_bot, const Color(0xff9a82ee), const Color(0xff7c5ce0), 'Top-up Saldo AI', 'Nominal sesuai kebutuhan', 0),
+                  _addon(context, _bot, const Color(0xff9a82ee), const Color(0xff7c5ce0), 0),
                   const SizedBox(width: 8),
-                  _addon(_building, const Color(0xfff6b04a), const Color(0xfff08a24), 'Tambah Cabang', 'Kuota cabang di paket apa pun', 1),
+                  _addon(context, _building, const Color(0xfff6b04a), const Color(0xfff08a24), 1),
                   const SizedBox(width: 8),
-                  _addon(_chat, const Color(0xff5fb0f5), const Color(0xff2f8fe8), 'Nomor Chatbot', 'Untuk semua paket, termasuk FREE', 2),
+                  _addon(context, _chat, const Color(0xff5fb0f5), const Color(0xff2f8fe8), 2),
                 ]),
               ),
               const SizedBox(height: 14),

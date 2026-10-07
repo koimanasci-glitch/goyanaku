@@ -25,6 +25,7 @@ import 'access.dart';
 import 'delivery.dart';
 import 'discounts.dart';
 import 'g181_mirror.dart';
+import 'import_csv.dart';
 import 'mirror_pages.dart';
 import 'page_templates.dart';
 import 'plan_page.dart';
@@ -62,6 +63,8 @@ abstract class PureHost {
   void payOrder(String id);
   /// Pelanggan tersimpan dari halaman Tambah/Edit Pelanggan: lanjut ke Tambah Transaksi bila [forOrder], selain itu kembali ke Pelanggan.
   void customerSaved(String name, {bool forOrder = false});
+  /// Majukan status pesanan; serah terima yang belum lunas menampilkan Pembayaran (dengan "Hutang Dulu") dulu.
+  void advanceOrder(String id, {String? by});
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
@@ -1083,6 +1086,9 @@ class StockPage extends PurePage {
   StockBook? book;
   String tab = 'stock'; // stock / debt / hist
   String tool = ''; // add / move / op / tr / sup / buy / recv:<id>
+  /// Bahan yang sedang dibuka (popup aksi) dan saringan Riwayat per bahan.
+  String curItem = '', histItem = '';
+  bool _delArmed = false;
   final Map<int, String> f = {};
   final Map<int, int> sel = {};
   @override
@@ -1091,6 +1097,7 @@ class StockPage extends PurePage {
   @override
   void opened() {
     tab = 'stock';
+    histItem = '';
     StockBook.load(host.kv).then((b) {
       book = b;
       host.refresh();
@@ -1123,10 +1130,20 @@ class StockPage extends PurePage {
         {'type': 'entry', 't': t, 'lines': [line], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': amount, 'btns': btns};
     final list = <Map<String, dynamic>>[];
     var next = 10;
-    if (tab == 'stock') {
-      if (its.isEmpty) list.add({'type': 'title', 't': 'Belum ada bahan.'});
-      for (final e in its) {
-        list.add(row('${e['name']}', 'Minimum ${_js(e['min'])} ${e['unit']} · ${_outName(o)}', '${qtyText(b.balance('${e['id']}', o))} ${e['unit']}'));
+    bool isLow(Map e) => b.balance('${e['id']}', o) <= ((e['min'] as num?) ?? 0);
+    if (tab == 'stock' || tab == 'low') {
+      final shown = [for (var k = 0; k < its.length; k++) if (tab == 'stock' || isLow(its[k])) k];
+      if (its.isEmpty) {
+        list.add({'type': 'hint', 't': 'Belum ada bahan. Tekan "+ Tambah Bahan" untuk mulai mencatat deterjen, parfum, plastik dan bahan lain.'});
+      } else if (shown.isEmpty) {
+        list.add({'type': 'hint', 't': 'Semua stok aman. Belum ada bahan yang perlu dibeli.'});
+      }
+      for (final k in shown) {
+        final e = its[k], bal = b.balance('${e['id']}', o);
+        list.add({
+          'type': 'card', 't': '${e['name']}', 's': 'Sisa ${qtyText(bal)} ${e['unit']} · batas menipis ${_js(e['min'])} ${e['unit']}',
+          'svg': '', 'ic': isLow(e) ? '⚠' : '🧴', 'badge': isLow(e) ? 'Menipis · perlu dibeli' : '', 'meta': rp(((bal < 0 ? 0 : bal) * ((e['cost'] as num?) ?? 0)).round()), 'on': false, 'i': 3000 + k,
+        });
       }
     } else if (tab == 'debt') {
       final debts = _debts;
@@ -1139,46 +1156,63 @@ class StockPage extends PurePage {
             [{'t': 'Tandai Lunas', 'on': false, 'i': next++}]));
       }
     } else {
-      final led = _l('ledger').reversed.toList();
-      if (led.isEmpty) list.add({'type': 'title', 't': 'Belum ada mutasi.'});
+      final led = _l('ledger').reversed.where((x) => histItem.isEmpty || x['itemId'] == histItem).toList();
+      if (histItem.isNotEmpty) {
+        list.add({'type': 'hint', 't': 'Riwayat ${its.where((e) => e['id'] == histItem).firstOrNull?['name'] ?? 'bahan'} saja.'});
+        list.add({'type': 'button', 't': 'Tampilkan Semua Riwayat', 'primary': false, 'file': '', 'after': false, 'i': 22});
+      }
+      if (led.isEmpty) list.add({'type': 'hint', 't': 'Belum ada riwayat stok.'});
       for (final x in led) {
         final item = its.where((e) => e['id'] == x['itemId']).firstOrNull;
         final at = DateTime.tryParse('${x['at']}')?.toLocal();
         final when = at == null ? '' : '${at.day}/${at.month}/${at.year}, ${at.hour.toString().padLeft(2, '0')}.${at.minute.toString().padLeft(2, '0')}.${at.second.toString().padLeft(2, '0')}';
         final q = (x['qty'] as num?) ?? 0;
-        list.add(row('${x['type']} · ${item?['name'] ?? 'Bahan'}', '$when · ${x['note'] ?? ''}', '${q > 0 ? '+' : ''}${_js(q)} ${item?['unit'] ?? ''}'));
+        list.add(row('${stockTypeLabel('${x['type']}')} · ${item?['name'] ?? 'Bahan'}', '$when · ${x['note'] ?? ''}', '${q > 0 ? '+' : ''}${_js(q)} ${item?['unit'] ?? ''}'));
       }
     }
     final transfers = _l('transfers').where((t) => t['from'] == o || t['to'] == o).toList().reversed;
     return [
       {'type': 'stats', 'cells': [
-        {'v': '${its.length}', 't': 'Jenis bahan', 'n': '', 'tone': ''}, {'v': '$low', 't': 'Stok menipis', 'n': '', 'tone': ''}, {'v': rp(value), 't': 'Nilai stok', 'n': '', 'tone': ''},
+        {'v': '${its.length}', 't': 'Jenis bahan', 'n': '', 'tone': '', 'i': 7},
+        {'v': '$low', 't': 'Stok menipis', 'n': low > 0 ? 'ketuk untuk lihat' : '', 'tone': low > 0 ? 'r' : '', 'i': 21},
+        {'v': rp(value), 't': 'Nilai stok', 'n': '', 'tone': ''},
       ]},
-      toolCard('Tambah Bahan', 'Stok awal, minimum, harga', '＋', 0),
-      toolCard('Mutasi Stok', 'Masuk / pemakaian', '↕', 1),
-      toolCard('Stock Opname', 'Fisik vs sistem', '✓', 2),
-      toolCard('Transfer Cabang', 'Antar outlet', '⇄', 3),
-      toolCard('Supplier', 'Tambah pemasok', '🏭', 4),
-      toolCard('Pembelian', 'Lunas / hutang supplier', '🛒', 5),
-      toolCard('Resep HPP', 'Pemakaian saat mulai produksi', '🫧', 6),
-      {'type': 'buttons', 'options': [
-        for (final (k, t) in const [['stock', 'Stok'], ['debt', 'Hutang'], ['hist', 'Riwayat']].indexed) {'t': t[1], 'svg': '', 'file': '', 'after': false, 'on': tab == t[0], 'i': 7 + k},
+      {'type': 'button', 't': '+ Tambah Bahan', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      {'type': 'buttons', 'cols': 4, 'options': [
+        for (final t in const [['stock', 'Semua', 7], ['low', 'Menipis', 21], ['debt', 'Hutang', 8], ['hist', 'Riwayat', 9]])
+          {'t': t[1], 'svg': '', 'file': '', 'after': false, 'on': tab == t[0], 'i': t[2]},
       ]},
+      if (its.isNotEmpty && (tab == 'stock' || tab == 'low')) {'type': 'hint', 't': 'Ketuk bahan untuk mencatat stok masuk, dipakai, atau cek stok.'},
       ...list,
-      {'type': 'hint', 't': 'Stok memakai ledger. Opname mencatat selisih sebagai adjustment, bukan menimpa angka lama.'},
       for (final t in transfers)
         row('${its.where((e) => e['id'] == t['itemId']).firstOrNull?['name'] ?? 'Bahan'} · ${_js(t['qty'])}',
             '${_outName('${t['from']}')} → ${_outName('${t['to']}')} · ${t['status'] == 'received' ? 'Diterima' : 'Dalam perjalanan'}', '',
             [if (t['status'] == 'sent' && t['to'] == o) {'t': 'Konfirmasi diterima lengkap', 'on': false, 'i': 1000 + _l('transfers').indexWhere((x) => x['id'] == t['id'])}]),
+      {'type': 'title', 't': 'Lainnya'},
+      toolCard('Belanja Bahan', 'Catat pembelian · stok bertambah, lunas atau hutang', '🛒', 5),
+      toolCard('Supplier', 'Toko / pemasok tempat belanja bahan', '🏭', 4),
+      toolCard('Kirim ke Cabang Lain', 'Pindahkan bahan antar outlet', '⇄', 3),
+      toolCard('Pemakaian Otomatis per Layanan', 'Bahan berkurang sendiri saat cucian diproses', '🫧', 6),
     ];
   }
 
+  /// Nama jenis catatan stok dalam bahasa sehari-hari (data tersimpan tidak diubah).
+  static String stockTypeLabel(String type) => const {
+        'Stock Opname': 'Cek Stok', 'Pemakaian': 'Dipakai', 'Pemakaian Otomatis': 'Dipakai otomatis', 'Transfer Keluar': 'Kirim ke cabang', 'Transfer Masuk': 'Terima dari cabang',
+      }[type] ??
+      type;
+
   List<Map<String, dynamic>> get _debts => _l('purchases').where((p) => ((p['total'] as num?) ?? 0) > ((p['paid'] as num?) ?? 0)).toList();
 
-  void _open(String t) {
+  void _open(String t, {Map<int, String> fill = const {}, Map<int, int> pick = const {}}) {
     tool = t;
-    f.clear();
-    sel.clear();
+    f
+      ..clear()
+      ..addAll(fill);
+    sel
+      ..clear()
+      ..addAll(pick);
+    _delArmed = false;
     host.openPageSheet('g181-modal');
   }
 
@@ -1188,6 +1222,19 @@ class StockPage extends PurePage {
   @override
   List<Map<String, dynamic>>? sheetItems(String id) {
     final b = book;
+    if (id == 'stockitem' && b != null) {
+      final e = b.items.where((x) => x['id'] == curItem).firstOrNull;
+      if (e == null) return null;
+      final bal = b.balance(curItem, outletId);
+      return [
+        {'type': 'title', 't': '${e['name']}', 's': bal <= ((e['min'] as num?) ?? 0) ? 'Menipis' : 'Aman'},
+        {'type': 'hint', 't': 'Sisa ${qtyText(bal)} ${e['unit']} · batas menipis ${_js(e['min'])} ${e['unit']} · ${rp(((e['cost'] as num?) ?? 0).round())}/${e['unit']}'},
+        {'type': 'button', 't': '+ Stok Masuk', 'primary': true, 'i': 0},
+        {'type': 'buttons', 'cols': 2, 'options': [{'t': '− Dipakai', 'on': false, 'i': 1}, {'t': 'Cek Stok di Rak', 'on': false, 'i': 2}]},
+        {'type': 'buttons', 'cols': 2, 'options': [{'t': 'Riwayat', 'on': false, 'i': 3}, {'t': 'Edit Bahan', 'on': false, 'i': 4}]},
+        {'type': 'button', 't': 'Tutup', 'primary': false, 'i': 9},
+      ];
+    }
     if (id != 'g181-modal' || b == null) return null;
     Map<String, dynamic> inp(String ph, int i, {bool numeric = false, bool decimal = false}) =>
         {'type': 'input', 'v': f[i] ?? '', 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': decimal, 'ro': false, 'secret': false, 'email': false, 'i': i};
@@ -1215,14 +1262,19 @@ class StockPage extends PurePage {
           {'type': 'button', 't': 'Simpan Resep', 'primary': true, 'file': '', 'after': false, 'i': 0},
           {'type': 'button', 't': 'Tutup', 'primary': false, 'file': '', 'after': false, 'i': 1},
         ],
-      'add' => [title('Tambah Bahan'), inp('Nama bahan', 0), inp('Stok awal', 1, numeric: true, decimal: true), inp('Satuan', 2), inp('Minimum', 3, numeric: true, decimal: true), inp('Harga/unit', 4, numeric: true), ...ok],
-      'move' => [title('Mutasi Stok'), pick(itemOpt, 0), pick(const ['Stok Masuk', 'Pemakaian / Keluar'], 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Catatan', 3), ...ok],
-      'op' => [title('Stock Opname'), pick(itemOpt, 0), inp('Stok fisik', 1, numeric: true, decimal: true), inp('Alasan jika ada selisih', 2),
-          {'type': 'hint', 't': 'Sistem akan mencatat selisih, bukan mengganti histori stok.'}, ...ok],
-      'tr' => [title('Kirim Transfer Cabang'), {'type': 'label', 't': 'Bahan'}, pick(itemOpt, 0), {'type': 'label', 't': 'Cabang asal'}, pick(outOpt, 1), {'type': 'label', 't': 'Cabang tujuan'}, pick(outOpt, 2),
+      'add' => [title('Tambah Bahan'), inp('Nama bahan (contoh: Deterjen)', 0), inp('Stok awal', 1, numeric: true, decimal: true), inp('Satuan (kg / liter / pcs)', 2),
+          inp('Batas stok menipis (minimum)', 3, numeric: true, decimal: true), inp('Harga beli per satuan', 4, numeric: true),
+          {'type': 'hint', 't': 'Stok di angka batas atau kurang akan ditandai Menipis supaya ingat belanja.'}, ...ok],
+      'edit' => [title('Edit Bahan'), {'type': 'label', 't': 'Nama bahan'}, inp('Nama bahan', 0), {'type': 'label', 't': 'Satuan'}, inp('Satuan (kg / liter / pcs)', 2),
+          {'type': 'label', 't': 'Batas stok menipis (minimum)'}, inp('Batas stok menipis', 3, numeric: true, decimal: true), {'type': 'label', 't': 'Harga beli per satuan'}, inp('Harga beli per satuan', 4, numeric: true),
+          ...ok, {'type': 'button', 't': _delArmed ? 'Tekan sekali lagi untuk menghapus' : 'Hapus Bahan', 'primary': false, 'file': '', 'after': false, 'i': 2}],
+      'move' => [title((sel[1] ?? 0) == 1 ? 'Stok Dipakai' : 'Stok Masuk'), pick(itemOpt, 0), pick(const ['Stok Masuk', 'Dipakai / Keluar'], 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Catatan (opsional)', 3), ...ok],
+      'op' => [title('Cek Stok di Rak'), pick(itemOpt, 0), inp('Jumlah yang benar-benar ada di rak', 1, numeric: true, decimal: true), inp('Alasan jika berbeda dari catatan', 2),
+          {'type': 'hint', 't': 'Hitung barang di rak lalu isi jumlahnya. Aplikasi menyesuaikan catatan dan menyimpan selisihnya di Riwayat.'}, ...ok],
+      'tr' => [title('Kirim ke Cabang Lain'), {'type': 'label', 't': 'Bahan'}, pick(itemOpt, 0), {'type': 'label', 't': 'Cabang asal'}, pick(outOpt, 1), {'type': 'label', 't': 'Cabang tujuan'}, pick(outOpt, 2),
           inp('Jumlah dikirim', 3, numeric: true, decimal: true), {'type': 'hint', 't': 'Stok tujuan bertambah setelah cabang tujuan menerima barang.'}, ...ok],
       'sup' => [title('Tambah Supplier'), inp('Nama supplier', 0), inp('WhatsApp', 1), ...ok],
-      'buy' => [title('Pembelian Bahan'), pick(['Tanpa supplier', for (final x in _l('suppliers')) '${x['name']}'], 0), pick(itemOpt, 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Harga/unit', 3, numeric: true),
+      'buy' => [title('Belanja Bahan'), pick(['Tanpa supplier', for (final x in _l('suppliers')) '${x['name']}'], 0), pick(itemOpt, 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Harga/unit', 3, numeric: true),
           pick(const ['Lunas', 'Hutang Supplier'], 4), {'type': 'date', 'v': f[5] ?? '', 'i': 5}, ...ok],
       _ => [title('Terima transfer'), {'type': 'hint', 't': 'Pastikan seluruh jumlah kiriman sudah diterima. Jika ada selisih, jangan konfirmasi dulu.'}, ...ok],
     };
@@ -1232,6 +1284,28 @@ class StockPage extends PurePage {
   void sheetEvent(String id, String kind, int index, Object? value) {
     final b = book;
     if (b == null) return;
+    if (id == 'stockitem') {
+      host.closePageSheet('stockitem');
+      final k = b.items.indexWhere((x) => x['id'] == curItem);
+      if (kind != 'button' || k < 0) return;
+      final e = b.items[k];
+      switch (index) {
+        case 0:
+          _open('move', pick: {0: k, 1: 0});
+        case 1:
+          _open('move', pick: {0: k, 1: 1});
+        case 2:
+          if (!planAccess.has('opname', host.now)) return host.toast(planAccess.lockedText('opname'));
+          _open('op', pick: {0: k});
+        case 3:
+          histItem = curItem;
+          tab = 'hist';
+          host.refresh();
+        case 4:
+          _open('edit', fill: {0: '${e['name']}', 2: '${e['unit']}', 3: _js(e['min']), 4: '${((e['cost'] as num?) ?? 0).round()}'});
+      }
+      return;
+    }
     if (kind == 'input') {
       if (value is int) {
         sel[index] = value;
@@ -1254,7 +1328,31 @@ class StockPage extends PurePage {
       host.toast('Resep HPP tersimpan');
       return host.refresh();
     }
+    if (tool == 'edit' && index == 2) {
+      // Hapus bahan: ketuk dua kali. Riwayat lama tetap tersimpan; resep pemakaian otomatisnya ikut dihapus.
+      if (!_delArmed) {
+        _delArmed = true;
+        return host.refresh();
+      }
+      (b.raw['items'] as List).removeWhere((x) => x is Map && x['id'] == curItem);
+      (b.raw['recipes'] as List?)?.removeWhere((x) => x is Map && x['itemId'] == curItem);
+      b.save();
+      host.closePageSheet('g181-modal');
+      host.toast('Bahan dihapus');
+      return host.refresh();
+    }
     switch (tool) {
+      case 'edit':
+        final n = (f[0] ?? '').trim(), u = (f[2] ?? '').trim(), m = _num(f[3]), c = parseRupiah(f[4]);
+        if (n.isEmpty || u.isEmpty || m < 0) return host.toast('Isi nama dan satuan bahan');
+        for (final e in (b.raw['items'] as List).whereType<Map>()) {
+          if (e['id'] == curItem) {
+            e['name'] = n;
+            e['unit'] = u;
+            e['min'] = m == m.roundToDouble() ? m.round() : m;
+            e['cost'] = c;
+          }
+        }
       case 'add':
         final n = (f[0] ?? '').trim(), q = _num(f[1]), u = (f[2] ?? '').trim(), m = _num(f[3]), c = parseRupiah(f[4]);
         if (n.isEmpty || u.isEmpty || q < 0 || m < 0) return host.toast('Isi nama, satuan dan jumlah stok yang benar');
@@ -1313,11 +1411,23 @@ class StockPage extends PurePage {
   void button(int i) async {
     final b = book;
     if (b == null) return;
-    if (i >= 7 && i <= 9) {
-      tab = const ['stock', 'debt', 'hist'][i - 7];
+    if (i >= 3000) {
+      final its = b.items;
+      if (i - 3000 >= its.length) return;
+      curItem = '${its[i - 3000]['id']}';
+      return host.openPageSheet('stockitem');
+    }
+    if (i == 21 || i == 22) {
+      if (i == 21) tab = 'low';
+      histItem = '';
       return host.refresh();
     }
-    if (i >= 1000) {
+    if (i >= 7 && i <= 9) {
+      tab = const ['stock', 'debt', 'hist'][i - 7];
+      histItem = '';
+      return host.refresh();
+    }
+    if (i >= 1000 && i < 3000) {
       final tr = _l('transfers');
       if (i - 1000 < tr.length) _open('recv:${tr[i - 1000]['id']}');
       return;
@@ -1468,6 +1578,7 @@ class CourierPage extends PurePage {
         if (id.isEmpty) return host.toast('Pilih kurir dulu');
         final by = '${_live.where((k) => '${k['id']}' == id).firstOrNull?['name'] ?? 'Kurir'}';
         final st = o.status;
+        if (o.remaining > 0 && (st == 'siap' || st == 'telat' || st == 'diantar')) return host.advanceOrder(o.id, by: by);
         host.business.advance(o, now: host.now, by: by);
         host.saveAll();
         host.toast(st == 'jemput' ? 'Sudah dijemput · masuk Antrian' : (st == 'siap' ? 'Pengantaran dimulai' : 'Sudah diterima pelanggan · selesai'));
@@ -2586,7 +2697,9 @@ class HelpCenterPage extends TemplatePage {
 class DataCenterPage extends TemplatePage {
   // ignore: use_super_parameters
   DataCenterPage(PureHost host) : super(host, 'datacenter');
-  String _preview = '';
+  /// Hasil baca file import yang sedang dipratinjau (popup 'import203').
+  ImportPlan? plan;
+  String _importResult = '';
 
   String get _lastBackup {
     final at = DateTime.tryParse('${_state['backupAt'] ?? ''}');
@@ -2608,18 +2721,103 @@ class DataCenterPage extends TemplatePage {
     for (final it in out) {
       if (it['type'] == 'card' && it['i'] == 4) it['s'] = _lastBackup;
     }
-    if (_preview.isNotEmpty) {
-      final k = out.indexWhere((e) => e['t'] == 'Preview Import');
-      if (k >= 0 && k + 1 < out.length) {
-        out[k]['t'] = _preview;
-        out[k + 1]['t'] = 'File belum dipilih. Pada sistem final: pilih CSV/Excel → mapping kolom → preview → deteksi duplikat/error → konfirmasi import.';
-      }
+    // Import sungguhan (revisi Koiman): keterangan cara pakai + hasil import terakhir + contoh file.
+    for (final it in out) {
+      if (it['type'] == 'card' && it['i'] == 0) it['s'] = 'File CSV · nama, no HP, alamat · cek duplikat';
+      if (it['type'] == 'card' && it['i'] == 1) it['s'] = 'File CSV · nama layanan, satuan, harga';
+      if (it['type'] == 'card' && it['i'] == 2) it['s'] = 'File CSV · histori order dan pembayaran';
+    }
+    final k = out.indexWhere((e) => e['t'] == 'Preview Import');
+    if (k >= 0 && k + 1 < out.length) {
+      out[k]['t'] = 'Cara Import';
+      out[k + 1]['t'] = _importResult.isNotEmpty
+          ? _importResult
+          : 'Siapkan file CSV (dari Excel: Simpan sebagai → CSV) dengan judul kolom di baris pertama. Ketuk jenis import di atas, pilih filenya, periksa pratinjau, lalu konfirmasi.';
+      out.insert(k + 2, {'type': 'card', 't': 'Unduh Contoh File', 's': 'Tiga contoh CSV: pelanggan, layanan, transaksi', 'svg': '', 'ic': '📄', 'badge': '', 'meta': '', 'on': false, 'i': 7});
     }
     return out;
   }
 
   @override
-  void opened() => _preview = '';
+  void opened() {
+    _importResult = '';
+    plan = null;
+  }
+
+  /// Baca teks file import jenis [kind] lalu tampilkan pratinjau.
+  void previewImport(int kind, String text) {
+    plan = planImport(kind, text, host.business);
+    host.openPageSheet('import203');
+  }
+
+  Future<void> _pickImport(int kind) async {
+    String text;
+    try {
+      final uris = await host.device.invokeListMethod<String>('Files.pick', {'accept': ['text/csv', 'text/comma-separated-values', 'text/plain', 'application/vnd.ms-excel', 'application/octet-stream'], 'multiple': false, 'capture': false});
+      if (uris == null || uris.isEmpty) return;
+      final f = await host.device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
+      final bytes = base64Decode('${f?['data'] ?? ''}');
+      if (bytes.length > 3 && bytes[0] == 0x50 && bytes[1] == 0x4b) {
+        return host.toast('Ini file Excel (.xlsx). Buka di Excel → Simpan sebagai → CSV, lalu pilih file CSV-nya.');
+      }
+      text = utf8.decode(bytes, allowMalformed: true);
+    } catch (_) {
+      return host.toast('File tidak dapat dibaca');
+    }
+    previewImport(kind, text);
+  }
+
+  @override
+  List<Map<String, dynamic>>? sheetItems(String id) {
+    final p = plan;
+    if (id != 'import203' || p == null) return null;
+    if (p.error != null) {
+      return [
+        {'type': 'title', 't': p.title, 's': ''},
+        {'type': 'hint', 't': p.error},
+        {'type': 'button', 't': 'Unduh Contoh File', 'primary': true, 'i': 2},
+        {'type': 'button', 't': 'Tutup', 'primary': false, 'i': 1},
+      ];
+    }
+    return [
+      {'type': 'title', 't': p.title, 's': ''},
+      {'type': 'stats', 'cells': [
+        {'v': '${p.fresh.length}', 't': 'Siap diimport', 'n': '', 'tone': 'g'}, {'v': '${p.dup}', 't': 'Duplikat', 'n': 'dilewati', 'tone': ''}, {'v': '${p.bad}', 't': 'Tidak lengkap', 'n': 'dilewati', 'tone': p.bad > 0 ? 'r' : ''},
+      ]},
+      {'type': 'label', 't': 'Kolom yang terbaca'},
+      {'type': 'hint', 't': p.mapping.join('\n')},
+      if (p.sample.isNotEmpty) ...[
+        {'type': 'label', 't': 'Contoh data'},
+        {'type': 'hint', 't': p.sample.join('\n')},
+      ],
+      if (p.kind == 2) {'type': 'hint', 't': 'Transaksi lama dicatat pada tanggal aslinya dengan status Diambil dan tidak masuk kas hari ini.'},
+      if (p.fresh.isNotEmpty) {'type': 'button', 't': 'Import ${p.fresh.length} Data', 'primary': true, 'i': 0},
+      {'type': 'button', 't': p.fresh.isEmpty ? 'Tutup' : 'Batal', 'primary': false, 'i': 1},
+    ];
+  }
+
+  @override
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    final p = plan;
+    if (id != 'import203' || kind != 'button') return;
+    host.closePageSheet('import203');
+    if (p == null) return;
+    if (index == 2) {
+      _save(importTemplateNames[p.kind], 'text/csv', '\uFEFF${importTemplates[p.kind]}').then((ok) {
+        if (ok) host.toast('Contoh file tersimpan · isi lalu import lagi');
+      });
+      return;
+    }
+    if (index != 0 || p.error != null) return;
+    final n = applyImport(p, host.business);
+    if (p.kind == 1) host.business.saveServices();
+    host.saveAll();
+    addAudit(host, '📥', 'Import data', '${importKinds[p.kind]} · $n data');
+    _importResult = 'Import ${importKinds[p.kind]} selesai: $n data masuk, ${p.dup} duplikat dan ${p.bad} baris tidak lengkap dilewati.';
+    plan = null;
+    host.toast('$n data ${importKinds[p.kind].toLowerCase()} berhasil diimport');
+    host.refresh();
+  }
 
   Future<bool> _save(String name, String mime, String text) async {
     try {
@@ -2677,8 +2875,15 @@ class DataCenterPage extends TemplatePage {
     final d = host.now.toIso8601String().substring(0, 10);
     switch (i) {
       case 0 || 1 || 2:
-        _preview = const ['Import Pelanggan', 'Import Layanan & Harga', 'Import Transaksi Lama'][i];
-        return host.refresh();
+        await _pickImport(i);
+        return;
+      case 7:
+        var ok = true;
+        for (var k = 0; k < 3 && ok; k++) {
+          ok = await _save(importTemplateNames[k], 'text/csv', '\uFEFF${importTemplates[k]}');
+        }
+        if (ok) host.toast('3 contoh file CSV tersimpan');
+        return;
       case 3:
         if (!planAccess.has('export', host.now)) return host.toast(planAccess.lockedText('export'));
         final a = await _save('goyana-pesanan-$d.csv', 'text/csv', '﻿${host.business.ordersCsv()}');

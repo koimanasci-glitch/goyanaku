@@ -9,7 +9,7 @@ String _s(Object? v) => v is String ? v.trim() : (v == null ? '' : '$v');
 
 class CashModel {
   const CashModel({this.title = '', this.heading = '', this.stats = const [], this.typeIndex = 0, this.types = const [],
-      this.amount = '', this.amountHint = 'Jumlah', this.note = '', this.noteHint = 'Keterangan', this.submit = '', this.subtract = false});
+      this.amount = '', this.amountHint = 'Jumlah', this.note = '', this.noteHint = 'Keterangan', this.submit = '', this.subtract = false, this.cats = const []});
   factory CashModel.fromJson(Map<String, dynamic> j) {
     final type = j['type'] is Map ? Map<String, dynamic>.from(j['type'] as Map) : const <String, dynamic>{};
     final amount = j['amount'] is Map ? Map<String, dynamic>.from(j['amount'] as Map) : const <String, dynamic>{};
@@ -20,6 +20,7 @@ class CashModel {
       typeIndex: (type['index'] as num?)?.toInt() ?? 0, types: (type['options'] as List?)?.map(_s).toList() ?? const [],
       amount: _s(amount['v']), amountHint: _s(amount['ph']), note: _s(note['v']), noteHint: _s(note['ph']),
       submit: _s(j['submit']), subtract: j['subtract'] == true,
+      cats: (j['cats'] as List?)?.map(_s).toList() ?? const [],
     );
   }
   final String title, heading, amount, amountHint, note, noteHint, submit;
@@ -27,6 +28,8 @@ class CashModel {
   final int typeIndex;
   final List<String> types;
   final bool subtract;
+  /// Kategori cepat (hanya Mode Murni): diketuk = mengisi Keterangan.
+  final List<String> cats;
 }
 
 abstract class CashActions {
@@ -171,6 +174,35 @@ class _NativeCashState extends State<NativeCash> {
                     ),
                     _field(child: TextField(controller: _note, focusNode: _noteFocus, cursorColor: gBrand, textCapitalization: TextCapitalization.sentences,
                         style: gText(14, c: _ink), decoration: _dec(m.noteHint), onChanged: a.caNote)),
+                    if (m.cats.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(2, 8, 2, 6),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('Kategori', style: gText(12, c: const Color(0xff8a8f9c))),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            width: double.infinity,
+                            child: Wrap(spacing: 6, runSpacing: 6, children: [
+                              for (final c in m.cats)
+                                GestureDetector(
+                                  onTap: () {
+                                    _note.text = c;
+                                    a.caNote(c);
+                                    setState(() {});
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                                    decoration: BoxDecoration(
+                                      color: _note.text == c ? const Color(0xfffff0ee) : const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(9),
+                                      border: Border.all(color: _note.text == c ? gBrand : const Color(0xffe1e5ea)),
+                                    ),
+                                    child: Text(c, style: gText(12, w: FontWeight.w500, c: _note.text == c ? gBrand : _ink)),
+                                  ),
+                                ),
+                            ]),
+                          ),
+                        ]),
+                      ),
                   ]),
                 ),
                 const SizedBox(height: 10),

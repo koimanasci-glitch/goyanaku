@@ -855,6 +855,33 @@ class NativeForm extends StatelessWidget {
           ]),
         );
       case 'buttons':
+        // 'cols' (hanya Mode Murni): kisi sama lebar selebar penuh, mis. popup Pria/Wanita & pilih ikon.
+        final cols = it['cols'] is int ? it['cols'] as int : 0;
+        if (cols > 0) {
+          final opts = _list(it['options']);
+          final small = cols >= 4;
+          return Padding(
+            padding: const EdgeInsets.only(top: 2, bottom: 10),
+            child: LayoutBuilder(builder: (context, box) {
+              final w = ((box.maxWidth - 8 * (cols - 1)) / cols).floorToDouble();
+              return Wrap(spacing: 8, runSpacing: 8, children: [
+                for (final o in opts)
+                  GestureDetector(
+                    onTap: () { FocusManager.instance.primaryFocus?.unfocus(); _press(a, o); },
+                    child: Container(
+                      width: w, height: _s(o['svg']).isEmpty ? 40 : (small ? 68 : 96), padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(color: o['on'] == true ? const Color(0xfffff0ee) : const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: o['on'] == true ? gBrand : const Color(0xffe1e5ea))),
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        if (_s(o['svg']).isNotEmpty) Padding(padding: EdgeInsets.only(bottom: small ? 4 : 6), child: gSvg(_s(o['svg']), small ? 28 : 44)),
+                        FittedBox(fit: BoxFit.scaleDown, child: Text(_s(o['t']), maxLines: 1, style: gText(small ? 10.5 : 12.5, w: FontWeight.w500, c: o['on'] == true ? gBrand : _ink))),
+                      ]),
+                    ),
+                  ),
+              ]);
+            }),
+          );
+        }
         return Padding(
           padding: const EdgeInsets.only(top: 2, bottom: 10),
           child: Wrap(spacing: 8, runSpacing: 8, children: [

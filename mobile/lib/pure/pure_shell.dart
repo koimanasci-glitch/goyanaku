@@ -33,6 +33,7 @@ import 'access.dart';
 import 'addorder_popups.dart';
 import 'cash_pages.dart';
 import 'customer_add_page.dart';
+import 'defaults.dart';
 import 'delivery.dart';
 import 'discounts.dart';
 import '../native/common.dart';
@@ -302,6 +303,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           _settings = r[1] as AppSettings;
           _locked = _settings!.raw['pinLock'] == true && (_settings!.raw['employees'] as List? ?? const []).isNotEmpty;
         });
+        final seeded = seedDefaults(_b!.services, _settings!.raw);
+        if (seeded.$1) _b!.saveServices();
+        if (seeded.$2) _settings!.save();
         _applyAuto();
         _hppSync();
       }
@@ -540,7 +544,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       {'type': 'label', 't': 'Nama kategori'},
       input(_catName, 'Contoh: Cuci Biasa', false, 0),
       {'type': 'label', 't': 'Pilih ikon'},
-      {'type': 'buttons', 'options': [for (var k = 0; k < icons.length; k++) opt(icons[k], serviceIconSvg(icons[k], 30), k == _catIcon, k)]},
+      {'type': 'buttons', 'cols': 5, 'options': [for (var k = 0; k < icons.length; k++) opt(icons[k], serviceIconSvg(icons[k], 30), k == _catIcon, k)]},
       {'type': 'label', 't': 'Satuan'},
       {'type': 'buttons', 'options': [for (var k = 0; k < 3; k++) opt(_svUnits[k], '', k == _catUnit, 22 + k)]},
       {'type': 'label', 't': 'Alur proses'},
@@ -910,7 +914,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void payOrder(String id) {
     openOrder(id);
     final o = _b!.orderById(id);
-    if (o != null && !o.isCancelled && o.remaining > 0) setState(() => _payOrderId = id);
+    if (o != null && !o.isCancelled && o.remaining > 0) {
+      setState(() {
+        _handoverId = null;
+        _payOrderId = id;
+      });
+    }
   }
 
   @override
@@ -1033,7 +1042,52 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void openMaps(String url) => _device.invokeMethod('App.openUrl', {'url': url}).catchError((_) => null);
 
+  /// Pesanan yang sedang diserahkan (Diantar/Diambil) dan menunggu keputusan bayar di lembar Pembayaran.
+  String? _handoverId;
+  String _handoverBy = '';
+  bool get _handing => _handoverId != null && _handoverId == _payOrderId;
+
+  /// Serah terima pesanan yang belum lunas (revisi Koiman): tampilkan Pembayaran dulu, dengan pilihan "Hutang Dulu".
+  /// Mengembalikan true bila lembar Pembayaran dibuka (status belum diubah).
+  bool _askHandoverPay(Order o, String by) {
+    final st = o.status;
+    if (o.isCancelled || o.remaining <= 0 || !(st == 'siap' || st == 'telat' || st == 'diantar')) return false;
+    setState(() {
+      _handoverId = o.id;
+      _handoverBy = by;
+      _payOrderId = o.id;
+    });
+    return true;
+  }
+
+  /// Selesaikan serah terima tanpa pelunasan: status maju, sisa tagihan tetap tercatat di Belum Bayar.
+  void _handoverDebt(Order o) {
+    final by = _handoverBy.isEmpty ? _kasir : _handoverBy;
+    setState(() {
+      _payOrderId = null;
+      _handoverId = null;
+      _sheets.removeWhere((s) => const {'cash', 'dp', 'confirm'}.contains(s.id));
+    });
+    o.dataset['hutang203'] = '1';
+    _b!.advance(o, now: now, by: by);
+    addAudit(this, '⏳', 'Hutang dulu', '$by · ${o.id} · sisa ${rp(o.remaining)}');
+    saveAll();
+    toast('Hutang dulu · sisa ${rp(o.remaining)} masuk Belum Bayar');
+    _refreshDetail();
+  }
+
+  @override
+  void advanceOrder(String id, {String? by}) {
+    final o = _b!.orderById(id);
+    if (o == null) return;
+    if (_askHandoverPay(o, by ?? _kasir)) return;
+    _b!.advance(o, now: now, by: by ?? _kasir);
+    saveAll();
+    refresh();
+  }
+
   void _next(Order o) {
+    if (_askHandoverPay(o, _kasir)) return;
     final n = _b!.advance(o, now: now, by: _kasir);
     if (n == null) return;
     _save();
@@ -1063,6 +1117,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   void _refreshDetail() => setState(() {});
 
+  @visibleForTesting
+  bool get debugHanding => _handing;
+  @visibleForTesting
+  PurePage? debugPage(String id) => _pages[id];
+  @visibleForTesting
+  Map<String, dynamic> debugOrders() => _ordersModel(_b!, now);
   @visibleForTesting
   Map<String, dynamic>? debugDetail() {
     final o = _detailId == null ? null : _b!.orderById(_detailId!);
@@ -1107,11 +1167,14 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         if (o.isCancelled || o.status == 'diambil') return;
         _next(o);
       case 9:
-        _openNota(o);
+        _openNotaKind(o);
       case 12:
         if (o.isCancelled) return toast('Pesanan sudah dibatalkan');
         if (o.remaining <= 0) return toast('Pesanan sudah lunas');
-        setState(() => _payOrderId = o.id);
+        setState(() {
+          _handoverId = null;
+          _payOrderId = o.id;
+        });
     }
   }
 
@@ -1199,9 +1262,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         {'type': 'title', 't': 'Struk Pesanan', 's': ''},
         {'type': 'hint', 't': '${o.id} · ${o.name} · ${rpSpaced(o.total)}'},
         {'type': 'image', 'src': 'data:image/png;base64,${base64Encode(png)}', 'svg': '', 'mark': '', 't': '', 's': '', 'w': 300},
-        {'type': 'title', 't': 'Kirim nota lewat WhatsApp HP ini (opsional)'},
-        {'type': 'buttons', 'options': [
-          {'t': '💬Kirim WA', 'on': false, 'i': 1}, {'t': '🖨Cetak', 'on': false, 'i': 2}, {'t': '⬇Simpan Gambar', 'on': false, 'i': 3}, {'t': '🖼Bagikan Gambar', 'on': false, 'i': 4},
+        {'type': 'button', 't': 'Kirim WA', 'primary': true, 'i': 1},
+        {'type': 'buttons', 'cols': 3, 'options': [
+          {'t': 'Cetak', 'on': false, 'i': 2}, {'t': 'Simpan Gambar', 'on': false, 'i': 3}, {'t': 'Bagikan', 'on': false, 'i': 4},
         ]},
       ]));
     } catch (_) {
@@ -1217,7 +1280,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     switch (index) {
       case 1:
         _close('rc106');
-        _openNota(o);
+        _openNotaKind(o);
       case 2:
         _print(o);
       case 3:
@@ -1251,6 +1314,37 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   void _openNota(Order o) => _open(_Sheet('wa131', const [], mirror: orderNotaMirror(o, _notaWa(o))));
+
+  /// Kirim WA: pilih jenis nota dulu (revisi Koiman) — gambar struk atau teks.
+  void _openNotaKind(Order o) => _open(_Sheet('wakind', const [
+        {'type': 'title', 't': 'Kirim Nota lewat WhatsApp', 's': ''},
+        {'type': 'hint', 't': 'Pilih bentuk nota yang dikirim ke pelanggan.'},
+        {'type': 'card', 't': 'Nota Gambar', 's': 'Gambar struk lengkap dengan barcode & QR', 'svg': '', 'ic': '🖼', 'badge': '', 'meta': '', 'on': false, 'i': 0},
+        {'type': 'card', 't': 'Nota Teks', 's': 'Pesan teks · bisa dibaca tanpa membuka gambar', 'svg': '', 'ic': '💬', 'badge': '', 'meta': '', 'on': false, 'i': 1},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 9},
+      ]));
+
+  Future<void> _notaKindEvent(String kind, int index) async {
+    _close('wakind');
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o == null || (kind != 'button' && kind != 'card' && kind != 'tap')) return;
+    if (index == 1) return _openNota(o);
+    if (index != 0) return;
+    final b = _b!;
+    final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
+    var phone = _phoneOf(o).replaceAll(RegExp(r'[^0-9]'), '');
+    if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
+    try {
+      final png = await receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir));
+      await _device.invokeMethod('Files.share', {
+        'title': 'Nota ${o.id}', 'whatsapp': phone,
+        'files': [{'name': 'nota-${o.id}.png', 'mime': 'image/png', 'data': base64Encode(png)}],
+      });
+      toast(phone.isEmpty ? 'Pilih WhatsApp lalu kontak pelanggan' : 'Membuka WhatsApp pelanggan dengan gambar nota…');
+    } catch (_) {
+      toast('Gagal membagikan gambar nota');
+    }
+  }
 
   void _openPay(Order o) {
     _form
@@ -1648,6 +1742,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (scope == 'gy154-transfer') return _transferEvent(kind, index);
     if (scope == 'rc106') {
       _strukEvent(kind, index);
+      return;
+    }
+    if (scope == 'wakind') {
+      _notaKindEvent(kind, index);
       return;
     }
     if (scope == 'edit115') return _editEvent(kind, index, value);
@@ -2371,7 +2469,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void aoSheetClose() => setState(() => _payOrderId != null ? _payOrderId = null : _aoSheet = null);
   @override
-  void aoPayCancel() => setState(() => _payOrderId != null ? _payOrderId = null : _aoSheet = 'options');
+  void aoPayCancel() {
+    final o = _payOrder;
+    if (_handing && o != null) return _handoverDebt(o);
+    setState(() => _payOrderId != null ? _payOrderId = null : _aoSheet = 'options');
+  }
 
   String _pendingMethod = '';
 
@@ -2592,8 +2694,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   /// Bayar dari Rincian Pesanan: lembar Pembayaran yang sama dengan Tambah Transaksi (HTML v160 openPay115).
   void _finishDetailPay(String method, {int change = 0, int? dp, String dpMethod = 'Tunai'}) {
     final b = _b!, o = _payOrder;
+    final hand = _handing, handBy = _handoverBy.isEmpty ? _kasir : _handoverBy;
+    if (hand && o != null && method == 'Bayar Nanti') return _handoverDebt(o);
     setState(() {
       _payOrderId = null;
+      _handoverId = null;
       _sheets.removeWhere((s) => const {'cash', 'dp', 'confirm'}.contains(s.id));
     });
     if (o == null || method == 'Bayar Nanti') return;
@@ -2603,6 +2708,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (err != null) return toast(err);
     _pointsToast(o.name, pointsBefore);
     addAudit(this, '💵', 'Pembayaran pesanan', '$_kasir · ${o.id} · $m');
+    if (hand) {
+      // Serah terima: setelah dibayar (lunas atau sebagian) status langsung maju; sisa tetap di Belum Bayar.
+      if (o.remaining > 0) o.dataset['hutang203'] = '1';
+      b.advance(o, now: now, by: handBy);
+    }
     saveAll();
     toast(change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pembayaran diperbarui: ${o.isPaid ? 'Lunas · $method' : 'DP ${rp(o.paid)} · sisa ${rp(o.remaining)}'}');
     _refreshDetail();
@@ -2613,6 +2723,19 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   // ---------------- Pengaturan & Laporan (sementara) ----------------
   // ---------------- tampilan ----------------
+  /// Jarak aman bawah: menu bawah & tombol bawah halaman dinaikkan setinggi bilah gestur/lengkung layar HP,
+  /// supaya tidak tertimpa. Popup tetap selebar layar penuh (mereka menambah jarak aman sendiri).
+  Widget _lift(BuildContext context, Widget child) {
+    final inset = MediaQuery.paddingOf(context).bottom;
+    if (inset <= 0) return child;
+    return ColoredBox(
+      color: Colors.white,
+      child: Padding(padding: EdgeInsets.only(bottom: inset), child: MediaQuery.removePadding(context: context, removeBottom: true, child: child)),
+    );
+  }
+
+  Widget _liftDetail(BuildContext context, Widget child) => _lift(context, child);
+
   @override
   Widget build(BuildContext context) {
     final b = _b;
@@ -2673,20 +2796,20 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         SystemNavigator.pop();
       },
       child: Stack(children: [
-        Positioned.fill(child: page),
+        Positioned.fill(child: _lift(context, page)),
         if (_detailId != null && b.orderById(_detailId!) != null)
           Positioned.fill(
-            child: NativeOrderDetail(
+            child: _liftDetail(context, NativeOrderDetail(
               model: orderDetailOd(b, b.orderById(_detailId!)!, banner: _odBanner), actions: this,
               onQrStatus: () => showModalBottomSheet<void>(
                 context: context, isScrollControlled: true, backgroundColor: Colors.white,
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
                 builder: (context) => NativeOrderStatusQr(orderId: _detailId ?? '', customerName: b.orderById(_detailId ?? '')?.name ?? '', onClose: () => Navigator.pop(context)),
               ),
-            ),
+            )),
           ),
         if (_payOrder case final po?)
-          Positioned.fill(child: AoSheet(sheet: _paySheetJson(rpSpaced(po.remaining), po.id, po.name, 'BATAL'), actions: this)),
+          Positioned.fill(child: AoSheet(sheet: _paySheetJson(rpSpaced(po.remaining), po.id, po.name, _handing ? 'HUTANG DULU' : 'BATAL'), actions: this)),
         for (final s in _sheets)
           Positioned.fill(
             child: s.mirror != null

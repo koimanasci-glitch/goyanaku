@@ -468,9 +468,23 @@ class MainActivity : FlutterActivity() {
                 }
                 if (text.isNotEmpty()) intent.putExtra(Intent.EXTRA_TEXT, text)
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                // Opsional (Mode Murni): "whatsapp" = nomor tujuan (62…) → langsung ke chat WhatsApp pelanggan.
+                // Bila WhatsApp tidak terpasang / menolak, jatuh ke menu bagikan biasa.
+                val wa = call.argument<String>("whatsapp")?.filter { it.isDigit() } ?: ""
                 main.post {
-                    startActivity(Intent.createChooser(intent, title))
-                    result.success(null)
+                    var sent = false
+                    if (wa.isNotEmpty()) {
+                        for (pkg in listOf("com.whatsapp", "com.whatsapp.w4b")) {
+                            if (sent) break
+                            try {
+                                startActivity(Intent(intent).setPackage(pkg).putExtra("jid", "$wa@s.whatsapp.net"))
+                                sent = true
+                            } catch (e: Exception) {
+                            }
+                        }
+                    }
+                    if (!sent) startActivity(Intent.createChooser(intent, title))
+                    result.success(mapOf("direct" to sent))
                 }
             } catch (e: Exception) {
                 main.post { result.error("failed", "Gagal membagikan", null) }

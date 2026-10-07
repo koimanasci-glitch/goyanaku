@@ -75,6 +75,8 @@ class CashEntryPage extends PurePage {
       'note': {'v': note, 'ph': 'Keterangan'},
       'submit': income ? 'Tambah Kas' : 'Kurangi Kas',
       'subtract': !income,
+      // Kategori Pengeluaran (Pengaturan → Keuangan): diketuk untuk mengisi Keterangan.
+      if (!income) 'cats': [for (final c in host.settings.raw['expenseCats'] as List? ?? const []) '$c'],
     };
   }
 

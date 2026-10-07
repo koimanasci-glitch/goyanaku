@@ -327,6 +327,26 @@ class Business {
     return order;
   }
 
+  /// Transaksi lama dari file import: dicatat pada tanggal aslinya, langsung berstatus Diambil,
+  /// dan TIDAK masuk kas shift yang sedang berjalan (uangnya sudah diterima dulu).
+  Order importOrder({
+    required String customer, String phone = '', String dur = 'Reguler', required List<OrderItem> items,
+    required DateTime at, bool paid = true, String method = 'Tunai',
+  }) {
+    final o = createOrder(customer: customer, phone: phone, dur: dur, items: items, payMethod: 'Bayar Nanti', kasir: 'Import', now: at);
+    o.dataset['import203'] = '1';
+    if (paid && o.total > 0) {
+      var m = normalizeMethod(method);
+      if (m == 'Deposit') m = 'Tunai';
+      o.detail['paid'] = o.total;
+      o.dataset['payments178'] = jsonEncode([{'m': m, 'a': o.total, 'at': isoString(at)}]);
+      o.dataset['paid177'] = '${o.total}';
+      o.dataset['method177'] = m;
+    }
+    _setStatus(o, 'diambil', at, 'Import');
+    return o;
+  }
+
   /// Tombol status berikut (sama dengan HTML): jemput→antrian, proses→siap, siap→diantar/diambil.
   String? advance(Order o, {required DateTime now, String by = 'Kasir'}) {
     final st = o.status;
