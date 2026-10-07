@@ -1874,3 +1874,68 @@ class DataCenterPage extends TemplatePage {
     }
   }
 }
+
+
+/// Keuangan & Kas → Kategori Pengeluaran (sama dengan HTML; di HTML daftar ini tidak tersimpan, di sini tersimpan).
+class FinancePage extends PurePage {
+  FinancePage(super.host);
+  @override
+  String get title => 'KATEGORI PENGELUARAN';
+  List<dynamic> get _cats => host.settings.raw.putIfAbsent('expenseCats', () => <dynamic>[]) as List;
+
+  @override
+  List<Map<String, dynamic>> items() => [
+        for (var k = 0; k < _cats.length; k++)
+          {
+            'type': 'entry', 't': '${_cats[k]}', 'lines': <String>[], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'compact': true,
+            'btns': [{'t': '✎', 'on': false, 'i': 2 * k}, {'t': '×', 'on': false, 'i': 2 * k + 1}],
+          },
+        {'type': 'button', 't': '+ Tambah Kategori', 'primary': true, 'file': '', 'after': false, 'i': 2 * _cats.length},
+      ];
+
+  void _done(String toast) {
+    host.saveAll();
+    host.toast(toast);
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    final c = _cats;
+    if (i == 2 * c.length) {
+      return host.openFormSheet(FormSheetDef(
+        'Tambah Kategori',
+        const [FormSheetField('Nama kategori', placeholder: 'Contoh: Perawatan Mesin', required: true)],
+        'Tambah',
+        (v) {
+          c.add(v[0]);
+          _done('Kategori "${v[0]}" ditambahkan');
+          return null;
+        },
+        sub: 'Kategori untuk mencatat pengeluaran',
+      ));
+    }
+    final k = i ~/ 2;
+    if (k < 0 || k >= c.length) return;
+    final name = '${c[k]}';
+    if (i.isOdd) {
+      return host.openFormSheet(FormSheetDef(
+        'Hapus "$name"?',
+        const [],
+        'Ya, Hapus',
+        (_) {
+          c.removeAt(k);
+          _done('$name dihapus');
+          return null;
+        },
+        sub: 'Data yang sudah dipakai di transaksi lama tetap tersimpan di laporan.',
+        danger: true,
+      ));
+    }
+    host.openFormSheet(FormSheetDef('Edit', [FormSheetField('Nama', value: name, required: true)], 'Simpan', (v) {
+      c[k] = v[0];
+      _done('Perubahan tersimpan');
+      return null;
+    }));
+  }
+}

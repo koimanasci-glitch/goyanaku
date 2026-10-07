@@ -1459,3 +1459,13 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Diskon (`lib/pure/discounts.dart`, `DiscountPage`): halaman, popup `disc127`, konfirmasi hapus, Aturan Kasir; di Atur Pesanan: pilihan "Tidak" + diskon aktif + "Diskon manual (Rp)…", cakupan Kiloan/Satuan/Meteran, minimal transaksi, batas % kasir, toast sama. 4 diskon bawaan karangan Mode Murni (5%/10%/Rp5.000/Rp10.000) dibuang.
 - Layanan: memakai `NativeServices` (widget Hibrida), popup `cat99` Kategori Baru (22 ikon, satuan, alur proses) dan Edit Layanan; halaman karangan lama dibuang.
 - **Anomali HTML (dilaporkan):** (1) daftar diskon & Aturan Kasir di HTML hanya di memori — hilang saat aplikasi ditutup; Mode Murni menyimpannya permanen. (2) Ikon kategori layanan tidak ikut disimpan HTML (semua layanan tampil ikon keranjang setelah dibuka ulang); Mode Murni menyimpan ikon. (3) Durasi tambahan ("+ Tambah Durasi") di HTML tidak tersimpan dan tidak dipakai di transaksi.
+
+## Jalur C — batch Pengaturan ke-2 (7 Okt): halaman pola tetap dari tangkapan HTML
+- **Temuan penting:** aplikasi di HP = `index.html` + 18 patch `goyana-v*.js` (lihat `tools/prepare_web.py`). Semua tangkapan sekarang diambil dari bundel final itu (bukan `index.html` saja). Fixture Diskon & Layanan sudah dicek ulang: identik.
+- Peta menu Pengaturan HTML → halaman (13 grup + Mode Uji) direkam; `_stRoutes` Mode Murni diluruskan: Akun→`profile`, Kasir→`cashier`, Reminder→`reminder`, Barcode→`barcode`, Tentang→`aboutgoyana`, Bantuan→`helpcenter`, Pusat Data→`datacenter`, Keuangan & Kas→`finance`.
+- `TemplatePage` + `tools/gen_pure_templates.py`: butir halaman diambil dari `mobile/test/fixtures/pure/pages/*.json` (tangkapan HTML), isian/saklar disimpan di pengaturan Mode Murni. Dipakai: Akun (validasi sama), Kasir, Reminder, Barcode & Label, Tentang Kami.
+- Pusat Bantuan: cari topik + 7 popup panduan `guide135` (widget Hibrida, pohon tampilan dari HTML) + "Coba Sekarang".
+- Pusat Data: tampilan HTML; ekspor CSV, backup file, dan Hapus Data Trial dikerjakan sungguhan.
+- Kategori Pengeluaran: tambah/ubah/hapus, tersimpan.
+- **Anomali HTML (dilaporkan):** Pusat Data di HTML masih contoh — "Export Semua Data" mengunduh 3 baris data contoh, "Backup Database" tidak menyimpan apa pun, titik "Restore" palsu (6.420 transaksi), "Hapus Data Trial" hanya mengubah angka di layar. Nomor WA CS (`CS_WA100`) masih `6280000000000`. Akun/Reminder/Kasir/Kategori Pengeluaran di HTML tidak tersimpan.
+- Belum: kunci paket (Silver/Gold/Platinum) di Mode Murni; Restore dari file; Antar-Jemput (tarif transportasi v183/v184), Outlet/Edit Outlet, Manajemen Cabang, Pegawai, Audit, Kurir, CRM, WhatsApp, Pembayaran/QRIS, Ralat, Stok, Printer.

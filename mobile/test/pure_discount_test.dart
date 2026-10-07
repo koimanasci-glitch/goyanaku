@@ -247,4 +247,35 @@ void templateTests() {
     expect(raw['customers'], isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Kategori Pengeluaran: tambah, ubah, hapus dengan butir seperti HTML', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('finance');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), '[{"type":"button","t":"+ Tambah Kategori","primary":true,"file":"","after":false,"i":0}]');
+    s.fmButton(0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('gs107')),
+        '[{"type":"title","t":"Tambah Kategori","s":""},{"type":"hint","t":"Kategori untuk mencatat pengeluaran"},{"type":"label","t":"Nama kategori"},{"type":"input","v":"","ph":"Contoh: Perawatan Mesin","multiline":false,"numeric":false,"decimal":false,"ro":false,"secret":false,"email":false,"i":0},{"type":"button","t":"Tambah","primary":true,"file":"","after":false,"i":0},{"type":"button","t":"Batal","primary":false,"file":"","after":false,"i":1}]');
+    s.fmScoped('gs107', 'input', 0, 'Gaji');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Kategori "Gaji" ditambahkan');
+    expect(jsonEncode(s.debugItems()),
+        '[{"type":"entry","t":"Gaji","lines":[],"badge":"","avatar":"","svg":"","color":"","compact":true,"btns":[{"t":"✎","on":false,"i":0},{"t":"×","on":false,"i":1}]},{"type":"button","t":"+ Tambah Kategori","primary":true,"file":"","after":false,"i":2}]');
+    s.fmButton(0);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 0, 'Gaji Pegawai');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Perubahan tersimpan');
+    s.fmButton(1);
+    await _settle(tester);
+    expect(find.text('Hapus "Gaji Pegawai"?'), findsOneWidget);
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugItems().length, 1);
+    expect(tester.takeException(), isNull);
+  });
 }
