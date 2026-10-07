@@ -484,6 +484,60 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     _open(_Sheet('cat99', _catItems()));
   }
 
+  // ---------------- Deposit Pelanggan (deposits178) ----------------
+  int _depCust = 0, _depMethod = 0;
+  String _depAmount = '';
+  void _openDeposits() {
+    _depCust = 0;
+    _depMethod = 0;
+    _depAmount = '';
+    _showDeposits();
+  }
+
+  void _showDeposits() {
+    final b = _b!, list = b.customers;
+    final c = list.isEmpty ? null : list[_depCust.clamp(0, list.length - 1)];
+    final hist = c == null ? const <dynamic>[] : ((((b.raw['deposits178'] as Map?)?[b.depositKey(c.name)] as Map?)?['history'] as List?) ?? const []);
+    _open(_Sheet('deposits178', [
+      {'type': 'title', 't': 'Deposit Pelanggan', 's': ''},
+      {'type': 'hint', 't': 'Saldo titipan pelanggan untuk pembayaran laundry.'},
+      {'type': 'select', 'options': [for (final x in list) '${x.name} · ${x.phone}'], 'index': list.isEmpty ? -1 : _depCust.clamp(0, list.length - 1), 'i': 0},
+      {'type': 'hint', 't': c == null ? 'Tambahkan pelanggan terlebih dahulu' : 'Saldo ${rp(b.depositOf(c.name))}'},
+      {'type': 'label', 't': 'Nominal tambah saldo'},
+      {'type': 'input', 'v': _depAmount, 'ph': '', 'multiline': false, 'numeric': true, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 1},
+      {'type': 'label', 't': 'Metode penerimaan'},
+      {'type': 'select', 'options': const ['Tunai', 'QRIS', 'Transfer'], 'index': _depMethod, 'i': 2},
+      {'type': 'button', 't': 'Simpan Tambah Saldo', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      for (final h in hist.reversed.take(20).whereType<Map>())
+        {'type': 'hint', 't': '${h['type'] == 'topup' ? 'Tambah saldo' : (h['type'] == 'refund' ? 'Pengembalian ${h['order'] ?? ''}' : 'Pembayaran ${h['order'] ?? ''}')} · ${rp(parseRupiah(h['amount']))}'},
+      {'type': 'button', 't': 'Tutup', 'primary': false, 'file': '', 'after': false, 'i': 1},
+    ]));
+  }
+
+  void _depositEvent(String kind, int index, Object? value) {
+    if (kind == 'close') return _close('deposits178');
+    if (kind == 'input') {
+      if (index == 1) {
+        _depAmount = '${value ?? ''}';
+        return;
+      }
+      if (index == 0) _depCust = value is int ? value : 0;
+      if (index == 2) _depMethod = value is int ? value : 0;
+      return _showDeposits();
+    }
+    if (kind != 'button') return;
+    if (index == 1) return _close('deposits178');
+    final b = _b!, list = b.customers, amount = int.tryParse(_depAmount.trim()) ?? 0;
+    if (list.isEmpty || amount <= 0) return toast('Isi nominal saldo yang benar');
+    final c = list[_depCust.clamp(0, list.length - 1)];
+    final err = b.topUpDeposit(c.name, amount, method: const ['Tunai', 'QRIS', 'Transfer'][_depMethod.clamp(0, 2)], now: now);
+    if (err != null) return toast(err);
+    _save();
+    _depAmount = '';
+    toast('Saldo deposit tersimpan');
+    _showDeposits();
+  }
+
   /// Popup "terkunci" (lock111) untuk fitur chatbot.
   void _lockSheet(String name) => _open(_Sheet('lock111', [
         {'type': 'title', 't': '🔒'},
@@ -645,8 +699,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'wadevices195', '4/3': 'whatsappbot', '4/4': 'quickreply', '4/5': 'automation',
     '5': 'wadevices195', '6': 'triggers191', '7': 'ai191', '8': 'blast191',
-    '9/0': 'qris', '9/1': 'finance', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
-    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
+    '9/0': 'qris', '9/1': 'finance', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',
+    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana', '12/2': 'sheet:perm178',
   };
   void _stGo(String key) {
     final r = _stRoutes[key];
@@ -655,6 +709,15 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     if (const ['4/3', '4/4', '4/5'].contains(key) && !planAccess.has('ai', now)) return _lockSheet(const {'4/3': 'WhatsApp & Chatbot', '4/4': 'Balas Cepat & Trigger', '4/5': 'Otomasi Pelanggan'}[key]!);
     final need = const {'6': 'quick', '7': 'ai', '8': 'blast'}[key];
     if (need != null && !planAccess.has(need, now)) return toast(planAccess.lockedText(need));
+    if (r == 'sheet:deposits178') return _openDeposits();
+    if (r == 'sheet:perm178') {
+      return _open(_Sheet('perm178', [
+        {'type': 'title', 't': 'Izin Aplikasi', 's': ''},
+        {'type': 'hint', 't': 'Foto dan file dipilih lewat pemilih bawaan HP. Internet tidak memerlukan dialog izin.'},
+        {'type': 'button', 't': 'Buka Pengaturan HP', 'primary': true, 'file': '', 'after': false, 'i': 0},
+        {'type': 'button', 't': 'Tutup', 'primary': false, 'file': '', 'after': false, 'i': 1},
+      ]));
+    }
     nav(r);
   }
 
@@ -931,6 +994,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     if (b == null) return;
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
     if (scope == 'cat99') return _catEvent(kind, index, value);
+    if (scope == 'deposits178') return _depositEvent(kind, index, value);
+    if (scope == 'perm178') {
+      _close('perm178');
+      if (kind == 'button' && index == 0) _device.invokeMethod('GoyanaDevice.openSettings').catchError((_) => null);
+      return;
+    }
     if (scope == 'lock111') {
       _close('lock111');
       if (kind == 'button') nav('plan');
@@ -1165,7 +1234,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void cuSearch(String text) => setState(() => _custSearch = text);
   @override
-  void cuDeposit() => toast('Pilih pelanggan lalu tekan Isi Saldo');
+  void cuDeposit() => _openDeposits();
   @override
   void cuAdd() => _openCustomerForm(null);
   @override

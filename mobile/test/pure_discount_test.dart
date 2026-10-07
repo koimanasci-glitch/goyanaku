@@ -681,4 +681,25 @@ void templateTests() {
     expect(kv.data.keys.any((k) => k.startsWith('goyana-chat191:')), isTrue);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Deposit Pelanggan (popup dari Pengaturan): tambah saldo tercatat', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    await _settle(tester);
+    s.stItem(9, 6);
+    await _settle(tester);
+    expect(find.text('Deposit Pelanggan'), findsOneWidget);
+    s.fmScoped('deposits178', 'button', 0);
+    expect(s.debugToast, 'Isi nominal saldo yang benar');
+    s.fmScoped('deposits178', 'input', 1, '50000');
+    s.fmScoped('deposits178', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Saldo deposit tersimpan');
+    final b = await Business.load(kv);
+    expect(b.depositOf(b.customers.first.name), 50000);
+    s.stItem(12, 2);
+    await _settle(tester);
+    expect(find.text('Izin Aplikasi'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
