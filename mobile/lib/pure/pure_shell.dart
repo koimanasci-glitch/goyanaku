@@ -61,10 +61,9 @@ class PureShell extends StatefulWidget {
 }
 
 class _Sheet {
-  _Sheet(this.id, this.items, {this.full = false});
+  _Sheet(this.id, this.items);
   final String id;
   final List<Map<String, dynamic>> items;
-  final bool full;
 }
 
 class PureShellState extends State<PureShell> implements OrderDetailActions, HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, ServicesActions, PureHost {
@@ -2232,7 +2231,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           Positioned.fill(
             child: isAoPopup(s.items)
                 ? AoPopup(key: ValueKey('pure-ao-${s.id}'), id: s.id, data: s.items.first, actions: this)
-                : NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this, full: s.full),
+                : NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this),
           ),
         for (final id in _pageSheets)
           if (_pages[_page]?.sheetWidget(id, context) case final w?)

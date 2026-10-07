@@ -140,7 +140,7 @@ List<Map<String, dynamic>> orderMenuItems() => [
       {'type': 'button', 't': 'Tutup', 'primary': false, 'file': '', 'after': false, 'i': 6},
     ];
 
-/// Riwayat Status (HTML hist115): nomor, status, "oleh <pegawai>", waktu.
+/// Riwayat Status (HTML hist115): nomor, status, "oleh pegawai", waktu.
 List<Map<String, dynamic>> orderHistoryItems(Order o) {
   String label(String st) => _proc.contains(st)
       ? 'Proses · ${st[0].toUpperCase()}${st.substring(1)}'
