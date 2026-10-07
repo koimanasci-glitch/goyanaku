@@ -93,6 +93,9 @@ void main() {
 
     String snap(PureShellState s) => '${s.debugState()}|${jsonEncode(s.debugItems())}|${jsonEncode(kv.data)}|$device|${find.byType(BottomSheet).evaluate().length}';
     final dead = <String>[], stub = <String>[], errors = <String>[], ok = <String>[];
+    final unreachable = <String>[];
+    final stubRe = RegExp('belum tersedia|belum aktif|belum terhubung|sedang dipindah|menunggu (layanan|server)|segera hadir', caseSensitive: false);
+
     Future<void> judge(String where, PureShellState s, String before, void Function() press) async {
       try {
         press();
@@ -154,7 +157,6 @@ void main() {
     // ---- Semua halaman formulir + popup tingkat pertama ----
     s0 = await fresh();
     final pages = s0.debugPageIds().toList();
-    final unreachable = <String>[];
     for (final page in pages) {
       final s1 = await fresh(page);
       if (s1.debugState().split('|').first != page) {
