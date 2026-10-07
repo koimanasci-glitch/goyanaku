@@ -40,6 +40,19 @@ android {
         }
     }
 
+    // Ukuran unduhan APK: pustaka native dikompres di dalam APK dan hanya untuk HP ARM (32 & 64 bit);
+    // pustaka x86_64 milik pemindai barcode tidak diikutkan.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+    defaultConfig {
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+        }
+    }
+
     buildTypes {
         release {
             // Production signing is deliberately not configured for this preview.
