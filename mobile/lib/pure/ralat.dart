@@ -2,8 +2,11 @@
 // Hitungan ralat pembayaran memakai logika A5 yang sama dengan Mode Hibrida (applyPaymentA5).
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 import '../core/money.dart';
 import '../logic/payments.dart';
+import 'g181_mirror.dart';
 import 'pages.dart';
 
 class RalatPage extends PurePage {
@@ -113,7 +116,8 @@ class RalatPage extends PurePage {
     return [
       {
         'type': 'entry', 't': 'Login: $_who', 'lines': [owner ? 'Bisa meralat langsung' : 'Ralat perlu PIN Admin Utama'], 'badge': '', 'avatar': owner ? '👑' : '👤', 'svg': '', 'color': '', 'amount': '',
-        'btns': [{'t': 'Admin Utama', 'on': owner, 'i': 0}, {'t': 'Kasir', 'on': !owner, 'i': 1}],
+        // 'Ganti PIN' = tambahan Mode Murni (di HTML PIN tertanam 1234 dan tidak bisa diganti).
+        'btns': [{'t': 'Admin Utama', 'on': owner, 'i': 0}, {'t': 'Kasir', 'on': !owner, 'i': 1}, {'t': 'Ganti PIN', 'on': false, 'i': 900}],
       },
       {'type': 'title', 't': '🔒'},
       {'type': 'hint', 't': 'Data tidak pernah dihapus. Setiap ralat menyimpan nilai lama → baru, alasan, siapa & jam. Hanya Admin Utama yang bisa meralat; kasir butuh PIN owner.'},
@@ -134,6 +138,12 @@ class RalatPage extends PurePage {
 
   @override
   void button(int i) {
+    if (i == 900) {
+      pin = '';
+      _change = true;
+      _pinWhat = 'Ganti PIN · masukkan PIN Admin yang sekarang';
+      return host.openPageSheet('pin139');
+    }
     if (i == 0 || i == 1) {
       owner = i == 0;
       host.toast(owner ? 'Login sebagai Admin Utama' : 'Login sebagai Kasir · ralat perlu PIN');
@@ -170,21 +180,18 @@ class RalatPage extends PurePage {
   }
 
   @override
+  Widget? sheetWidget(String id, BuildContext context) {
+    final items = id == 'rs139' ? sheetItems(id) : null;
+    if (items == null || items.isEmpty) return null;
+    return rs139Widget(id, items, (kind, i, v) => sheetEvent(id, kind, i, v), () => host.closePageSheet(id));
+  }
+
+  @override
   List<Map<String, dynamic>>? sheetItems(String id) {
     Map<String, dynamic> inp(String v, int i, {String ph = '', bool numeric = false, bool secret = false}) =>
         {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': secret, 'email': false, 'i': i};
     Map<String, dynamic> opt(String t, bool on, int i) => {'t': t, 'svg': '', 'file': '', 'after': false, 'on': on, 'i': i};
-    if (id == 'pin139') {
-      return [
-        {'type': 'title', 't': 'PIN Admin Utama', 's': ''},
-        {'type': 'hint', 't': 'Minta Admin Utama memasukkan PIN'},
-        inp(pin, 0, ph: 'PIN 4 angka', numeric: true, secret: true),
-        {'type': 'button', 't': 'Lanjut', 'primary': true, 'file': '', 'after': false, 'i': 0},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
-        // Perbaikan atas HTML (PIN tertanam 1234 dan tidak bisa diganti): PIN Admin bisa diganti di sini.
-        {'type': 'button', 't': 'Ganti PIN Admin', 'primary': false, 'file': '', 'after': false, 'i': 2},
-      ];
-    }
+    if (id == 'pin139') return pinPadItems(_pinWhat, pin.length, change: true);
     if (id != 'rs139') return null;
     if (mode == 'bayar') {
       final s = _sale;
@@ -237,9 +244,13 @@ class RalatPage extends PurePage {
     return '$r${r.isNotEmpty && n.isNotEmpty ? ' · ' : ''}$n';
   }
 
+  String _pinWhat = 'Minta Admin Utama memasukkan PIN';
+  bool _change = false;
   void _admin139(void Function(String by) cb) {
     if (owner) return cb('$_admin (Admin Utama)');
     pin = '';
+    _change = false;
+    _pinWhat = 'Minta Admin Utama memasukkan PIN';
     _afterPin = cb;
     host.openPageSheet('pin139');
   }
@@ -255,14 +266,22 @@ class RalatPage extends PurePage {
   @override
   void sheetEvent(String id, String kind, int index, Object? value) {
     if (id == 'pin139') {
-      if (kind == 'input') {
-        pin = '$value'.replaceAll(RegExp(r'\D'), '');
-        return;
-      }
       if (kind != 'button') return;
-      if (index == 1) return host.closePageSheet('pin139');
-      if (index == 2) {
-        if (pin != _pin) return host.toast('Masukkan PIN Admin yang sekarang dulu');
+      if (index == pinPadChange) {
+        _change = true;
+        pin = '';
+        host.toast('Masukkan PIN Admin yang sekarang');
+        return host.refresh();
+      }
+      final next = pinPadKey(pin, index);
+      if (next == null) return host.closePageSheet('pin139');
+      pin = next;
+      if (pin.length < _pin.length) return host.refresh();
+      if (pin == _pin && _change) {
+        _change = false;
+        _fail = 0;
+        pin = '';
+        host.closePageSheet('pin139');
         return host.openFormSheet(FormSheetDef('Ganti PIN Admin', const [FormSheetField('PIN baru', placeholder: '4–6 angka', numeric: true, required: true)], 'Simpan', (v) {
           final n = v.first.replaceAll(RegExp(r'\D'), '');
           if (n.length < 4 || n.length > 6) {
@@ -292,7 +311,9 @@ class RalatPage extends PurePage {
         host.saveAll();
         host.toast('PIN salah 3× · percobaan dicatat di Audit');
       } else {
+        pin = '';
         host.toast('PIN salah');
+        host.refresh();
       }
       return;
     }
@@ -394,4 +415,28 @@ class RalatPage extends PurePage {
       host.toast('Ralat tersimpan · tercatat di Log Ralat');
     });
   }
+}
+
+/// Indeks tombol "Ganti PIN Admin" di papan PIN.
+const pinPadChange = 12;
+
+/// Papan PIN Admin Utama (HTML pin139): 1–9, Batal, 0, ⌫. Petunjuk "contoh: 1234" di HTML sengaja dibuang.
+List<Map<String, dynamic>> pinPadItems(String what, int entered, {bool change = false}) => [
+      {'type': 'title', 't': '🔐'},
+      {'type': 'title', 't': 'Persetujuan Admin Utama', 's': ''},
+      {'type': 'hint', 't': what},
+      {'type': 'title', 't': entered == 0 ? '○ ○ ○ ○' : List.filled(entered, '●').join(' ')},
+      {'type': 'buttons', 'options': [
+        for (var k = 0; k < 9; k++) {'t': '${k + 1}', 'on': false, 'i': k},
+        {'t': 'Batal', 'on': false, 'i': 9}, {'t': '0', 'on': false, 'i': 10}, {'t': '⌫', 'on': false, 'i': 11},
+      ]},
+      if (change) {'type': 'button', 't': 'Ganti PIN Admin', 'primary': false, 'i': pinPadChange},
+    ];
+
+/// PIN sesudah satu tombol papan ditekan; null = Batal.
+String? pinPadKey(String pin, int index) {
+  if (index == 9) return null;
+  if (index == 11) return pin.isEmpty ? pin : pin.substring(0, pin.length - 1);
+  if (pin.length >= 6) return pin;
+  return '$pin${index == 10 ? 0 : index + 1}';
 }

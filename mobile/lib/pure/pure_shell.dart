@@ -25,6 +25,7 @@ import '../native/photo115_sheet.dart';
 import '../native/popup_components.dart';
 import '../native/wa131_sheet.dart';
 import 'label_page.dart';
+import 'g181_mirror.dart';
 import 'order_view.dart';
 import 'receipt_image.dart';
 import 'addorder_assets.dart';
@@ -886,7 +887,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (o != null && !o.isCancelled && o.remaining > 0) setState(() => _payOrderId = id);
   }
 
-  Future<void> _printRaw(String text, String title, String done) async {
+  @override
+  Future<void> printDoc({required String html, required String text, required String title, required String done}) => _printRaw(text, title, done, html: html);
+
+  Future<void> _printRaw(String text, String title, String done, {String? html}) async {
     final addr = _settings!.printerAddress;
     if (addr.isNotEmpty) {
       try {
@@ -901,7 +905,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     // Tanpa printer Bluetooth: dialog cetak Android (PDF / printer Wi-Fi).
     final esc = const HtmlEscape().convert(text);
     try {
-      await _device.invokeMethod('Print.html', {'html': '<pre style="font:12px monospace">$esc</pre>', 'title': title});
+      await _device.invokeMethod('Print.html', {'html': html ?? '<pre style="font:12px monospace">$esc</pre>', 'title': title});
+      if (html != null) toast(done);
     } catch (_) {
       toast('Atur printer di Pengaturan → Printer Bluetooth');
     }
@@ -1251,8 +1256,45 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   List<String> get _edPerfumes => [for (final p in _settings!.perfumes) p.first, 'Tanpa Parfum'];
   List<Service> _edServices(Order o) => [for (final sv in _b!.services) if (sv.enabledFor(o.dur)) sv];
 
+  /// Edit Transaksi (HTML v139): pesanan yang sudah diproses/lunas, bila login Kasir, wajib PIN Admin Utama dulu.
   void _openEdit(Order o) {
     if (o.isCancelled) return toast('Pesanan batal tidak bisa diedit');
+    final free = o.status == 'antrian' && !o.isPaid;
+    if (!free && !(_pages['ralat139'] as RalatPage).owner) {
+      _pin = '';
+      return _open(_Sheet('pin139e', pinPadItems('Edit transaksi ${o.id} · minta Admin Utama memasukkan PIN', 0)));
+    }
+    _openEditForm(o);
+  }
+
+  int _pinFail = 0;
+  void _editPinEvent(String kind, int index, Object? value) {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (kind != 'button' || o == null) return _close('pin139e');
+    final next = pinPadKey(_pin, index);
+    if (next == null) return _close('pin139e');
+    _pin = next;
+    final want = '${_settings!.raw['adminPin'] ?? '1234'}';
+    if (_pin.length < want.length) return _open(_Sheet('pin139e', pinPadItems('Edit transaksi ${o.id} · minta Admin Utama memasukkan PIN', _pin.length)));
+    if (_pin == '${_settings!.raw['adminPin'] ?? '1234'}') {
+      _pinFail = 0;
+      _pin = '';
+      _close('pin139e');
+      return _openEditForm(o);
+    }
+    _pin = '';
+    if (++_pinFail >= 3) {
+      _pinFail = 0;
+      _close('pin139e');
+      addAudit(this, '⚠', 'PIN Admin salah 3×', 'Kasir mencoba edit transaksi ${o.id}');
+      saveAll();
+      return toast('PIN salah 3× · percobaan dicatat di Audit');
+    }
+    toast('PIN salah');
+    _open(_Sheet('pin139e', pinPadItems('Edit transaksi ${o.id} · minta Admin Utama memasukkan PIN', 0)));
+  }
+
+  void _openEditForm(Order o) {
     _editDiscList = _editDiscs(o.discKey);
     final disc = _editDiscList.indexWhere((d) => d[1] == o.discKey);
     final per = _edPerfumes.indexOf(o.perfume);
@@ -1321,7 +1363,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (o == null || kind != 'button') return _close('rs139e');
     if (index >= 10) {
       _edReason = index - 10;
-      return _open(_Sheet('rs139e', _edReasonItems(o)));
+      return _open(_Sheet('rs139e', _edReasonItems(o), mirror: const {}));
     }
     if (_edReason < 0) return toast('Pilih alasan ralat dulu');
     _close('rs139e');
@@ -1414,7 +1456,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       // HTML v139: pesanan Antrian yang belum lunas boleh dikoreksi langsung; selain itu wajib alasan ralat.
       if (o.status == 'antrian' && !o.isPaid) return _applyEdit(o, '');
       _edReason = -1;
-      return _open(_Sheet('rs139e', _edReasonItems(o)));
+      return _open(_Sheet('rs139e', _edReasonItems(o), mirror: const {}));
     }
     final k = (index - 1) ~/ 3, act = (index - 1) % 3;
     if (k < 0 || k >= n) return;
@@ -1510,6 +1552,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       onClose: () => fmScoped(s.id, 'close', 0),
     );
     final key = ValueKey('pure-${s.id}-${identityHashCode(s)}');
+    if (s.id == 'rs139e') return rs139Widget(s.id, s.items, (kind, i, v) => fmScoped(s.id, kind, i, v), () => fmScoped(s.id, 'close', 0));
     return switch (s.id) {
       'wa131' => NativeWa131Sheet(key: key, model: s.mirror!, actions: a),
       'photo115' => NativePhoto115Sheet(key: key, model: s.mirror!, actions: a),
@@ -1565,6 +1608,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
     if (scope == 'edit115') return _editEvent(kind, index, value);
     if (scope == 'rs139e') return _edReasonEvent(kind, index);
+    if (scope == 'pin139e') return _editPinEvent(kind, index, value);
     if (scope == 'wa131') {
       final wo = _detailId == null ? null : b.orderById(_detailId!);
       if (kind == 'button' && wo != null && index == 1) {

@@ -719,7 +719,10 @@ void templateTests() {
     final s = await _pump(tester, kv);
     s.nav('ralat139');
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+    // Tombol 'Ganti PIN' adalah tambahan Mode Murni; selebihnya sama dengan HTML.
+    final got = jsonDecode(jsonEncode(s.debugItems())) as List;
+    ((got.first as Map)['btns'] as List).removeWhere((b) => (b as Map)['i'] == 900);
+    expect(jsonEncode(got), jsonEncode(fx['empty']));
     expect(tester.takeException(), isNull);
   });
 
@@ -772,12 +775,18 @@ void templateTests() {
     s.fmScoped('rs139', 'button', 5);
     s.fmScoped('rs139', 'button', 7); // Batalkan Bayar
     await _settle(tester);
-    expect(find.text('PIN Admin Utama'), findsOneWidget);
-    s.fmScoped('pin139', 'input', 0, '0000');
-    s.fmScoped('pin139', 'button', 0);
+    // Papan PIN seperti HTML: 1–9 (0–8), Batal (9), 0 (10), ⌫ (11); diperiksa otomatis saat lengkap.
+    expect(find.text('Persetujuan Admin Utama'), findsOneWidget);
+    for (var k = 0; k < 4; k++) {
+      s.fmScoped('pin139', 'button', 10);
+    }
     expect(s.debugToast, 'PIN salah');
-    s.fmScoped('pin139', 'input', 0, '1234');
     s.fmScoped('pin139', 'button', 0);
+    s.fmScoped('pin139', 'button', 4);
+    s.fmScoped('pin139', 'button', 11);
+    for (final k in [1, 2, 3]) {
+      s.fmScoped('pin139', 'button', k);
+    }
     await _settle(tester);
     expect(s.debugToast, 'Pembayaran dibatalkan · pesanan jadi Belum Bayar');
     after = await Business.load(kv);

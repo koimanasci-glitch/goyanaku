@@ -51,6 +51,8 @@ abstract class PureHost {
   void startOrderFor(String customerName);
   /// Cetak teks ke printer Bluetooth (atau dialog cetak Android bila belum ada printer).
   Future<void> printText(String text, String title, String done);
+  /// Cetak dokumen: printer Bluetooth memakai [text]; tanpa printer, dialog cetak Android memakai [html].
+  Future<void> printDoc({required String html, required String text, required String title, required String done});
   /// Buka pemindai barcode/QR.
   void scanCode();
   /// Muat ulang semua data dari penyimpanan (sesudah restore cadangan).

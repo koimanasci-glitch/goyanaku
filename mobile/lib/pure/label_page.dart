@@ -100,7 +100,7 @@ class LabelPage extends PurePage {
       if (list.isEmpty) {'type': 'hint', 't': 'Belum ada pesanan aktif.'},
       if (o != null) ...[
         {'type': 'title', 't': '2. Jumlah kantong'},
-        {'type': 'stepper', 'v': '$bags', 'minus': 2, 'plus': 3, 'mt': '−', 'pt': '+', 't': '$bags kantong', 's': 'Saran otomatis dari berat cucian'},
+        {'type': 'stepper', 'v': '$bags', 'minus': 2, 'plus': 3, 'mt': '−', 'pt': '+', 't': '$bags kantong', 's': _printed(o) > 0 ? 'Sudah pernah dicetak · bisa cetak ulang' : 'Saran otomatis dari berat cucian'},
         {'type': 'buttons', 'options': [for (var k = 0; k < labelSizes.length; k++) {'t': labelSizes[k], 'on': size == k, 'i': 4 + k}]},
         {'type': 'title', 't': '3. Pratinjau label', 's': 'geser →'},
         for (var k = 1; k <= bags; k++)
@@ -150,11 +150,31 @@ class LabelPage extends PurePage {
         if (o == null) return host.toast('Pilih pesanan dulu');
         o.dataset['bags137'] = '$bags';
         host.saveAll();
-        host.printText(labelText(o, host.settings.receipt, bags), '${o.id} label', '$bags label kantong dicetak · ${o.id}');
+        host.printDoc(html: labelHtml(o), text: labelText(o, host.settings.receipt, bags), title: '${o.id} label', done: '$bags label kantong dicetak · ${o.id}');
       case 9:
         return host.go('orders');
     }
     host.refresh();
+  }
+
+  /// Label gambar untuk dialog cetak (HTML lbPrint137): satu halaman per kantong, ukuran sesuai pilihan.
+  String labelHtml(Order o) {
+    String esc(String v) => v.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    String two(int n) => n.toString().padLeft(2, '0');
+    final w = const ['50mm', '40mm', '58mm'][size], auto = size == 2;
+    final est = o.due == null ? '' : ' · Est ${two(o.due!.day)}/${two(o.due!.month)}/${o.due!.year} · ${two(o.due!.hour)}:${two(o.due!.minute)}';
+    final css = '@page{size:$w ${auto ? '40mm' : '30mm'};margin:1.5mm}body{margin:0;font-family:Arial,Helvetica,sans-serif}'
+        '.l{width:100%;height:${auto ? 'auto' : '26mm'};box-sizing:border-box;page-break-after:always;padding:0}.l:last-child{page-break-after:auto}'
+        '.h{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}.h small{display:block;font-size:6.5pt;font-weight:700}'
+        '.h b{display:block;font-size:10pt;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30mm}'
+        '.k{border:1.5pt solid #000;border-radius:3pt;padding:0 3pt;text-align:center;font-weight:900;font-size:11pt;line-height:1.05}.k small{display:block;font-size:5pt}'
+        '.m{font-size:7pt;margin:1pt 0 2pt}svg{display:block;width:100%;height:9mm}.c{text-align:center;font:700 7pt monospace}';
+    final body = StringBuffer();
+    for (var k = 1; k <= bags; k++) {
+      body.write('<div class="l"><div class="h"><div><small>GOYANA · ${esc(_outlet())}</small><b>${esc(o.name)}</b></div><div class="k">$k/$bags<small>KANTONG</small></div></div>'
+          '<div class="m">${esc(o.dur)}$est${o.isPaid ? ' · LUNAS' : ' · BELUM BAYAR'}</div>${code128Svg('${o.id}/$k')}<div class="c">${esc(o.id)}/$k</div></div>');
+    }
+    return '<html><head><style>$css</style></head><body>$body</body></html>';
   }
 
   // ---------- Cek Kelengkapan Kantong (bg137) ----------
