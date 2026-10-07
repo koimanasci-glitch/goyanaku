@@ -1119,6 +1119,23 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   @visibleForTesting
   bool get debugHanding => _handing;
+  /// Ringkasan keadaan layar (untuk tes audit tombol): halaman, toast, popup yang terbuka.
+  @visibleForTesting
+  String debugState() => '$_page|$_toast|${_sheets.map((e) => e.id).join(',')}|${_pageSheets.join(',')}|$_detailId|$_payOrderId|$_aoSheet|$_aoStage|${_stOpen.join(',')}';
+  @visibleForTesting
+  List<String> debugSheetIds() => [..._sheets.map((e) => e.id), ..._pageSheets];
+  @visibleForTesting
+  Iterable<String> debugPageIds() => _pages.keys;
+  @visibleForTesting
+  Map<String, dynamic> debugSettingsMenu() {
+    final keep = {..._stOpen};
+    _stOpen.addAll([for (var i = 0; i < 20; i++) i]);
+    final m = _settingsJson();
+    _stOpen
+      ..clear()
+      ..addAll(keep);
+    return m;
+  }
   @visibleForTesting
   PurePage? debugPage(String id) => _pages[id];
   @visibleForTesting
