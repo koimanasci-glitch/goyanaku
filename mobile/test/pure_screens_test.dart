@@ -183,6 +183,8 @@ void main() {
     await shot('import');
     s.fmScoped('import203', 'button', 1);
     s.nav('upgrade');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.drag(find.text('Pilih Paket'), const Offset(0, -900));
     await shot('tambahan');
     await tester.tap(find.text('Tambah Cabang'));
