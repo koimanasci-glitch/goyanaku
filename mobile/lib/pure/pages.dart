@@ -24,6 +24,7 @@ import '../native/perfume_page.dart';
 import 'access.dart';
 import 'delivery.dart';
 import 'discounts.dart';
+import 'g181_mirror.dart';
 import 'mirror_pages.dart';
 import 'page_templates.dart';
 import 'qr_decode.dart';
@@ -1173,6 +1174,9 @@ class StockPage extends PurePage {
   }
 
   @override
+  Widget? sheetWidget(String id, BuildContext context) => g181Sheet(this, id);
+
+  @override
   List<Map<String, dynamic>>? sheetItems(String id) {
     final b = book;
     if (id != 'g181-modal' || b == null) return null;
@@ -1473,6 +1477,9 @@ class CourierPage extends PurePage {
       ..addAll([for (final o in _outlets) if (k == null || have.isEmpty || have.contains(o[0])) o[0]]);
     host.openPageSheet('g181-modal');
   }
+
+  @override
+  Widget? sheetWidget(String id, BuildContext context) => g181Sheet(this, id);
 
   @override
   List<Map<String, dynamic>>? sheetItems(String id) {

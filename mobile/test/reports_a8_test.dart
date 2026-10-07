@@ -94,7 +94,7 @@ void _adapterTests() {
 }
 
 void _hubTests() {
-  test('Beranda laporan Dart: hero, KPI, 41 butir daftar, saringan dan pencarian', () {
+  test('Beranda laporan Dart: hero, KPI, 43 butir (termasuk 2 laporan v182) daftar, saringan dan pencarian', () {
     final fx = jsonDecode(File('test/fixtures/parity/reports_a8.json').readAsStringSync()) as Map;
     final sc = (fx['scenarios'] as List).cast<Map>().firstWhere((s) => s['name'] == 'synthetic');
     final ctx = RepCtx.fromJson(sc['state'] as Map);
@@ -103,13 +103,13 @@ void _hubTests() {
     expect(m.heroLabel, 'Omzet · 30 hari');
     expect(m.kpis.map((k) => k.title), ['Pengeluaran', 'Laba bersih', 'Belum dibayar', 'Pelanggan baru']);
     expect(m.methods.map((x) => x.title), ['Tunai', 'QRIS', 'Transfer', 'Deposit']);
-    expect(m.sections.fold<int>(0, (a, s) => a + s.items.length), 41);
+    expect(m.sections.fold<int>(0, (a, s) => a + s.items.length), 43);
     expect(m.periods.where((p) => p.on).single.t, '30 hari');
     final piutang = reportsHubA8(ctx, periodKey: '30', query: 'piutang');
     expect(piutang.sections.single.items.single.title, 'Piutang (Belum Bayar)');
     expect(reportVisibleIds(query: 'piutang'), ['piutang']);
     final keu = reportsHubA8(ctx, periodKey: 'last', cat: 'keu');
-    expect(keu.sections.single.items.length, 10);
+    expect(keu.sections.single.items.length, 11);
     expect(keu.sections.single.items.first.index, 0);
   });
   test('CSV dan teks WA laporan', () {
