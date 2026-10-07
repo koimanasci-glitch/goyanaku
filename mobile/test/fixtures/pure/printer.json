@@ -1,0 +1,346 @@
+{
+ "printer": [
+  {
+   "type": "card",
+   "t": "Printer Bluetooth",
+   "s": "Hubungkan printer thermal dan cek izin perangkat",
+   "svg": "<svg viewBox=\"0 0 24 24\"><path d=\"M7 8V3h10v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"></path><path d=\"M7 15h10v6H7z\"></path></svg>",
+   "ic": "",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Profil Nota"
+  },
+  {
+   "type": "label",
+   "t": "Profil Nota (Header)"
+  },
+  {
+   "type": "input",
+   "v": "Goyana Laundry",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Alamat Outlet"
+  },
+  {
+   "type": "input",
+   "v": "Perum GCC Cluster Sakura Blok F36 No 39",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "No Handphone"
+  },
+  {
+   "type": "input",
+   "v": "HP : 085280218626",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "hint",
+   "t": "Catatan: hindari emoticon pada teks nota agar kompatibel dengan printer thermal."
+  },
+  {
+   "type": "label",
+   "t": "Footer Nota"
+  },
+  {
+   "type": "input",
+   "v": "- Harap membawa nota ini saat mengambil pakaian\n- Pisahkan pakaian luntur dan tidak luntur\n- Kelunturan di mesin cuci bukan tanggung jawab kami\n- Sprei, selimut, sepatu & bed cover dihitung satuan\n- Kiloan minimal 2 kg",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "label",
+   "t": "Footer Nota WA"
+  },
+  {
+   "type": "input",
+   "v": "-",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 4
+  },
+  {
+   "type": "label",
+   "t": "Pesan Notifikasi Siap Ambil WA"
+  },
+  {
+   "type": "input",
+   "v": "Format resmi GOYANA (otomatis): Nota, Pelanggan, Layanan, Tagihan, Jam buka, Alamat, link cek status.",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 5
+  },
+  {
+   "type": "hint",
+   "t": "Tag yang tersedia: {{nama_customer}}, {{no_invoice}}, {{nama_outlet}}."
+  },
+  {
+   "type": "row",
+   "t": "Menampilkan Logo",
+   "btn": "Konfigurasi",
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan QR Code",
+   "s": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Estimasi Selesai",
+   "s": "",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Nama Kasir",
+   "s": "",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Keterangan",
+   "s": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Footer Nota",
+   "s": "",
+   "on": true,
+   "i": 4
+  },
+  {
+   "type": "toggle",
+   "t": "Menampilkan Footer Nota WA",
+   "s": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Format Angka Ribuan Nota",
+   "s": "",
+   "on": true,
+   "i": 6
+  },
+  {
+   "type": "choice",
+   "t": "Ukuran Printer",
+   "options": [
+    {
+     "t": "58 mm",
+     "s": "",
+     "on": true,
+     "i": 0
+    },
+    {
+     "t": "80 mm",
+     "s": "",
+     "on": false,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "choice",
+   "t": "Type Nota",
+   "options": [
+    {
+     "t": "Type A",
+     "s": "",
+     "on": true,
+     "i": 2
+    },
+    {
+     "t": "Type B",
+     "s": "",
+     "on": false,
+     "i": 3
+    }
+   ]
+  },
+  {
+   "type": "button",
+   "t": "SIMPAN",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  }
+ ],
+ "devices": [
+  {
+   "type": "entry",
+   "t": "Terhubung ke RPP02N",
+   "lines": [
+    "Nyalakan printer thermal & Bluetooth HP Anda"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "<svg viewBox=\"0 0 24 24\"><path d=\"M7 8V3h10v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"></path><path d=\"M7 15h10v6H7z\"></path></svg>",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "title",
+   "t": "Akses Printer",
+   "s": ""
+  },
+  {
+   "type": "button",
+   "t": "Pengaturan Bluetooth HP",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Perangkat Ditemukan",
+   "s": ""
+  },
+  {
+   "type": "card",
+   "t": "RPP02N",
+   "s": "66:12",
+   "svg": "",
+   "ic": "🖨",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "MTP-II",
+   "s": "02:3C",
+   "svg": "",
+   "ic": "🖨",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "button",
+   "t": "↻ Cari Ulang Printer",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 3
+  },
+  {
+   "type": "button",
+   "t": "Tes Cetak",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 4
+  }
+ ],
+ "none": [
+  {
+   "type": "entry",
+   "t": "Terhubung ke RPP02N",
+   "lines": [
+    "Nyalakan printer thermal & Bluetooth HP Anda"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "<svg viewBox=\"0 0 24 24\"><path d=\"M7 8V3h10v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"></path><path d=\"M7 15h10v6H7z\"></path></svg>",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "title",
+   "t": "Akses Printer",
+   "s": ""
+  },
+  {
+   "type": "button",
+   "t": "Pengaturan Bluetooth HP",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "title",
+   "t": "Perangkat Ditemukan",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "Belum ada perangkat dipasangkan. Buka Pengaturan Bluetooth HP."
+  },
+  {
+   "type": "button",
+   "t": "↻ Cari Ulang Printer",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 1
+  },
+  {
+   "type": "button",
+   "t": "Tes Cetak",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  }
+ ]
+}

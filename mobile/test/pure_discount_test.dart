@@ -514,4 +514,31 @@ void templateTests() {
     expect([kv.data['gy154-bank'], kv.data['gy154-account'], kv.data['gy154-holder']], ['BCA', '1234567', 'Koiman']);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Printer & Nota + Printer Bluetooth: susunan butir sama dengan HTML; profil nota tersimpan', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/printer.json').readAsStringSync()) as Map;
+    // Nilai isian HTML adalah contoh tertanam; yang dibandingkan susunan butirnya.
+    String shape(Object items) => jsonEncode([
+          for (final it in (items as List).cast<Map>()) {...it, if (it['type'] == 'input') 'v': ''},
+        ]);
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('printer');
+    await _settle(tester);
+    expect(shape(s.debugItems()), shape(fx['printer']));
+    s.fmInput(0, 'Laundry Uji');
+    s.fmRadio(1);
+    s.fmToggle(1);
+    s.fmButton(2);
+    await _settle(tester);
+    expect(s.debugToast, 'Pengaturan printer & nota tersimpan');
+    final saved = (jsonDecode(kv.data['goyana-pure-settings']!) as Map)['receipt'] as Map;
+    expect([saved['header'], saved['width'], saved['showDue']], ['Laundry Uji', 48, false]);
+    s.fmButton(0);
+    await _settle(tester);
+    final got = s.debugItems();
+    expect(got.first['t'], 'Belum terhubung');
+    expect(jsonEncode(got.sublist(1)), jsonEncode((fx['none'] as List).sublist(1)).replaceFirst('Belum ada perangkat dipasangkan. Buka Pengaturan Bluetooth HP.', 'Pasangkan printer di Bluetooth HP, lalu Cari Ulang Printer.'));
+    expect(tester.takeException(), isNull);
+  });
 }

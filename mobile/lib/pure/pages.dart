@@ -178,70 +178,181 @@ class ReceiptPage extends PurePage {
   }
 }
 
-class PrinterPage extends PurePage {
-  PrinterPage(super.host);
-  List<Map<String, String>> paired = [];
-  String status = 'Memuat…';
-  bool connected = false;
-  @override
-  String get title => 'Printer Bluetooth';
-  @override
-  void opened() => load();
+const _printerSvg = '<svg viewBox="0 0 24 24"><path d="M7 8V3h10v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M7 15h10v6H7z"></path></svg>';
 
-  Future<void> load() async {
-    try {
-      final st = await host.device.invokeMapMethod<String, dynamic>('GoyanaDevice.printerStatus');
-      connected = st?['connected'] == true;
-      final perm = await host.device.invokeMapMethod<String, dynamic>('GoyanaDevice.requestAccess', {'alias': 'bluetooth'});
-      if (perm != null && perm['granted'] == false) {
-        status = 'Izin perangkat sekitar (Bluetooth) belum diberikan';
-      } else {
-        final list = await host.device.invokeListMethod<dynamic>('GoyanaDevice.pairedPrinters');
-        paired = (list ?? const []).whereType<Map>().map((e) => {'name': '${e['name']}', 'address': '${e['address']}'}).toList();
-        status = paired.isEmpty ? 'Belum ada printer yang dipasangkan di Bluetooth HP' : 'Pilih printer';
-      }
-    } on PlatformException catch (e) {
-      status = e.message ?? 'Bluetooth tidak tersedia';
-    } catch (_) {
-      status = 'Bluetooth tidak tersedia';
+/// Pengaturan → Printer & Nota: Profil Nota (dipakai sungguhan saat mencetak; di HTML tidak tersimpan) + tautan Printer Bluetooth.
+class PrinterNotaPage extends PurePage {
+  PrinterNotaPage(super.host);
+  late List<String> f;
+  late int width;
+  late bool showDue;
+  @override
+  String get title => 'PRINTER & NOTA';
+  Map<String, dynamic> get _x => ((host.settings.raw.putIfAbsent('nota', () => <String, dynamic>{})) as Map).cast<String, dynamic>();
+
+  @override
+  void opened() {
+    final r = host.settings.receipt;
+    f = [r.header, r.address, r.phone, r.footer, '${_x['footerWa'] ?? '-'}',
+      '${_x['readyMsg'] ?? 'Format resmi GOYANA (otomatis): Nota, Pelanggan, Layanan, Tagihan, Jam buka, Alamat, link cek status.'}'];
+    width = r.width;
+    showDue = r.showDue;
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    Map<String, dynamic> inp(int i, {bool multi = false}) =>
+        {'type': 'input', 'v': f[i], 'ph': '', 'multiline': multi, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    Map<String, dynamic> tg(String t, int i, bool def) => {'type': 'toggle', 't': t, 's': '', 'on': i == 1 ? showDue : (_x['t$i'] as bool? ?? def), 'i': i};
+    return [
+      {'type': 'card', 't': 'Printer Bluetooth', 's': 'Hubungkan printer thermal dan cek izin perangkat', 'svg': _printerSvg, 'ic': '', 'badge': '', 'meta': '', 'on': false, 'i': 0},
+      {'type': 'title', 't': 'Profil Nota'},
+      {'type': 'label', 't': 'Profil Nota (Header)'},
+      inp(0),
+      {'type': 'label', 't': 'Alamat Outlet'},
+      inp(1, multi: true),
+      {'type': 'label', 't': 'No Handphone'},
+      inp(2),
+      {'type': 'hint', 't': 'Catatan: hindari emoticon pada teks nota agar kompatibel dengan printer thermal.'},
+      {'type': 'label', 't': 'Footer Nota'},
+      inp(3, multi: true),
+      {'type': 'label', 't': 'Footer Nota WA'},
+      inp(4, multi: true),
+      {'type': 'label', 't': 'Pesan Notifikasi Siap Ambil WA'},
+      inp(5, multi: true),
+      {'type': 'hint', 't': 'Tag yang tersedia: {{nama_customer}}, {{no_invoice}}, {{nama_outlet}}.'},
+      {'type': 'row', 't': 'Menampilkan Logo', 'btn': 'Konfigurasi', 'i': 1},
+      tg('Menampilkan QR Code', 0, false),
+      tg('Menampilkan Estimasi Selesai', 1, true),
+      tg('Menampilkan Nama Kasir', 2, true),
+      tg('Menampilkan Keterangan', 3, false),
+      tg('Menampilkan Footer Nota', 4, true),
+      tg('Menampilkan Footer Nota WA', 5, false),
+      tg('Format Angka Ribuan Nota', 6, true),
+      {'type': 'choice', 't': 'Ukuran Printer', 'options': [{'t': '58 mm', 's': '', 'on': width != 48, 'i': 0}, {'t': '80 mm', 's': '', 'on': width == 48, 'i': 1}]},
+      {'type': 'choice', 't': 'Type Nota', 'options': [{'t': 'Type A', 's': '', 'on': _x['type'] != 'B', 'i': 2}, {'t': 'Type B', 's': '', 'on': _x['type'] == 'B', 'i': 3}]},
+      {'type': 'button', 't': 'SIMPAN', 'primary': true, 'file': '', 'after': false, 'i': 2},
+    ];
+  }
+
+  @override
+  void input(int i, Object value) => f[i.clamp(0, 5)] = '$value';
+  @override
+  void toggle(int i) {
+    if (i == 1) {
+      showDue = !showDue;
+    } else {
+      _x['t$i'] = !(_x['t$i'] as bool? ?? const [false, true, true, false, true, false, true][i.clamp(0, 6)]);
     }
     host.refresh();
   }
 
   @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'pair', 't': 'Status', 'v': connected ? 'Terhubung · ${host.settings.printerName}' : 'Tidak terhubung', 'tone': connected ? 'g' : 'r'},
-        {'type': 'hint', 't': status},
-        for (var k = 0; k < paired.length; k++)
-          {'type': 'entry', 't': paired[k]['name'], 'lines': [paired[k]['address']], 'btns': [{'t': host.settings.printerAddress == paired[k]['address'] && connected ? 'Terhubung' : 'Hubungkan', 'i': 10 + k}]},
-        {'type': 'button', 't': 'Cari Ulang Printer', 'primary': false, 'i': 0},
-        {'type': 'button', 't': 'Tes Cetak', 'primary': true, 'i': 1},
-        {'type': 'hint', 't': 'Pasangkan printer dulu di Pengaturan Bluetooth HP, lalu tekan Hubungkan.'},
-      ];
+  void radio(int i) {
+    if (i < 2) {
+      width = i == 1 ? 48 : 32;
+    } else {
+      _x['type'] = i == 3 ? 'B' : 'A';
+    }
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    if (i == 0) return host.go('printerconnect');
+    if (i == 1) return host.toast('Konfigurasi logo nota');
+    host.settings.receipt = ReceiptSettings(header: f[0], address: f[1], phone: f[2], footer: f[3], width: width, showDue: showDue);
+    _x
+      ..['footerWa'] = f[4]
+      ..['readyMsg'] = f[5];
+    host.saveAll();
+    host.toast('Pengaturan printer & nota tersimpan');
+  }
+}
+
+/// Printer Bluetooth (pc90): status, Pengaturan Bluetooth HP, perangkat terpasang, Cari Ulang, Tes Cetak.
+class PrinterPage extends PurePage {
+  PrinterPage(super.host);
+  List<Map<String, String>> paired = [];
+  String note = 'Pasangkan printer di Bluetooth HP, lalu Cari Ulang Printer.';
+  bool connected = false;
+  @override
+  String get title => 'PRINTER BLUETOOTH';
+  @override
+  String get back => 'printer';
+  @override
+  void opened() {
+    host.device.invokeMapMethod<String, dynamic>('GoyanaDevice.printerStatus').then((st) {
+      connected = st?['connected'] == true;
+      host.refresh();
+    }).catchError((_) {});
+  }
+
+  Future<void> scan() async {
+    try {
+      final perm = await host.device.invokeMapMethod<String, dynamic>('GoyanaDevice.requestAccess', {'alias': 'bluetooth'});
+      if (perm != null && perm['granted'] == false) return host.toast('Izin perangkat sekitar (Bluetooth) belum diberikan');
+      final list = await host.device.invokeListMethod<dynamic>('GoyanaDevice.pairedPrinters');
+      paired = (list ?? const []).whereType<Map>().map((e) => {'name': '${e['name']}', 'address': '${e['address']}'}).toList();
+      note = paired.isEmpty ? 'Belum ada perangkat dipasangkan. Buka Pengaturan Bluetooth HP.' : '';
+    } on PlatformException catch (e) {
+      host.toast(e.message ?? 'Printer Bluetooth tersedia di APK Android.');
+    } catch (_) {
+      host.toast('Printer Bluetooth tersedia di APK Android.');
+    }
+    host.refresh();
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final n = paired.length;
+    return [
+      {'type': 'entry', 't': connected ? 'Terhubung ke ${host.settings.printerName}' : 'Belum terhubung', 'lines': ['Nyalakan printer thermal & Bluetooth HP Anda'], 'badge': '', 'avatar': '', 'svg': _printerSvg, 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'title', 't': 'Akses Printer', 's': ''},
+      {'type': 'button', 't': 'Pengaturan Bluetooth HP', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      {'type': 'title', 't': 'Perangkat Ditemukan', 's': ''},
+      if (n == 0) {'type': 'hint', 't': note},
+      for (var k = 0; k < n; k++) {'type': 'card', 't': paired[k]['name'], 's': paired[k]['address'], 'svg': '', 'ic': '🖨', 'badge': '', 'meta': '', 'on': false, 'i': 1 + k},
+      {'type': 'button', 't': '↻ Cari Ulang Printer', 'primary': false, 'file': '', 'after': false, 'i': 1 + n},
+      {'type': 'button', 't': 'Tes Cetak', 'primary': true, 'file': '', 'after': false, 'i': 2 + n},
+    ];
+  }
 
   @override
   void button(int i) async {
-    if (i == 0) return load();
-    if (i == 1) {
+    final n = paired.length;
+    if (i == 0) {
+      try {
+        await host.device.invokeMethod('GoyanaDevice.bluetoothSettings');
+      } catch (_) {
+        host.toast('Printer Bluetooth tersedia di APK Android.');
+      }
+      return;
+    }
+    if (i == 1 + n) return scan();
+    if (i == 2 + n) {
       try {
         await host.device.invokeMethod('GoyanaDevice.testPrint');
         host.toast('Tes cetak dikirim');
       } on PlatformException catch (e) {
         host.toast(e.message ?? 'Printer belum terhubung');
+      } catch (_) {
+        host.toast('Tes cetak tersedia di APK Android.');
       }
       return;
     }
-    final k = i - 10;
-    if (k < 0 || k >= paired.length) return;
-    host.toast('Menghubungkan ${paired[k]['name']}…');
+    final k = i - 1;
+    if (k < 0 || k >= n) return;
     try {
       await host.device.invokeMethod('GoyanaDevice.connectPrinter', {'address': paired[k]['address']});
       host.settings.setPrinter(paired[k]['address']!, paired[k]['name']!);
       await host.saveAll();
       connected = true;
-      host.toast('Printer terhubung');
+      host.toast('Printer berhasil terhubung');
     } on PlatformException catch (e) {
       host.toast(e.message ?? 'Gagal menghubungkan printer');
+    } catch (_) {
+      host.toast('Gagal menghubungkan printer');
     }
     host.refresh();
   }
