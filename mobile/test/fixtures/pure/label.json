@@ -1,0 +1,491 @@
+{
+ "page": {
+  "title": "CETAK LABEL CUCIAN",
+  "items": [
+   {
+    "type": "title",
+    "t": "🏷️"
+   },
+   {
+    "type": "hint",
+    "t": "Anti tertukar. Setiap kantong dapat label sendiri (1/3, 2/3, 3/3) dengan barcode Order ID. Saat diambil, scan semua kantong supaya tidak ada yang tertinggal atau tertukar."
+   },
+   {
+    "type": "title",
+    "t": "1. Pilih pesanan",
+    "s": ""
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama / Order ID…",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Scan",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "card",
+    "t": "Budi Native",
+    "s": "GY-261007-0133 · Reguler · Antrian",
+    "svg": "",
+    "ic": "",
+    "badge": "Belum label",
+    "meta": "",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "2. Jumlah kantong",
+    "s": ""
+   },
+   {
+    "type": "stepper",
+    "v": "1",
+    "minus": 2,
+    "plus": 3,
+    "mt": "−",
+    "pt": "+",
+    "t": "1 kantong",
+    "s": "Saran otomatis dari berat cucian"
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "50×30 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": true,
+      "i": 4
+     },
+     {
+      "t": "40×30 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 5
+     },
+     {
+      "t": "Struk 58 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 6
+     }
+    ]
+   },
+   {
+    "type": "title",
+    "t": "3. Pratinjau label",
+    "s": "geser →"
+   },
+   {
+    "type": "labelprev",
+    "lines": [
+     "GOYANA · UJI",
+     "Budi Native",
+     "1/1KANTONG",
+     "KANTONG",
+     "Reguler · Est 10/10/2026 · 14:15 · BELUM BAYAR",
+     "GY-261007-0133/1"
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 231 40\" preserveAspectRatio=\"none\" shape-rendering=\"crispEdges\"><rect width=\"100%\" height=\"100%\" fill=\"#fff\"></rect><g fill=\"#000\"><rect x=\"10\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"13\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"16\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"21\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"24\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"28\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"32\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"36\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"39\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"43\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"46\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"49\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"54\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"58\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"63\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"65\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"69\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"73\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"76\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"79\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"84\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"87\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"90\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"94\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"98\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"101\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"105\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"109\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"113\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"116\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"120\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"123\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"126\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"131\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"134\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"138\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"142\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"145\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"150\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"153\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"157\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"159\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"164\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"168\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"170\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"175\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"177\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"182\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"186\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"189\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"194\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"197\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"203\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"206\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"208\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"213\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"217\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"219\" y=\"0\" width=\"2\" height=\"40\"></rect></g></svg>"
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "✓ Cek Kantong",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 7
+     },
+     {
+      "t": "🖨 Cetak Label",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 8
+     }
+    ]
+   },
+   {
+    "type": "button",
+    "t": "Lewati, kembali ke pesanan",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 9
+   }
+  ]
+ },
+ "two": {
+  "title": "CETAK LABEL CUCIAN",
+  "items": [
+   {
+    "type": "title",
+    "t": "🏷️"
+   },
+   {
+    "type": "hint",
+    "t": "Anti tertukar. Setiap kantong dapat label sendiri (1/3, 2/3, 3/3) dengan barcode Order ID. Saat diambil, scan semua kantong supaya tidak ada yang tertinggal atau tertukar."
+   },
+   {
+    "type": "title",
+    "t": "1. Pilih pesanan",
+    "s": ""
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama / Order ID…",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Scan",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "card",
+    "t": "Budi Native",
+    "s": "GY-261007-0133 · Reguler · Antrian",
+    "svg": "",
+    "ic": "",
+    "badge": "Belum label",
+    "meta": "",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "2. Jumlah kantong",
+    "s": ""
+   },
+   {
+    "type": "stepper",
+    "v": "2",
+    "minus": 2,
+    "plus": 3,
+    "mt": "−",
+    "pt": "+",
+    "t": "2 kantong",
+    "s": "Saran otomatis dari berat cucian"
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "50×30 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": true,
+      "i": 4
+     },
+     {
+      "t": "40×30 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 5
+     },
+     {
+      "t": "Struk 58 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 6
+     }
+    ]
+   },
+   {
+    "type": "title",
+    "t": "3. Pratinjau label",
+    "s": "geser →"
+   },
+   {
+    "type": "labelprev",
+    "lines": [
+     "GOYANA · UJI",
+     "Budi Native",
+     "1/2KANTONG",
+     "KANTONG",
+     "Reguler · Est 10/10/2026 · 14:15 · BELUM BAYAR",
+     "GY-261007-0133/1"
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 231 40\" preserveAspectRatio=\"none\" shape-rendering=\"crispEdges\"><rect width=\"100%\" height=\"100%\" fill=\"#fff\"></rect><g fill=\"#000\"><rect x=\"10\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"13\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"16\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"21\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"24\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"28\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"32\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"36\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"39\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"43\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"46\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"49\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"54\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"58\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"63\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"65\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"69\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"73\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"76\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"79\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"84\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"87\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"90\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"94\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"98\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"101\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"105\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"109\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"113\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"116\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"120\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"123\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"126\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"131\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"134\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"138\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"142\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"145\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"150\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"153\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"157\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"159\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"164\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"168\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"170\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"175\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"177\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"182\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"186\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"189\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"194\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"197\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"203\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"206\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"208\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"213\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"217\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"219\" y=\"0\" width=\"2\" height=\"40\"></rect></g></svg>"
+   },
+   {
+    "type": "labelprev",
+    "lines": [
+     "GOYANA · UJI",
+     "Budi Native",
+     "2/2KANTONG",
+     "KANTONG",
+     "Reguler · Est 10/10/2026 · 14:15 · BELUM BAYAR",
+     "GY-261007-0133/2"
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 231 40\" preserveAspectRatio=\"none\" shape-rendering=\"crispEdges\"><rect width=\"100%\" height=\"100%\" fill=\"#fff\"></rect><g fill=\"#000\"><rect x=\"10\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"13\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"16\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"21\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"24\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"28\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"32\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"36\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"39\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"43\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"46\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"49\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"54\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"58\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"63\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"65\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"69\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"73\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"76\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"79\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"84\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"87\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"90\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"94\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"98\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"101\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"105\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"109\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"113\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"116\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"120\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"123\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"126\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"131\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"134\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"138\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"142\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"145\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"150\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"153\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"157\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"159\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"164\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"168\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"170\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"175\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"177\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"182\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"186\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"190\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"195\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"197\" y=\"0\" width=\"4\" height=\"40\"></rect><rect x=\"202\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"205\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"208\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"213\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"217\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"219\" y=\"0\" width=\"2\" height=\"40\"></rect></g></svg>"
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "✓ Cek Kantong",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 7
+     },
+     {
+      "t": "🖨 Cetak Label",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 8
+     }
+    ]
+   },
+   {
+    "type": "button",
+    "t": "Lewati, kembali ke pesanan",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 9
+   }
+  ]
+ },
+ "printed": {
+  "title": "CETAK LABEL CUCIAN",
+  "items": [
+   {
+    "type": "title",
+    "t": "🏷️"
+   },
+   {
+    "type": "hint",
+    "t": "Anti tertukar. Setiap kantong dapat label sendiri (1/3, 2/3, 3/3) dengan barcode Order ID. Saat diambil, scan semua kantong supaya tidak ada yang tertinggal atau tertukar."
+   },
+   {
+    "type": "title",
+    "t": "1. Pilih pesanan",
+    "s": ""
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama / Order ID…",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Scan",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "card",
+    "t": "Budi Native",
+    "s": "GY-261007-0133 · Reguler · Antrian",
+    "svg": "",
+    "ic": "",
+    "badge": "🏷 2 kantong",
+    "meta": "",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "2. Jumlah kantong",
+    "s": ""
+   },
+   {
+    "type": "stepper",
+    "v": "2",
+    "minus": 2,
+    "plus": 3,
+    "mt": "−",
+    "pt": "+",
+    "t": "2 kantong",
+    "s": "Saran otomatis dari berat cucian"
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "50×30 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 4
+     },
+     {
+      "t": "40×30 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 5
+     },
+     {
+      "t": "Struk 58 mm",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": true,
+      "i": 6
+     }
+    ]
+   },
+   {
+    "type": "title",
+    "t": "3. Pratinjau label",
+    "s": "geser →"
+   },
+   {
+    "type": "labelprev",
+    "lines": [
+     "GOYANA · UJI",
+     "Budi Native",
+     "1/2KANTONG",
+     "KANTONG",
+     "Reguler · Est 10/10/2026 · 14:15 · BELUM BAYAR",
+     "GY-261007-0133/1"
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 231 40\" preserveAspectRatio=\"none\" shape-rendering=\"crispEdges\"><rect width=\"100%\" height=\"100%\" fill=\"#fff\"></rect><g fill=\"#000\"><rect x=\"10\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"13\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"16\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"21\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"24\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"28\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"32\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"36\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"39\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"43\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"46\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"49\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"54\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"58\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"63\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"65\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"69\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"73\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"76\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"79\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"84\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"87\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"90\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"94\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"98\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"101\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"105\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"109\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"113\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"116\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"120\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"123\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"126\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"131\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"134\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"138\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"142\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"145\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"150\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"153\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"157\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"159\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"164\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"168\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"170\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"175\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"177\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"182\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"186\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"189\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"194\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"197\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"203\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"206\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"208\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"213\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"217\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"219\" y=\"0\" width=\"2\" height=\"40\"></rect></g></svg>"
+   },
+   {
+    "type": "labelprev",
+    "lines": [
+     "GOYANA · UJI",
+     "Budi Native",
+     "2/2KANTONG",
+     "KANTONG",
+     "Reguler · Est 10/10/2026 · 14:15 · BELUM BAYAR",
+     "GY-261007-0133/2"
+    ],
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 231 40\" preserveAspectRatio=\"none\" shape-rendering=\"crispEdges\"><rect width=\"100%\" height=\"100%\" fill=\"#fff\"></rect><g fill=\"#000\"><rect x=\"10\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"13\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"16\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"21\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"24\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"28\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"32\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"36\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"39\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"43\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"46\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"49\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"54\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"58\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"63\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"65\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"69\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"73\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"76\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"79\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"84\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"87\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"90\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"94\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"98\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"101\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"105\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"109\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"113\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"116\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"120\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"123\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"126\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"131\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"134\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"138\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"142\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"145\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"150\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"153\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"157\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"159\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"164\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"168\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"170\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"175\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"177\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"182\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"186\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"190\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"195\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"197\" y=\"0\" width=\"4\" height=\"40\"></rect><rect x=\"202\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"205\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"208\" y=\"0\" width=\"2\" height=\"40\"></rect><rect x=\"213\" y=\"0\" width=\"3\" height=\"40\"></rect><rect x=\"217\" y=\"0\" width=\"1\" height=\"40\"></rect><rect x=\"219\" y=\"0\" width=\"2\" height=\"40\"></rect></g></svg>"
+   },
+   {
+    "type": "buttons",
+    "options": [
+     {
+      "t": "✓ Cek Kantong",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 7
+     },
+     {
+      "t": "🖨 Cetak Label",
+      "svg": "",
+      "file": "",
+      "after": false,
+      "on": false,
+      "i": 8
+     }
+    ]
+   },
+   {
+    "type": "button",
+    "t": "Lewati, kembali ke pesanan",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 9
+   }
+  ]
+ },
+ "bg137": [
+  {
+   "type": "title",
+   "t": "Cek Kelengkapan Kantong",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "GY-261007-0133 · Budi Native · 0/2 kantong terscan"
+  },
+  {
+   "type": "hint",
+   "t": "11/2"
+  },
+  {
+   "type": "hint",
+   "t": "22/2"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Scan / ketik kode label",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "📷",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Selesai",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "toast": "2 label kantong dicetak · GY-261007-0133"
+}

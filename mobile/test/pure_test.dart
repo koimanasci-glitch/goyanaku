@@ -341,9 +341,19 @@ void main() {
     await _settle(tester);
     t.fmScoped('detail', 'button', 10);
     await _settle(tester);
-    expect(find.text('Cetak Label Kantong'), findsOneWidget);
-    t.fmScoped('label', 'input', 0, '3');
-    t.fmScoped('label', 'button', 1);
+    // Label kantong = halaman Cetak Label Cucian (HTML printlabel).
+    expect(t.debugItems().where((e) => e['type'] == 'labelprev').length, 1);
+    t.fmButton(3);
+    t.fmButton(3);
+    await _settle(tester);
+    expect(t.debugItems().where((e) => e['type'] == 'labelprev').map((e) => (e['lines'] as List).last).toList(), [for (var k = 1; k <= 3; k++) endsWith('/$k')]);
+    t.fmButton(8);
+    await _settle(tester);
+    expect((await Business.load(kv)).orders.first.dataset['bags137'], '3');
+    t.fmButton(7);
+    await _settle(tester);
+    expect(t.debugSheet('bg137')!.first['t'], 'Cek Kelengkapan Kantong');
+    t.fmScoped('bg137', 'button', 1);
     await _settle(tester);
     for (final p in ['outlets', 'notif', 'whatsapp', 'plan']) {
       t.nav(p);

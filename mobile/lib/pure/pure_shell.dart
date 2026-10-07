@@ -22,7 +22,9 @@ import '../native/hist115_sheet.dart';
 import '../native/photo115_sheet.dart';
 import '../native/popup_components.dart';
 import '../native/wa131_sheet.dart';
+import 'label_page.dart';
 import 'order_view.dart';
+import 'receipt_image.dart';
 import 'addorder_assets.dart';
 import 'access.dart';
 import 'addorder_popups.dart';
@@ -82,7 +84,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -298,6 +300,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         _applyAuto();
       }
     });
+    _loadCrmRule();
     // HTML v133: mesin status otomatis memeriksa tiap 20 detik.
     _autoTimer = Timer.periodic(const Duration(seconds: 20), (_) => _applyAuto());
   }
@@ -658,6 +661,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void nav(String pageId) {
     final gate = pageGates[pageId];
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
+    if (_page == 'crm') _loadCrmRule();
     setState(() {
       _sheets.clear();
       _pageSheets.clear();
@@ -797,6 +801,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   // ---------------- Cetak struk ----------------
   Future<void> _print(Order o) => _printRaw(receiptText(o, _settings!.receipt, printedAt: now), o.id, 'Struk dicetak');
+
+  @override
+  Future<void> printText(String text, String title, String done) => _printRaw(text, title, done);
+  @override
+  void scanCode() => scan();
 
   Future<void> _printRaw(String text, String title, String done) async {
     final addr = _settings!.printerAddress;
@@ -964,11 +973,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       case 3:
         _openLabel(o);
       case 4:
-        _openNota(o);
       case 5:
-        _print(o);
+        _openStruk(o);
       case 7:
-        if (o.isCancelled) return toast('Pesanan sudah dibatalkan');
         _openEdit(o);
       case 8:
         if (o.isCancelled || o.status == 'diambil') return;
@@ -1006,9 +1013,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
   }
 
+  /// Label kantong: halaman Cetak Label Cucian (HTML printlabel) dengan pesanan ini terpilih.
   void _openLabel(Order o) {
-    _form['labels'] = '${o.items.isEmpty ? 1 : o.items.length}';
-    _open(_Sheet('label', _labelItems(o)));
+    (_pages['printlabel'] as LabelPage).select(o);
+    nav('printlabel');
   }
 
   void _openPhotos(Order o) => _open(_Sheet('photo115', const [], mirror: orderPhotoMirror(o)));
@@ -1030,15 +1038,72 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
   }
 
+  // ---------- Struk Pesanan (HTML rc106): gambar struk + Kirim WA / Cetak / Simpan / Bagikan ----------
+  Uint8List? _strukPng;
+  /// Aturan cucian tidak diambil (CRM) yang ikut dicetak di nota; kosong bila dimatikan.
+  String _crmRule = '';
+  void _loadCrmRule() => CrmStore(widget.store).load().then((st) => _crmRule = st.printRule ? st.ruleText : '').catchError((_) => '');
+
+  Future<void> _openStruk(Order o) async {
+    final b = _b!;
+    final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
+    try {
+      final png = await receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir));
+      if (!mounted) return;
+      _strukPng = png;
+      _open(_Sheet('rc106', [
+        {'type': 'title', 't': 'Struk Pesanan', 's': ''},
+        {'type': 'hint', 't': '${o.id} · ${o.name} · ${rpSpaced(o.total)}'},
+        {'type': 'image', 'src': 'data:image/png;base64,${base64Encode(png)}', 'svg': '', 'mark': '', 't': '', 's': '', 'w': 300},
+        {'type': 'title', 't': 'Kirim nota lewat WhatsApp HP ini (opsional)'},
+        {'type': 'buttons', 'options': [
+          {'t': '💬Kirim WA', 'on': false, 'i': 1}, {'t': '🖨Cetak', 'on': false, 'i': 2}, {'t': '⬇Simpan Gambar', 'on': false, 'i': 3}, {'t': '🖼Bagikan Gambar', 'on': false, 'i': 4},
+        ]},
+      ]));
+    } catch (_) {
+      toast('Struk tidak dapat dibuat');
+    }
+  }
+
+  Future<void> _strukEvent(String kind, int index) async {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    final png = _strukPng;
+    if (kind != 'button' || o == null || png == null) return _close('rc106');
+    final name = 'struk-${o.id}.png';
+    switch (index) {
+      case 1:
+        _close('rc106');
+        _openNota(o);
+      case 2:
+        _print(o);
+      case 3:
+        try {
+          await _device.invokeMethod<dynamic>('Files.save', {'name': name, 'mime': 'image/png', 'data': base64Encode(png)});
+          toast('Struk tersimpan sebagai gambar');
+        } catch (_) {
+          toast('Gagal menyimpan gambar');
+        }
+      case 4:
+        try {
+          await _device.invokeMethod('Files.share', {'title': 'Struk ${o.id}', 'files': [{'name': name, 'mime': 'image/png', 'data': base64Encode(png)}]});
+        } catch (_) {
+          toast('Gagal membagikan gambar');
+        }
+    }
+  }
+
   /// Teks nota WhatsApp (format HTML waNota131). Footer dari Profil Nota; bila kosong, 5 baris bawaan HTML.
   String _notaWa(Order o) {
     final b = _b!;
     final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
     final foot = _settings!.receipt.footer.split('\n').where((l) => l.trim().isNotEmpty && !RegExp('^-?\\s*terima kasih', caseSensitive: false).hasMatch(l.trim())).join('\n');
     return orderNotaWa(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir,
-        footer: foot.isNotEmpty
-            ? foot
-            : '- Harap membawa nota ini saat mengambil pakaian\n- Pisahkan pakaian luntur dan tidak luntur\n- Kelunturan di mesin cuci bukan tanggung jawab kami\n- Sprei, selimut, sepatu & bed cover dihitung satuan\n- Kiloan minimal 2 kg');
+        footer: [
+          foot.isNotEmpty
+              ? foot
+              : '- Harap membawa nota ini saat mengambil pakaian\n- Pisahkan pakaian luntur dan tidak luntur\n- Kelunturan di mesin cuci bukan tanggung jawab kami\n- Sprei, selimut, sepatu & bed cover dihitung satuan\n- Kiloan minimal 2 kg',
+          if (_crmRule.isNotEmpty) '- $_crmRule',
+        ].join('\n'));
   }
 
   void _openNota(Order o) => _open(_Sheet('wa131', const [], mirror: orderNotaMirror(o, _notaWa(o))));
@@ -1258,14 +1323,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   String _phoneOf(Order o) => o.phone.isNotEmpty ? o.phone : (_b!.customerByName(o.name)?.phone ?? '');
 
-  List<Map<String, dynamic>> _labelItems(Order o) => [
-        {'type': 'title', 't': 'Cetak Label Kantong', 's': '${o.id} · ${o.name}'},
-        {'type': 'input', 'label': 'Jumlah kantong', 'v': '${_form['labels']}', 'numeric': true, 'i': 0},
-        {'type': 'hint', 't': 'Satu label per kantong, berisi kode pesanan, nama, dan nomor kantong.'},
-        {'type': 'button', 't': 'Cetak Label', 'primary': true, 'i': 1},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 0},
-      ];
-
   void _sendWa(Order o) {
     var phone = _phoneOf(o).replaceAll(RegExp(r'[^0-9]'), '');
     if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
@@ -1351,6 +1408,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return _close(scope);
     }
     if (scope == 'hist115') return _close(scope);
+    if (scope == 'rc106') {
+      _strukEvent(kind, index);
+      return;
+    }
     if (scope == 'edit115') return _editEvent(kind, index, value);
     if (scope == 'wa131') {
       final wo = _detailId == null ? null : b.orderById(_detailId!);
@@ -1406,7 +1467,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         'custform' => const ['name', 'phone', 'address'][index.clamp(0, 2)],
         'cancel' => index == 0 ? 'reason' : 'note',
         'items' => 'item$index',
-        'label' => 'labels',
         'setup' => const ['oname', 'oaddr', 'ophone'][index.clamp(0, 2)],
         _ => 'amount',
       };
@@ -1514,12 +1574,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           setState(() {});
           toast('Outlet siap. Selamat bekerja!');
         });
-      case 'label':
-        _close('label');
-        if (index == 1 && o != null) {
-          final n = (int.tryParse('${_form['labels']}') ?? 1).clamp(1, 20);
-          _printRaw(labelText(o, _settings!.receipt, n), '${o.id} label', '$n label dicetak');
-        }
       case 'nota':
         _close('nota');
         if (index == 1 && o != null) _sendWa(o);

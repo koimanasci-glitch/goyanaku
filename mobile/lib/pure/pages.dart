@@ -46,6 +46,10 @@ abstract class PureHost {
   void closePageSheet(String id);
   /// Mulai Tambah Transaksi dengan pelanggan ini sudah terpilih (Antar Jemput → Sampai Lokasi).
   void startOrderFor(String customerName);
+  /// Cetak teks ke printer Bluetooth (atau dialog cetak Android bila belum ada printer).
+  Future<void> printText(String text, String title, String done);
+  /// Buka pemindai barcode/QR.
+  void scanCode();
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.

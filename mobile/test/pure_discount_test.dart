@@ -12,6 +12,7 @@ import 'package:goyana_flutter/pure/delivery.dart';
 import 'package:goyana_flutter/native/cash_page.dart';
 import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
+import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 import 'package:goyana_flutter/pure/views.dart';
@@ -992,6 +993,47 @@ void templateTests() {
     expect(nota(flat((s.debugMirror('wa131')!)['box'])), nota(flat((pm['wa131'] as Map)['box'])), reason: 'teks Nota WhatsApp sama dengan HTML');
     s.fmScoped('wa131', 'button', 3);
     await _settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Struk gambar (rc106): Code128 seperti HTML, PNG tergambar', (tester) async {
+    expect(code128Pattern('GY'), startsWith('211214'), reason: 'mulai set B (104)');
+    expect(code128Pattern('GY').length, 6 + 2 * 6 + 6 + 7);
+    final b = await Business.load(_store());
+    final d = ReceiptData.of(b.orders.first, outlet: 'Uji', address: 'Jakarta', wa: '081234567890', phone: '081200000001');
+    expect(d.status, 'BELUM LUNAS');
+    expect(d.items.single[1], contains('kg'));
+    final png = await tester.runAsync(() => receiptPng(d));
+    expect(png!.sublist(1, 4), [0x50, 0x4e, 0x47]);
+    expect(png.length, greaterThan(5000));
+  });
+
+  testWidgets('Cetak Label Cucian (printlabel): susunan halaman & popup Cek Kantong sama dengan HTML', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/label.json').readAsStringSync()) as Map;
+    final s = await _pump(tester, _store());
+    s.nav('printlabel');
+    await _settle(tester);
+    List<String> shape(List items) => [
+          for (final it in items.cast<Map>())
+            if (it['type'] == 'card') 'card' else if (it['type'] == 'labelprev') 'labelprev' else if (it['type'] == 'stepper') 'stepper|${it['t']}|${it['s']}|${it['minus']}|${it['plus']}'
+            else if (it['type'] == 'buttons') 'buttons|${(it['options'] as List).map((o) => '${(o as Map)['t']}:${o['i']}:${o['on']}').join(',')}'
+            else '${it['type']}|${it['t'] ?? ''}|${it['s'] ?? ''}|${it['ph'] ?? ''}',
+        ];
+    expect(shape(s.debugItems()), shape((fx['page'] as Map)['items'] as List));
+    s.fmButton(3);
+    await _settle(tester);
+    expect(shape(s.debugItems()), shape((fx['two'] as Map)['items'] as List));
+    s.fmButton(7);
+    await _settle(tester);
+    final want = (fx['bg137'] as List).cast<Map>();
+    final got = s.debugSheet('bg137')!;
+    expect(got.first['t'], want.first['t']);
+    expect('${got[1]['t']}'.split(' · ').last, '0/2 kantong terscan');
+    expect([for (final it in got.where((e) => e['type'] == 'input' || e['type'] == 'button')) '${it['type']}|${it['t'] ?? it['ph']}|${it['i']}'],
+        [for (final it in want.where((e) => e['type'] == 'input' || e['type'] == 'button')) '${it['type']}|${it['t'] ?? it['ph']}|${it['i']}']);
+    s.fmScoped('bg137', 'button', 11);
+    s.fmScoped('bg137', 'input', 0, '${(await Business.load(_store())).orders.first.id}/2');
+    expect(s.debugToast, startsWith('Lengkap ✓ · 2/2 kantong'));
     expect(tester.takeException(), isNull);
   });
 }
