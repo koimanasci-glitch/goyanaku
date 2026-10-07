@@ -786,6 +786,29 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   final Set<int> _stOpen = {};
   Map<String, dynamic> _settingsJson() {
     final m = jsonDecode(settingsMenuJson) as Map<String, dynamic>;
+    // Permintaan Koiman (7 Okt): 4 menu WhatsApp yang berdiri sendiri digabung jadi satu kategori "WhatsApp Chatbot"
+    // dengan ikon berwarna; salinannya di grup Pelanggan dibuang supaya Pengaturan tidak kepanjangan.
+    final groups = m['groups'] as List;
+    final at = groups.indexWhere((g) => g is Map && g['i'] == 5);
+    groups.removeWhere((g) => g is Map && const [5, 6, 7, 8].contains(g['i']));
+    groups.insert(at < 0 ? groups.length : at, {
+      'i': 5,
+      'svg': '<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><path d="M8 10h32a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H22l-9 8v-8H8a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4Z" fill="#2fbf71"></path>'
+          '<rect x="14" y="16" width="20" height="14" rx="4" fill="#ffffff"></rect><circle cx="20" cy="22" r="2.2" fill="#1f6f4a"></circle><circle cx="28" cy="22" r="2.2" fill="#1f6f4a"></circle>'
+          '<path d="M20 26.5h8" stroke="#1f6f4a" stroke-width="2" stroke-linecap="round"></path><path d="M24 16v-5" stroke="#ffcf70" stroke-width="2.5" stroke-linecap="round"></path>'
+          '<circle cx="24" cy="9" r="2.5" fill="#ffcf70"></circle></svg>',
+      'icon': '', 't': 'WhatsApp Chatbot', 's': 'Perangkat, balasan otomatis, AI dan promo', 'accordion': true, 'open': false,
+      'items': [
+        {'j': 0, 'icon': '📱', 't': 'Hubungkan WhatsApp', 'badge': '', 's': 'Tambah perangkat dan pilih cabang WhatsApp'},
+        {'j': 1, 'icon': '⚡', 't': 'Balasan Cepat & Trigger', 'badge': '', 's': 'Atur kata pemicu, teks dan gambar balasan'},
+        {'j': 2, 'icon': '🤖', 't': 'Chatbot AI', 'badge': '', 's': 'Atur asisten dan pengetahuan laundry'},
+        {'j': 3, 'icon': '📣', 't': 'WhatsApp Blast', 'badge': '', 's': 'Buat promo dan pilih penerima'},
+        {'j': 4, 'icon': '💬', 't': 'Otomasi Pelanggan', 'badge': planAccess.has('ai', now) ? '' : '🔒 Chatbot', 's': 'Pesan selesai dan reminder otomatis'},
+      ],
+    });
+    for (final g in groups.whereType<Map>()) {
+      if (g['i'] == 4) (g['items'] as List).removeWhere((it) => it is Map && (it['j'] as num) >= 2);
+    }
     (m['groups'] as List).add({
       'i': 13,
       'svg': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-6 10a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L14 9V3M8 14h8"></path></svg>',
@@ -812,8 +835,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     '0/0': 'profile', '1/0': 'outlets', '1/1': 'superbilling',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
     '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
-    '4/0': 'customers', '4/1': 'crm', '4/2': 'wadevices195', '4/3': 'whatsappbot', '4/4': 'quickreply', '4/5': 'automation',
-    '5': 'wadevices195', '6': 'triggers191', '7': 'ai191', '8': 'blast191',
+    '4/0': 'customers', '4/1': 'crm',
+    '5/0': 'wadevices195', '5/1': 'triggers191', '5/2': 'ai191', '5/3': 'blast191', '5/4': 'automation',
     '9/0': 'qris', '9/1': 'finance', '9/2': 'ralat139', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',
     '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana', '12/2': 'sheet:perm178',
   };
@@ -821,8 +844,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final r = _stRoutes[key];
     if (r == null) return toast('Halaman ini sedang dipindahkan');
     // Kunci paket khusus menu WhatsApp/Chatbot (sama dengan HTML): grup Chatbot butuh paket AI, lainnya sesuai fiturnya.
-    if (const ['4/3', '4/4', '4/5'].contains(key) && !planAccess.has('ai', now)) return _lockSheet(const {'4/3': 'WhatsApp & Chatbot', '4/4': 'Balas Cepat & Trigger', '4/5': 'Otomasi Pelanggan'}[key]!);
-    final need = const {'6': 'quick', '7': 'ai', '8': 'blast'}[key];
+    if (key == '5/4' && !planAccess.has('ai', now)) return _lockSheet('Otomasi Pelanggan');
+    final need = const {'5/1': 'quick', '5/2': 'ai', '5/3': 'blast'}[key];
     if (need != null && !planAccess.has(need, now)) return toast(planAccess.lockedText(need));
     if (r == 'sheet:deposits178') return _openDeposits();
     if (r == 'sheet:perm178') {

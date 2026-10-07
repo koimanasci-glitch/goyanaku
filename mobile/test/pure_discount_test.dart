@@ -664,15 +664,16 @@ void templateTests() {
     final kv = _store();
     final s = await _pump(tester, kv);
     await _settle(tester);
-    s.stItem(4, 3);
+    // Menu WhatsApp digabung dalam satu kategori "WhatsApp Chatbot" (grup 5).
+    s.stItem(5, 4);
     await _settle(tester);
-    expect(find.text('WhatsApp & Chatbot terkunci'), findsOneWidget);
+    expect(find.text('Otomasi Pelanggan terkunci'), findsOneWidget);
     s.fmScoped('lock111', 'close', 0);
-    s.stGroup(6, false);
+    s.stItem(5, 1);
     expect(s.debugToast, 'Balasan Cepat membutuhkan paket Silver');
     planAccess.testPlan = 'PLATINUM';
     addTearDown(() => planAccess.testPlan = null);
-    s.stGroup(6, false);
+    s.stItem(5, 1);
     await _settle(tester);
     s.fmButton(0);
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['form']));
