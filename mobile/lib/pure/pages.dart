@@ -26,6 +26,7 @@ import 'discounts.dart';
 import 'mirror_pages.dart';
 import 'page_templates.dart';
 import 'qr_decode.dart';
+import 'views.dart' show mapsLink;
 
 /// Yang dibutuhkan halaman dari shell.
 abstract class PureHost {
@@ -50,6 +51,8 @@ abstract class PureHost {
   Future<void> printText(String text, String title, String done);
   /// Buka pemindai barcode/QR.
   void scanCode();
+  /// Buka Rincian Pesanan lalu lembar Pembayaran untuk sisa tagihannya.
+  void payOrder(String id);
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
@@ -1346,12 +1349,21 @@ class CourierPage extends PurePage {
       return [
         tabs,
         if (tasks.isEmpty) {'type': 'hint', 't': 'Tidak ada tugas kurir. Pesanan antar-jemput akan muncul otomatis.'},
-        for (var k = 0; k < tasks.length; k++)
+        // Kartu tugas (HTML v181 renderCourier): pilih kurir, Navigasi, WhatsApp, Bayar (bila belum lunas), tahap berikut.
+        for (var k = 0; k < tasks.length; k++) ...[
+          {'type': 'title', 't': '${tasks[k].status == 'jemput' ? '📍 Penjemputan' : (tasks[k].status == 'siap' ? '📦 Siap Diantar' : '🚚 Pengantaran')} · ${tasks[k].name}'},
+          {'type': 'hint', 't': '${tasks[k].id} · ${_map(tasks[k]).isNotEmpty ? 'Lokasi Maps tersedia' : 'Lokasi belum diisi'}'},
           {
-            'type': 'card',
-            't': '${tasks[k].status == 'jemput' ? '📍 Penjemputan' : (tasks[k].status == 'siap' ? '📦 Siap Diantar' : '🚚 Pengantaran')} · ${tasks[k].name}',
-            's': tasks[k].id, 'svg': '', 'ic': '', 'badge': '', 'meta': '', 'on': false, 'i': 500 + k,
+            'type': 'select', 'options': ['Pilih kurir', for (final x in _for(tasks[k])) '${x['name']}'],
+            'index': _for(tasks[k]).indexWhere((x) => '${x['id']}' == '${tasks[k].dataset['courier181'] ?? ''}') + 1, 'i': k,
           },
+          {'type': 'buttons', 'options': [
+            {'t': 'Navigasi', 'on': false, 'i': 1000 + 10 * k},
+            {'t': 'WhatsApp', 'on': false, 'i': 1001 + 10 * k},
+            if (tasks[k].status != 'jemput' && !tasks[k].isPaid) {'t': 'Bayar', 'on': false, 'i': 1002 + 10 * k},
+            {'t': tasks[k].status == 'jemput' ? 'Sudah Dijemput' : (tasks[k].status == 'siap' ? 'Mulai Antar' : 'Sudah Diterima'), 'on': true, 'i': 1003 + 10 * k},
+          ]},
+        ],
       ];
     }
     final live = _live, outs = _outlets;
@@ -1376,6 +1388,52 @@ class CourierPage extends PurePage {
           ],
         },
     ];
+  }
+
+  String _map(Order o) => mapsLink(host.business.customerByName(o.name));
+  /// Kurir aktif yang boleh mengambil tugas outlet pesanan ini.
+  List<Map<String, dynamic>> _for(Order o) {
+    final out = o.outlet.isNotEmpty ? o.outlet : host.business.activeOutlet;
+    return [
+      for (final k in _live)
+        if (k['active'] != false && ((k['outlets'] as List? ?? const []).isEmpty || (k['outlets'] as List).map((e) => '$e').contains(out))) k,
+    ];
+  }
+
+  @override
+  void input(int i, Object value) {
+    final tasks = _tasks;
+    if (manage || i < 0 || i >= tasks.length) return;
+    final opts = _for(tasks[i]);
+    final n = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+    tasks[i].dataset['courier181'] = n >= 1 && n <= opts.length ? '${opts[n - 1]['id']}' : '';
+    host.saveAll();
+    host.refresh();
+  }
+
+  void _task(Order o, int act) {
+    switch (act) {
+      case 0:
+        final m = _map(o);
+        if (m.isEmpty) return host.toast('Lokasi belum tersedia');
+        host.device.invokeMethod('App.openUrl', {'url': m}).catchError((_) => null);
+      case 1:
+        var p = (o.phone.isNotEmpty ? o.phone : (host.business.customerByName(o.name)?.phone ?? '')).replaceAll(RegExp(r'\D'), '');
+        if (p.startsWith('0')) p = '62${p.substring(1)}';
+        if (p.isEmpty) return host.toast('Nomor WA belum ada');
+        host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/$p'}).catchError((_) => null);
+      case 2:
+        host.payOrder(o.id);
+      default:
+        final id = '${o.dataset['courier181'] ?? ''}';
+        if (id.isEmpty) return host.toast('Pilih kurir dulu');
+        final by = '${_live.where((k) => '${k['id']}' == id).firstOrNull?['name'] ?? 'Kurir'}';
+        final st = o.status;
+        host.business.advance(o, now: host.now, by: by);
+        host.saveAll();
+        host.toast(st == 'jemput' ? 'Sudah dijemput · masuk Antrian' : (st == 'siap' ? 'Pengantaran dimulai' : 'Sudah diterima pelanggan · selesai'));
+        host.refresh();
+    }
   }
 
   void _form(Map<String, dynamic>? k) {
@@ -1448,9 +1506,9 @@ class CourierPage extends PurePage {
       return host.refresh();
     }
     if (v == null) return;
-    if (i >= 500) {
-      final tasks = _tasks;
-      if (i - 500 < tasks.length) host.openOrder(tasks[i - 500].id);
+    if (i >= 1000) {
+      final tasks = _tasks, k = (i - 1000) ~/ 10;
+      if (!manage && k < tasks.length) _task(tasks[k], (i - 1000) % 10);
       return;
     }
     if (i == 2) return _form(null);

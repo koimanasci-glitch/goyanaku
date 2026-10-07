@@ -806,6 +806,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   Future<void> printText(String text, String title, String done) => _printRaw(text, title, done);
   @override
   void scanCode() => scan();
+  @override
+  void payOrder(String id) {
+    openOrder(id);
+    final o = _b!.orderById(id);
+    if (o != null && !o.isCancelled && o.remaining > 0) setState(() => _payOrderId = id);
+  }
 
   Future<void> _printRaw(String text, String title, String done) async {
     final addr = _settings!.printerAddress;

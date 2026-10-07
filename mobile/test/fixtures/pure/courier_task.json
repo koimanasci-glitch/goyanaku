@@ -1,0 +1,71 @@
+{
+ "title": "KURIR",
+ "items": [
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Tugas",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 0
+    },
+    {
+     "t": "Management Kurir",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "📍 Penjemputan · Budi Native"
+  },
+  {
+   "type": "hint",
+   "t": "GY-261007-0133 · Lokasi belum diisi"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Pilih kurir"
+   ],
+   "index": 0,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Navigasi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "WhatsApp",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "Sudah Dijemput",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    }
+   ]
+  }
+ ]
+}

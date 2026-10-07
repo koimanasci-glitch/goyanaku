@@ -1036,4 +1036,44 @@ void templateTests() {
     expect(s.debugToast, startsWith('Lengkap ✓ · 2/2 kantong'));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Kurir · Tugas: kartu tugas sama dengan HTML (pilih kurir, Navigasi, WhatsApp, tahap berikut)', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/courier_task.json').readAsStringSync()) as Map;
+    final kv = _store();
+    final raw = jsonDecode(kv.data[Keys.business]!) as Map;
+    (((raw['orders'] as List).first as Map)['dataset'] as Map)
+      ..['st'] = 'jemput'
+      ..['antar'] = '1';
+    kv.data[Keys.business] = jsonEncode(raw);
+    var s = await _pump(tester, kv);
+    s.nav('couriers');
+    await _settle(tester);
+    List<String> shape(List items) => [
+          for (final it in items.cast<Map>())
+            it['type'] == 'buttons'
+                ? 'buttons|${(it['options'] as List).map((o) => (o as Map)['t']).join(',')}'
+                : it['type'] == 'select'
+                    ? 'select|${(it['options'] as List).join(',')}'
+                    : '${it['type']}|${'${it['t']}'.replaceAll(RegExp(r'GY-\d{6}-\d{4}'), 'ID')}',
+        ];
+    expect(shape(s.debugItems()), shape(fx['items'] as List));
+    s.fmButton(1003);
+    expect(s.debugToast, 'Pilih kurir dulu');
+    s.fmButton(1000);
+    expect(s.debugToast, 'Lokasi belum tersedia');
+
+    kv.data['goyana-couriers181'] = jsonEncode([{'id': 'k1', 'name': 'Andi', 'phone': '081233334444', 'outlets': [], 'active': true}]);
+    s = await _pump(tester, kv);
+    s.nav('couriers');
+    await _settle(tester);
+    s.fmInput(0, 1);
+    await _settle(tester);
+    s.fmButton(1003);
+    await _settle(tester);
+    expect(s.debugToast, 'Sudah dijemput · masuk Antrian');
+    final o = (await Business.load(kv)).orders.first;
+    expect(o.status, 'antrian');
+    expect(o.history.last['by'], 'Andi');
+    expect(tester.takeException(), isNull);
+  });
 }
