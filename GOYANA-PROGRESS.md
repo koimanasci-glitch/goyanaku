@@ -1441,3 +1441,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Popup jumlah, Pembayaran Tunai, QRIS, DP/Uang Muka dan Saldo Deposit dibuat ulang mengikuti tangkapan layar HTML (lib/pure/addorder_popups.dart); Transfer dan Bayar Nanti langsung menyimpan seperti HTML.
 - Hybrid tidak berubah: tampilan Tambah Transaksi di hybrid sudah dibandingkan dengan HTML dan sama.
 - Belum disamakan: pilihan diskon (manual / kode voucher) dan daftar diskon bawaan Murni (HTML: Tidak + diskon dari Pengaturan).
+
+## Jalur C (Mode Murni = hybrid tanpa WebView) — Parfum
+- Pendekatan baru: halaman Murni mengikuti HTML apa adanya (isi daftar, popup, aturan simpan), bukan versi ringkas.
+- Infrastruktur: popup isian serbaguna `formSheet107` versi Dart (`FormSheetDef`, scope `gs107` di PureShell) + jenis item `swatches` (pilihan warna) di NativeForm.
+- Parfum: tombol "+ Tambah Parfum" di atas, ikon botol berwarna, ✎ dan ×; popup Tambah/Edit Parfum (nama + warna label), konfirmasi hapus "Hapus "x"?" (Ya, Hapus). Simpan ke `goyana-perfumes178` sebagai [nama, rgb(...)].
+- Catatan: popup Edit di HTML selalu memilih warna #9b7ae0; di Dart warna parfum saat ini yang terpilih.
+- Berikutnya: Durasi, Diskon, Layanan, lalu Pegawai/Outlet/Pembayaran/Printer.

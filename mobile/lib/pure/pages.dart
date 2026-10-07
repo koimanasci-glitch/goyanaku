@@ -26,6 +26,26 @@ abstract class PureHost {
   Future<void> saveAll();
   void exitPure();
   MethodChannel get device;
+  void openFormSheet(FormSheetDef def);
+  void closeFormSheet();
+}
+
+/// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
+class FormSheetField {
+  const FormSheetField(this.label, {this.placeholder = '', this.value = '', this.numeric = false, this.required = false, this.colors});
+  final String label, placeholder, value;
+  final bool numeric, required;
+  /// Bila diisi: pilihan warna (hex); [value] = warna terpilih.
+  final List<String>? colors;
+}
+
+class FormSheetDef {
+  FormSheetDef(this.title, this.fields, this.okText, this.onOk, {this.sub = '', this.danger = false});
+  final String title, sub, okText;
+  final List<FormSheetField> fields;
+  final bool danger;
+  /// Mengembalikan false bila popup harus tetap terbuka.
+  final bool? Function(List<String> values) onOk;
 }
 
 abstract class PurePage {
@@ -357,34 +377,97 @@ class ServicesPage extends PurePage {
 
 class PerfumePage extends PurePage {
   PerfumePage(super.host);
-  String name = '';
-  static const colors = ['rgb(233, 185, 73)', 'rgb(90, 169, 230)', 'rgb(155, 122, 224)', 'rgb(43, 179, 163)', 'rgb(240, 122, 160)', 'rgb(232, 73, 63)'];
+  static const colors = ['#e9b949', '#5aa9e6', '#9b7ae0', '#2bb3a3', '#f07aa0', '#E8493F', '#8A8FA3'];
   @override
   String get title => 'Parfum';
+
+  static String _hex(String css) {
+    final m = RegExp(r'rgba?\((\d+),\s*(\d+),\s*(\d+)').firstMatch(css);
+    if (m == null) return css.startsWith('#') ? css : '#e8493f';
+    String h(int k) => int.parse(m.group(k)!).toRadixString(16).padLeft(2, '0');
+    return '#${h(1)}${h(2)}${h(3)}';
+  }
+
+  static String _rgb(String hex) {
+    final h = hex.replaceFirst('#', '');
+    if (h.length != 6) return hex;
+    return 'rgb(${int.parse(h.substring(0, 2), radix: 16)}, ${int.parse(h.substring(2, 4), radix: 16)}, ${int.parse(h.substring(4, 6), radix: 16)})';
+  }
+
+  /// Botol parfum yang sama dengan ikon HTML; badan botol berwarna label.
+  static String bottle(String color) =>
+      '<svg viewBox="0 0 48 48" width="28" height="28" aria-hidden="true"><rect x="19" y="4" width="10" height="7" rx="2" fill="#ffc857"></rect><rect x="21" y="10" width="6" height="5" fill="#e8a93a"></rect><rect x="10" y="15" width="28" height="28" rx="7" fill="${_hex(color)}"></rect><rect x="10" y="15" width="28" height="28" rx="7" fill="#ffffff" opacity=".15"></rect><rect x="15" y="25" width="18" height="10" rx="2" fill="#ffffff"></rect><path d="M18 30h12" stroke="#9b7ae0" stroke-width="2"></path><path d="M14 20a4 4 0 0 1 4-2" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>';
+
   @override
   List<Map<String, dynamic>> items() {
     final p = host.settings.perfumes;
     return [
+      {'type': 'button', 't': '+ Tambah Parfum', 'primary': true, 'file': '', 'after': false, 'i': 0},
       for (var k = 0; k < p.length; k++)
-        {'type': 'entry', 't': p[k][0], 'lines': <String>[], 'compact': true, 'color': p[k].length > 1 ? p[k][1] : '', 'btns': [{'t': '×', 'i': 100 + k}]},
-      {'type': 'input', 'v': name, 'ph': 'Nama parfum baru', 'i': 0},
-      {'type': 'button', 't': '+ Tambah Parfum', 'primary': true, 'i': 1},
+        {
+          'type': 'entry', 't': p[k][0], 'lines': <String>[], 'badge': '', 'avatar': '', 'svg': bottle(p[k].length > 1 ? p[k][1] : ''),
+          'color': p[k].length > 1 ? p[k][1] : '', 'compact': true,
+          'btns': [{'t': '✎', 'on': false, 'i': 1 + 2 * k}, {'t': '×', 'on': false, 'i': 2 + 2 * k}],
+        },
       {'type': 'hint', 't': 'Warna label membantu kasir & bagian produksi mengenali parfum dengan cepat.'},
     ];
   }
 
   @override
-  void input(int i, Object value) => name = '$value'.trim();
-  @override
-  void button(int i) async {
+  void button(int i) {
     final p = host.settings.perfumes;
-    if (i >= 100) {
-      if (i - 100 < p.length) p.removeAt(i - 100);
-    } else {
-      if (name.isEmpty) return host.toast('Isi nama parfum');
-      p.add([name, colors[p.length % colors.length]]);
-      name = '';
+    if (i == 0) {
+      return host.openFormSheet(FormSheetDef(
+        'Tambah Parfum',
+        [
+          const FormSheetField('Nama parfum', placeholder: 'Contoh: Vanilla', required: true),
+          const FormSheetField('Warna label', value: '#E8493F', colors: colors),
+        ],
+        'Tambah',
+        (v) {
+          p.add([v[0], _rgb(v[1])]);
+          _persist();
+          host.toast('Parfum "${v[0]}" ditambahkan');
+          return null;
+        },
+      ));
     }
+    final k = (i - 1) ~/ 2;
+    if (k < 0 || k >= p.length) return;
+    final name = p[k][0];
+    if (i.isEven) {
+      return host.openFormSheet(FormSheetDef(
+        'Hapus "$name"?',
+        const [],
+        'Ya, Hapus',
+        (_) {
+          p.removeAt(k);
+          _persist();
+          host.toast('$name dihapus');
+          return null;
+        },
+        sub: 'Data yang sudah dipakai di transaksi lama tetap tersimpan di laporan.',
+        danger: true,
+      ));
+    }
+    final cur = p[k].length > 1 ? _hex(p[k][1]).toLowerCase() : '#9b7ae0';
+    host.openFormSheet(FormSheetDef(
+      'Edit Parfum',
+      [
+        FormSheetField('Nama parfum', value: name, required: true),
+        FormSheetField('Warna label', value: colors.map((c) => c.toLowerCase()).contains(cur) ? colors.firstWhere((c) => c.toLowerCase() == cur) : '#9b7ae0', colors: colors),
+      ],
+      'Simpan',
+      (v) {
+        p[k] = [v[0], _rgb(v[1])];
+        _persist();
+        host.toast('Parfum diperbarui');
+        return null;
+      },
+    ));
+  }
+
+  void _persist() async {
     await host.saveAll();
     host.refresh();
   }

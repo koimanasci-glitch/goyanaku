@@ -289,6 +289,63 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       });
   void _close(String id) => setState(() => _sheets.removeWhere((e) => e.id == id));
 
+  // ---------------- popup isian serbaguna (formSheet107) ----------------
+  FormSheetDef? _fs;
+  List<String> _fsVals = [];
+
+  @override
+  void openFormSheet(FormSheetDef def) {
+    _fs = def;
+    _fsVals = [for (final f in def.fields) f.value];
+    _showFormSheet();
+  }
+
+  @override
+  void closeFormSheet() {
+    _fs = null;
+    _close('gs107');
+  }
+
+  void _showFormSheet() {
+    final d = _fs;
+    if (d == null) return;
+    _open(_Sheet('gs107', [
+      {'type': 'title', 't': d.title, 's': ''},
+      if (d.sub.isNotEmpty) {'type': 'hint', 't': d.sub},
+      for (var k = 0; k < d.fields.length; k++) ...[
+        {'type': 'label', 't': d.fields[k].label},
+        if (d.fields[k].colors == null)
+          {'type': 'input', 'v': _fsVals[k], 'ph': d.fields[k].placeholder, 'multiline': false, 'numeric': d.fields[k].numeric, 'ro': false, 'secret': false, 'email': false, 'i': k}
+        else
+          {'type': 'swatches', 'colors': d.fields[k].colors, 'sel': d.fields[k].colors!.indexWhere((c) => c.toLowerCase() == _fsVals[k].toLowerCase()), 'i': k},
+      ],
+      {'type': 'button', 't': d.okText, 'primary': true, 'file': '', 'i': 0},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'i': 1},
+    ]));
+  }
+
+  void _formSheetEvent(String kind, int index, Object? value) {
+    final d = _fs;
+    if (d == null) return;
+    if (kind == 'close') return closeFormSheet();
+    if (kind == 'input') {
+      if (index < 0 || index >= d.fields.length) return;
+      final colors = d.fields[index].colors;
+      if (colors != null) {
+        _fsVals[index] = colors[(value as int).clamp(0, colors.length - 1)];
+        return _showFormSheet();
+      }
+      _fsVals[index] = '${value ?? ''}'.trim();
+      return;
+    }
+    if (kind != 'button') return;
+    if (index == 1) return closeFormSheet();
+    for (var k = 0; k < d.fields.length; k++) {
+      if (d.fields[k].required && _fsVals[k].trim().isEmpty) return toast('Lengkapi data yang wajib diisi');
+    }
+    if (d.onOk(List<String>.of(_fsVals)) != false) closeFormSheet();
+  }
+
   // ---------------- navigasi ----------------
   @override
   void nav(String pageId) {
@@ -639,6 +696,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void fmScoped(String scope, String kind, int index, [Object? value]) {
     final b = _b;
     if (b == null) return;
+    if (scope == 'gs107') return _formSheetEvent(kind, index, value);
     if (scope == 'pin') {
       if (kind == 'input') _pin = '${value ?? ''}'.replaceAll(RegExp(r'\D'), '');
       if (kind == 'button') {

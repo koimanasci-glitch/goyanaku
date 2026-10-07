@@ -182,6 +182,8 @@ class _SheetActions implements FormActions {
 
 const _ink = Color(0xff1e1e1e);
 
+List<String> _list2(Object? v) => v is List ? [for (final x in v) '$x'] : const <String>[];
+
 /// A button: plain click, or a native file pick (optionally after running the button's own JS first).
 void _press(FormActions a, Map<String, dynamic> b) {
   final file = _s(b['file']);
@@ -831,6 +833,25 @@ class NativeForm extends StatelessWidget {
             sb(_s(it['mt']), _i(it['minus'])),
             SizedBox(width: 70, child: Text(_s(it['v']), textAlign: TextAlign.center, style: gText(20, w: FontWeight.w600, c: _ink))),
             sb(_s(it['pt']), _i(it['plus'])),
+          ]),
+        );
+      case 'swatches':
+        // Pilihan warna label (popup Tambah/Edit Parfum): bulatan berwarna, yang terpilih diberi cincin.
+        return Padding(
+          padding: const EdgeInsets.only(top: 2, bottom: 12),
+          child: Wrap(spacing: 10, runSpacing: 10, children: [
+            for (var k = 0; k < _list2(it['colors']).length; k++)
+              GestureDetector(
+                onTap: () => a.fmInput(_i(it['i']), k),
+                child: Container(
+                  width: 34, height: 34,
+                  decoration: BoxDecoration(
+                    color: cssColor(_list2(it['colors'])[k], Colors.grey), shape: BoxShape.circle,
+                    border: Border.all(color: _i(it['sel']) == k ? _ink : Colors.white, width: 2.5),
+                    boxShadow: _i(it['sel']) == k ? [gShadow(const Color(0x33000000), 1, 4)] : null,
+                  ),
+                ),
+              ),
           ]),
         );
       case 'buttons':
