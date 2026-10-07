@@ -3,15 +3,21 @@
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/business.dart';
+import '../core/models.dart' show durationOverrides;
 import '../core/money.dart';
 import '../core/qris.dart';
 import '../core/receipt.dart';
 import '../core/settings.dart';
 import '../core/stock.dart';
 import '../core/store.dart';
+import '../native/form_page.dart' show FormActions;
+import '../native/duration_page.dart';
+import '../native/perfume_page.dart';
+import 'mirror_pages.dart';
 
 /// Yang dibutuhkan halaman dari shell.
 abstract class PureHost {
@@ -60,6 +66,8 @@ abstract class PurePage {
   void radio(int i) {}
   void button(int i) {}
   void opened() {}
+  /// Jika tidak null, dipakai menggantikan NativeForm (halaman cermin yang sama dengan Hibrida).
+  Widget? custom(BuildContext context, FormActions actions) => null;
 }
 
 Map<String, dynamic> card(String t, String s, String ic, int i) => {'type': 'card', 't': t, 's': s, 'ic': ic, 'i': i};
@@ -399,24 +407,22 @@ class PerfumePage extends PurePage {
       '<svg viewBox="0 0 48 48" width="28" height="28" aria-hidden="true"><rect x="19" y="4" width="10" height="7" rx="2" fill="#ffc857"></rect><rect x="21" y="10" width="6" height="5" fill="#e8a93a"></rect><rect x="10" y="15" width="28" height="28" rx="7" fill="${_hex(color)}"></rect><rect x="10" y="15" width="28" height="28" rx="7" fill="#ffffff" opacity=".15"></rect><rect x="15" y="25" width="18" height="10" rx="2" fill="#ffffff"></rect><path d="M18 30h12" stroke="#9b7ae0" stroke-width="2"></path><path d="M14 20a4 4 0 0 1 4-2" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>';
 
   @override
-  List<Map<String, dynamic>> items() {
-    final p = host.settings.perfumes;
-    return [
-      {'type': 'button', 't': '+ Tambah Parfum', 'primary': true, 'file': '', 'after': false, 'i': 0},
-      for (var k = 0; k < p.length; k++)
-        {
-          'type': 'entry', 't': p[k][0], 'lines': <String>[], 'badge': '', 'avatar': '', 'svg': bottle(p[k].length > 1 ? p[k][1] : ''),
-          'color': p[k].length > 1 ? p[k][1] : '', 'compact': true,
-          'btns': [{'t': '✎', 'on': false, 'i': 1 + 2 * k}, {'t': '×', 'on': false, 'i': 2 + 2 * k}],
-        },
-      {'type': 'hint', 't': 'Warna label membantu kasir & bagian produksi mengenali parfum dengan cepat.'},
-    ];
-  }
+  List<Map<String, dynamic>> items() => const [];
+
+  @override
+  Widget? custom(BuildContext context, FormActions actions) => NativePerfumePage(
+        key: const ValueKey('pure-perfume'),
+        model: perfumeMirror(host.settings.perfumes, bottle),
+        onButton: button,
+        onNav: actions.nav,
+        onHeaderScan: actions.scan,
+      );
 
   @override
   void button(int i) {
     final p = host.settings.perfumes;
-    if (i == 0) {
+    if (i == 1) return host.go('settings');
+    if (i == 2) {
       return host.openFormSheet(FormSheetDef(
         'Tambah Parfum',
         [
@@ -432,7 +438,7 @@ class PerfumePage extends PurePage {
         },
       ));
     }
-    final k = (i - 1) ~/ 2;
+    final k = (i - 3) ~/ 2;
     if (k < 0 || k >= p.length) return;
     final name = p[k][0];
     if (i.isEven) {
@@ -1352,4 +1358,111 @@ class PlanPage extends PurePage {
       ];
   @override
   void button(int i) => openWa(host, '6281234567890', 'Halo GOYANA, saya ingin aktifkan paket ${plans[i.clamp(0, plans.length - 1)][0]}');
+}
+
+
+/// Pengaturan → Durasi: sama dengan HTML v199 (3 durasi utama, jam bisa diubah, tidak bisa dihapus;
+/// durasi tambahan hanya tampil selama halaman terbuka, seperti di HTML).
+class DurationPage extends PurePage {
+  DurationPage(super.host);
+  static const key = 'goyana-durations199';
+  static const base = [MapEntry('Reguler', 72), MapEntry('Express', 24), MapEntry('Kilat', 6)];
+  final List<MapEntry<String, int>> extra = [];
+  @override
+  String get title => 'Durasi';
+
+  List<MapEntry<String, int>> get rows => [
+        for (final b in base) MapEntry(b.key, durationOverrides[b.key] ?? b.value),
+        ...extra,
+      ];
+
+  @override
+  void opened() => extra.clear();
+
+  @override
+  List<Map<String, dynamic>> items() => const [];
+
+  @override
+  Widget? custom(BuildContext context, FormActions actions) => NativeDurationPage(
+        key: const ValueKey('pure-duration'),
+        model: durationMirror(rows),
+        onButton: button,
+        onNav: actions.nav,
+        onHeaderScan: actions.scan,
+      );
+
+  Future<void> _save() async {
+    await host.kv.set(key, jsonEncode(durationOverrides));
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    if (i == 1) return host.go('settings');
+    if (i == 3) {
+      return host.openFormSheet(FormSheetDef(
+        'Tambah Durasi',
+        const [
+          FormSheetField('Nama durasi', placeholder: 'Contoh: Super Kilat', required: true),
+          FormSheetField('Lama pengerjaan (jam)', placeholder: 'Contoh: 3', numeric: true, required: true),
+        ],
+        'Tambah',
+        (v) {
+          extra.add(MapEntry(v[0], int.tryParse(v[1]) ?? 1));
+          host.toast('Durasi "${v[0]}" ditambahkan');
+          host.refresh();
+          return null;
+        },
+        sub: 'Durasi otomatis muncul sebagai varian di semua kategori layanan',
+      ));
+    }
+    final k = (i - 4) ~/ 2;
+    final all = rows;
+    if (k < 0 || k >= all.length) return;
+    final isBase = k < base.length;
+    final name = all[k].key;
+    if (i.isOdd) {
+      if (isBase) {
+        return host.toast('Durasi $name tidak bisa dihapus. Matikan per layanan di Pengaturan → Layanan & Harga.');
+      }
+      return host.openFormSheet(FormSheetDef(
+        'Hapus durasi?',
+        const [],
+        'Ya, Hapus',
+        (_) {
+          extra.removeAt(k - base.length);
+          host.toast('Durasi $name dihapus');
+          host.refresh();
+          return null;
+        },
+        sub: '"$name" tidak bisa dipakai untuk pesanan baru. Pesanan lama tetap aman.',
+        danger: true,
+      ));
+    }
+    host.openFormSheet(FormSheetDef(
+      isBase ? 'Edit Durasi $name' : 'Edit Durasi',
+      [
+        if (!isBase) FormSheetField('Nama durasi', value: name, required: true),
+        FormSheetField('Lama pengerjaan (jam)', value: '${all[k].value}', numeric: true, required: true),
+      ],
+      'Simpan',
+      (v) {
+        final n = int.tryParse(v[isBase ? 0 : 1]) ?? 0;
+        if (n <= 0) {
+          host.toast('Isi jam dengan angka lebih dari 0');
+          return false;
+        }
+        if (isBase) {
+          durationOverrides[name] = n;
+          _save();
+          host.toast('Durasi $name jadi $n jam');
+        } else {
+          extra[k - base.length] = MapEntry(v[0], n);
+          host.toast('Durasi diperbarui');
+          host.refresh();
+        }
+        return null;
+      },
+    ));
+  }
 }

@@ -27,10 +27,13 @@ const nextLabel = {
 
 /// Durasi bawaan & lamanya (jam), sama dengan HTML: Kilat 6, Express 24, lainnya 72.
 int durationHours(String dur) {
-  if (RegExp('Kilat').hasMatch(dur)) return 6;
-  if (RegExp('Express|Ekspres').hasMatch(dur)) return 24;
-  return 72;
+  if (RegExp('Kilat').hasMatch(dur)) return durationOverrides['Kilat'] ?? 6;
+  if (RegExp('Express|Ekspres').hasMatch(dur)) return durationOverrides['Express'] ?? 24;
+  return durationOverrides['Reguler'] ?? 72;
 }
+
+/// Jam durasi yang diubah di Pengaturan → Durasi (kunci goyana-durations199), diisi oleh Mode Murni.
+final Map<String, int> durationOverrides = {};
 
 class Service {
   Service(this.raw);

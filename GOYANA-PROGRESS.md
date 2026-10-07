@@ -1448,3 +1448,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Parfum: tombol "+ Tambah Parfum" di atas, ikon botol berwarna, ✎ dan ×; popup Tambah/Edit Parfum (nama + warna label), konfirmasi hapus "Hapus "x"?" (Ya, Hapus). Simpan ke `goyana-perfumes178` sebagai [nama, rgb(...)].
 - Catatan: popup Edit di HTML selalu memilih warna #9b7ae0; di Dart warna parfum saat ini yang terpilih.
 - Berikutnya: Durasi, Diskon, Layanan, lalu Pegawai/Outlet/Pembayaran/Printer.
+
+## Jalur C — Parfum & Durasi Mode Murni memakai halaman cermin yang sama dengan Hibrida
+- `lib/pure/mirror_pages.dart`: pohon tampilan Parfum/Durasi dibuat dari data Dart, dirender oleh `NativePerfumePage`/`NativeDurationPage` (widget Hibrida yang sama persis).
+- Parfum: tambah/ubah/hapus lewat popup `gs107` seperti HTML, warna label disimpan `rgb(r, g, b)`.
+- Durasi: 3 durasi utama (jam bisa diubah, simpan `goyana-durations199`, dipakai Tambah Transaksi), hapus ditolak dengan pesan HTML, durasi tambahan sementara seperti HTML. `_stRoutes` Durasi diperbaiki (sebelumnya masuk Layanan).

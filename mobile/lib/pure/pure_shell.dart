@@ -59,7 +59,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   AppSettings? _settings;
   late final Map<String, PurePage> _pages = {
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
-    'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'kas': KasPage(this),
+    'bank': BankPage(this), 'services': ServicesPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
     'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
@@ -252,6 +252,14 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void initState() {
     super.initState();
+    widget.store.get(DurationPage.key).then((raw) {
+      try {
+        for (final e in (jsonDecode(raw ?? '{}') as Map).entries) {
+          final n = int.tryParse('${e.value}') ?? 0;
+          if (n > 0) durationOverrides['${e.key}'] = n;
+        }
+      } catch (_) {}
+    });
     Future.wait([Business.load(widget.store), AppSettings.load(widget.store)]).then((r) {
       if (mounted) {
         setState(() {
@@ -414,7 +422,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   /// Item menu HTML → halaman mode murni. null = belum dipindah.
   static const Map<String, String> _stRoutes = {
     '0/0': 'outlet', '1/0': 'outlet', '1/1': 'outlets',
-    '2/0': 'services', '2/1': 'services', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'couriers',
+    '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'couriers',
     '3/0': 'employees', '3/1': 'employees', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
     '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
@@ -1420,7 +1428,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       default:
         final pp = _pages[_page];
         page = pp != null
-            ? NativeForm(key: ValueKey(_page), model: FormModel(page: _page, title: pp.title, items: pp.items()), actions: this, navActive: pp.navActive)
+            ? (pp.custom(context, this) ?? NativeForm(key: ValueKey(_page), model: FormModel(page: _page, title: pp.title, items: pp.items()), actions: this, navActive: pp.navActive))
             : NativeHome(model: HomeModel.fromJson(homeJson(b, n)), actions: this);
     }
     return PopScope(
