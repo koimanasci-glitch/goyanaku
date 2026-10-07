@@ -276,7 +276,11 @@ class PrinterNotaPage extends PurePage {
   @override
   void button(int i) {
     if (i == 0) return host.go('printerconnect');
-    if (i == 1) return host.toast('Konfigurasi logo nota');
+    if (i == 1) {
+      // Logo nota = logo outlet (di HTML tombol ini hanya menampilkan pesan).
+      host.go('outlets');
+      return host.toast('Logo nota diatur di Edit Outlet → Upload Logo');
+    }
     host.settings.receipt = ReceiptSettings(header: f[0], address: f[1], phone: f[2], footer: f[3], width: width, showDue: showDue);
     _x
       ..['footerWa'] = f[4]

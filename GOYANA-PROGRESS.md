@@ -1529,4 +1529,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Pusat Data: Restore dari file cadangan (.json, konfirmasi ketik PULIHKAN); cadangan kini lengkap (stok, CRM, kurir, pegawai, durasi, tarif, QRIS, rekening, antar-jemput).
 - Popup `g181-modal` (Stok, Kurir) memakai widget khusus Hibrida; popup QRIS kasir = kartu QR + nominal + SUDAH LUNAS / Batal, tanpa QRIS → "Upload QRIS Outlet".
 - Hybrid (HTML) sengaja TIDAK diubah (arahan Koiman 7 Okt).
-- Belum: PIN Admin untuk kasir sebelum Edit Transaksi (butuh login pegawai); popup Ralat/PIN (`rs139`/`pin139`) masih lembar umum; popup QRIS (`f61-qris`) belum dicek ulang; toast poin CRM saat lunas; label dicetak sebagai teks (HTML: label gambar 58×40 mm).
+- PIN Admin Utama: papan angka seperti HTML (`pin139`), dipakai juga sebelum kasir mengedit transaksi yang sudah diproses; PIN bisa diganti ("Ganti PIN" di Ralat). Petunjuk "contoh: 1234" di HTML dibuang karena membocorkan PIN.
+- Popup Ralat (`rs139`) dan alasan ralat edit memakai widget khusus Hibrida; label kantong dicetak sebagai label gambar (50×30 / 40×30 / 58 mm) lewat dialog cetak, teks bila printer Bluetooth.
+- Chatbot AI · "Uji Jawaban" menjawab dari data aplikasi (status pesanan per nomor, daftar harga) seperti HTML; gambar balasan/promo WhatsApp bisa dipilih & tersimpan; toast poin member sesudah bayar; "Menampilkan Logo → Konfigurasi" membuka Outlet.
+- Belum (butuh server / HP asli): menautkan device WhatsApp, kirim Blast, jawaban AI sungguhan, halaman status `goyana.id/s/…`, uji di HP asli (printer, kamera foto, restore, simpan/bagikan struk).
+- Catatan lama: popup QRIS (`f61-qris`) belum dicek ulang; toast poin CRM saat lunas; label dicetak sebagai teks (HTML: label gambar 58×40 mm).
