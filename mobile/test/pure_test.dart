@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/native/crm_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 
@@ -314,23 +315,10 @@ void main() {
     final t = await _pump(tester, kv2);
     t.nav('crm');
     await _settle(tester);
-    t.fmButton(2); // tab voucher
-    await _settle(tester);
-    t.fmInput(2, 'kangen 15');
-    t.fmInput(4, '15');
-    t.fmButton(11);
-    await _settle(tester);
+    expect(find.byType(NativeCrm), findsOneWidget, reason: 'CRM = halaman Hibrida');
     t.nav('orders');
     t.openCard(0);
     await _settle(tester);
-    t.fmScoped('detail', 'button', 7); // edit
-    await _settle(tester);
-    expect(find.text('Voucher KANGEN15'), findsNothing, reason: 'dropdown tertutup');
-    t.fmScoped('edit', 'input', 2, 5); // voucher = setelah Tanpa diskon + 4 diskon
-    t.fmScoped('edit', 'button', 1);
-    await _settle(tester);
-    final o = (await Business.load(kv2)).orders.first;
-    expect(o.discKey, 'p15');
     t.fmScoped('detail', 'button', 10);
     await _settle(tester);
     expect(find.text('Cetak Label Kantong'), findsOneWidget);

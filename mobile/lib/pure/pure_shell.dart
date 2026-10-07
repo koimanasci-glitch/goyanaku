@@ -24,6 +24,7 @@ import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
 import '../native/home_page.dart';
+import '../logic/crm.dart';
 import '../logic/reports_a8.dart';
 import '../native/orders_page.dart';
 import '../native/report_detail.dart';
@@ -68,7 +69,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
-    'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
+    'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
   @override
@@ -1182,7 +1183,6 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void cuPage(int delta) {}
   @override
   void cuRank() {
-    (_pages['crm'] as CrmPage).tab = 1;
     nav('crm');
   }
   @override
@@ -1244,6 +1244,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         _aoSheet = null;
         _cart.clear();
         _manualDisc = 0;
+        _voucher = null;
         _opt
           ..['perfume'] = 0
           ..['disc'] = 0
@@ -1292,7 +1293,38 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       for (final d in _activeDiscs) [discOption(d), discKey(d, cart)],
       if (discCfgOf(_settings!.raw)['manual'] == true) [_manualDisc > 0 ? 'Diskon manual · ${rp(_manualDisc)}' : 'Diskon manual (Rp)…', 'n$_manualDisc'],
       ..._voucherDiscs,
+      // Voucher kode unik dari CRM (vc130): potongan dihitung dari harga layanan, ongkir tidak ikut.
+      [
+        _voucher == null ? '🎟 Pakai kode voucher…' : '🎟 ${_voucher!.code} · ${_voucher!.type == 'p' ? '${_voucher!.val}%' : rp(_voucher!.val)}',
+        _voucher == null ? '0' : (_voucher!.type == 'p' ? 'p${_voucher!.val}' : 'n${_voucher!.val}'),
+      ],
     ];
+  }
+
+  CrmVoucher? _voucher;
+  void _pickVoucher(int option) {
+    setState(() => _opt['disc'] = option);
+    openFormSheet(FormSheetDef(
+      'Kode voucher',
+      const [FormSheetField('Kode voucher', placeholder: 'GY-XXXXX', required: true)],
+      'Pakai',
+      (v) {
+        final code = v[0].trim().toUpperCase();
+        final total = calcTotals(_cartItems, '0', _optOngkir).total;
+        CrmStore(widget.store).load().then((st) {
+          final x = st.vouchers.where((z) => z.code == code).firstOrNull;
+          if (x == null) return toast('Kode tidak ditemukan');
+          if (x.used) return toast('Kode sudah pernah dipakai');
+          if (x.expired(now)) return toast('Kode sudah kedaluwarsa');
+          if (x.min > 0 && total < x.min) return toast('Minimal transaksi ${rp(x.min)}');
+          setState(() => _voucher = x);
+          closeFormSheet();
+          toast('Voucher ${x.code} dipakai (${x.who})');
+        });
+        return false;
+      },
+      sub: 'Ketik kode dari pelanggan, contoh GY-7K2PQ',
+    ));
   }
 
   String get _optDiscKey {
@@ -1335,6 +1367,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       final v = (d['val'] as num).round();
       return toast(d['type'] == 'p' && v > maxPct ? 'Diskon $v% · perlu persetujuan owner (tercatat di audit)' : 'Hemat ${rp(a)}');
     }
+    if (option == _discs.length - 1) return _pickVoucher(option);
     if (cfg['manual'] == true && option == act.length + 1) {
       final limit = total * maxPct / 100;
       setState(() => _opt['disc'] = option);
@@ -1667,6 +1700,17 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final b = _b!;
     final cust = b.customerByName(_aoCustomer);
     final hand = _optHand;
+    final usedVoucher = (_opt['disc'] as int) == _discs.length - 1 ? _voucher : null;
+    if (usedVoucher != null) {
+      // Kode sekali pakai: tandai terpakai di data CRM.
+      final db = CrmStore(widget.store);
+      db.load().then((st) {
+        for (final z in st.vouchers) {
+          if (z.code == usedVoucher.code) z.used = true;
+        }
+        return db.save(st);
+      });
+    }
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
       discKey: _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),

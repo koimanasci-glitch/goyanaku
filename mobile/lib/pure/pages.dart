@@ -17,6 +17,7 @@ import '../core/store.dart';
 import '../native/form_page.dart' show FormActions;
 import '../native/guide135_sheet.dart';
 import '../native/popup_components.dart';
+import '../native/crm_page.dart';
 import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
 import 'access.dart';
@@ -2947,5 +2948,34 @@ class AuditPage extends PurePage {
         return null;
       },
     ));
+  }
+}
+
+
+/// CRM Pelanggan: halaman Dart yang sama dengan Mode Hibrida (NativeCrm, data `goyana-crm203`).
+class CrmNativePage extends PurePage {
+  CrmNativePage(super.host);
+  int _open = 0;
+  @override
+  String get title => 'CRM PELANGGAN';
+  @override
+  String get back => 'customers';
+  @override
+  void opened() => _open++;
+  @override
+  List<Map<String, dynamic>> items() => const [];
+  @override
+  Widget? custom(BuildContext context, FormActions actions) {
+    final o = host.business.outlets;
+    return NativeCrm(
+      key: ValueKey('pure-crm-$_open'),
+      store: host.kv,
+      onBack: () => host.go(back),
+      onNav: actions.nav,
+      onScan: actions.scan,
+      openUrl: (u) => host.device.invokeMethod('App.openUrl', {'url': u}).catchError((_) => null),
+      outlet: (o.where((x) => x.id == host.business.activeOutlet).firstOrNull ?? o.firstOrNull)?.name ?? 'Outlet',
+      now: () => host.now,
+    );
   }
 }

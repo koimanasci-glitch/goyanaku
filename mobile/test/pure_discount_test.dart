@@ -103,7 +103,7 @@ void main() {
       ],
     });
     final s = await _pump(tester, kv);
-    expect(s.debugDiscOptions(), ['Tidak', 'Member · 10% · min Rp50.000', 'Promo Satuan · Rp5.000 (Satuan)', 'Diskon manual (Rp)…']);
+    expect(s.debugDiscOptions(), ['Tidak', 'Member · 10% · min Rp50.000', 'Promo Satuan · Rp5.000 (Satuan)', 'Diskon manual (Rp)…', '🎟 Pakai kode voucher…']);
     s.aoSheetSelect(1, 1); // keranjang kosong: di bawah minimal
     expect(s.debugToast, '"Member" butuh minimal transaksi Rp50.000');
     s.aoSheetSelect(1, 3);
@@ -595,6 +595,38 @@ void templateTests() {
     s.fmButton(10); // Tandai Lunas
     await _settle(tester);
     expect(s.debugItems().any((e) => e['t'] == 'Tidak ada hutang supplier.'), isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Voucher kode unik CRM di Atur Pesanan: validasi dan pesan sama dengan HTML', (tester) async {
+    final kv = _store();
+    kv.data['goyana-crm203'] = jsonEncode({
+      'vouchers': [
+        {'code': 'GY-AAAAA', 'name': 'Kangen', 'type': 'p', 'val': 15, 'min': 0, 'until': '', 'who': 'Koiman', 'used': false, 'batch': 'b1'},
+        {'code': 'GY-BBBBB', 'name': 'Lama', 'type': 'n', 'val': 5000, 'min': 0, 'until': '2026-01-01', 'who': 'Koiman', 'used': false, 'batch': 'b1'},
+        {'code': 'GY-CCCCC', 'name': 'Pakai', 'type': 'n', 'val': 5000, 'min': 0, 'until': '', 'who': 'Koiman', 'used': true, 'batch': 'b1'},
+      ],
+    });
+    final s = await _pump(tester, kv);
+    final last = s.debugDiscOptions().length - 1;
+    Future<void> tryCode(String code) async {
+      s.aoSheetSelect(1, last);
+      await _settle(tester);
+      expect(find.text('Kode voucher'), findsWidgets);
+      s.fmScoped('gs107', 'input', 0, code);
+      s.fmScoped('gs107', 'button', 0);
+      await _settle(tester);
+    }
+
+    await tryCode('gy-zzzzz');
+    expect(s.debugToast, 'Kode tidak ditemukan');
+    await tryCode('GY-BBBBB');
+    expect(s.debugToast, 'Kode sudah kedaluwarsa');
+    await tryCode('GY-CCCCC');
+    expect(s.debugToast, 'Kode sudah pernah dipakai');
+    await tryCode('gy-aaaaa');
+    expect(s.debugToast, 'Voucher GY-AAAAA dipakai (Koiman)');
+    expect(s.debugDiscOptions().last, '🎟 GY-AAAAA · 15%');
     expect(tester.takeException(), isNull);
   });
 }
