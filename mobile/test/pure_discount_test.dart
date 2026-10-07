@@ -1190,4 +1190,26 @@ void templateTests() {
     expect((await Business.load(kv)).customerByName('Sari')!.maps, 'https://maps.app.goo.gl/abc');
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Harga Paket: grid kartu paket, rincian fitur saat kartu diketuk, tanpa luapan tata letak', (tester) async {
+    final s = await _pump(tester, _store());
+    s.nav('upgrade');
+    await _settle(tester);
+    expect(find.text('HARGA PAKET'), findsOneWidget);
+    expect(find.text('Pilih Paket'), findsOneWidget);
+    for (final p in ['FREE', 'BASIC', 'SILVER', 'GOLD']) {
+      expect(find.text(p), findsWidgets, reason: p);
+    }
+    expect(find.text('Paket Aktif'), findsOneWidget, reason: 'FREE (trial) sedang aktif');
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('SILVER'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Paket SILVER'), findsOneWidget);
+    expect(find.text('Stok bahan, opname dan HPP'), findsOneWidget);
+    await tester.tap(find.text('Pilih Paket Ini'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(s.debugToast, 'Pembayaran paket belum tersedia di versi ini · paket SILVER belum diaktifkan');
+    await _settle(tester);
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -27,6 +27,7 @@ import 'discounts.dart';
 import 'g181_mirror.dart';
 import 'mirror_pages.dart';
 import 'page_templates.dart';
+import 'plan_page.dart';
 import 'qr_decode.dart';
 import 'views.dart' show mapsLink;
 
@@ -3295,4 +3296,20 @@ class UpgradePage extends TemplatePage {
 
   @override
   void button(int i) => host.toast(i == 0 ? 'Belum ada riwayat transaksi paket' : 'Pembayaran Google Play dan verifikasi server belum terhubung. Paket belum diaktifkan.');
+
+  /// Tampilan Harga Paket Mode Murni (grid kartu paket + rincian fitur), permintaan Koiman 7 Okt.
+  @override
+  Widget? custom(BuildContext context, FormActions actions) {
+    final n = host.now, tu = planAccess.trialUntil, test = planAccess.testPlan, trial = planAccess.rank(n) > 0;
+    return PlanPricing(
+      key: const ValueKey('pure-plan-pricing'),
+      current: test ?? 'FREE',
+      currentLabel: test != null ? '$test · MODE UJI' : (trial ? 'FREE · TRIAL BASIC' : 'FREE'),
+      currentSub: test != null ? 'Mode Uji aktif · tanpa pembayaran' : (tu == null ? '' : (trial ? 'Trial Basic sampai ${tu.day}/${tu.month}/${tu.year}' : 'Trial berakhir · pilih paket')),
+      onBack: actions.fmBack, onScan: actions.scan, onNav: actions.nav,
+      onHistory: () => host.toast('Belum ada riwayat transaksi paket'),
+      onChoose: (p) => host.toast('Pembayaran paket belum tersedia di versi ini · paket ${p.id} belum diaktifkan'),
+      onAddon: (i) => host.toast('${const ['Top-up Saldo AI', 'Tambah Cabang', 'Tambah Nomor Chatbot'][i]} belum tersedia · menunggu layanan pembayaran'),
+    );
+  }
 }
