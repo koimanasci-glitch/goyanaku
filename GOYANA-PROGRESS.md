@@ -1469,3 +1469,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Kategori Pengeluaran: tambah/ubah/hapus, tersimpan.
 - **Anomali HTML (dilaporkan):** Pusat Data di HTML masih contoh — "Export Semua Data" mengunduh 3 baris data contoh, "Backup Database" tidak menyimpan apa pun, titik "Restore" palsu (6.420 transaksi), "Hapus Data Trial" hanya mengubah angka di layar. Nomor WA CS (`CS_WA100`) masih `6280000000000`. Akun/Reminder/Kasir/Kategori Pengeluaran di HTML tidak tersimpan.
 - Belum: kunci paket (Silver/Gold/Platinum) di Mode Murni; Restore dari file; Antar-Jemput (tarif transportasi v183/v184), Outlet/Edit Outlet, Manajemen Cabang, Pegawai, Audit, Kurir, CRM, WhatsApp, Pembayaran/QRIS, Ralat, Stok, Printer.
+
+## Jalur C — batch ke-3 (7 Okt): Antar-Jemput, Outlet, kunci paket & Mode Uji
+- Antar-Jemput (`lib/pure/delivery.dart`, `DeliveryPage`): Tarif Transportasi v184 (5 mode, kunci `goyana-transport183` per outlet — sama dengan Hibrida), layanan jemput/antar, jam kurir, kurir. Ongkir kini masuk total pesanan Mode Murni (tidak ikut didiskon) dan pilihan Penyerahan mengikuti layanan yang aktif.
+- Outlet & Edit Outlet v180 (`OutletsPage`, `OutletEditPage`): validasi & pesan sama; unggah logo lewat `Files.pick` (Mode Murni kini punya pemilih file: `PurePage.file`).
+- Kunci paket v190 (`lib/pure/access.dart`): trial Basic 2 bulan (`goyana-trial190`), Pegawai/Stok/Ekspor butuh Silver, CRM butuh Gold, batas outlet per paket; pesan sama dengan HTML. Mode Uji v192 (password sama, hash SHA-256) ada di menu Pengaturan.
+- **Anomali HTML (dilaporkan):** kurir "Andi" & "Dimas" di Antar-Jemput adalah data contoh tertanam; kurir tambahan, jam kurir dan saklar jemput/antar tidak tersimpan. Saat SIMPAN TARIF, tarif mode lain ikut jadi 0 (Mode Murni mempertahankannya).
+- Belum: tab Penjemputan/Diantar di Pesanan belum disembunyikan saat layanan dimatikan; Monitoring cabang (`branchmonitor58`) & Manajemen Cabang (`superbilling`) masih halaman sementara.

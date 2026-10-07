@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 
 MemoryKvStore _store() {
@@ -51,6 +52,9 @@ Future<void> _loadFonts() async {
 
 void main() {
   setUpAll(_loadFonts);
+  // Tes alur lama memakai fitur Silver/Gold (pegawai, stok, CRM): jalankan dengan paket uji Platinum.
+  setUp(() => planAccess.testPlan = 'PLATINUM');
+  tearDown(() => planAccess.testPlan = null);
   testWidgets('kasir: pelanggan baru → layanan → opsi → tunai → pesanan tersimpan', (tester) async {
     final kv = _store();
     final s = await _pump(tester, kv);

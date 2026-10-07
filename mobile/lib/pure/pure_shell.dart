@@ -16,6 +16,7 @@ import '../core/money.dart';
 import '../core/store.dart';
 import '../native/addorder_page.dart';
 import 'addorder_assets.dart';
+import 'access.dart';
 import 'addorder_popups.dart';
 import 'delivery.dart';
 import 'discounts.dart';
@@ -67,7 +68,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
-    'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
+    'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
   @override
@@ -258,6 +259,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void initState() {
     super.initState();
     loadTransport(widget.store);
+    planAccess.load(widget.store, now);
     widget.store.get(DurationPage.key).then((raw) {
       try {
         for (final e in (jsonDecode(raw ?? '{}') as Map).entries) {
@@ -546,6 +548,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   // ---------------- navigasi ----------------
   @override
   void nav(String pageId) {
+    final gate = pageGates[pageId];
+    if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
     setState(() {
       _sheets.clear();
       _pageSheets.clear();
@@ -601,6 +605,16 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   final Set<int> _stOpen = {};
   Map<String, dynamic> _settingsJson() {
     final m = jsonDecode(settingsMenuJson) as Map<String, dynamic>;
+    (m['groups'] as List).add({
+      'i': 13,
+      'svg': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-6 10a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L14 9V3M8 14h8"></path></svg>',
+      'icon': '', 't': 'Mode Uji', 's': planAccess.testPlan == null ? 'Coba fitur premium dengan password' : 'Aktif · ${planAccess.testPlan}',
+      'accordion': false, 'open': false, 'items': <dynamic>[],
+    });
+    final tu = planAccess.trialUntil;
+    if (m['acct'] is Map && tu != null) {
+      (m['acct'] as Map)['s'] = planAccess.rank(now) > 0 ? 'Trial Basic sampai ${tu.day}/${tu.month}/${tu.year}' : 'Trial berakhir · pilih paket';
+    }
     for (final g in (m['groups'] as List).cast<Map<String, dynamic>>()) {
       final i = (g['i'] as num).toInt();
       g['open'] = _stOpen.contains(i);
@@ -620,7 +634,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
     '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
     '9/0': 'qris', '9/1': 'finance', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
-    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
+    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
   };
   void _stGo(String key) {
     final r = _stRoutes[key];

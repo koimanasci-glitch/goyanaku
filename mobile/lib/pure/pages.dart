@@ -19,6 +19,7 @@ import '../native/guide135_sheet.dart';
 import '../native/popup_components.dart';
 import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
+import 'access.dart';
 import 'delivery.dart';
 import 'discounts.dart';
 import 'mirror_pages.dart';
@@ -1529,6 +1530,7 @@ class OutletEditPage extends PurePage {
     if (b.outlets.any((o) => o.id != editId && o.name.trim().toLowerCase() == name.toLowerCase() && o.address.trim().toLowerCase() == address.toLowerCase())) {
       return host.toast('Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');
     }
+    if (editId == null && b.outlets.length >= planAccess.outletLimit(host.now)) return host.toast(planAccess.outletLimitText(host.now));
     final id = await b.upsertOutlet(id: editId, name: name, address: address, phone: phone, logo: _logo);
     if (id == null) return host.toast('Penyimpanan perangkat penuh');
     editId = id;
@@ -1967,6 +1969,7 @@ class DataCenterPage extends TemplatePage {
         _preview = const ['Import Pelanggan', 'Import Layanan & Harga', 'Import Transaksi Lama'][i];
         return host.refresh();
       case 3:
+        if (!planAccess.has('export', host.now)) return host.toast(planAccess.lockedText('export'));
         final a = await _save('goyana-pesanan-$d.csv', 'text/csv', '﻿${host.business.ordersCsv()}');
         final c = a && await _save('goyana-pelanggan-$d.csv', 'text/csv', '﻿${host.business.customersCsv()}');
         if (c) host.toast('Data diekspor ke CSV (bisa dibuka di Excel)');
@@ -2199,5 +2202,73 @@ class DeliveryPage extends PurePage {
     await host.saveAll();
     host.toast('Pengaturan antar-jemput tersimpan');
     host.go('settings');
+  }
+}
+
+
+/// Mode Uji (v192): coba akses paket premium dengan password; hanya berlaku sampai aplikasi ditutup.
+class TestModePage extends PurePage {
+  TestModePage(super.host);
+  String _pass = '', _error = '';
+  int _plan = 3;
+  @override
+  String get title => 'MODE UJI';
+
+  @override
+  void opened() {
+    _pass = '';
+    _error = '';
+    final k = planCatalog.indexWhere((p) => p[0] == planAccess.testPlan);
+    if (k >= 0) _plan = k;
+  }
+
+  @override
+  List<Map<String, dynamic>> items() => [
+        {'type': 'hint', 't': 'GOYANA UJI · DATA PERANGKAT INI'},
+        {'type': 'title', 't': 'Coba Paket Premium', 's': ''},
+        {'type': 'hint', 't': 'Mode ini untuk menguji tampilan dan akses fitur. Tidak ada pembayaran atau perubahan paket pelanggan.'},
+        if (planAccess.testPlan == null) ...[
+          {'type': 'label', 't': 'Password Mode Uji'},
+          {'type': 'input', 'v': _pass, 'ph': 'Masukkan password', 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': true, 'email': false, 'i': 0},
+          {'type': 'button', 't': 'Buka Mode Uji', 'primary': true, 'file': '', 'after': false, 'i': 0},
+          if (_error.isNotEmpty) {'type': 'hint', 't': _error},
+        ] else ...[
+          {'type': 'label', 't': 'Paket yang dicoba'},
+          {'type': 'select', 'options': [for (final p in planCatalog) p[0]], 'index': _plan, 'i': 1},
+          {'type': 'hint', 't': 'Mode Uji aktif: ${planAccess.testPlan} · tanpa pembayaran'},
+          {'type': 'button', 't': 'Terapkan Paket Uji', 'primary': true, 'file': '', 'after': false, 'i': 1},
+          {'type': 'button', 't': 'Keluar Mode Uji', 'primary': false, 'file': '', 'after': false, 'i': 2},
+        ],
+        {'type': 'hint', 't': 'AI dan pengiriman WhatsApp sungguhan tetap memerlukan server. Password ini mengunci menu uji; bukan sistem keamanan paket produksi.'},
+      ];
+
+  @override
+  void input(int i, Object value) {
+    if (i == 0) {
+      _pass = '$value';
+    } else {
+      _plan = (value is int ? value : int.tryParse('$value') ?? 0).clamp(0, planCatalog.length - 1);
+      host.refresh();
+    }
+  }
+
+  @override
+  void button(int i) {
+    if (i == 0) {
+      if (!planAccess.unlockTest(_pass)) {
+        _error = 'Password salah.';
+        return host.refresh();
+      }
+      opened();
+      host.toast('Mode Uji Platinum aktif');
+    } else if (i == 1) {
+      planAccess.testPlan = planCatalog[_plan][0] as String;
+      host.toast('Paket uji: ${planAccess.testPlan}');
+    } else {
+      planAccess.testPlan = null;
+      opened();
+      host.toast('Mode Uji ditutup · kembali ke paket asli');
+    }
+    host.refresh();
   }
 }

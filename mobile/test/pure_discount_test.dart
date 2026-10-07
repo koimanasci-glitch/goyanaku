@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/pure/delivery.dart';
+import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 
 MemoryKvStore _store() {
@@ -347,6 +348,40 @@ void templateTests() {
     s.fmInput(3, '081234567890');
     s.fmButton(2);
     expect(s.debugToast, 'Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Kunci paket seperti HTML: trial Basic menolak Pegawai/Stok/CRM/Ekspor; Mode Uji membukanya', (tester) async {
+    expect(sha256Hex(utf8.encode('abc')), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    await _settle(tester);
+    expect(jsonDecode(kv.data['goyana-trial190']!)['until'], isNotNull);
+    s.nav('employees');
+    expect(s.debugToast, 'Pegawai membutuhkan paket Silver');
+    s.nav('stock');
+    expect(s.debugToast, 'Stok bahan membutuhkan paket Silver');
+    s.nav('crm');
+    expect(s.debugToast, 'Loyalitas pelanggan membutuhkan paket Gold');
+    s.nav('datacenter');
+    await _settle(tester);
+    s.fmButton(3);
+    expect(s.debugToast, 'Ekspor Data membutuhkan paket Silver');
+
+    s.nav('testmode192');
+    await _settle(tester);
+    s.fmInput(0, 'salah');
+    s.fmButton(0);
+    await _settle(tester);
+    expect(find.text('Password salah.'), findsOneWidget);
+    expect(planAccess.testPlan, isNull);
+    planAccess.testPlan = 'SILVER';
+    s.nav('employees');
+    await _settle(tester);
+    expect(s.debugToast, isNot('Pegawai membutuhkan paket Silver'));
+    s.nav('crm');
+    expect(s.debugToast, 'Loyalitas pelanggan membutuhkan paket Gold');
+    planAccess.testPlan = null;
     expect(tester.takeException(), isNull);
   });
 }

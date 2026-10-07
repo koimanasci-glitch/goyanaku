@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
 
 Future<void> _loadFonts() async {
@@ -29,6 +30,8 @@ MemoryKvStore _store() {
 }
 
 void main() {
+  setUp(() => planAccess.testPlan = 'PLATINUM');
+  tearDown(() => planAccess.testPlan = null);
   setUpAll(_loadFonts);
 
   testWidgets('mode murni: layar utama', (tester) async {
