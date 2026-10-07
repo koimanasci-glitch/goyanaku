@@ -1501,3 +1501,19 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Tes Mode Murni kini membuka ulang aplikasi tiap pump (`UniqueKey`), jadi uji "tersimpan" benar-benar membaca dari penyimpanan.
 - **Anomali HTML (dilaporkan):** PIN Admin ralat tertanam `1234`, nama "Koko"/"Rina" tertanam, log ralat hanya di memori; halaman WhatsApp/AI/Blast belum terhubung server; Resep HPP (v182) belum ada di Mode Murni.
 - Belum: popup ralat/kurir/PIN masih sheet umum (belum widget khusus `rs139`/`pin139`/`g181-modal`); Uji Jawaban AI; tambah device WA; kartu tugas kurir lengkap; Resep HPP & laporan HPP v182.
+
+## Jalur C — batch ke-7 (7 Okt): patokan = bundel final; layar utama & Rincian Pesanan
+- **Temuan cara kerja:** aplikasi yang jalan = `index.html` + 18 patch `goyana-v181…v202*.js`. Semua tangkapan HTML sekarang diambil dari bundel final (bukan `index.html` saja); Layanan, Diskon, Tambah Transaksi dicek ulang terhadap bundel.
+- Tambah Transaksi: model halaman sama dengan bundel sampai lembar Pembayaran (judul/langkah per lembar, "Tanpa Parfum", urutan kolom, ikon). Sesudah simpan: pesan "Pesanan tersimpan · kirim nota lewat tombol WA hijau", langsung ke Rincian (popup "Kirim nota?" rancangan Murni dibuang).
+- Beranda: `homeModel` (logika A, sama dengan HTML) — Masuk/Siap/Terlambat, omzet kas hari ini, lencana Hari Ini, slide, kotak bantuan. Ubin: Tambah Transaksi, Antar Jemput, Kurir, Pelanggan, Hari Ini, WhatsApp.
+- Pesanan: `ordersModel` — 9 tab (termasuk Belum Bayar), chip hitung mundur "⏱ 1j", Prioritas, Kabari WA/Ingatkan, tombol tahap. Status otomatis sekarang dijalankan Dart (tiap 20 detik): Antrian → Proses setelah 1 jam, Siap Ambil ↔ Telat Ambil (7 hari), tahap proses otomatis. Popup "Aturan Status Otomatis" berfungsi dan **tersimpan**.
+- Rincian Pesanan: digambar `NativeOrderDetail` (widget Hibrida) dari model Dart (`lib/pure/order_view.dart`): kotak "Pesanan tersimpan" 6 detik, pelanggan, 4 langkah (6 langkah untuk antar-jemput), Detail Order, baris Status/Penyerahan/Keterangan/Tanggal/Parfum/Foto/Transportasi, tombol tahap, KIRIM NOTA WA, BAYAR. Menu ⋯ (Foto, Edit, Riwayat, Label, Ralat, Batalkan). BAYAR membuka lembar Pembayaran yang sama dengan Tambah Transaksi (Tunai/QRIS/Transfer/DP/Deposit).
+- Pelanggan: bentuk HTML (Saldo Pelanggan, Database buka/tutup, Ranking, CRM, baris + Belanja/Saldo/Top Up/Edit, Filter → Urutkan, 10 baris per halaman).
+- Kas (Penambahan/Pengeluaran/Tutup Kasir), Antar Jemput v202 (`jemput202`, `jemputnew202`), Harga Paket, Mode Uji, QR menu: sama dengan bundel.
+- **Anomali HTML (dilaporkan):**
+  - Rincian Pesanan selalu menampilkan pelanggan contoh "0852 •••• 8626 · Cikarang" (nomor & alamat tertanam). Murni menampilkan nomor asli (disamarkan) + alamat asli.
+  - Daftar Pelanggan: jumlah order selalu 0, "Belanja" = jumlah order × Rp37.000 (angka contoh), kolom terakhir selalu "Baru"/"—". Murni menghitung dari pesanan asli.
+  - Aturan Status Otomatis hanya di memori (kembali ke bawaan tiap aplikasi dibuka). Murni menyimpannya.
+  - "Ubah Status Pembayaran" (pay91) lama masih ada tersembunyi di rincian dan memakai data contoh (GY-260927-0132, Saldo Koiman Rp50.000).
+  - Pesanan "Jemput & Antar" dari Tambah Transaksi mulai dari Penjemputan walau layanan sudah diisi (Murni kini sama).
+- Belum: popup Riwayat/Foto/Nota WA/Struk masih lembar umum (belum widget khusus `hist115`/`photo115`/`wa131`/`rc106`); Edit Transaksi belum bisa tambah/hapus layanan seperti `edit115`; lembar Transfer (rekening) & popup jumlah/tunai/DP belum dicek ulang terhadap bundel; halaman Cetak Label (`printlabel`); poin CRM otomatis saat lunas.
