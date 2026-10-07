@@ -29,6 +29,7 @@ class PlanAccess {
   String? testPlan;
 
   Future<void> load(KvStore kv, DateTime now) async {
+    trialUntil = null;
     try {
       final v = jsonDecode(await kv.get(trialKey) ?? 'null');
       if (v is Map) trialUntil = DateTime.tryParse('${v['until']}');
