@@ -84,10 +84,11 @@ jobs:
           cat screens.txt
           # Failures as annotations (readable from the API without log access).
           grep -E '\[E\]|EXCEPTION CAUGHT|overflowed|Expected:|Actual:|Error:' screens.txt | head -30 | sed 's/^/::warning::/'
+          grep -A14 'EXCEPTION CAUGHT' screens.txt | grep -vE '^--|══' | head -40 | sed 's/^/::warning::/'
           exit $code
         working-directory: mobile
       - name: Kirim screenshot ke branch ci-screens
-        if: github.event_name == 'push'
+        if: always() && github.event_name == 'push'
         run: |
           cd mobile/test/screens
           git init -q && git checkout -q -b ci-screens
