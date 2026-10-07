@@ -84,7 +84,7 @@ void main() {
     await _settle(tester);
     s.aoNext();
     await _settle(tester);
-    s.aoSheetSelect(1, 2); // Diskon 10%
+    s.aoSheetSelect(3, 2); // Diskon 10%
     s.aoSheetMain();
     await _settle(tester);
     s.aoPay(0); // Tunai

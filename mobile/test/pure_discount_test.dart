@@ -108,9 +108,9 @@ void main() {
     });
     final s = await _pump(tester, kv);
     expect(s.debugDiscOptions(), ['Tidak', 'Member · 10% · min Rp50.000', 'Promo Satuan · Rp5.000 (Satuan)', 'Diskon manual (Rp)…', '🎟 Pakai kode voucher…']);
-    s.aoSheetSelect(1, 1); // keranjang kosong: di bawah minimal
+    s.aoSheetSelect(3, 1); // keranjang kosong: di bawah minimal
     expect(s.debugToast, '"Member" butuh minimal transaksi Rp50.000');
-    s.aoSheetSelect(1, 3);
+    s.aoSheetSelect(3, 3);
     await _settle(tester);
     expect(find.text('Diskon manual'), findsOneWidget);
     expect(find.text('Potongan (Rp)'), findsOneWidget);
@@ -617,7 +617,7 @@ void templateTests() {
     final s = await _pump(tester, kv);
     final last = s.debugDiscOptions().length - 1;
     Future<void> tryCode(String code) async {
-      s.aoSheetSelect(1, last);
+      s.aoSheetSelect(3, last);
       await _settle(tester);
       expect(find.text('Kode voucher'), findsWidgets);
       s.fmScoped('gs107', 'input', 0, code);
@@ -855,6 +855,53 @@ void templateTests() {
     expect(s.debugToast, 'Timbang barang, lalu pilih ongkos kirim di opsi pesanan');
     final saved = (jsonDecode(kv.data['goyana-pickup202']!) as List).single as Map;
     expect(saved['status'], 'sampai');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Tambah Transaksi: model tiap tahap sama dengan HTML (bundel final)', (tester) async {
+    Object? canon(Object? v) {
+      if (v is Map) return {for (final k in (v.keys.map((e) => '$e').toList()..sort())) k: canon(v[k])};
+      if (v is List) return [for (final x in v) canon(x)];
+      return v;
+    }
+
+    final fx = jsonDecode(File('test/fixtures/pure/addorder.json').readAsStringSync()) as Map;
+    final kv = _store();
+    // Tangkapan HTML dibuat pada data tanpa pesanan (nomor nota berikutnya 0133).
+    final raw = jsonDecode(kv.data[Keys.business]!) as Map;
+    raw['orders'] = <dynamic>[];
+    raw['details'] = <String, dynamic>{};
+    kv.data[Keys.business] = jsonEncode(raw);
+    final s = await _pump(tester, kv);
+    void same(String stage) {
+      final want = Map<String, dynamic>.from(fx[stage] as Map), got = s.debugAddOrder();
+      // Nomor nota memuat tanggal hari tangkapan.
+      if (want['sheet'] is Map && (want['sheet'] as Map)['id'] != null) {
+        (want['sheet'] as Map)['id'] = '${(want['sheet'] as Map)['id']}'.replaceFirst(RegExp(r'GY-\d{6}'), 'GY-261003');
+      }
+      expect(jsonEncode(canon(got)), jsonEncode(canon(want)), reason: stage);
+    }
+
+    s.tile(0);
+    await _settle(tester);
+    same('customer');
+    s.aoPickCustomer(0);
+    await _settle(tester);
+    s.fmScoped('dur', 'button', 0);
+    await _settle(tester);
+    same('services');
+    s.aoService(0);
+    await _settle(tester);
+    s.fmScoped('qty', 'input', 0, '2,5');
+    s.fmScoped('qty', 'button', 1);
+    await _settle(tester);
+    same('picked');
+    s.aoNext();
+    await _settle(tester);
+    same('options');
+    s.aoSheetMain();
+    await _settle(tester);
+    same('payment');
     expect(tester.takeException(), isNull);
   });
 }

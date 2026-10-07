@@ -319,6 +319,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   List<String> debugDiscOptions() => [for (final d in _discs) d[0]];
   @visibleForTesting
   String get debugToast => _toast;
+  @visibleForTesting
+  Map<String, dynamic> debugAddOrder() => _addOrderJson();
 
   // ---------------- Layanan (halaman & popup sama dengan HTML sv99/cat99) ----------------
   static const _svDurs = ['Reguler', 'Express', 'Kilat'];
@@ -1565,18 +1567,20 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       m['people'] = [
         for (var i = 0; i < list.length; i++)
           if (q.isEmpty || '${list[i].name} ${list[i].phone}'.toLowerCase().contains(q))
-            {'i': i, 'name': list[i].name, 'avatar': aoPersonAvatar, 'lines': ['☎ ${list[i].phone}', '⌖ ${list[i].address.isEmpty ? '—' : list[i].address}'], 'btn': 'Pilih'},
+            {'i': i, 'name': list[i].name, 'avatar': aoPersonAvatar, 'lines': ['☎ ${list[i].phone}', '⌖ ${list[i].address.isEmpty ? '-' : list[i].address}'], 'btn': 'Pilih'},
       ];
       m['empty'] = (m['people'] as List).isEmpty ? (q.isEmpty ? 'Belum ada pelanggan. Tambahkan pelanggan baru.' : 'Pelanggan tidak ditemukan.') : '';
+      m['sheet'] = null;
       return m;
     }
     final t = calcTotals(_cartItems, _optDiscKey, 0);
     m['step'] = 'Langkah 2 dari 5';
-    m['customer'] = {'name': _aoCustomer, 'sub': _aoDur, 'avatar': aoBarAvatar};
+    m['customer'] = {'name': _aoCustomer, 'sub': '$_aoDur · ${durationHours(_aoDur)} Jam', 'avatar': aoBarAvatar};
     m['durations'] = [for (final d in _durations) {'t': d, 's': '${durationHours(d)} Jam', 'on': d == _aoDur}];
     m['cats'] = [for (var i = 0; i < _cats.length; i++) {'t': _cats[i][0], 'on': i == _aoCat, 'svg': aoCatSvg[_cats[i][0]] ?? ''}];
     m['search'] = {'v': _aoSvcSearch, 'ph': 'Cari layanan $_aoDur'};
     final items = <Map<String, dynamic>>[];
+    _aoShown.clear();
     final svcs = _visibleServices;
     for (final cat in _cats.skip(1)) {
       final group = svcs.where((s) => s.unit == cat[1]).toList();
@@ -1584,10 +1588,13 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       items.add({'h': 1, 'svg': aoHeadSvg[cat[0]] ?? '', 't': '${cat[0]} · $_aoDur', 's': const {'kg': 'Cuci ››› Kering ››› Setrika', 'pcs': 'Cuci ››› Kering ››› Packing', 'm': 'Cuci ››› Kering'}[cat[1]] ?? ''});
       for (final s in group) {
         final q = _cart[s.name];
-        items.add({'i': b.services.indexOf(s), 'svg': aoItemSvg[cat[0]] ?? '', 't': s.name, 's': '${rpSpaced(s.priceFor(_aoDur))} / ${s.unit} · ${durationHours(_aoDur)} Jam', 'btn': q == null ? 'Pilih' : '${qtyText(q)} ${s.unit}', 'on': q != null});
+        _aoShown.add(b.services.indexOf(s));
+        items.add({'i': _aoShown.length - 1, 'svg': aoItemSvg[cat[0]] ?? '', 't': s.name, 's': '${rpSpaced(s.priceFor(_aoDur))} / ${s.unit} · ${durationHours(_aoDur)} Jam', 'btn': q == null ? 'Pilih' : '${qtyText(q)} ${s.unit}', 'on': q != null});
       }
     }
     m['items'] = items;
+    m['empty'] = '';
+    m['sheet'] = null;
     double sumOf(String u) => _cart.entries.fold<double>(0, (a, e) => a + (b.services.any((x) => x.name == e.key && x.unit == u) ? e.value : 0));
     String qn(double v) => qtyText(v);
     m['footer'] = {'name': _aoCustomer, 'sum': '${qn(sumOf('kg'))} kg · ${qn(sumOf('pcs'))} pcs · ${qn(sumOf('m'))} m', 'label': 'Total Layanan', 'total': rpSpaced(t.total), 'btn': 'LANJUT ›'};
@@ -1596,9 +1603,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         'kind': 'options', 'title': 'Atur Pesanan',
         'fields': [
           {'k': 0, 'type': 'select', 'label': 'Parfum', 'options': _perfumes, 'index': _opt['perfume']},
-          {'k': 2, 'type': 'select', 'label': 'Penyerahan', 'options': _hands, 'index': _opt['hand']},
-          {'k': 3, 'type': 'switch', 'label': 'Jadikan Prioritas', 'sub': 'naik ke atas antrian', 'on': _opt['prio'] == true},
-          {'k': 1, 'type': 'select', 'label': 'Diskon', 'options': [for (final d in _discs) d[0]], 'index': _opt['disc']},
+          {'k': 1, 'type': 'select', 'label': 'Penyerahan', 'options': _hands, 'index': _opt['hand']},
+          {'k': 2, 'type': 'switch', 'label': 'Jadikan Prioritas', 'sub': 'naik ke atas antrian', 'on': _opt['prio'] == true},
+          {'k': 3, 'type': 'select', 'label': 'Diskon', 'options': [for (final d in _discs) d[0]], 'index': _opt['disc']},
         ],
         'note': {'v': '${_opt['note']}', 'ph': 'Catatan: jumlah pakaian, no rak, kondisi (contoh: 12 pcs, rak B2, kemeja luntur)'},
         'main': 'Buat Pesanan',
@@ -1609,12 +1616,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         'methods': [
           for (var i = 0; i < _payMethods.length; i++)
             {
-              'i': i, 't': _payMethods[i][3], 'svg': aoPaySvg[_payMethods[i][3]]![0], 'icon': aoPaySvg[_payMethods[i][3]]![3],
-              'ic': aoPaySvg[_payMethods[i][3]]![1], 'bg': aoPaySvg[_payMethods[i][3]]![2],
+              'i': i < 4 ? i : i + 6, 't': _payMethods[i][3], 'svg': aoPaySvg[_payMethods[i][3]]![0], 'icon': aoPaySvg[_payMethods[i][3]]![3],
+              'ic': aoPaySvg[_payMethods[i][3]]![1], 'bg': aoPaySvg[_payMethods[i][3]]![2].isEmpty ? 'rgba(0, 0, 0, 0)' : aoPaySvg[_payMethods[i][3]]![2],
               's': _payMethods[i][0] == 'Saldo Deposit' && b.depositOf(_aoCustomer) > 0 ? 'Saldo ${rp(b.depositOf(_aoCustomer))}' : '',
             },
         ],
-        'cancel': 'Batalkan Pesanan',
+        'cancel': 'BATALKAN PESANAN',
       };
     }
     return m;
@@ -1623,10 +1630,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   /// Nilai yang disimpan di pesanan (HTML menyimpan 'Tanpa Parfum' untuk pilihan 'Tidak').
   String _perfumeValue(int i) {
     final v = _perfumes[i.clamp(0, _perfumes.length - 1)];
-    return v == 'Tidak' ? 'Tanpa Parfum' : v;
+    return v;
   }
 
-  List<String> get _perfumes => ['Tidak', for (final p in _settings!.perfumes) p.first];
+  List<String> get _perfumes => ['Tanpa Parfum', for (final p in _settings!.perfumes) p.first];
+  /// Indeks layanan (di daftar layanan) untuk tiap baris yang tampil di Tambah Transaksi.
+  final List<int> _aoShown = [];
 
   static const _payMethods = [
     ['Tunai', '', '', 'Tunai'], ['QRIS', '', '', 'QRIS'], ['Transfer', '', '', 'Transfer'],
@@ -1686,8 +1695,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void aoService(int index) {
     final list = _b!.services;
-    if (index < 0 || index >= list.length) return;
-    _qtyService = list[index];
+    if (_aoShown.isEmpty) _addOrderJson();
+    if (index < 0 || index >= _aoShown.length) return;
+    _qtyService = list[_aoShown[index]];
     final q = _cart[_qtyService!.name];
     _form
       ..clear()
@@ -1739,7 +1749,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   @override
-  void aoSheetSelect(int field, int option) => field == 1 ? _pickDisc(option) : setState(() => _opt[const ['perfume', 'disc', 'hand'][field]] = option);
+  void aoSheetSelect(int field, int option) => field == 3 ? _pickDisc(option) : setState(() => _opt[field == 1 ? 'hand' : 'perfume'] = option);
   @override
   void aoSheetSwitch(int field) => setState(() => _opt['prio'] = _opt['prio'] != true);
   @override
@@ -1757,7 +1767,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   @override
   void aoPay(int index) {
-    final m = _payMethods[index][0];
+    final k = index >= 10 ? index - 6 : index;
+    if (k < 0 || k >= _payMethods.length) return;
+    final m = _payMethods[k][0];
     switch (m) {
       case 'Tunai':
         _form
