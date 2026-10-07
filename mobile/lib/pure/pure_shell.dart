@@ -1574,7 +1574,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       return m;
     }
     final t = calcTotals(_cartItems, _optDiscKey, 0);
-    m['step'] = 'Langkah 2 dari 5';
+    m['step'] = _aoSheet == 'options' ? 'Langkah 3 dari 5' : (_aoSheet == 'payment' ? 'Langkah 4 dari 5' : 'Langkah 2 dari 5');
+    if (_aoSheet == 'options') m['title'] = 'ATUR PESANAN';
+    if (_aoSheet == 'payment') m['title'] = 'PEMBAYARAN';
     m['customer'] = {'name': _aoCustomer, 'sub': '$_aoDur · ${durationHours(_aoDur)} Jam', 'avatar': aoBarAvatar};
     m['durations'] = [for (final d in _durations) {'t': d, 's': '${durationHours(d)} Jam', 'on': d == _aoDur}];
     m['cats'] = [for (var i = 0; i < _cats.length; i++) {'t': _cats[i][0], 'on': i == _aoCat, 'svg': aoCatSvg[_cats[i][0]] ?? ''}];
