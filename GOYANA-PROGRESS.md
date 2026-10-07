@@ -1483,3 +1483,9 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Kurir (`CourierPage`): tab Tugas / Management Kurir, popup Tambah/Edit Kurir + hak akses outlet, Nonaktifkan, Hapus (data `goyana-couriers181`).
 - **Anomali HTML:** password pegawai tidak disimpan (prototype) — login pegawai belum ada; audit hanya di memori dan hanya mencatat 5 jenis kejadian.
 - Belum: kartu tugas kurir lengkap (pilih kurir, Navigasi, WhatsApp, Bayar, Sudah Dijemput/Mulai Antar/Sudah Diterima); popup kurir masih pakai sheet umum, belum widget `g181-modal`.
+
+## Jalur C — batch ke-5 (7 Okt): Pembayaran/QRIS, Printer & Nota
+- Pembayaran (`QrisPage`): tata letak HTML penuh (QRIS outlet, QRIS dinamis, tempel teks, QRIS statis, metode, rekening). Kunci sama dengan Hibrida (`goyana-qris-text`, `goyana-qris-image`, `goyana-qris-options185`, `gy154-*`). Unggah gambar QRIS + baca kodenya (`qr_decode.dart`, mobile_scanner). Popup QRIS di Tambah Transaksi kini mengikuti saklar QRIS dinamis.
+- Printer & Nota (`PrinterNotaPage`) + Printer Bluetooth (`PrinterPage`, id `printerconnect`): susunan butir sama; Profil Nota tersambung ke pengaturan struk yang benar-benar dipakai saat mencetak.
+- **Anomali HTML:** Profil Nota tidak tersimpan (`savePrinterSettings` hanya menampilkan pesan) dan nilai bawaannya data contoh (alamat "Perum GCC Cluster Sakura…", HP 085280218626); judul "Outlet Gramapuri" di Pembayaran tertanam; saklar QRIS statis & Metode Pembayaran tidak tersimpan dan tidak memengaruhi kasir.
+- Belum: saklar Metode Pembayaran belum menyembunyikan metode di kasir; "Menampilkan Logo → Konfigurasi" baru pesan; pembacaan QR dari gambar belum diuji di HP.
