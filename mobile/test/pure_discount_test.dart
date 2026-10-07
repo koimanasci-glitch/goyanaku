@@ -232,7 +232,7 @@ void templateTests() {
     await _settle(tester);
     s.fmButton(1);
     await _settle(tester);
-    expect(find.text('Import Layanan & Harga'), findsNWidgets(2));
+    expect(s.debugItems().where((e) => e['t'] == 'Import Layanan & Harga').length, 2, reason: 'kartu + judul preview');
     s.fmButton(6);
     await _settle(tester);
     s.fmScoped('gs107', 'input', 0, 'hapuz');
