@@ -101,6 +101,8 @@ jobs:
         run: cp mobile/build/app/outputs/flutter-apk/app-release.apk GOYANA-Flutter-Uji.apk
       - name: Build APK Mode Murni (tanpa WebView)
         run: |
+          # Mode Murni tidak memakai HTML: folder assets/web (HTML + gambar Hybrid) tidak diikutkan ke APK ini.
+          sed -i '/assets\/web\//d' pubspec.yaml
           flutter build apk --release --target-platform android-arm,android-arm64 --build-number=$((100 + ${{ github.run_number }})) -t lib/main_pure.dart
           cp build/app/outputs/flutter-apk/app-release.apk ../GOYANA-Murni-Uji.apk
         working-directory: mobile
