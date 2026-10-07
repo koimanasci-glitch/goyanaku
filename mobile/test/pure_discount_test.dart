@@ -24,7 +24,8 @@ Future<PureShellState> _pump(WidgetTester tester, MemoryKvStore kv) async {
   tester.view.physicalSize = const Size(390 * 2, 844 * 2);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MaterialApp(home: PureShell(store: kv, clock: () => DateTime(2026, 10, 3, 10))));
+  // Kunci unik: tiap pump membuat ulang aplikasi dari data tersimpan (seperti menutup lalu membuka aplikasi).
+  await tester.pumpWidget(MaterialApp(home: PureShell(key: UniqueKey(), store: kv, clock: () => DateTime(2026, 10, 3, 10))));
   await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
   await tester.pump();
   return tester.state<PureShellState>(find.byType(PureShell));
@@ -703,22 +704,26 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Ralat & Log Koreksi: halaman sama dengan HTML; ralat pembayaran dan pengeluaran tercatat di log', (tester) async {
+  testWidgets('Ralat & Log Koreksi: halaman kosong sama dengan HTML', (tester) async {
     final fx = jsonDecode(File('test/fixtures/pure/ralat.json').readAsStringSync()) as Map;
     final kv = _store();
     kv.data['goyana-pure-settings'] = jsonEncode({'adminName': 'Koko'});
-    var s = await _pump(tester, kv);
+    final s = await _pump(tester, kv);
     s.nav('ralat139');
     await _settle(tester);
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+    expect(tester.takeException(), isNull);
+  });
 
+  testWidgets('Ralat: ralat pembayaran (QRIS), ralat pengeluaran, log, dan PIN Admin untuk kasir', (tester) async {
+    final kv = _store();
     // Siapkan 1 pembayaran tunai Rp10.000 dan 1 pengeluaran.
     final b = await Business.load(kv);
     final o = b.orders.first;
     expect(b.pay(o, method: 'Tunai', amount: 10000, now: DateTime(2026, 10, 3, 9)), isNull);
     b.kasEntry(income: false, type: 'Listrik', amount: 50000, note: 'token', now: DateTime(2026, 10, 3, 9, 30));
     await b.save();
-    s = await _pump(tester, kv);
+    final s = await _pump(tester, kv);
     s.nav('ralat139');
     await _settle(tester);
     var rows = s.debugItems().where((e) => e['type'] == 'entry').toList();
