@@ -1,0 +1,152 @@
+{
+ "title": "PENGATURAN STRUK & LABEL",
+ "items": [
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "128",
+     "t": "Label tercetak",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "6",
+     "t": "Hari ini",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "✓",
+     "t": "Printer siap",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Struk Saat Order"
+  },
+  {
+   "type": "hint",
+   "t": "Cetak hanya bila pelanggan membutuhkan. Transaksi tetap tersimpan walau tanpa struk."
+  },
+  {
+   "type": "toggle",
+   "t": "Otomatis cetak struk setelah order",
+   "s": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan tombol Cetak Struk",
+   "s": "",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Cetak barcode Order ID pada struk",
+   "s": "",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "title",
+   "t": "Rekomendasi"
+  },
+  {
+   "type": "hint",
+   "t": "Auto-print OFF. Setelah order tersimpan, kasir memilih Cetak Struk atau Tanpa Cetak."
+  },
+  {
+   "type": "image",
+   "src": "",
+   "svg": "",
+   "mark": "",
+   "t": "Preview Label Pakaian",
+   "s": "Barcode unik mengikuti pesanan sampai diserahkan ke pelanggan."
+  },
+  {
+   "type": "title",
+   "t": "Isi Label"
+  },
+  {
+   "type": "toggle",
+   "t": "Order ID",
+   "s": "",
+   "on": true,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Customer ID",
+   "s": "",
+   "on": true,
+   "i": 4
+  },
+  {
+   "type": "toggle",
+   "t": "Nama pelanggan",
+   "s": "",
+   "on": true,
+   "i": 5
+  },
+  {
+   "type": "toggle",
+   "t": "Alamat lengkap",
+   "s": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "toggle",
+   "t": "Layanan & berat",
+   "s": "",
+   "on": true,
+   "i": 7
+  },
+  {
+   "type": "toggle",
+   "t": "Estimasi selesai",
+   "s": "",
+   "on": true,
+   "i": 8
+  },
+  {
+   "type": "toggle",
+   "t": "Total harga",
+   "s": "",
+   "on": true,
+   "i": 9
+  },
+  {
+   "type": "toggle",
+   "t": "Status pembayaran",
+   "s": "",
+   "on": true,
+   "i": 10
+  },
+  {
+   "type": "card",
+   "t": "Pengaturan Printer Label",
+   "s": "Pilih printer, ukuran label dan jumlah cetak",
+   "svg": "",
+   "ic": "",
+   "badge": "🖨️",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "button",
+   "t": "Cetak Label Test",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ]
+}

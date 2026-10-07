@@ -61,6 +61,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   Business? _b;
   AppSettings? _settings;
   late final Map<String, PurePage> _pages = {
+    ...templatePages(this),
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
@@ -608,13 +609,13 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   /// Item menu HTML → halaman mode murni. null = belum dipindah.
   static const Map<String, String> _stRoutes = {
-    '0/0': 'outlet', '1/0': 'outlet', '1/1': 'outlets',
+    '0/0': 'profile', '1/0': 'outlet', '1/1': 'outlets',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'couriers',
-    '3/0': 'employees', '3/1': 'employees', '3/3': 'couriers',
+    '3/0': 'employees', '3/1': 'cashier', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
     '5': 'whatsapp', '6': 'whatsapp', '7': 'whatsapp', '8': 'whatsapp',
-    '9/0': 'qris', '9/1': 'kas', '9/3': 'stock', '9/4': 'notif', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
-    '10/0': 'printer', '10/1': 'receipt', '11': 'data', '12/0': 'help', '12/1': 'help',
+    '9/0': 'qris', '9/1': 'kas', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'customers', '9/7': 'stock',
+    '10/0': 'printer', '10/1': 'barcode', '11': 'data', '12/0': 'helpcenter', '12/1': 'aboutgoyana',
   };
   void _stGo(String key) {
     final r = _stRoutes[key];
@@ -1722,7 +1723,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
                 : NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this, full: s.full),
           ),
         for (final id in _pageSheets)
-          if (_pages[_page]?.sheetItems(id) case final items?)
+          if (_pages[_page]?.sheetWidget(id, context) case final w?)
+            Positioned.fill(child: w)
+          else if (_pages[_page]?.sheetItems(id) case final items?)
             Positioned.fill(child: NativeSheet(key: ValueKey('pure-ps-$id'), id: id, items: items, actions: this)),
         if (_toast.isNotEmpty)
           Positioned(left: 24, right: 24, bottom: 130, child: IgnorePointer(child: Center(child: NativeToast(text: _toast)))),

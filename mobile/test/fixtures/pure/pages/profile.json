@@ -1,0 +1,81 @@
+{
+ "title": "PROFIL",
+ "items": [
+  {
+   "type": "hint",
+   "t": "Silahkan Isi Data Diri Anda"
+  },
+  {
+   "type": "label",
+   "t": "Nama"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "label",
+   "t": "Email"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan email",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": true,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Password (kosongkan jika tidak ingin ubah password)"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan Password",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": true,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "No Handphone"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan no handphone",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "button",
+   "t": "SIMPAN",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 0
+  }
+ ]
+}

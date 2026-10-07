@@ -34,6 +34,7 @@ Future<void> _settle(WidgetTester tester) async {
 
 void main() {
   servicesTests();
+  templateTests();
   setUpAll(() async {
     final loader = FontLoader('Poppins');
     for (final f in ['Regular', 'Medium', 'SemiBold']) {
@@ -149,6 +150,72 @@ void servicesTests() {
     expect(first['prices'], {'Reguler': 25000, 'Express': 35000, 'Kilat': 50000});
     expect(first['unit'], 'pcs');
     expect(first['proc'], ['Cuci', 'Kering', 'Packing']);
+    expect(tester.takeException(), isNull);
+  });
+}
+
+// ---- Halaman berpola tetap (butir = tangkapan HTML) ----
+void templateTests() {
+  testWidgets('Halaman pola tetap: butir sama persis dengan HTML dan bisa digambar', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    for (final f in Directory('test/fixtures/pure/pages').listSync().whereType<File>()) {
+      final id = f.uri.pathSegments.last.replaceAll('.json', '');
+      final fx = jsonDecode(f.readAsStringSync()) as Map;
+      s.nav(id);
+      await _settle(tester);
+      expect(jsonEncode(s.debugItems()), jsonEncode(fx['items']), reason: id);
+      expect(tester.takeException(), isNull, reason: id);
+    }
+  });
+
+  testWidgets('Profil: validasi dan simpan seperti HTML; saklar Reminder tersimpan', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('profile');
+    await _settle(tester);
+    s.fmButton(0);
+    expect(s.debugToast, 'Nama wajib diisi');
+    s.fmInput(0, 'Koiman');
+    s.fmInput(1, 'salah');
+    s.fmButton(0);
+    expect(s.debugToast, 'Format email belum benar');
+    s.fmInput(1, 'a@b.co');
+    s.fmInput(2, '123');
+    s.fmButton(0);
+    expect(s.debugToast, 'Password minimal 6 karakter');
+    s.fmInput(2, '123456');
+    s.fmButton(0);
+    expect(s.debugToast, 'Profil tersimpan');
+    s.nav('reminder');
+    await _settle(tester);
+    s.fmToggle(1);
+    await _settle(tester);
+    final t = await _pump(tester, kv);
+    t.nav('reminder');
+    await _settle(tester);
+    expect((t.debugItems().where((e) => e['type'] == 'toggle').toList()[1])['on'], false);
+    t.nav('profile');
+    await _settle(tester);
+    expect(t.debugItems()[2]['v'], 'Koiman');
+    expect(t.debugItems()[6]['v'], '', reason: 'password tidak disimpan');
+  });
+
+  testWidgets('Pusat Bantuan: cari topik, popup panduan dan Coba Sekarang', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('helpcenter');
+    await _settle(tester);
+    s.fmInput(0, 'printer');
+    await _settle(tester);
+    expect(s.debugItems().where((e) => e['type'] == 'card').map((e) => e['t']), ['Printer, Struk & Label']);
+    s.fmButton(3);
+    await _settle(tester);
+    expect(find.text('Coba Sekarang'), findsOneWidget);
+    expect(find.text('Tutup'), findsOneWidget);
+    await tester.tap(find.text('Coba Sekarang'));
+    await _settle(tester);
+    expect(find.text('Coba Sekarang'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

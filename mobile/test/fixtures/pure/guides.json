@@ -1,0 +1,3292 @@
+[
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 460.64,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "Membuat Pesanan"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Dari pelanggan sampai struk terkirim"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 235.97,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Beranda → "
+         },
+         {
+          "t": "Transaksi Baru",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ", lalu pilih pelanggan (atau "
+         },
+         {
+          "t": "+ Tambah Pelanggan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ")."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Pilih durasi "
+         },
+         {
+          "t": "Reguler / Express / Kilat",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " — daftar layanan otomatis menyesuaikan."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tekan "
+         },
+         {
+          "t": "Pilih",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " pada layanan, isi berat/jumlah (boleh 1,3 kg), lalu "
+         },
+         {
+          "t": "Simpan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Lanjut",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " → atur parfum, penyerahan, diskon, catatan → "
+         },
+         {
+          "t": "Buat Pesanan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Pilih metode bayar (Tunai / QRIS / Transfer / Bayar Nanti). Rincian pesanan langsung terbuka."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "Membuat Pesanan",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Dari pelanggan sampai struk terkirim"
+   },
+   {
+    "type": "hint",
+    "t": "Beranda → Transaksi Baru, lalu pilih pelanggan (atau + Tambah Pelanggan)."
+   },
+   {
+    "type": "hint",
+    "t": "Pilih durasi Reguler / Express / Kilat — daftar layanan otomatis menyesuaikan."
+   },
+   {
+    "type": "hint",
+    "t": "Tekan Pilih pada layanan, isi berat/jumlah (boleh 1,3 kg), lalu Simpan."
+   },
+   {
+    "type": "hint",
+    "t": "Lanjut → atur parfum, penyerahan, diskon, catatan → Buat Pesanan."
+   },
+   {
+    "type": "hint",
+    "t": "Pilih metode bayar (Tunai / QRIS / Transfer / Bayar Nanti). Rincian pesanan langsung terbuka."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "addorder"
+ },
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 439.84,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "Proses & Status Laundry"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Alur Antrian → Proses → Siap Ambil → Diambil"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 215.17,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 20.8,
+        "spans": [
+         {
+          "t": "Buka menu "
+         },
+         {
+          "t": "Pesanan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ", pilih tab sesuai status."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tekan tombol di kartu ("
+         },
+         {
+          "t": "Mulai Proses ›",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " lalu "
+         },
+         {
+          "t": "Tandai Siap ›",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ") untuk memindahkan status."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Atur perpindahan otomatis lewat tombol "
+         },
+         {
+          "t": "⏱ Otomatis",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " di kanan atas (Antrian → Proses)."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Siap Ambil",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " selalu ditandai manual; pelanggan otomatis dapat notif WA (paket chatbot)."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Saat diambil, scan barcode struk atau tekan "
+         },
+         {
+          "t": "Serahkan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "Proses & Status Laundry",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Alur Antrian → Proses → Siap Ambil → Diambil"
+   },
+   {
+    "type": "hint",
+    "t": "Buka menu Pesanan, pilih tab sesuai status."
+   },
+   {
+    "type": "hint",
+    "t": "Tekan tombol di kartu (Mulai Proses › lalu Tandai Siap ›) untuk memindahkan status."
+   },
+   {
+    "type": "hint",
+    "t": "Atur perpindahan otomatis lewat tombol ⏱ Otomatis di kanan atas (Antrian → Proses)."
+   },
+   {
+    "type": "hint",
+    "t": "Siap Ambil selalu ditandai manual; pelanggan otomatis dapat notif WA (paket chatbot)."
+   },
+   {
+    "type": "hint",
+    "t": "Saat diambil, scan barcode struk atau tekan Serahkan."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "orders"
+ },
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 460.64,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "Pembayaran & QRIS"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Tunai, transfer, QRIS & bayar nanti"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 235.97,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Upload QRIS outlet di "
+         },
+         {
+          "t": "Pengaturan → Pembayaran & QRIS",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Nyalakan "
+         },
+         {
+          "t": "Nominal otomatis",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " agar QR langsung berisi total tagihan."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Saat bayar pilih "
+         },
+         {
+          "t": "QRIS",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ", pelanggan scan, cek dana masuk di aplikasi merchant."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tekan "
+         },
+         {
+          "t": "Selesai · Dana Sudah Masuk",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ", atau "
+         },
+         {
+          "t": "Batal",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " untuk ganti metode."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Pesanan belum lunas bisa dibayar nanti dari "
+         },
+         {
+          "t": "Rincian Pesanan → Bayar",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "Pembayaran & QRIS",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Tunai, transfer, QRIS & bayar nanti"
+   },
+   {
+    "type": "hint",
+    "t": "Upload QRIS outlet di Pengaturan → Pembayaran & QRIS."
+   },
+   {
+    "type": "hint",
+    "t": "Nyalakan Nominal otomatis agar QR langsung berisi total tagihan."
+   },
+   {
+    "type": "hint",
+    "t": "Saat bayar pilih QRIS, pelanggan scan, cek dana masuk di aplikasi merchant."
+   },
+   {
+    "type": "hint",
+    "t": "Tekan Selesai · Dana Sudah Masuk, atau Batal untuk ganti metode."
+   },
+   {
+    "type": "hint",
+    "t": "Pesanan belum lunas bisa dibayar nanti dari Rincian Pesanan → Bayar."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "qris"
+ },
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 419.05,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "Printer, Struk & Label"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Hubungkan printer thermal & cetak"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 194.38,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Pengaturan → Printer & Nota → Printer Bluetooth",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ", pilih printer lalu hubungkan."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 20.8,
+        "spans": [
+         {
+          "t": "Atur header, alamat dan catatan kaki nota."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 20.8,
+        "spans": [
+         {
+          "t": "Tekan "
+         },
+         {
+          "t": "Tes Cetak",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " untuk memastikan printer siap."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Struk bisa dicetak, disimpan sebagai gambar, atau dikirim ke WA dari Rincian Pesanan."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Label barcode ditempel di kantong cucian agar mudah dicari."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "Printer, Struk & Label",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Hubungkan printer thermal & cetak"
+   },
+   {
+    "type": "hint",
+    "t": "Pengaturan → Printer & Nota → Printer Bluetooth, pilih printer lalu hubungkan."
+   },
+   {
+    "type": "title",
+    "t": "Atur header, alamat dan catatan kaki nota."
+   },
+   {
+    "type": "hint",
+    "t": "Tekan Tes Cetak untuk memastikan printer siap."
+   },
+   {
+    "type": "hint",
+    "t": "Struk bisa dicetak, disimpan sebagai gambar, atau dikirim ke WA dari Rincian Pesanan."
+   },
+   {
+    "type": "hint",
+    "t": "Label barcode ditempel di kantong cucian agar mudah dicari."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "printer"
+ },
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 460.64,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "WhatsApp & Otomasi"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Nota & notifikasi otomatis"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 235.97,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Buka "
+         },
+         {
+          "t": "Hubungkan WhatsApp",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ", scan QR dari WhatsApp outlet (Perangkat tertaut)."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Setelah terhubung, nota & notif siap ambil terkirim dari nomor outlet."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Matikan/nyalakan kirim otomatis langsung di "
+         },
+         {
+          "t": "Rincian Pesanan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tanpa nomor terhubung, kirim manual lewat tombol WA hijau."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Setiap cabang bisa punya nomor sendiri (tambah nomor Rp30rb/bulan)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "WhatsApp & Otomasi",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Nota & notifikasi otomatis"
+   },
+   {
+    "type": "hint",
+    "t": "Buka Hubungkan WhatsApp, scan QR dari WhatsApp outlet (Perangkat tertaut)."
+   },
+   {
+    "type": "hint",
+    "t": "Setelah terhubung, nota & notif siap ambil terkirim dari nomor outlet."
+   },
+   {
+    "type": "hint",
+    "t": "Matikan/nyalakan kirim otomatis langsung di Rincian Pesanan."
+   },
+   {
+    "type": "hint",
+    "t": "Tanpa nomor terhubung, kirim manual lewat tombol WA hijau."
+   },
+   {
+    "type": "hint",
+    "t": "Setiap cabang bisa punya nomor sendiri (tambah nomor Rp30rb/bulan)."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "whatsappbot"
+ },
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 439.84,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "Outlet & Pegawai"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Pusat, cabang & hak akses"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 215.17,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Akun baru = "
+         },
+         {
+          "t": "Akun Pusat",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ". Tambah cabang di "
+         },
+         {
+          "t": "Pengaturan Outlet",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": "."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Kuota cabang mengikuti paket; tambah cabang Rp25rb/bulan."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tambah pegawai di "
+         },
+         {
+          "t": "Pengaturan Pegawai",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": ": peran, email, PIN dan outlet."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 20.8,
+        "spans": [
+         {
+          "t": "Kasir hanya melihat outlet tempat dia bertugas."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Owner memantau cabang lain lewat "
+         },
+         {
+          "t": "Manajemen Cabang → Monitor",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " (hanya lihat)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "Outlet & Pegawai",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Pusat, cabang & hak akses"
+   },
+   {
+    "type": "hint",
+    "t": "Akun baru = Akun Pusat. Tambah cabang di Pengaturan Outlet."
+   },
+   {
+    "type": "hint",
+    "t": "Kuota cabang mengikuti paket; tambah cabang Rp25rb/bulan."
+   },
+   {
+    "type": "hint",
+    "t": "Tambah pegawai di Pengaturan Pegawai: peran, email, PIN dan outlet."
+   },
+   {
+    "type": "hint",
+    "t": "Kasir hanya melihat outlet tempat dia bertugas."
+   },
+   {
+    "type": "hint",
+    "t": "Owner memantau cabang lain lewat Manajemen Cabang → Monitor (hanya lihat)."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "outlets"
+ },
+ {
+  "mirror": {
+   "kind": "bottom",
+   "scrim": "rgba(20, 27, 38, 0.5)",
+   "box": {
+    "s": {
+     "m": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "p": [
+      8,
+      18,
+      16,
+      18
+     ],
+     "fs": 14,
+     "fw": 400,
+     "lh": 19.6,
+     "c": "rgb(30, 30, 30)",
+     "bg": "rgb(255, 255, 255)",
+     "br": [
+      22,
+      22,
+      0,
+      0
+     ]
+    },
+    "w": 390,
+    "h": 439.84,
+    "ch": [
+     {
+      "s": {
+       "m": [
+        0,
+        157,
+        12,
+        157
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 14,
+       "fw": 400,
+       "lh": 19.6,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(217, 221, 226)",
+       "br": [
+        4,
+        4,
+        4,
+        4
+       ]
+      },
+      "w": 40,
+      "h": 4,
+      "fixed": 1,
+      "ch": []
+     },
+     {
+      "s": {
+       "m": [
+        4,
+        0,
+        3,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 17,
+       "fw": 500,
+       "lh": 23.8,
+       "c": "rgb(30, 30, 30)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 23.8,
+      "spans": [
+       {
+        "t": "Laporan & Keuangan"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        0,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        0
+       ],
+       "fs": 12,
+       "fw": 400,
+       "lh": 16.8,
+       "c": "rgb(138, 143, 163)",
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 16.8,
+      "spans": [
+       {
+        "t": "Omzet, pengeluaran & ekspor"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        14,
+        0
+       ],
+       "p": [
+        0,
+        0,
+        0,
+        20
+       ],
+       "fs": 13,
+       "fw": 400,
+       "lh": 20.8,
+       "c": "rgb(30, 30, 30)"
+      },
+      "w": 354,
+      "h": 215.17,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Menu "
+         },
+         {
+          "t": "Laporan",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " menampilkan omzet harian, bulanan dan tahunan."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Catat pengeluaran di "
+         },
+         {
+          "t": "Tambah Pengeluaran",
+          "fw": 500,
+          "c": "rgb(232, 73, 63)",
+          "fs": 13
+         },
+         {
+          "t": " agar laba terlihat."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 20.8,
+        "spans": [
+         {
+          "t": "Laporan dipisah per metode: Tunai, QRIS, Transfer."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tekan ikon unduh di Laporan Keuangan untuk ekspor ke Excel (CSV)."
+         }
+        ]
+       },
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          7,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 400,
+         "lh": 20.8,
+         "c": "rgb(30, 30, 30)"
+        },
+        "w": 334,
+        "h": 41.59,
+        "spans": [
+         {
+          "t": "Tutup kas harian untuk mencocokkan uang laci & mutasi QRIS."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        6,
+        0,
+        0,
+        0
+       ],
+       "p": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "fs": 13.5,
+       "fw": 500,
+       "lh": 18.9,
+       "c": "rgb(255, 255, 255)",
+       "bg": "rgb(232, 73, 63)",
+       "br": [
+        10,
+        10,
+        10,
+        10
+       ],
+       "ta": "center"
+      },
+      "w": 354,
+      "h": 46.89,
+      "b": 0,
+      "spans": [
+       {
+        "t": "Coba Sekarang"
+       }
+      ]
+     },
+     {
+      "s": {
+       "m": [
+        8,
+        0,
+        8,
+        0
+       ],
+       "p": [
+        12,
+        12,
+        12,
+        12
+       ],
+       "fs": 13,
+       "fw": 500,
+       "lh": 18.2,
+       "c": "rgb(30, 30, 30)",
+       "bg": "rgb(255, 255, 255)",
+       "bw": 1,
+       "bc": "rgb(230, 233, 238)",
+       "br": [
+        14,
+        14,
+        14,
+        14
+       ],
+       "ta": "left"
+      },
+      "w": 354,
+      "h": 44.19,
+      "b": 1,
+      "row": true,
+      "jc": "normal",
+      "ai": "center",
+      "gap": 12,
+      "rgap": 12,
+      "ch": [
+       {
+        "s": {
+         "m": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "p": [
+          0,
+          0,
+          0,
+          0
+         ],
+         "fs": 13,
+         "fw": 500,
+         "lh": 18.2,
+         "c": "rgb(30, 30, 30)",
+         "ta": "left"
+        },
+        "spans": [
+         {
+          "t": "Tutup"
+         }
+        ],
+        "anon": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "items": [
+   {
+    "type": "title",
+    "t": "Laporan & Keuangan",
+    "s": ""
+   },
+   {
+    "type": "hint",
+    "t": "Omzet, pengeluaran & ekspor"
+   },
+   {
+    "type": "hint",
+    "t": "Menu Laporan menampilkan omzet harian, bulanan dan tahunan."
+   },
+   {
+    "type": "hint",
+    "t": "Catat pengeluaran di Tambah Pengeluaran agar laba terlihat."
+   },
+   {
+    "type": "hint",
+    "t": "Laporan dipisah per metode: Tunai, QRIS, Transfer."
+   },
+   {
+    "type": "hint",
+    "t": "Tekan ikon unduh di Laporan Keuangan untuk ekspor ke Excel (CSV)."
+   },
+   {
+    "type": "hint",
+    "t": "Tutup kas harian untuk mencocokkan uang laci & mutasi QRIS."
+   },
+   {
+    "type": "button",
+    "t": "Coba Sekarang",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "button",
+    "t": "Tutup",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   }
+  ],
+  "go": "reports"
+ }
+]

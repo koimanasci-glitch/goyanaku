@@ -1,0 +1,41 @@
+{
+ "title": "REMINDER PEKERJAAN",
+ "items": [
+  {
+   "type": "title",
+   "t": "Aturan Reminder Internal"
+  },
+  {
+   "type": "hint",
+   "t": "Notifikasi untuk owner/kasir, bukan WhatsApp pelanggan."
+  },
+  {
+   "type": "toggle",
+   "t": "Ingatkan 2 jam sebelum deadline",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Order terlambat",
+   "s": "",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Stok bahan minimum",
+   "s": "",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Pesanan belum dibayar",
+   "s": "",
+   "on": true,
+   "i": 3
+  }
+ ]
+}

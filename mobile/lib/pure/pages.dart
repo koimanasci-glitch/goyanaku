@@ -15,10 +15,13 @@ import '../core/settings.dart';
 import '../core/stock.dart';
 import '../core/store.dart';
 import '../native/form_page.dart' show FormActions;
+import '../native/guide135_sheet.dart';
+import '../native/popup_components.dart';
 import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
 import 'discounts.dart';
 import 'mirror_pages.dart';
+import 'page_templates.dart';
 
 /// Yang dibutuhkan halaman dari shell.
 abstract class PureHost {
@@ -74,6 +77,8 @@ abstract class PurePage {
   /// Popup milik halaman (butir NativeForm); null = popup tidak dikenal.
   List<Map<String, dynamic>>? sheetItems(String id) => null;
   void sheetEvent(String id, String kind, int index, Object? value) {}
+  /// Popup dengan widget khusus (sama dengan Hibrida); null = pakai butir [sheetItems].
+  Widget? sheetWidget(String id, BuildContext context) => null;
 }
 
 Map<String, dynamic> card(String t, String s, String ic, int i) => {'type': 'card', 't': t, 's': s, 'ic': ic, 'i': i};
@@ -1602,5 +1607,164 @@ class DurationPage extends PurePage {
         return null;
       },
     ));
+  }
+}
+
+
+/// Halaman yang susunannya tetap: butir diambil dari tangkapan HTML ([pageTemplates]) sehingga tampilannya
+/// sama persis dengan Mode Hibrida; isian dan saklar disimpan di pengaturan Mode Murni.
+class TemplatePage extends PurePage {
+  TemplatePage(super.host, this.id, {this.onButton, this.onTap, this.transient = const {}, this.backTo = 'settings'});
+  final String id, backTo;
+  /// Indeks isian yang tidak disimpan (mis. password).
+  final Set<int> transient;
+  final void Function(TemplatePage page, int index)? onButton;
+  final void Function(TemplatePage page, int index)? onTap;
+  final Map<int, String> _temp = {};
+  late final Map<String, dynamic> _tpl = jsonDecode(pageTemplates[id]!) as Map<String, dynamic>;
+
+  @override
+  String get title => '${_tpl['title']}';
+  @override
+  String get back => backTo;
+
+  Map<String, dynamic> get _state {
+    final all = host.settings.raw.putIfAbsent('tpl', () => <String, dynamic>{}) as Map;
+    return (all.putIfAbsent(id, () => <String, dynamic>{}) as Map).cast<String, dynamic>();
+  }
+
+  Map<String, dynamic> _bag(String k) => ((_state.putIfAbsent(k, () => <String, dynamic>{})) as Map).cast<String, dynamic>();
+
+  String inputValue(int i) {
+    if (transient.contains(i)) return _temp[i] ?? '';
+    final v = _bag('in')['$i'];
+    if (v != null) return '$v';
+    for (final it in (_tpl['items'] as List).whereType<Map>()) {
+      if (it['type'] == 'input' && it['i'] == i) return '${it['v'] ?? ''}';
+    }
+    return '';
+  }
+
+  void setInput(int i, String v) => transient.contains(i) ? _temp[i] = v : _bag('in')['$i'] = v;
+
+  bool toggleValue(int i) {
+    final v = _bag('tg')['$i'];
+    if (v is bool) return v;
+    for (final it in (_tpl['items'] as List).whereType<Map>()) {
+      if (it['type'] == 'toggle' && it['i'] == i) return it['on'] == true;
+    }
+    return false;
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = (jsonDecode(jsonEncode(_tpl['items'])) as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    for (final it in out) {
+      final i = it['i'];
+      if (i is! int) continue;
+      if (it['type'] == 'input') it['v'] = inputValue(i);
+      if (it['type'] == 'toggle') it['on'] = toggleValue(i);
+    }
+    return out;
+  }
+
+  @override
+  void input(int i, Object value) {
+    setInput(i, '$value');
+    if (!transient.contains(i)) host.saveAll();
+  }
+
+  @override
+  void toggle(int i) {
+    _bag('tg')['$i'] = !toggleValue(i);
+    host.saveAll();
+    host.refresh();
+  }
+
+  @override
+  void button(int i) => onButton?.call(this, i);
+}
+
+/// Halaman berpola tetap beserta aksi tombolnya (teks toast sama dengan HTML).
+Map<String, PurePage> templatePages(PureHost host) => {
+      'profile': TemplatePage(host, 'profile', transient: const {2}, onButton: (p, i) {
+        if (p.inputValue(0).trim().isEmpty) return host.toast('Nama wajib diisi');
+        final email = p.inputValue(1), pass = p.inputValue(2);
+        if (email.isNotEmpty && !RegExp(r'^\S+@\S+\.\S+$').hasMatch(email)) return host.toast('Format email belum benar');
+        if (pass.isNotEmpty && pass.length < 6) return host.toast('Password minimal 6 karakter');
+        p.setInput(2, '');
+        host.saveAll();
+        host.toast('Profil tersimpan');
+        host.refresh();
+      }),
+      'reminder': TemplatePage(host, 'reminder'),
+      'helpcenter': HelpCenterPage(host),
+      'aboutgoyana': TemplatePage(host, 'aboutgoyana'),
+      'cashier': TemplatePage(host, 'cashier', onButton: (p, i) => host.go('employees')),
+      'barcode': TemplatePage(host, 'barcode', onButton: (p, i) => i == 0 ? host.go('printer') : host.toast('Label test dikirim ke printer')),
+    };
+
+
+/// Pusat Bantuan: pencarian menyaring kartu topik, tiap topik membuka popup panduan (guide135) yang sama dengan Hibrida.
+class HelpCenterPage extends TemplatePage {
+  // ignore: use_super_parameters
+  HelpCenterPage(PureHost host) : super(host, 'helpcenter');
+  static const supportWa = '6280000000000'; // sama dengan CS_WA100 di HTML (masih nomor contoh)
+  late final List<dynamic> _guides = jsonDecode(guideSheets) as List;
+  int _guide = 0;
+  String _q = '';
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final q = _q.trim().toLowerCase();
+    return [
+      for (final it in super.items())
+        if (it['type'] != 'card' || q.isEmpty || '${it['t']} ${it['s']}'.toLowerCase().contains(q)) it,
+    ];
+  }
+
+  @override
+  String inputValue(int i) => _q;
+  @override
+  void input(int i, Object value) {
+    _q = '$value';
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    if (i >= 0 && i < _guides.length) {
+      _guide = i;
+      return host.openPageSheet('guide135');
+    }
+    final outlet = host.business.outlets.isEmpty ? 'Outlet' : host.business.outlets.first.name;
+    host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/$supportWa?text=${Uri.encodeComponent('Halo tim GOYANA, saya butuh bantuan. Outlet: $outlet. Kendala: ')}'}).catchError((_) => null);
+    host.toast('Membuka WhatsApp CS GOYANA…');
+  }
+
+  @override
+  Widget? sheetWidget(String id, BuildContext context) {
+    if (id != 'guide135') return null;
+    void close() => host.closePageSheet('guide135');
+    return NativeGuide135Sheet(
+      key: ValueKey('pure-guide135-$_guide'),
+      model: Map<String, dynamic>.from((_guides[_guide] as Map)['mirror'] as Map),
+      actions: PopupActions(
+        id: 'guide135',
+        onButton: (b) {
+          close();
+          if (b == 0) host.go(guideTarget(_guide));
+        },
+        onTap: (_) {},
+        onInput: (_, _) {},
+        onClose: close,
+      ),
+    );
+  }
+
+  /// Halaman tujuan "Coba Sekarang" (nama halaman Mode Murni).
+  String guideTarget(int k) {
+    final go = '${(_guides[k] as Map)['go']}';
+    return const {'whatsappbot': 'whatsapp'}[go] ?? go;
   }
 }

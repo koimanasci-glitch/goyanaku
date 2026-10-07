@@ -1,0 +1,123 @@
+{
+ "title": "PUSAT BANTUAN",
+ "items": [
+  {
+   "type": "title",
+   "t": "Ada yang bisa kami bantu?"
+  },
+  {
+   "type": "hint",
+   "t": "Panduan penggunaan GOYANA untuk operasional laundry."
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Cari bantuan...",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Membuat Pesanan",
+   "s": "Layanan, berat, durasi dan pembayaran",
+   "svg": "",
+   "ic": "🧾",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 0
+  },
+  {
+   "type": "card",
+   "t": "Proses & Status Laundry",
+   "s": "Diterima hingga siap diambil dan selesai",
+   "svg": "",
+   "ic": "🧺",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 1
+  },
+  {
+   "type": "card",
+   "t": "Pembayaran & QRIS",
+   "s": "Tunai, transfer, QRIS dan status pembayaran",
+   "svg": "",
+   "ic": "▦",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 2
+  },
+  {
+   "type": "card",
+   "t": "Printer, Struk & Label",
+   "s": "Struk, barcode dan label laundry",
+   "svg": "",
+   "ic": "🖨",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 3
+  },
+  {
+   "type": "card",
+   "t": "WhatsApp & Otomasi",
+   "s": "Koneksi, chatbot, trigger dan pesan otomatis",
+   "svg": "",
+   "ic": "💬",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 4
+  },
+  {
+   "type": "card",
+   "t": "Outlet & Pegawai",
+   "s": "Outlet, cabang, pegawai dan hak akses",
+   "svg": "",
+   "ic": "🏢",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 5
+  },
+  {
+   "type": "card",
+   "t": "Laporan & Keuangan",
+   "s": "Transaksi, omzet dan pengeluaran",
+   "svg": "",
+   "ic": "▥",
+   "badge": "",
+   "meta": "",
+   "on": false,
+   "i": 6
+  },
+  {
+   "type": "title",
+   "t": "Masih Butuh Bantuan?",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "Hubungi tim dukungan GOYANA. Siapkan nama outlet dan jelaskan kendala agar kami dapat membantu lebih cepat."
+  },
+  {
+   "type": "button",
+   "t": "Hubungi Support GOYANA",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 7
+  },
+  {
+   "type": "hint",
+   "t": "Jangan pernah membagikan password, PIN, atau kode OTP."
+  }
+ ]
+}
