@@ -1547,3 +1547,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 
 ### Daftar revisi dari uji HP (dicatat dulu, dikerjakan sekaligus saat Koiman bilang mulai)
 - **Revisi 1 — Footer (menu bawah)**: ikon & teks Beranda/Pesanan/Laporan/Pengaturan terlalu ke bawah, tertimpa garis navigasi/lengkung layar HP. Naikkan sedikit (beri jarak aman bawah / safe area) supaya pas.
+- **Revisi 2 — Popup gender (Tambah Pelanggan)**: dua kotak Pria/Wanita condong ke kiri (ada sisa ruang kosong di kanan). Buat rata tengah / sama lebar supaya seimbang kanan-kiri.
