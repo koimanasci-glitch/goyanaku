@@ -71,7 +71,7 @@ Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {requir
     if (t.isEmpty || t.startsWith('⏰') || t.startsWith('💬') || t.startsWith('✓')) continue;
     if (t == 'Datang Langsung' || ch['hidden'] == true) continue;
     if (t == 'Prioritas') {
-      chips.add(_c(t, 'rgb(255, 240, 241)', 'rgb(232, 73, 63)'));
+      chips.add(_c(t, 'rgb(255, 241, 230)', 'rgb(194, 65, 12)'));
       continue;
     }
     chips.add(_c(_compact(t), 'rgb(243, 244, 247)', 'rgb(91, 95, 110)'));

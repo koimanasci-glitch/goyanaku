@@ -15,6 +15,10 @@ import '../core/settings.dart';
 import '../core/money.dart';
 import '../core/store.dart';
 import '../native/addorder_page.dart';
+import '../native/addorder_sheet.dart';
+import '../native/order_detail_page.dart';
+import '../native/order_status_qr.dart';
+import 'order_view.dart';
 import 'addorder_assets.dart';
 import 'access.dart';
 import 'addorder_popups.dart';
@@ -63,7 +67,7 @@ class _Sheet {
   final bool full;
 }
 
-class PureShellState extends State<PureShell> implements HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, ServicesActions, PureHost {
+class PureShellState extends State<PureShell> implements OrderDetailActions, HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, ServicesActions, PureHost {
   static const _device = MethodChannel('id.goyana/device');
   Business? _b;
   AppSettings? _settings;
@@ -238,6 +242,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   int _tab = 1;
   String _search = '';
   String? _detailId;
+  bool _odBanner = false;
+  Timer? _odTimer, _autoTimer;
+  String? _payOrderId;
+  bool _custOpen = false;
+  int _custPage = 0;
+  String _custSort = '';
   String _payMethod = 'Tunai';
   final Map<String, Object> _form = {};
 
@@ -280,13 +290,34 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
           _settings = r[1] as AppSettings;
           _locked = _settings!.raw['pinLock'] == true && (_settings!.raw['employees'] as List? ?? const []).isNotEmpty;
         });
+        _applyAuto();
       }
     });
+    // HTML v133: mesin status otomatis memeriksa tiap 20 detik.
+    _autoTimer = Timer.periodic(const Duration(seconds: 20), (_) => _applyAuto());
+  }
+
+  /// Aturan status otomatis tersimpan ({q, qv, qu, p, step}); bawaan sama dengan HTML (Antrian → Proses 1 jam).
+  Map<String, dynamic> get _auto => Map<String, dynamic>.from(_settings?.raw['auto133'] as Map? ?? const {});
+
+  void _applyAuto() {
+    final b = _b;
+    if (!mounted || b == null || _settings == null) return;
+    final a = _auto;
+    final steps = a['p'] == true
+        ? {for (final e in const {'cuci': 60, 'kering': 90, 'setrika': 60, 'packing': 20}.entries) e.key: (num.tryParse('${(a['step'] as Map?)?[e.key] ?? e.value}') ?? e.value).toDouble()}
+        : null;
+    if (b.autoStatus(now, queueEnabled: a['q'] != false, queueMinutes: autoQueueMinutes(a), procMinutes: steps)) {
+      _save();
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
     _toastTimer?.cancel();
+    _odTimer?.cancel();
+    _autoTimer?.cancel();
     super.dispose();
   }
 
@@ -623,6 +654,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     setState(() {
       _sheets.clear();
       _pageSheets.clear();
+      _detailId = null;
+      _payOrderId = null;
       _page = pageId;
       if (pageId == 'orders') _search = '';
     });
@@ -788,7 +821,50 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   // ---------------- Pesanan ----------------
   @override
-  void autoSettings() => toast('Aturan status otomatis menyusul');
+  void autoSettings() => _open(_Sheet('au133s', _autoItems()));
+
+  List<Map<String, dynamic>> _autoItems() {
+    final a = _auto;
+    final step = a['step'] as Map? ?? const {};
+    return [
+      {'type': 'title', 't': 'Aturan Status Otomatis'},
+      {'type': 'hint', 't': 'Pesanan berpindah status sendiri sesuai waktu. Kasir tetap bisa ubah manual kapan saja.'},
+      {'type': 'steps', 'steps': [{'n': '1', 't': 'Antrian', 'on': true}, {'n': '2', 't': 'Proses', 'on': true}, {'n': '3', 't': 'Siap Ambil (manual)', 'on': false}]},
+      {'type': 'toggle', 't': 'Antrian → Proses otomatis', 's': 'Setelah pesanan masuk antrian selama', 'on': a['q'] != false, 'i': 0},
+      if (a['q'] != false) ...[
+        {'type': 'input', 'v': '${a['qv'] ?? 1}', 'ph': '1', 'numeric': true, 'i': 0},
+        {'type': 'select', 'options': const ['jam', 'menit'], 'index': '${a['qu'] ?? 60}' == '1' ? 1 : 0, 'i': 1},
+      ],
+      {'type': 'toggle', 't': 'Tahap proses berjalan otomatis', 's': 'Cuci → Kering → Setrika → Packing (menit per tahap)', 'on': a['p'] == true, 'i': 1},
+      if (a['p'] == true)
+        for (final (k, e) in const [['cuci', 'Cuci', 60], ['kering', 'Kering', 90], ['setrika', 'Setrika', 60], ['packing', 'Packing', 20]].indexed)
+          {'type': 'input', 'label': '${e[1]}', 'suf': 'menit', 'v': '${step[e[0]] ?? e[2]}', 'numeric': true, 'i': 2 + k},
+      {'type': 'hint', 't': '🔒 Siap Ambil selalu manual oleh kasir atau owner, supaya notifikasi "cucian siap" ke pelanggan hanya terkirim kalau cucian benar-benar sudah beres.'},
+      {'type': 'button', 't': 'Selesai', 'primary': true, 'i': 0},
+    ];
+  }
+
+  void _autoEvent(String kind, int index, Object? value) {
+    if (kind == 'close' || kind == 'button') return _close('au133s');
+    final a = _auto;
+    if (kind == 'toggle') a[index == 0 ? 'q' : 'p'] = index == 0 ? a['q'] == false : a['p'] != true;
+    if (kind == 'input') {
+      if (index == 0) a['qv'] = (int.tryParse('${value ?? ''}'.replaceAll(RegExp(r'\D'), '')) ?? 1).clamp(1, 9999);
+      if (index == 1) a['qu'] = (value is num ? value.toInt() : int.tryParse('$value') ?? 0) == 1 ? 1 : 60;
+      if (index >= 2 && index <= 5) {
+        final st = Map<String, dynamic>.from(a['step'] as Map? ?? const {});
+        st[const ['cuci', 'kering', 'setrika', 'packing'][index - 2]] = (int.tryParse('${value ?? ''}'.replaceAll(RegExp(r'\D'), '')) ?? 1).clamp(1, 9999);
+        a['step'] = st;
+      }
+    }
+    _settings!.raw['auto133'] = a;
+    _settings!.save();
+    if (kind != 'input' || index == 1) {
+      _open(_Sheet('au133s', _autoItems()));
+      if (kind == 'toggle') toast('Aturan status otomatis tersimpan');
+    }
+    _applyAuto();
+  }
   @override
   void addOrder() => _startOrder();
   @override
@@ -820,26 +896,146 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     if (n == null) return;
     _save();
     toast(const {
-          'antrian': 'Cucian sudah dijemput · masuk antrian', 'cuci': 'Pesanan masuk Proses', 'siap': 'Siap Ambil',
-          'diantar': 'Kurir mengantar pesanan', 'diambil': 'Pesanan selesai',
+          'antrian': 'Cucian sudah dijemput · masuk antrian', 'cuci': 'Pesanan masuk Proses', 'siap': 'Siap Ambil ✓ · kabari pelanggan lewat WA (opsional)',
+          'diantar': 'Kurir mengantar pesanan', 'diambil': 'Pesanan selesai · sudah diambil pelanggan',
         }[n] ??
         'Status diperbarui');
     _refreshDetail();
   }
 
-  void _showDetail(String id) {
-    _detailId = id;
-    final o = _b!.orderById(id);
-    if (o == null) return;
-    _open(_Sheet('detail', orderDetailItems(_b!, o, now), full: true));
+  /// Rincian Pesanan (NativeOrderDetail, sama dengan hybrid). [banner] = baru saja disimpan:
+  /// kotak "Pesanan tersimpan" tampil 6 detik seperti HTML v142.
+  void _showDetail(String id, {bool banner = false}) {
+    if (_b!.orderById(id) == null) return;
+    _odTimer?.cancel();
+    setState(() {
+      _detailId = id;
+      _odBanner = banner;
+    });
+    if (banner) {
+      _odTimer = Timer(const Duration(seconds: 6), () {
+        if (mounted) setState(() => _odBanner = false);
+      });
+    }
   }
 
-  void _refreshDetail() {
-    if (_detailId != null && _sheets.any((s) => s.id == 'detail')) {
-      _showDetail(_detailId!);
-    } else {
-      setState(() {});
+  void _refreshDetail() => setState(() {});
+
+  @visibleForTesting
+  Map<String, dynamic>? debugDetail() {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    return o == null ? null : orderDetailOd(_b!, o, banner: _odBanner);
+  }
+
+  @override
+  void odClose() {
+    _odTimer?.cancel();
+    setState(() {
+      _detailId = null;
+      _odBanner = false;
+      _payOrderId = null;
+    });
+  }
+
+  @override
+  void odTap(int index) {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o != null) _openPhotos(o);
+  }
+
+  /// Tombol rincian memakai indeks HTML (tanpa banner, indeks ≥ 3 turun satu).
+  @override
+  void odButton(int index) {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o == null) return;
+    final k = _odBanner || index < 3 ? index : index + 1;
+    switch (k) {
+      case 1:
+        _open(_Sheet('act115', orderMenuItems()));
+      case 2:
+        odClose();
+      case 3:
+        _openLabel(o);
+      case 4:
+        _openNota(o);
+      case 5:
+        _print(o);
+      case 7:
+        if (o.isCancelled) return toast('Pesanan sudah dibatalkan');
+        _openEdit(o);
+      case 8:
+        if (o.isCancelled || o.status == 'diambil') return;
+        _next(o);
+      case 9:
+        _openNota(o);
+      case 12:
+        if (o.isCancelled) return toast('Pesanan sudah dibatalkan');
+        if (o.remaining <= 0) return toast('Pesanan sudah lunas');
+        setState(() => _payOrderId = o.id);
     }
+  }
+
+  void _menuEvent(String kind, int index) {
+    _close('act115');
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o == null || kind != 'button') return;
+    switch (index) {
+      case 0:
+        _openPhotos(o);
+      case 1:
+        if (o.isCancelled) return toast('Pesanan sudah dibatalkan');
+        _openEdit(o);
+      case 2:
+        _openHistory(o);
+      case 3:
+        _openLabel(o);
+      case 4:
+        if (o.paid <= 0) return toast('Pesanan ini belum ada pembayaran untuk diralat');
+        odClose();
+        nav('ralat139');
+      case 5:
+        if (o.isCancelled || o.status == 'diambil') return toast(o.isCancelled ? 'Pesanan sudah dibatalkan' : 'Pesanan sudah diambil');
+        _openCancel(o);
+    }
+  }
+
+  void _openLabel(Order o) {
+    _form['labels'] = '${o.items.isEmpty ? 1 : o.items.length}';
+    _open(_Sheet('label', _labelItems(o)));
+  }
+
+  void _openPhotos(Order o) {
+    final ph = o.detail['photos'];
+    int n(String k) => ph is Map ? ((ph[k] as List?)?.length ?? 0) : 0;
+    _open(_Sheet('photo115', [
+      {'type': 'title', 't': 'Foto Dokumentasi', 's': ''},
+      {'type': 'hint', 't': 'Bukti kondisi cucian bila ada komplain luntur, rusak atau kurang'},
+      {'type': 'entry', 't': 'Saat Masuk', 'lines': [if (n('in') > 0) '${n('in')} foto'], 'compact': true, 'btns': [{'t': '＋Foto', 'i': 0}]},
+      {'type': 'entry', 't': 'Saat Diambil', 'lines': [if (n('out') > 0) '${n('out')} foto'], 'compact': true, 'btns': [{'t': '＋Foto', 'i': 1}]},
+      {'type': 'button', 't': 'Selesai', 'primary': true, 'i': 2},
+    ]));
+  }
+
+  Future<void> _addPhoto(Order o, String slot) async {
+    try {
+      final uris = await _device.invokeListMethod<String>('Files.pick', {'accept': ['image/png', 'image/jpeg', 'image/webp'], 'multiple': false, 'capture': true});
+      if (uris == null || uris.isEmpty) return;
+      final f = await _device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
+      final data = '${f?['data'] ?? ''}';
+      if (data.isEmpty) return;
+      final ph = o.detail.putIfAbsent('photos', () => <String, dynamic>{'in': <dynamic>[], 'out': <dynamic>[]}) as Map;
+      (ph.putIfAbsent(slot, () => <dynamic>[]) as List).add(data.startsWith('data:') ? data : 'data:${f?['mime'] ?? 'image/jpeg'};base64,$data');
+      await _save();
+      if (mounted) _openPhotos(o);
+      toast('Foto tersimpan');
+    } catch (_) {
+      toast('Kamera tidak tersedia');
+    }
+  }
+
+  void _openNota(Order o) {
+    final out = _b!.outlets.where((x) => x.id == _b!.activeOutlet).firstOrNull ?? _b!.outlets.firstOrNull;
+    _open(_Sheet('wa131', orderNotaItems(o, orderNotaText(_b!, o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir))));
   }
 
   void _openPay(Order o) {
@@ -874,7 +1070,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       ..['note'] = '';
     _open(_Sheet('cancel', [
       {'type': 'title', 't': 'Batalkan Pesanan?', 's': o.id},
-      {'type': 'hint', 't': 'Pembatalan tidak bisa diurungkan dan tercatat di riwayat pesanan.'},
+      {'type': 'hint', 't': 'Pembatalan tidak bisa diurungkan dan tercatat di Audit Aktivitas.'},
       {'type': 'label', 't': 'Alasan pembatalan'},
       {'type': 'select', 'options': cancelReasons, 'index': 0, 'i': 0},
       {'type': 'input', 'v': '', 'ph': 'Keterangan tambahan (opsional)', 'multiline': true, 'i': 1},
@@ -948,21 +1144,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     _refreshDetail();
   }
 
-  void _openHistory(Order o) {
-    String fmt(Object? v) {
-      final d = DateTime.tryParse('${v ?? ''}')?.toLocal();
-      return d == null ? '' : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-    }
-
-    _open(_Sheet('history', [
-      {'type': 'title', 't': 'Riwayat Status', 's': o.id},
-      for (final h in o.history.reversed) {'type': 'pair', 't': '${statusLabel['${h['st']}'] ?? h['st']} · ${h['by'] ?? ''}', 'v': fmt(h['at'] ?? h['t'])},
-      if (o.payments.isNotEmpty) {'type': 'title', 't': 'Pembayaran'},
-      for (final p in o.payments) {'type': 'pair', 't': '${p['m']} · ${fmt(p['at'])}', 'v': rp(parseRupiah(p['a'])), 'tone': 'g'},
-      if ('${o.detail['cancelReason'] ?? ''}'.isNotEmpty) {'type': 'pair', 't': 'Alasan batal', 'v': '${o.detail['cancelReason']}', 'tone': 'r'},
-      {'type': 'button', 't': 'Tutup', 'primary': false, 'i': 0},
-    ]));
-  }
+  void _openHistory(Order o) => _open(_Sheet('history', orderHistoryItems(o)));
 
   String _phoneOf(Order o) => o.phone.isNotEmpty ? o.phone : (_b!.customerByName(o.name)?.phone ?? '');
 
@@ -1021,6 +1203,41 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       return;
     }
     if (scope == 'deposits178') return _depositEvent(kind, index, value);
+    if (scope == 'au133s') return _autoEvent(kind, index, value);
+    if (scope == 'act115') return _menuEvent(kind, index);
+    if (scope == 'gy158-sort') {
+      _close(scope);
+      if (kind == 'button' && index < 2) {
+        setState(() {
+          _custSort = index == 0 ? 'name' : 'order';
+          _custPage = 0;
+        });
+        toast('Urutan pelanggan diperbarui');
+      }
+      return;
+    }
+    if (scope == 'photo115') {
+      final po = _detailId == null ? null : b.orderById(_detailId!);
+      if (kind == 'button' && index < 2 && po != null) {
+        _addPhoto(po, index == 0 ? 'in' : 'out');
+        return;
+      }
+      return _close(scope);
+    }
+    if (scope == 'wa131') {
+      final wo = _detailId == null ? null : b.orderById(_detailId!);
+      if (kind == 'button' && wo != null && index == 1) {
+        if (_phoneOf(wo).isEmpty) return toast('Nomor WA pelanggan belum ada');
+        _close(scope);
+        return _sendWa(wo);
+      }
+      if (kind == 'button' && wo != null && index == 2) {
+        final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
+        Clipboard.setData(ClipboardData(text: orderNotaText(b, wo, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir)));
+        return toast('Teks nota disalin');
+      }
+      return _close(scope);
+    }
     if (scope == 'perm178') {
       _close('perm178');
       if (kind == 'button' && index == 0) _device.invokeMethod('GoyanaDevice.openSettings').catchError((_) => null);
@@ -1050,8 +1267,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       return;
     }
     if (kind == 'close') {
+      if (scope == 'detail') return odClose();
       _close(scope);
-      if (scope == 'detail') _detailId = null;
       return;
     }
     if (kind == 'input') {
@@ -1099,8 +1316,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
           case 9:
             _openItems(o);
           case 10:
-            _form['labels'] = '${o.items.isEmpty ? 1 : o.items.length}';
-            _open(_Sheet('label', _labelItems(o)));
+            _openLabel(o);
         }
       case 'pay':
         if (o == null) return;
@@ -1258,15 +1474,23 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void cuBack() => nav('home');
   @override
-  void cuSearch(String text) => setState(() => _custSearch = text);
+  void cuSearch(String text) => setState(() {
+        _custSearch = text;
+        _custPage = 0;
+      });
   @override
   void cuDeposit() => _openDeposits();
   @override
   void cuAdd() => _openCustomerForm(null);
   @override
-  void cuToggleDb() {}
+  void cuToggleDb() => setState(() => _custOpen = !_custOpen);
   @override
-  void cuFilter() {}
+  void cuFilter() => _open(_Sheet('gy158-sort', [
+        {'type': 'title', 't': 'Urutkan Pelanggan'},
+        {'type': 'button', 't': 'Nama A–Z', 'primary': false, 'i': 0},
+        {'type': 'button', 't': 'Order Terbanyak', 'primary': false, 'i': 1},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
+      ]));
   @override
   void cuTopUp(int index) {
     final list = _b!.customers;
@@ -1295,7 +1519,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   @override
-  void cuPage(int delta) {}
+  void cuPage(int delta) => setState(() => _custPage = (_custPage + delta).clamp(0, 9999));
   @override
   void cuRank() {
     nav('crm');
@@ -1613,20 +1837,25 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         'main': 'Buat Pesanan',
       };
     } else if (_aoSheet == 'payment') {
-      m['sheet'] = {
-        'kind': 'payment', 'title': 'Pembayaran', 'label': 'Total Tagihan', 'total': rpSpaced(t.total), 'id': b.nextOrderId(now),
+      m['sheet'] = _paySheetJson(rpSpaced(t.total), b.nextOrderId(now), _aoCustomer, 'BATALKAN PESANAN');
+    }
+    return m;
+  }
+
+  Map<String, dynamic> _paySheetJson(String total, String id, String name, String cancel) {
+    final b = _b!;
+    return {
+        'kind': 'payment', 'title': 'Pembayaran', 'label': 'Total Tagihan', 'total': total, 'id': id,
         'methods': [
           for (var i = 0; i < _payMethods.length; i++)
             {
               'i': i < 4 ? i : i + 6, 't': _payMethods[i][3], 'svg': aoPaySvg[_payMethods[i][3]]![0], 'icon': aoPaySvg[_payMethods[i][3]]![3],
               'ic': aoPaySvg[_payMethods[i][3]]![1], 'bg': aoPaySvg[_payMethods[i][3]]![2].isEmpty ? 'rgba(0, 0, 0, 0)' : aoPaySvg[_payMethods[i][3]]![2],
-              's': _payMethods[i][0] == 'Saldo Deposit' && b.depositOf(_aoCustomer) > 0 ? 'Saldo ${rp(b.depositOf(_aoCustomer))}' : '',
+              's': _payMethods[i][0] == 'Saldo Deposit' && b.depositOf(name) > 0 ? 'Saldo ${rp(b.depositOf(name))}' : '',
             },
         ],
-        'cancel': 'BATALKAN PESANAN',
+        'cancel': cancel,
       };
-    }
-    return m;
   }
 
   /// Nilai yang disimpan di pesanan (HTML menyimpan 'Tanpa Parfum' untuk pilihan 'Tidak').
@@ -1759,13 +1988,13 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void aoSheetMain() => setState(() => _aoSheet = 'payment');
   @override
-  void aoSheetClose() => setState(() => _aoSheet = null);
+  void aoSheetClose() => setState(() => _payOrderId != null ? _payOrderId = null : _aoSheet = null);
   @override
-  void aoPayCancel() => setState(() => _aoSheet = 'options');
+  void aoPayCancel() => setState(() => _payOrderId != null ? _payOrderId = null : _aoSheet = 'options');
 
   String _pendingMethod = '';
 
-  int get _cartTotal => calcTotals(_cartItems, _optDiscKey, _optOngkir).total;
+  int get _cartTotal => _payOrder?.remaining ?? calcTotals(_cartItems, _optDiscKey, _optOngkir).total;
 
   @override
   void aoPay(int index) {
@@ -1799,7 +2028,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     _pendingMethod = method;
     if (method == 'Saldo Deposit') {
       return _open(_Sheet('confirm', [
-        {'type': 'ao', 'kind': 'deposit', 'title': 'Saldo Deposit', 'sub': '$_aoCustomer · saldo ${rp(_b!.depositOf(_aoCustomer))} · tagihan ${rp(_cartTotal)}', 'ok': 'Bayar dengan Deposit'},
+        {'type': 'ao', 'kind': 'deposit', 'title': 'Saldo Deposit', 'sub': '$_payName · saldo ${rp(_b!.depositOf(_payName))} · tagihan ${rp(_cartTotal)}', 'ok': 'Bayar dengan Deposit'},
       ]));
     }
     final qris = _settings!.qrisText;
@@ -1836,7 +2065,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   List<Map<String, dynamic>> _dpItems() => [
-        {'type': 'ao', 'kind': 'dp', 'v': '${_form['amount']}', 'method': '${_form['dpMethod']}', 'sub': '$_aoCustomer · sisa tagihan ${rp(_cartTotal)}'},
+        {'type': 'ao', 'kind': 'dp', 'v': '${_form['amount']}', 'method': '${_form['dpMethod']}', 'sub': '$_payName · sisa tagihan ${rp(_cartTotal)}'},
       ];
 
   void _dpButton(int index) {
@@ -1859,6 +2088,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   void _finishOrder(String method, {int change = 0, int? dp, String dpMethod = 'Tunai'}) {
+    if (_payOrderId != null) return _finishDetailPay(method, change: change, dp: dp, dpMethod: dpMethod);
     final b = _b!;
     final cust = b.customerByName(_aoCustomer);
     final hand = _optHand;
@@ -1898,17 +2128,29 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       _tab = o.status == 'jemput' ? 0 : 1;
       _search = '';
     });
-    toast(method == 'Bayar Nanti' ? 'Pesanan tersimpan · Belum dibayar' : (change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pesanan tersimpan · ${o.paymentLabel}'));
-    _showDetail(o.id);
-    if (_settings!.raw['autoNota'] != false && _phoneOf(o).isNotEmpty) {
-      _open(_Sheet('nota', [
-        {'type': 'title', 't': 'Kirim nota ke pelanggan?', 's': '${o.name} · ${_phoneOf(o)}'},
-        {'type': 'hint', 't': 'WhatsApp akan terbuka dengan nota terisi. Tinggal tekan Kirim.'},
-        {'type': 'button', 't': 'Kirim Nota WA', 'primary': true, 'i': 1},
-        {'type': 'button', 't': 'Nanti saja', 'primary': false, 'i': 0},
-      ]));
-    }
+    toast(change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pesanan tersimpan · kirim nota lewat tombol WA hijau');
+    _showDetail(o.id, banner: true);
   }
+
+  /// Bayar dari Rincian Pesanan: lembar Pembayaran yang sama dengan Tambah Transaksi (HTML v160 openPay115).
+  void _finishDetailPay(String method, {int change = 0, int? dp, String dpMethod = 'Tunai'}) {
+    final b = _b!, o = _payOrder;
+    setState(() {
+      _payOrderId = null;
+      _sheets.removeWhere((s) => const {'cash', 'dp', 'confirm'}.contains(s.id));
+    });
+    if (o == null || method == 'Bayar Nanti') return;
+    final m = method == 'DP' ? dpMethod : (method == 'Saldo Deposit' ? 'Deposit' : method);
+    final err = b.pay(o, method: m, amount: dp ?? o.remaining, now: now);
+    if (err != null) return toast(err);
+    addAudit(this, '💵', 'Pembayaran pesanan', '$_kasir · ${o.id} · $m');
+    saveAll();
+    toast(change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pembayaran diperbarui: ${o.isPaid ? 'Lunas · $method' : 'DP ${rp(o.paid)} · sisa ${rp(o.remaining)}'}');
+    _refreshDetail();
+  }
+
+  Order? get _payOrder => _payOrderId == null ? null : _b!.orderById(_payOrderId!);
+  String get _payName => _payOrder?.name ?? _aoCustomer;
 
   // ---------------- Pengaturan & Laporan (sementara) ----------------
   // ---------------- tampilan ----------------
@@ -1939,9 +2181,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     Widget page;
     switch (_page) {
       case 'orders':
-        page = NativeOrders(model: OrdersModel.fromJson(ordersJson(b, tab: _tab, search: _search, now: n)), actions: this);
+        page = NativeOrders(model: OrdersModel.fromJson(ordersJson(b, tab: _tab, search: _search, now: n, auto: _auto)), actions: this);
       case 'customers':
-        page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch)), actions: this);
+        page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch, open: _custOpen, page: _custPage, sort: _custSort)), actions: this);
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
       case 'reports':
@@ -1963,6 +2205,8 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_sheets.isNotEmpty) return fmScoped(_sheets.last.id, 'close', 0);
+        if (_payOrderId != null) return aoSheetClose();
+        if (_detailId != null) return odClose();
         if (_pageSheets.isNotEmpty) return closePageSheet(_pageSheets.last);
         if (_aoSheet != null) return aoSheetClose();
         if (_page == 'addorder' && _aoStage == 'services') return aoBack();
@@ -1971,6 +2215,19 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       },
       child: Stack(children: [
         Positioned.fill(child: page),
+        if (_detailId != null && b.orderById(_detailId!) != null)
+          Positioned.fill(
+            child: NativeOrderDetail(
+              model: orderDetailOd(b, b.orderById(_detailId!)!, banner: _odBanner), actions: this,
+              onQrStatus: () => showModalBottomSheet<void>(
+                context: context, isScrollControlled: true, backgroundColor: Colors.white,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                builder: (context) => NativeOrderStatusQr(orderId: _detailId ?? '', customerName: b.orderById(_detailId ?? '')?.name ?? '', onClose: () => Navigator.pop(context)),
+              ),
+            ),
+          ),
+        if (_payOrder case final po?)
+          Positioned.fill(child: AoSheet(sheet: _paySheetJson(rpSpaced(po.remaining), po.id, po.name, 'BATAL'), actions: this)),
         for (final s in _sheets)
           Positioned.fill(
             child: isAoPopup(s.items)

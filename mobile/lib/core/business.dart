@@ -290,7 +290,7 @@ class Business {
     final method = isDp ? normalizeMethod(dpMethod) : normalizeMethod(payMethod);
     final int paid = later ? 0 : (isDp ? (payAmount ?? 0).clamp(0, totals.total).toInt() : totals.total);
     final antar = RegExp('Antar').hasMatch(handover);
-    final pickup = RegExp('Jemput').hasMatch(handover) && items.isEmpty;
+    final pickup = RegExp('Jemput').hasMatch(handover); // HTML v181: pilihan jemput selalu mulai dari Penjemputan
     final st = pickup ? 'jemput' : 'antrian';
     final createdIso = isoString(now);
     final payments = paid > 0 ? [{'m': method, 'a': paid, 'at': createdIso}] : <Map<String, dynamic>>[];
@@ -303,9 +303,9 @@ class Business {
     };
     final card = <String, dynamic>{
       'dataset': <String, dynamic>{
-        'v108': '1', 'st': st, 'items': jsonEncode(items.map((e) => e.toJson()).toList()), 'v136': '1', 'created177': createdIso,
+        'v108': '1', 'st': st, 'ts133': '${now.millisecondsSinceEpoch}', 'items': jsonEncode(items.map((e) => e.toJson()).toList()), 'v136': '1', 'created177': createdIso,
         'method177': method, 'paid177': '$paid', 'perfume178': perfume, 'payments178': jsonEncode(payments),
-        if (activeOutlet.isNotEmpty) 'outlet180': activeOutlet, if (antar) 'antar': '1', if (totals.disc > 0) 'disc': '${totals.disc}',
+        if (activeOutlet.isNotEmpty) 'outlet180': activeOutlet, if (antar) ...{'antar': '1', 'transport183': '$ongkir', 'transportType183': pickup ? 'roundtrip' : 'delivery'}, if (totals.disc > 0) 'disc': '${totals.disc}',
       },
       'fields': [
         [dur], [id], [customer], ['Masuk · baru saja', 'Estimasi · ${_dmyHm(due)}'], <dynamic>[], <dynamic>[],
@@ -349,8 +349,49 @@ class Business {
     return n;
   }
 
+  /// Status otomatis seperti HTML (v133/v138): Antrian → Proses setelah [queueMinutes] menit,
+  /// Siap Ambil ↔ Telat Ambil menurut [lateDays] hari sejak siap. Mengembalikan true bila ada yang berubah.
+  bool autoStatus(DateTime now, {bool queueEnabled = true, double queueMinutes = 60, int lateDays = 7, Map<String, double>? procMinutes}) {
+    var changed = false;
+    final ms = now.millisecondsSinceEpoch;
+    for (final o in orders) {
+      final st = o.status;
+      if (st == 'antrian' && queueEnabled) {
+        final ts = int.tryParse('${o.dataset['ts133'] ?? ''}') ?? 0;
+        if (ts > 0 && queueMinutes - (ms - ts) / 60000 <= 0) {
+          _setStatus(o, 'cuci', now, 'Otomatis');
+          changed = true;
+        }
+      } else if (procMinutes != null && st != 'packing' && procStages.contains(st)) {
+        // Tahap proses otomatis (v133 A.p): cuci → kering → setrika → packing.
+        final ts = int.tryParse('${o.dataset['ts133'] ?? ''}') ?? 0;
+        if (ts > 0 && (procMinutes[st] ?? 60) - (ms - ts) / 60000 <= 0) {
+          _setStatus(o, procStages[procStages.indexOf(st) + 1], now, 'Otomatis');
+          changed = true;
+        }
+      } else if (st == 'siap' || st == 'telat') {
+        final since = int.tryParse('${o.dataset['siap138'] ?? ''}');
+        if (since == null) continue;
+        final age = ((ms - since) / 86400000).floor();
+        if (st == 'siap' && !o.antar && age >= lateDays) {
+          _setStatus(o, 'telat', now, 'Otomatis');
+          changed = true;
+        } else if (st == 'telat' && age < lateDays) {
+          _setStatus(o, 'siap', now, 'Otomatis');
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
   void _setStatus(Order o, String st, DateTime now, String by) {
+    final prev = o.status;
     o.status = st;
+    // Sama dengan HTML: waktu masuk status (v133) dan waktu mulai Siap Ambil (v138).
+    o.dataset['ts133'] = '${now.millisecondsSinceEpoch}';
+    o.dataset['auto133'] = '';
+    if (st == 'siap' && prev != 'siap' && prev != 'telat') o.dataset['siap138'] = '${now.millisecondsSinceEpoch}';
     (o.detail.putIfAbsent('hist', () => <dynamic>[]) as List).add({'st': st, 'at': isoString(now), 'by': by});
     _syncCard(o);
   }

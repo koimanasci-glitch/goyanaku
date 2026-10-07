@@ -4,110 +4,31 @@
 import '../core/business.dart';
 import '../core/models.dart';
 import '../core/money.dart';
+import '../logic/home.dart';
+import '../logic/orders.dart' as lo;
 
 Map<String, String> chip(String t, String bg, String c) => {'t': t, 'bg': bg, 'c': c};
 
-const _statusColors = {
-  'jemput': ['#eef4ff', '#3b6fd8'], 'antrian': ['#fff0f1', '#e8493f'], 'cuci': ['#eef4ff', '#5275bd'], 'kering': ['#eef4ff', '#5275bd'],
-  'setrika': ['#eef4ff', '#5275bd'], 'packing': ['#eef4ff', '#5275bd'], 'siap': ['#e8f8f0', '#15885d'], 'diantar': ['#e6f7f5', '#1f8f82'],
-  'diambil': ['#f1f3f6', '#5b6479'], 'batal': ['#f1f3f6', '#9aa1ad'], 'telat': ['#fff0f1', '#d8323f'],
-};
-
 /// Tab Pesanan (sama dengan HTML): label & kunci status.
-const orderTabs = [
-  ['Penjemputan', 'jemput'], ['Antrian', 'antrian'], ['Proses', 'proses'], ['Siap Ambil', 'siap'], ['Diantar', 'diantar'],
-  ['Diambil', 'diambil'], ['Batal', 'batal'], ['Telat Ambil', 'telat'],
-];
+const orderTabs = lo.orderTabs;
 
-/// "Telat Ambil": sudah siap lebih dari 2 hari setelah estimasi.
-bool lateToCollect(Order o, DateTime now) => o.status == 'siap' && o.due != null && now.isAfter(o.due!.add(const Duration(days: 2)));
+/// Beranda: model yang sama dengan HTML (lib/logic/home.dart).
+Map<String, dynamic> homeJson(Business b, DateTime now) => homeModel(b, now);
 
-bool inTab(Order o, String key, DateTime now) {
-  switch (key) {
-    case 'proses':
-      return procStages.contains(o.status);
-    case 'telat':
-      return lateToCollect(o, now);
-    default:
-      return o.status == key;
-  }
-}
+/// Pesanan: model yang sama dengan HTML (lib/logic/orders.dart). [auto] = aturan status otomatis (v133).
+Map<String, dynamic> ordersJson(Business b, {required int tab, required String search, required DateTime now, Map auto = const {}, Map<String, dynamic> reminderLog = const {}}) =>
+    lo.ordersModel(b, tab: tab, search: search, now: now, queueEnabled: auto['q'] != false, queueMinutes: autoQueueMinutes(auto), reminderLog: reminderLog)
+      ..['auto'] = {'t': 'Otomatis', 'on': auto['q'] != false || auto['p'] == true};
 
-/// Teks tombol aksi di kartu (null bila selesai/batal).
-String? actionLabel(Order o) {
-  switch (o.status) {
-    case 'jemput':
-      return 'Sudah Dijemput';
-    case 'antrian':
-      return 'Proses';
-    case 'cuci':
-    case 'kering':
-    case 'setrika':
-    case 'packing':
-      return 'Siap Ambil';
-    case 'siap':
-    case 'telat':
-      return o.antar ? 'Antar' : 'Diambil';
-    case 'diantar':
-      return 'Diterima';
-  }
-  return null;
-}
-
-Map<String, String> payChip(Order o) {
-  if (o.isCancelled) return chip('Batal', '#f1f3f6', '#9aa1ad');
-  if (o.isPaid) return chip('Lunas', '#eaf7e4', '#3e8a2e');
-  if (o.paid > 0) return chip(o.paymentLabel, '#fff6e5', '#b7791f');
-  return chip('Belum Bayar', '#fff0f1', '#d8323f');
-}
-
-Map<String, dynamic> homeJson(Business b, DateTime now) {
-  final t = b.today(now);
-  final dueToday = b.orders.where((o) => !o.isCancelled && o.status != 'diambil' && o.due != null &&
-      o.due!.year == now.year && o.due!.month == now.month && o.due!.day == now.day).length;
-  return {
-    'statIn': '${t.inCount}', 'statReady': '${t.ready}', 'statLate': '${t.late}',
-    'labelIn': 'Masuk', 'labelReady': 'Siap diambil', 'labelLate': 'Terlambat',
-    'today': rpSpaced(t.income), 'todayLabel': 'Omset hari ini', 'badge': '$dueToday', 'showBadge': true,
-  };
-}
-
-Map<String, dynamic> ordersJson(Business b, {required int tab, required String search, required DateTime now}) {
-  final all = b.orders;
-  final q = search.trim().toLowerCase();
-  final key = orderTabs[tab][1];
-  final list = q.isEmpty
-      ? all.where((o) => inTab(o, key, now)).toList()
-      : all.where((o) => '${o.id} ${o.name} ${o.phone}'.toLowerCase().contains(q)).toList();
-  final cards = <Map<String, dynamic>>[];
-  for (final o in list.take(300)) {
-    final cust = b.customerByName(o.name);
-    final st = lateToCollect(o, now) ? 'telat' : o.status;
-    final sc = _statusColors[st] ?? _statusColors['antrian']!;
-    final action = actionLabel(o);
-    final ready = o.status == 'siap' || o.status == 'packing';
-    final due = o.due;
-    cards.add({
-      'i': all.indexOf(o), 'id': o.id, 'name': o.name, 'amount': rp(o.total), 'st': o.status,
-      'dur': chip(o.dur, '#f1f2f5', '#5b5f6e'), 'status': chip(statusLabel[st] ?? st, sc[0], sc[1]), 'pay': payChip(o),
-      'action': action == null ? null : chip(action, ready ? '#15885d' : '#e8493f', '#ffffff'),
-      'lines': [if (due != null && !['diambil', 'batal'].contains(o.status)) 'Estimasi · ${_dm(due)}', if (o.handover != 'Datang Langsung') o.handover],
-      'gender': cust?.gender ?? 'male', 'maps': mapsLink(cust), 'addr': cust?.address ?? '',
-    });
-  }
-  return {
-    'title': 'Pesanan', 'search': search, 'placeholder': 'Cari nama / ID / no HP',
-    'tabs': [
-      for (var i = 0; i < orderTabs.length; i++)
-        {'t': orderTabs[i][0], 'n': '${all.where((o) => inTab(o, orderTabs[i][1], now)).length}', 'on': q.isEmpty && i == tab},
-    ],
-    'cards': cards,
-    'empty': cards.isEmpty ? (q.isEmpty ? 'Belum ada pesanan di tab ini.' : 'Pesanan tidak ditemukan.') : '',
-  };
+/// Menit tunggu Antrian → Proses dari aturan tersimpan ({q, qv, qu, p, step}).
+double autoQueueMinutes(Map auto) {
+  final v = num.tryParse('${auto['qv'] ?? 1}') ?? 1;
+  final u = num.tryParse('${auto['qu'] ?? 60}') ?? 60;
+  final m = (v <= 0 ? 1 : v) * u;
+  return m < 1 ? 1 : m.toDouble();
 }
 
 String _two(int n) => n.toString().padLeft(2, '0');
-String _dm(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year} · ${_two(d.hour)}:${_two(d.minute)}';
 
 /// Link Google Maps dari titik / link / alamat pelanggan.
 String mapsLink(Customer? c) {
@@ -120,79 +41,47 @@ String mapsLink(Customer? c) {
   return '';
 }
 
-/// Rincian pesanan sebagai butir formulir (digambar NativeSheet).
-/// Kode tombol: 0 tutup, 1 status berikut, 2 bayar, 3 batalkan, 4 kirim WA, 5 buka maps.
-List<Map<String, dynamic>> orderDetailItems(Business b, Order o, DateTime now) {
-  final cust = b.customerByName(o.name);
-  final idx = o.status == 'antrian' || o.status == 'jemput'
-      ? 0
-      : procStages.contains(o.status)
-          ? 1
-          : (o.status == 'siap' || o.status == 'diantar')
-              ? 2
-              : 3;
-  final t = o.totals;
-  final action = actionLabel(o);
-  return [
-    {'type': 'entry', 't': 'Rincian Pesanan', 'lines': ['${o.id} · ${o.dur}'], 'compact': true, 'btns': [
-      if (!o.isCancelled) {'t': 'Edit', 'i': 7},
-      {'t': 'Riwayat', 'i': 8},
-      {'t': '×', 'i': 0},
-    ]},
-    {
-      'type': 'entry', 't': o.name, 'lines': [[o.phone, cust?.address ?? ''].where((e) => e.isNotEmpty).join(' · ')],
-      'btns': [
-        if (o.phone.isNotEmpty || (cust?.phone ?? '').isNotEmpty) {'t': 'Kirim nota WA', 'i': 4},
-        {'t': 'Cetak Struk', 'i': 6},
-        if (!o.isCancelled) {'t': 'Label', 'i': 10},
-        if (mapsLink(cust).isNotEmpty) {'t': 'Maps', 'i': 5},
-      ],
-    },
-    if (!o.isCancelled)
-      {'type': 'steps', 'steps': [
-        for (final (k, s) in [('1', 'Diterima'), ('2', 'Proses'), ('3', 'Siap Ambil'), ('4', 'Diambil')].indexed) {'n': s.$1, 't': s.$2, 'on': k <= idx},
-      ]},
-    for (final it in o.items)
-      {'type': 'entry', 't': '${it.name} (${o.dur})', 'lines': ['${qtyText(it.qty)} ${it.unit} × ${rpSpaced(it.price)}'], 'amount': rpSpaced(it.subtotal), 'avatar': '🧺'},
-    if (o.items.isEmpty) {'type': 'hint', 't': 'Belum ditimbang · layanan diisi setelah cucian dijemput'},
-    if (!o.isCancelled && o.status != 'diambil') {'type': 'button', 't': o.items.isEmpty ? 'Isi Layanan & Berat' : 'Ubah Layanan & Berat', 'primary': o.items.isEmpty, 'i': 9},
-    if (t.disc > 0) {'type': 'pair', 't': 'Diskon', 'v': '-${rpSpaced(t.disc)}'},
-    if (o.ongkir > 0) {'type': 'pair', 't': 'Ongkos kirim', 'v': rpSpaced(o.ongkir)},
-    {'type': 'pair', 't': 'Status', 'v': statusLabel[o.status] ?? o.status, 'tone': 'p'},
-    {'type': 'pair', 't': 'Penyerahan', 'v': o.handover},
-    if (o.masuk != null) {'type': 'pair', 't': 'Tanggal Masuk', 'v': _dm(o.masuk!)},
-    if (o.due != null) {'type': 'pair', 't': 'Estimasi Selesai', 'v': _dm(o.due!), 'tone': o.isLate(now) ? 'r' : ''},
-    {'type': 'pair', 't': 'Parfum', 'v': o.perfume.isEmpty ? 'Tanpa Parfum' : o.perfume},
-    {'type': 'pair', 't': 'Keterangan', 'v': o.note.isEmpty ? '-' : o.note},
-    {'type': 'pair', 't': 'Status Pembayaran', 'v': o.isPaid ? 'Lunas' : (o.paid > 0 ? 'DP ${rpSpaced(o.paid)} · sisa ${rpSpaced(o.remaining)}' : 'Belum Bayar'), 'tone': o.isPaid ? 'g' : 'r'},
-    if (action != null) {'type': 'button', 't': action, 'primary': true, 'i': 1},
-    if (!o.isCancelled && o.status != 'diambil') {'type': 'button', 't': 'Batalkan Pesanan', 'primary': false, 'i': 3},
-    {'type': 'total', 't': 'Total', 'v': rpSpaced(o.total), 's': o.isPaid ? 'Lunas' : (o.isCancelled ? 'Batal' : 'Belum dibayar'), 'btn': o.isPaid || o.isCancelled ? 'Tutup' : 'Bayar', 'i': o.isPaid || o.isCancelled ? 0 : 2},
-  ];
-}
+const custAvatarMale = "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M17 54c1.2-8.4 6.1-12.6 15-12.6S45.8 45.6 47 54\" fill=\"#5C97F8\"></path><circle cx=\"32\" cy=\"26\" r=\"11\" fill=\"#FFD6B3\"></circle><path d=\"M21 24.5c0-8.5 4.5-13.5 11-13.5 6.6 0 11 5 11 13.5v2.1H21v-2.1z\" fill=\"#26384D\"></path><circle cx=\"28\" cy=\"26\" r=\"1.3\" fill=\"#26384D\"></circle><circle cx=\"36\" cy=\"26\" r=\"1.3\" fill=\"#26384D\"></circle><path d=\"M29 31c1.6 1.6 4.4 1.6 6 0\" stroke=\"#D58A78\" stroke-width=\"1.7\" fill=\"none\" stroke-linecap=\"round\"></path></svg>";
+const custAvatarFemale = "<svg viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M17 54c1.2-8.4 6.1-12.6 15-12.6S45.8 45.6 47 54\" fill=\"#E56A8C\"></path><circle cx=\"32\" cy=\"26\" r=\"11\" fill=\"#FFD8C7\"></circle><path d=\"M18.5 26.2c0-9.6 5.1-15 13.5-15s13.5 5.4 13.5 15c0 4.5-1.7 8.4-4.4 11-1.1-6.9-4.3-10.6-9.1-10.6s-8 3.7-9.1 10.6c-2.7-2.6-4.4-6.5-4.4-11z\" fill=\"#6D4A3C\"></path><circle cx=\"28\" cy=\"26\" r=\"1.3\" fill=\"#453126\"></circle><circle cx=\"36\" cy=\"26\" r=\"1.3\" fill=\"#453126\"></circle><path d=\"M29 31c1.6 1.6 4.4 1.6 6 0\" stroke=\"#D88A86\" stroke-width=\"1.7\" fill=\"none\" stroke-linecap=\"round\"></path></svg>";
 
-/// Daftar pelanggan (model halaman Pelanggan).
-Map<String, dynamic> customersJson(Business b, String search) {
+/// Jumlah baris pelanggan per halaman (HTML v138).
+const custPerPage = 10;
+
+/// Daftar pelanggan (model halaman Pelanggan, bentuk sama dengan HTML).
+/// Beda yang disengaja: jumlah order, belanja dan transaksi terakhir dihitung dari pesanan asli
+/// (HTML selalu menampilkan 0 / "Baru").
+Map<String, dynamic> customersJson(Business b, String search, {bool open = false, int page = 0, String sort = '', bool crm = true}) {
   final q = search.trim().toLowerCase();
   final orders = b.orders;
-  final rows = <Map<String, dynamic>>[];
   final list = b.customers;
+  final all = <Map<String, dynamic>>[];
   for (var i = 0; i < list.length; i++) {
     final c = list[i];
-    if (q.isNotEmpty && !'${c.name} ${c.phone}'.toLowerCase().contains(q)) continue;
     final mine = orders.where((o) => o.name.trim().toLowerCase() == c.name.trim().toLowerCase() && !o.isCancelled).toList();
     final spend = mine.fold<int>(0, (a, o) => a + o.total);
     final last = mine.map((o) => o.created).whereType<DateTime>().fold<DateTime?>(null, (a, d) => a == null || d.isAfter(a) ? d : a);
-    final dep = b.depositOf(c.name);
-    rows.add({
-      'i': i, 'name': c.name, 'lines': [c.phone, if (c.address.isNotEmpty) c.address], 'spend': rp(spend), 'orders': '${mine.length}',
-      'last': last == null ? '—' : '${_two(last.day)}/${_two(last.month)}', 'balance': rp(dep), 'topup': 'Isi Saldo', 'edit': 'Edit',
+    final line = [c.phone, if (c.address.isNotEmpty) c.address].join(' · ');
+    if (q.isNotEmpty && !'${c.name} ${c.phone} $line'.toLowerCase().contains(q)) continue;
+    all.add({
+      'i': i, 'name': c.name, 'avatar': c.gender == 'female' ? custAvatarFemale : custAvatarMale, 'lines': [line],
+      'spend': 'Belanja ${rp(spend)}', 'orders': '${mine.length}', 'last': last == null ? 'Baru' : '${_two(last.day)}/${_two(last.month)}',
+      'balance': 'Saldo ${rp(b.depositOf(c.name))}', 'topup': 'Top Up Saldo', 'edit': 'Edit',
     });
   }
+  if (sort == 'name') all.sort((x, y) => '${x['name']}'.toLowerCase().compareTo('${y['name']}'.toLowerCase()));
+  if (sort == 'order') all.sort((x, y) => int.parse('${y['orders']}').compareTo(int.parse('${x['orders']}')));
+  final pages = all.isEmpty ? 1 : ((all.length + custPerPage - 1) ~/ custPerPage);
+  final pg = page.clamp(0, pages - 1);
+  final shown = q.isNotEmpty || open;
   return {
-    'title': 'Pelanggan', 'sub': '${list.length} pelanggan tersimpan', 'search': {'v': search, 'ph': 'Cari nama / no HP'},
-    'add': 'Tambah Pelanggan', 'db': {'t': 'Database Pelanggan', 's': '${list.length} data', 'open': true},
-    'dbTitle': 'Database Pelanggan', 'dbSub': 'Urut terbaru', 'rows': rows,
-    'empty': rows.isEmpty ? (q.isEmpty ? 'Belum ada pelanggan. Tekan Tambah Pelanggan.' : 'Pelanggan tidak ditemukan.') : '',
+    'title': 'PELANGGAN', 'sub': 'Kelola data pelanggan laundry', 'search': {'v': search, 'ph': 'Cari nama / no handphone'},
+    'deposit': 'Saldo Pelanggan · Top Up & Riwayat', 'add': 'Tambah Pelanggan',
+    'db': {'t': 'Database Pelanggan', 's': '${list.length} pelanggan tersimpan', 'open': shown},
+    'rank': {'t': 'Ranking Pelanggan', 's': 'Transaksi terbanyak & belanja terbesar', 'icon': '🏆'},
+    if (crm) 'crm': {'t': 'CRM Pelanggan', 'badge': 'PLATINUM', 's': 'Pengingat cucian · Poin member · Voucher kode unik', 'icon': '💎'},
+    'rows': shown ? all.skip(pg * custPerPage).take(custPerPage).toList() : <Map<String, dynamic>>[],
+    'empty': '',
+    'pager': shown && pages > 1 ? {'prev': '‹ Sebelumnya', 'next': 'Berikutnya ›', 'info': 'Hal ${pg + 1} dari $pages', 'canPrev': pg > 0, 'canNext': pg < pages - 1} : null,
+    if (shown) ...{'dbTitle': 'Daftar Pelanggan', 'dbSub': 'Database pelanggan outlet', 'filter': 'Filter ▾'},
   };
 }

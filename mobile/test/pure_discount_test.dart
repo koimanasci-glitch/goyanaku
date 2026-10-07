@@ -924,7 +924,7 @@ void templateTests() {
     final s = await _pump(tester, kv);
     var b = await Business.load(kv);
     expect(norm(homeJson(b, now)), norm(fx['home0']), reason: 'Beranda kosong');
-    expect(norm(customersJson(b, '')), norm(fx['customers']), reason: 'Pelanggan');
+    expect(norm(customersJson(b, '', open: true)), norm(fx['customers']), reason: 'Pelanggan');
     expect(norm(ordersJson(b, tab: 1, search: '', now: now)), norm(fx['orders0']), reason: 'Pesanan kosong');
 
     s.tile(0);
@@ -944,6 +944,32 @@ void templateTests() {
     b = await Business.load(kv);
     expect(norm(ordersJson(b, tab: 1, search: '', now: now)), norm(fx['orders1']), reason: 'Pesanan dengan 1 antrian');
     expect(norm(homeJson(b, now)), norm(fx['home1']), reason: 'Beranda dengan 1 pesanan');
+
+    // Rincian Pesanan: model `od` sama dengan HTML. Beda yang disengaja: baris pelanggan memakai nomor & alamat asli
+    // (HTML menampilkan contoh "0852 •••• 8626 · Cikarang"), ikon layanan dan jam tangkapan diabaikan.
+    String od(Object? m) {
+      final c = jsonDecode(jsonEncode(m)) as Map;
+      (c['customer'] as Map)
+        ..['sub'] = ''
+        ..['svg'] = '';
+      for (final it in c['items'] as List) {
+        (it as Map)['svg'] = '';
+      }
+      return norm(c).replaceAll(RegExp(r'\d\d/\d\d/\d{4} · \d\d:\d\d'), 'TGL');
+    }
+
+    expect(od(s.debugDetail()), od(fx['od']), reason: 'Rincian sesudah simpan (ada kotak Pesanan tersimpan)');
+    expect((s.debugDetail()!['customer'] as Map)['sub'], '0812 •••• 0001');
+    for (final step in (fx['odFlow'] as List).cast<Map>()) {
+      s.odButton(8);
+      await _settle(tester);
+      expect(s.debugToast, step['toast']);
+      expect(od(s.debugDetail()), od(step['od']), reason: 'Rincian sesudah ${step['toast']}');
+    }
+    s.odButton(1);
+    await _settle(tester);
+    expect([for (final it in s.debugSheet('act115')!) '${it['type']}|${it['t']}|${it['s'] ?? ''}|${it['i']}'],
+        [for (final it in (fx['act115'] as List).cast<Map>()) '${it['type']}|${it['t']}|${it['s'] ?? ''}|${it['i']}'], reason: 'menu ⋯');
     expect(tester.takeException(), isNull);
   });
 }

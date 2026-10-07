@@ -103,7 +103,7 @@ void main() {
     expect(o.total, 23625, reason: '2,5 kg × 10.500 = 26.250 − 10%');
     expect(o.isPaid, isTrue);
     expect(saved.customerByName('Rina')!.phone, '081277788899');
-    expect(find.text('Rincian Pesanan'), findsOneWidget, reason: 'rincian pesanan baru terbuka');
+    expect(find.text('RINCIAN PESANAN'), findsOneWidget, reason: 'rincian pesanan baru terbuka');
 
     // Status berikut & batal dari rincian.
     s.fmScoped('detail', 'button', 1);
