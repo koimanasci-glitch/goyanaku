@@ -1231,6 +1231,68 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     ];
   }
 
+  static const _edReasons = ['Salah timbang / berat', 'Salah pilih layanan', 'Salah jumlah item', 'Permintaan pelanggan'];
+  int _edReason = -1;
+  String _itemsTxt(List<OrderItem> items) => items.isEmpty ? '-' : items.map((i) => '${i.name} ${qtyText(i.qty)} ${i.unit}').join(', ');
+
+  List<Map<String, dynamic>> _edReasonItems(Order o) => [
+        {'type': 'title', 't': 'Alasan ralat pesanan', 's': ''},
+        {'type': 'hint', 't': '${o.id} · ${o.name}'},
+        {'type': 'pair', 't': 'Sebelumnya', 'v': '${_itemsTxt(o.items)} · ${rpSpaced(o.total)}', 'tone': '', 'tap': -1},
+        {'type': 'buttons', 'options': [for (var k = 0; k < _edReasons.length; k++) {'t': _edReasons[k], 'on': _edReason == k, 'i': 10 + k}]},
+        {'type': 'hint', 't': 'Setelah disimpan, perubahan & selisih tagihan tercatat di Log Ralat.'},
+        {'type': 'button', 't': 'Simpan Ralat', 'primary': true, 'i': 1},
+      ];
+
+  void _edReasonEvent(String kind, int index) {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o == null || kind != 'button') return _close('rs139e');
+    if (index >= 10) {
+      _edReason = index - 10;
+      return _open(_Sheet('rs139e', _edReasonItems(o)));
+    }
+    if (_edReason < 0) return toast('Pilih alasan ralat dulu');
+    _close('rs139e');
+    _applyEdit(o, _edReasons[_edReason]);
+  }
+
+  /// Simpan Edit Transaksi. [reason] kosong = koreksi bebas (Antrian, belum lunas).
+  void _applyEdit(Order o, String reason) {
+    final b = _b!;
+    final before = o.total, beforeTxt = _itemsTxt(o.items), paid = o.paid;
+    final due = DateTime.tryParse('${_form['due'] ?? ''}');
+    final per = _edPerfumes;
+    b.setItems(o, _edItems);
+    b.edit(o, note: '${_form['note'] ?? ''}'.trim().isEmpty ? '-' : '${_form['note']}'.trim(), perfume: per[((_form['perfume'] as int?) ?? per.length - 1).clamp(0, per.length - 1)], discKey: _edDiscKey, due: due);
+    final after = o.total, afterTxt = _itemsTxt(o.items);
+    var ex = '';
+    if (reason.isNotEmpty && paid > 0 && after != before) {
+      if (after < paid) {
+        // Lebih bayar: kas dikurangi (penjualan minus, sama dengan HTML) dan pembayaran pesanan disesuaikan.
+        final back = paid - after;
+        (b.kas.putIfAbsent('sales', () => <dynamic>[]) as List).add({'m': o.method, 'a': -back, 'id': o.id, 'adj': 1, 'at': isoString(now)});
+        o.detail['paid'] = after;
+        o.dataset['paid177'] = '$after';
+        ex = ' · kembalikan ${rpSpaced(back)} ke pelanggan';
+      } else {
+        ex = ' · pelanggan kurang bayar ${rpSpaced(after - paid)}';
+      }
+    }
+    if (beforeTxt != afterTxt || before != after) {
+      (b.kas.putIfAbsent('ralatLog', () => <dynamic>[]) as List).insert(0, {
+        'type': 'order', 'title': '${reason.isEmpty ? 'Edit' : 'Ralat'} pesanan ${o.id}', 'before': '$beforeTxt · ${rpSpaced(before)}', 'after': '$afterTxt · ${rpSpaced(after)}',
+        'reason': reason.isEmpty ? 'Koreksi sebelum diproses' : '$reason$ex', 'by': _kasir, 't': now.toIso8601String(),
+      });
+    }
+    addAudit(this, '✎', 'Edit transaksi ${o.id}', '$_kasir · total ${rpSpaced(before)} → ${rpSpaced(after)}');
+    saveAll();
+    _close('edit115');
+    toast(reason.isNotEmpty
+        ? (ex.isNotEmpty ? 'Ralat tersimpan$ex' : 'Ralat tersimpan · tercatat di Log Ralat')
+        : (before != after ? 'Tersimpan · total ${rpSpaced(before)} → ${rpSpaced(after)} · tercatat di Audit' : 'Perubahan tersimpan · tercatat di Audit'));
+    _refreshDetail();
+  }
+
   String _svIcon(Service sv) => sv.unit == 'kg' ? 'Kiloan' : (sv.unit == 'm' ? 'Meteran' : 'Satuan');
 
   void _editEvent(String kind, int index, Object? value) {
@@ -1277,17 +1339,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
     if (index == 1 + 3 * n) {
       if (_edItems.isEmpty) return toast('Minimal 1 layanan');
-      final before = o.total;
-      final due = DateTime.tryParse('${_form['due'] ?? ''}');
-      final per = _edPerfumes;
-      _b!.setItems(o, _edItems);
-      _b!.edit(o, note: '${_form['note'] ?? ''}'.trim().isEmpty ? '-' : '${_form['note']}'.trim(), perfume: per[((_form['perfume'] as int?) ?? per.length - 1).clamp(0, per.length - 1)], discKey: _edDiscKey, due: due);
-      final after = o.total;
-      addAudit(this, '✎', 'Edit transaksi ${o.id}', '$_kasir · total ${rpSpaced(before)} → ${rpSpaced(after)}');
-      saveAll();
-      _close('edit115');
-      toast(before != after ? 'Tersimpan · total ${rpSpaced(before)} → ${rpSpaced(after)} · tercatat di Audit' : 'Perubahan tersimpan · tercatat di Audit');
-      return _refreshDetail();
+      // HTML v139: pesanan Antrian yang belum lunas boleh dikoreksi langsung; selain itu wajib alasan ralat.
+      if (o.status == 'antrian' && !o.isPaid) return _applyEdit(o, '');
+      _edReason = -1;
+      return _open(_Sheet('rs139e', _edReasonItems(o)));
     }
     final k = (index - 1) ~/ 3, act = (index - 1) % 3;
     if (k < 0 || k >= n) return;
@@ -1437,6 +1492,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return;
     }
     if (scope == 'edit115') return _editEvent(kind, index, value);
+    if (scope == 'rs139e') return _edReasonEvent(kind, index);
     if (scope == 'wa131') {
       final wo = _detailId == null ? null : b.orderById(_detailId!);
       if (kind == 'button' && wo != null && index == 1) {

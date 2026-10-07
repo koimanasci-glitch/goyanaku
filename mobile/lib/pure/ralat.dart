@@ -32,7 +32,7 @@ class RalatPage extends PurePage {
   List<Map<String, dynamic>> _l(String k) => ((kas.putIfAbsent(k, () => <dynamic>[])) as List).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
   String get _admin => '${host.settings.raw['adminName'] ?? 'Admin'}';
   String get _who => owner ? '$_admin (Admin Utama)' : 'Kasir (Kasir)';
-  String get _pin => '${host.settings.raw['adminPin'] ?? '1234'}'; // sama dengan bawaan HTML
+  String get _pin => '${host.settings.raw['adminPin'] ?? '1234'}'; // bawaan HTML; bisa diganti lewat "Ganti PIN Admin"
 
   static String _hm(Object? at) {
     final d = DateTime.tryParse('$at')?.toLocal();
@@ -181,6 +181,8 @@ class RalatPage extends PurePage {
         inp(pin, 0, ph: 'PIN 4 angka', numeric: true, secret: true),
         {'type': 'button', 't': 'Lanjut', 'primary': true, 'file': '', 'after': false, 'i': 0},
         {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
+        // Perbaikan atas HTML (PIN tertanam 1234 dan tidak bisa diganti): PIN Admin bisa diganti di sini.
+        {'type': 'button', 't': 'Ganti PIN Admin', 'primary': false, 'file': '', 'after': false, 'i': 2},
       ];
     }
     if (id != 'rs139') return null;
@@ -259,6 +261,24 @@ class RalatPage extends PurePage {
       }
       if (kind != 'button') return;
       if (index == 1) return host.closePageSheet('pin139');
+      if (index == 2) {
+        if (pin != _pin) return host.toast('Masukkan PIN Admin yang sekarang dulu');
+        return host.openFormSheet(FormSheetDef('Ganti PIN Admin', const [FormSheetField('PIN baru', placeholder: '4–6 angka', numeric: true, required: true)], 'Simpan', (v) {
+          final n = v.first.replaceAll(RegExp(r'\D'), '');
+          if (n.length < 4 || n.length > 6) {
+            host.toast('PIN harus 4–6 angka');
+            return false;
+          }
+          host.settings.raw['adminPin'] = n;
+          host.settings.save();
+          pin = '';
+          addAudit(host, '🔒', 'PIN Admin diganti', _admin);
+          host.saveAll();
+          host.toast('PIN Admin diganti');
+          host.refresh();
+          return true;
+        }, sub: 'Dipakai untuk menyetujui ralat & edit transaksi'));
+      }
       if (pin == _pin) {
         _fail = 0;
         host.closePageSheet('pin139');

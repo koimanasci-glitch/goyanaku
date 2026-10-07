@@ -224,17 +224,28 @@ void main() {
     s.fmScoped('edit115', 'input', 1, '2026-10-08T09:30');
     s.fmScoped('edit115', 'button', 4);
     await _settle(tester);
+    // Pesanan sudah diproses → wajib alasan ralat (HTML rs139).
+    expect(s.debugSheet('rs139e')!.first['t'], 'Alasan ralat pesanan');
+    s.fmScoped('rs139e', 'button', 1);
+    expect(s.debugToast, 'Pilih alasan ralat dulu');
+    s.fmScoped('rs139e', 'button', 10);
+    s.fmScoped('rs139e', 'button', 1);
+    await _settle(tester);
     var o = (await Business.load(kv)).orders.first;
     expect(o.note, 'rak B2');
     expect(o.total, 9000);
     expect(o.due, DateTime(2026, 10, 8, 9, 30));
-    expect(s.debugToast, 'Tersimpan · total Rp 14.000 → Rp 9.000 · tercatat di Audit');
+    expect(s.debugToast, 'Ralat tersimpan · tercatat di Log Ralat');
+    expect((((await Business.load(kv)).kas['ralatLog'] as List).first as Map)['reason'], 'Salah timbang / berat');
 
     // Tambah jumlah (＋ = +0,5 kg) lalu hapus tidak boleh sampai kosong.
     s.fmScoped('detail', 'button', 7);
     await _settle(tester);
     s.fmScoped('edit115', 'button', 2);
     s.fmScoped('edit115', 'button', 4);
+    await _settle(tester);
+    s.fmScoped('rs139e', 'button', 12);
+    s.fmScoped('rs139e', 'button', 1);
     await _settle(tester);
     o = (await Business.load(kv)).orders.first;
     expect(o.items.single.qty, before.items.single.qty + .5);

@@ -417,7 +417,7 @@ class QrisPage extends PurePage {
   @override
   List<Map<String, dynamic>> items() {
     final o = host.business.outlets;
-    final name = (o.where((x) => x.id == host.business.activeOutlet).firstOrNull ?? o.firstOrNull)?.name ?? 'Gramapuri';
+    final name = (o.where((x) => x.id == host.business.activeOutlet).firstOrNull ?? o.firstOrNull)?.name ?? 'Outlet';
     Map<String, dynamic> inp(String v, String ph, int i, {bool multi = false, bool numeric = false}) =>
         {'type': 'input', 'v': v, 'ph': ph, 'multiline': multi, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
     Map<String, dynamic> tg(String t, int i, {String s = '', bool def = true, bool? on}) => {'type': 'toggle', 't': t, 's': s, 'on': on ?? (_tg['$i'] as bool? ?? def), 'i': i};
