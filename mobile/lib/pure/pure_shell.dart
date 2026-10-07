@@ -1408,6 +1408,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return _close(scope);
     }
     if (scope == 'hist115') return _close(scope);
+    if (scope == 'gy154-transfer') return _transferEvent(kind, index);
     if (scope == 'rc106') {
       _strukEvent(kind, index);
       return;
@@ -2185,8 +2186,40 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         _confirm('Saldo Deposit');
       case 'QRIS':
         _confirm('QRIS');
+      case 'Transfer':
+        _openTransfer();
       default:
         _finishOrder(m);
+    }
+  }
+
+  // ---------- Transfer Bank (HTML gy154-transfer): rekening dari Pengaturan → Pembayaran ----------
+  List<String> _bank = const ['', '', ''];
+  Future<void> _openTransfer() async {
+    final v = await Future.wait([widget.store.get('gy154-bank'), widget.store.get('gy154-account'), widget.store.get('gy154-holder')]);
+    if (!mounted) return;
+    _bank = [for (final x in v) (x ?? '').trim()];
+    final ok = _bank.every((x) => x.isNotEmpty);
+    _open(_Sheet('gy154-transfer', [
+      {'type': 'title', 't': 'Transfer Bank'},
+      {'type': 'title', 't': _bank[0].isEmpty ? 'Rekening belum diatur' : _bank[0]},
+      {'type': 'title', 't': _bank[1].isEmpty ? '—' : _bank[1].replaceAllMapped(RegExp(r'(\d{4})(?=\d)'), (m) => '${m[1]} ')},
+      if (_bank[2].isNotEmpty) {'type': 'hint', 't': 'a.n. ${_bank[2]}'},
+      if (!ok) {'type': 'button', 't': 'Pengaturan Pembayaran', 'primary': false, 'i': 0},
+      {'type': 'pair', 't': 'Total Tagihan', 'v': rpSpaced(_cartTotal), 'tone': '', 'tap': -1},
+      {'type': 'hint', 't': 'Cek mutasi / notifikasi bank dulu, baru tekan Sudah Ditransfer.'},
+      {'type': 'button', 't': 'SUDAH DITRANSFER', 'primary': true, 'i': 1},
+      {'type': 'button', 't': 'BATAL', 'primary': false, 'i': 2},
+    ]));
+  }
+
+  void _transferEvent(String kind, int index) {
+    _close('gy154-transfer');
+    if (kind != 'button') return;
+    if (index == 0) return nav('qris');
+    if (index == 1) {
+      if (_bank.any((x) => x.isEmpty)) return toast('Rekening belum diatur · buka Pengaturan Pembayaran');
+      _finishOrder('Transfer');
     }
   }
 

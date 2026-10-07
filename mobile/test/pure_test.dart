@@ -349,7 +349,7 @@ void main() {
     expect(t.debugItems().where((e) => e['type'] == 'labelprev').map((e) => (e['lines'] as List).last).toList(), [for (var k = 1; k <= 3; k++) endsWith('/$k')]);
     t.fmButton(8);
     await _settle(tester);
-    expect((await Business.load(kv)).orders.first.dataset['bags137'], '3');
+    expect((await Business.load(kv2)).orders.first.dataset['bags137'], '3');
     t.fmButton(7);
     await _settle(tester);
     expect(t.debugSheet('bg137')!.first['t'], 'Cek Kelengkapan Kantong');

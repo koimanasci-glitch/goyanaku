@@ -971,18 +971,25 @@ class TodayPage extends PurePage {
   List<String> ids = [];
   @override
   List<Map<String, dynamic>> items() {
-    final n = host.now;
-    final list = host.business.orders.where((o) => !o.isCancelled && !['siap', 'diantar', 'diambil'].contains(o.status) && o.due != null &&
-        !o.due!.isAfter(DateTime(n.year, n.month, n.day, 23, 59, 59))).toList()
-      ..sort((a, b) => a.due!.compareTo(b.due!));
+    // Aturan sama dengan lencana "Hari Ini" di Beranda (HTML v187 dueCards): jatuh tempo hari ini (WIB),
+    // status belum siap/selesai, outlet aktif.
+    final b = host.business;
+    String day(DateTime d) {
+      final j = d.toUtc().add(const Duration(hours: 7));
+      return '${j.year}-${j.month}-${j.day}';
+    }
+
+    const done = {'siap', 'telat', 'diantar', 'diambil', 'selesai', 'batal'};
+    final today = day(host.now), active = b.activeOutlet;
+    final list = b.orders.where((o) => o.due != null && day(o.due!) == today && !done.contains(o.status) && (active.isEmpty || o.outlet == active)).toList();
     ids = list.map((o) => o.id).toList();
-    String hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    String hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}.${d.minute.toString().padLeft(2, '0')}';
+    String st(String s) => const {'jemput': 'Penjemputan', 'antrian': 'Antrian'}[s] ?? 'Proses';
     return [
       {'type': 'hint', 't': 'Pesanan outlet aktif yang masih perlu diselesaikan hari ini.'},
       if (list.isEmpty) {'type': 'hint', 't': 'Tidak ada pesanan yang harus diselesaikan hari ini.'},
       for (var k = 0; k < list.length; k++)
-        {'type': 'card', 't': list[k].name, 's': '${list[k].id} · ${list[k].isLate(n) ? 'terlambat sejak' : 'estimasi'} ${hm(list[k].due!)}',
-          'badge': list[k].isLate(n) ? 'Terlambat' : (list[k].status == 'antrian' ? 'Antrian' : 'Proses'), 'ic': '🧺', 'i': k},
+        {'type': 'card', 't': list[k].name, 's': '${list[k].id} · ${hm(list[k].due!)}', 'badge': st(list[k].status), 'i': k},
     ];
   }
 
