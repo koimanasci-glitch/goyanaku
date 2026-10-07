@@ -46,6 +46,7 @@ import '../logic/reports_catalog.dart';
 import 'pages.dart';
 import 'pickup_pages.dart';
 import 'ralat.dart';
+import 'rank_page.dart';
 import 'reports_dart.dart';
 import 'scan_page.dart';
 import 'service_icons.dart';
@@ -84,7 +85,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -893,9 +894,25 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void search(String text) => setState(() => _search = text);
   @override
   void tab(int index) => setState(() {
-        _tab = index;
+        final shown = _shownTabs;
+        _tab = index >= 0 && index < shown.length ? shown[index] : index;
         _search = '';
       });
+
+  /// Tab Pesanan yang tampil (HTML v109: Penjemputan/Diantar disembunyikan bila layanan jemput/antar dimatikan).
+  List<int> get _shownTabs => [
+        for (var k = 0; k < orderTabs.length; k++)
+          if (!(k == 0 && !deliveryJemput(_settings!.raw)) && !(k == 4 && !deliveryAntar(_settings!.raw))) k,
+      ];
+
+  Map<String, dynamic> _ordersModel(Business b, DateTime n) {
+    final shown = _shownTabs;
+    if (!shown.contains(_tab)) _tab = 1;
+    final m = ordersJson(b, tab: _tab, search: _search, now: n, auto: _auto);
+    final tabs = m['tabs'] as List;
+    m['tabs'] = [for (final k in shown) tabs[k]];
+    return m;
+  }
   @override
   void openCard(int index) {
     final list = _b!.orders;
@@ -1694,9 +1711,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void cuPage(int delta) => setState(() => _custPage = (_custPage + delta).clamp(0, 9999));
   @override
-  void cuRank() {
-    nav('crm');
-  }
+  void cuRank() => nav('rank138');
   @override
   void cuCrm() => nav('crm');
 
@@ -2386,7 +2401,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     Widget page;
     switch (_page) {
       case 'orders':
-        page = NativeOrders(model: OrdersModel.fromJson(ordersJson(b, tab: _tab, search: _search, now: n, auto: _auto)), actions: this);
+        page = NativeOrders(model: OrdersModel.fromJson(_ordersModel(b, n)), actions: this);
       case 'customers':
         page = NativeCustomers(model: CustomersModel.fromJson(customersJson(b, _custSearch, open: _custOpen, page: _custPage, sort: _custSort)), actions: this);
       case 'addorder':
