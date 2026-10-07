@@ -110,7 +110,7 @@ class PlanPricing extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(width: 18, height: 18, margin: const EdgeInsets.only(top: 1), alignment: Alignment.center,
-                      decoration: BoxDecoration(color: p.soft, shape: BoxShape.circle), child: Text('✓', style: gText(11, w: FontWeight.w600, c: p.color, h: 12))),
+                      decoration: BoxDecoration(color: p.soft, shape: BoxShape.circle), child: Icon(Icons.check_rounded, size: 13, color: p.color)),
                   const SizedBox(width: 10),
                   Expanded(child: Text(f, style: gText(13, c: _ink, h: 19))),
                 ]),
@@ -149,14 +149,14 @@ class PlanPricing extends StatelessWidget {
         color: active ? const Color(0xffeef0f3) : (top ? gBrand : Colors.white), borderRadius: BorderRadius.circular(11),
         border: active || top ? null : Border.all(color: const Color(0xffdfe3e9)),
       ),
-      child: Text(active ? 'Paket Aktif' : 'Pilih  ›', style: gText(13, w: FontWeight.w600, c: active ? _muted : (top ? Colors.white : _ink))),
+      child: Text(active ? 'Paket Aktif' : 'Lihat & Pilih', style: gText(13, w: FontWeight.w600, c: active ? _muted : (top ? Colors.white : _ink))),
     );
     final checks = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       for (final f in p.short)
         Padding(
           padding: const EdgeInsets.only(bottom: 5),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('✓', style: gText(11.5, w: FontWeight.w600, c: p.color, h: 16)),
+            Padding(padding: const EdgeInsets.only(top: 1), child: Icon(Icons.check_rounded, size: 14, color: p.color)),
             const SizedBox(width: 6),
             Expanded(child: Text(f, style: gText(11.5, c: const Color(0xff5b5f6e), h: 16))),
           ]),
@@ -216,6 +216,7 @@ class PlanPricing extends StatelessWidget {
                 const SizedBox(height: 10),
                 checks,
                 const Spacer(),
+                const SizedBox(height: 6),
                 button,
               ]),
       ),
@@ -300,7 +301,7 @@ class PlanPricing extends StatelessWidget {
                         Text('Lihat semua riwayat pembayaran paket', style: gText(11.5, c: _muted)),
                       ]),
                     ),
-                    Text('›', style: gText(22, c: _muted, h: 22)),
+                    const Icon(Icons.chevron_right_rounded, size: 22, color: _muted),
                   ]),
                 ),
               ),
@@ -312,8 +313,7 @@ class PlanPricing extends StatelessWidget {
               for (var r = 0; r < grid.length; r += 2)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: SizedBox(
-                    height: 292,
+                  child: IntrinsicHeight(
                     child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       Expanded(child: _planCard(context, grid[r])),
                       const SizedBox(width: 10),
