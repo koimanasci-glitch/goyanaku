@@ -1489,3 +1489,15 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - Printer & Nota (`PrinterNotaPage`) + Printer Bluetooth (`PrinterPage`, id `printerconnect`): susunan butir sama; Profil Nota tersambung ke pengaturan struk yang benar-benar dipakai saat mencetak.
 - **Anomali HTML:** Profil Nota tidak tersimpan (`savePrinterSettings` hanya menampilkan pesan) dan nilai bawaannya data contoh (alamat "Perum GCC Cluster Sakura…", HP 085280218626); judul "Outlet Gramapuri" di Pembayaran tertanam; saklar QRIS statis & Metode Pembayaran tidak tersimpan dan tidak memengaruhi kasir.
 - Belum: saklar Metode Pembayaran belum menyembunyikan metode di kasir; "Menampilkan Logo → Konfigurasi" baru pesan; pembacaan QR dari gambar belum diuji di HP.
+
+## Jalur C — batch ke-6 (7 Okt): Stok, CRM/Voucher, Cabang, WhatsApp, Deposit, Ralat, Kas
+- Stok & Bahan (`StockPage`): v181/v190 penuh — alat (Tambah Bahan, Mutasi, Opname, Transfer Cabang, Supplier, Pembelian), tab Stok/Hutang/Riwayat, Tandai Lunas, terima transfer. Popup `g181-modal`.
+- CRM: Mode Murni memakai `NativeCrm` (halaman Hibrida, `goyana-crm203`). Voucher kode unik dipakai di Atur Pesanan ("🎟 Pakai kode voucher…", validasi & pesan sama) dan ditandai terpakai saat pesanan dibuat.
+- Manajemen Cabang (`superbilling`) & Monitor Cabang (`branchmonitor58`) v180. "Jadikan Aktif" rancangan Mode Murni dibuang (di HTML outlet operasional tidak bisa dipindah).
+- WhatsApp & Chatbot (v191/v195): `whatsappbot`, `triggers191` (aturan tersimpan di `goyana-chat191:<outlet>`), `ai191`, `blast191`, `quickreply`, `automation`, `wadevices195`; popup terkunci `lock111`; kunci paket per menu.
+- Popup Deposit Pelanggan (`deposits178`) dan Izin Aplikasi (`perm178`) dari menu Pengaturan.
+- Ralat & Log Koreksi (`lib/pure/ralat.dart`): ralat/batal pembayaran lewat logika A5 (`applyPaymentA5`), ralat/batal pengeluaran, PIN Admin untuk kasir, log tersimpan + masuk Audit.
+- Kas (`lib/pure/cash_pages.dart`): Penambahan Kas, Pengeluaran, Tutup Kasir memakai `NativeCash`/`NativeCashClose` + hitungan A7 (`closeCashA7`), ringkasan WA owner.
+- Tes Mode Murni kini membuka ulang aplikasi tiap pump (`UniqueKey`), jadi uji "tersimpan" benar-benar membaca dari penyimpanan.
+- **Anomali HTML (dilaporkan):** PIN Admin ralat tertanam `1234`, nama "Koko"/"Rina" tertanam, log ralat hanya di memori; halaman WhatsApp/AI/Blast belum terhubung server; Resep HPP (v182) belum ada di Mode Murni.
+- Belum: popup ralat/kurir/PIN masih sheet umum (belum widget khusus `rs139`/`pin139`/`g181-modal`); Uji Jawaban AI; tambah device WA; kartu tugas kurir lengkap; Resep HPP & laporan HPP v182.
