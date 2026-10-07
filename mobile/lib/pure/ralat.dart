@@ -14,7 +14,7 @@ class RalatPage extends PurePage {
   static const _reasonOut = ['Salah input nominal', 'Salah kategori', 'Tercatat dobel', 'Pengeluaran batal'];
   bool owner = true;
   String tab = 'bayar';
-  String kind = ''; // 'bayar' / 'keluar'
+  String mode = ''; // 'bayar' / 'keluar'
   String rid = '';
   int method = 0, cat = 0, reason = -1;
   String amount = '', keterangan = '', note = '', pin = '';
@@ -150,7 +150,7 @@ class RalatPage extends PurePage {
       final rows = _sales.where((s) => s['adj'] != 1).toList();
       if (k < 0 || k >= rows.length) return;
       final s = rows[k];
-      kind = 'bayar';
+      mode = 'bayar';
       rid = '${s['rid']}';
       method = _methods.indexOf('${s['m']}').clamp(0, 2);
       amount = _fmt(parseSigned(s['a']));
@@ -158,7 +158,7 @@ class RalatPage extends PurePage {
       final rows = _outs;
       if (k < 0 || k >= rows.length) return;
       final o = rows[k];
-      kind = 'keluar';
+      mode = 'keluar';
       rid = '${o['rid']}';
       cat = _cats.indexOf('${o['cat']}');
       amount = _fmt(parseRupiah(o['a']));
@@ -184,7 +184,7 @@ class RalatPage extends PurePage {
       ];
     }
     if (id != 'rs139') return null;
-    if (kind == 'bayar') {
+    if (mode == 'bayar') {
       final s = _sale;
       if (s == null) return const [];
       final old = parseSigned(s['a']), a = parseRupiah(amount), m = _methods[method], om = '${s['m']}';
@@ -230,7 +230,7 @@ class RalatPage extends PurePage {
   }
 
   String get _reason {
-    final list = kind == 'bayar' ? _reasonPay : _reasonOut;
+    final list = mode == 'bayar' ? _reasonPay : _reasonOut;
     final r = reason >= 0 ? list[reason] : '', n = note.trim();
     return '$r${r.isNotEmpty && n.isNotEmpty ? ' · ' : ''}$n';
   }
@@ -251,13 +251,13 @@ class RalatPage extends PurePage {
   }
 
   @override
-  void sheetEvent(String id, String ev, int index, Object? value) {
+  void sheetEvent(String id, String kind, int index, Object? value) {
     if (id == 'pin139') {
-      if (ev == 'input') {
+      if (kind == 'input') {
         pin = '$value'.replaceAll(RegExp(r'\D'), '');
         return;
       }
-      if (ev != 'button') return;
+      if (kind != 'button') return;
       if (index == 1) return host.closePageSheet('pin139');
       if (pin == _pin) {
         _fail = 0;
@@ -277,24 +277,24 @@ class RalatPage extends PurePage {
       return;
     }
     if (id != 'rs139') return;
-    if (ev == 'input') {
+    if (kind == 'input') {
       if (value is int) {
         cat = value;
         return host.refresh();
       }
       final v = '$value';
-      if (kind == 'bayar') {
+      if (mode == 'bayar') {
         index == 0 ? amount = v : note = v;
       } else {
         if (index == 1) amount = v;
         if (index == 2) keterangan = v;
         if (index == 3) note = v;
       }
-      if ((kind == 'bayar' && index == 0) || (kind == 'keluar' && index == 1)) host.refresh();
+      if ((mode == 'bayar' && index == 0) || (mode == 'keluar' && index == 1)) host.refresh();
       return;
     }
-    if (ev != 'button') return;
-    kind == 'bayar' ? _payButton(index) : _outButton(index);
+    if (kind != 'button') return;
+    mode == 'bayar' ? _payButton(index) : _outButton(index);
   }
 
   void _payButton(int i) {
