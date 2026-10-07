@@ -332,6 +332,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _toastTimer?.cancel();
     _odTimer?.cancel();
     _autoTimer?.cancel();
+    _pointTimer?.cancel();
     super.dispose();
   }
 
@@ -1142,7 +1143,25 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   Uint8List? _strukPng;
   /// Aturan cucian tidak diambil (CRM) yang ikut dicetak di nota; kosong bila dimatikan.
   String _crmRule = '';
-  void _loadCrmRule() => CrmStore(widget.store).load().then((st) => _crmRule = st.printRule ? st.ruleText : '').catchError((_) => '');
+  CrmState? _crm;
+  Timer? _pointTimer;
+  void _loadCrmRule() => CrmStore(widget.store).load().then((st) {
+        _crm = st;
+        return _crmRule = st.printRule ? st.ruleText : '';
+      }).catchError((_) => '');
+
+  /// Poin member pelanggan (dari pesanan yang sudah dibayar), sama dengan hitungan halaman CRM.
+  int _points(String name) => _crm == null ? 0 : (crmFromBusiness(_b!.raw, _crm!, now).members[name] ?? 0);
+
+  /// HTML v130: sesudah pembayaran, tampilkan tambahan poin member (muncul 1,4 detik kemudian).
+  void _pointsToast(String name, int before) {
+    final total = _points(name), add = total - before;
+    if (add <= 0) return;
+    _pointTimer?.cancel();
+    _pointTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) toast('+$add poin untuk $name · total ⭐ $total');
+    });
+  }
 
   Future<void> _openStruk(Order o) async {
     final b = _b!;
@@ -2445,9 +2464,13 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       ]));
     }
     // HTML f61-qris: kartu QR + nominal, SUDAH LUNAS, Batal.
+    final dyn = _settings!.raw['qrisDynamic'] != false;
     _open(_Sheet('confirm', [
-      {'type': 'qr', 'data': _settings!.raw['qrisDynamic'] != false ? qrisDynamic(qris, _cartTotal) : qris, 'size': 220},
+      {'type': 'qr', 'data': dyn ? qrisDynamic(qris, _cartTotal) : qris, 'size': 220},
       {'type': 'title', 't': rpSpaced(_cartTotal)},
+      {'type': 'hint', 't': dyn
+          ? 'Nominal otomatis. Periksa pembayaran masuk sebelum menekan Sudah Lunas.'
+          : 'QRIS statis. Pelanggan mengisi nominal di atas. Periksa pembayaran masuk sebelum menekan Sudah Lunas.'},
       {'type': 'button', 't': 'SUDAH LUNAS', 'primary': true, 'i': 1},
       {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
     ]));
@@ -2540,6 +2563,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         return db.save(st);
       });
     }
+    final pointsBefore = _points(_aoCustomer);
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
       discKey: _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),
@@ -2566,6 +2590,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       _search = '';
     });
     toast(change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pesanan tersimpan · kirim nota lewat tombol WA hijau');
+    _pointsToast(o.name, pointsBefore);
     _showDetail(o.id, banner: true);
   }
 
@@ -2578,8 +2603,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
     if (o == null || method == 'Bayar Nanti') return;
     final m = method == 'DP' ? dpMethod : (method == 'Saldo Deposit' ? 'Deposit' : method);
+    final pointsBefore = _points(o.name);
     final err = b.pay(o, method: m, amount: dp ?? o.remaining, now: now);
     if (err != null) return toast(err);
+    _pointsToast(o.name, pointsBefore);
     addAudit(this, '💵', 'Pembayaran pesanan', '$_kasir · ${o.id} · $m');
     saveAll();
     toast(change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pembayaran diperbarui: ${o.isPaid ? 'Lunas · $method' : 'DP ${rp(o.paid)} · sisa ${rp(o.remaining)}'}');
