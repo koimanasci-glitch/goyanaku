@@ -34,6 +34,7 @@ import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import '../logic/reports_catalog.dart';
 import 'pages.dart';
+import 'pickup_pages.dart';
 import 'ralat.dart';
 import 'reports_dart.dart';
 import 'scan_page.dart';
@@ -72,7 +73,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'ralat139': RalatPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
     'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
@@ -639,15 +640,15 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   // ---------------- Beranda ----------------
   @override
-  void slide(int index) => toast('Segera hadir');
+  void slide(int index) => nav(const ['whatsappbot', 'superbilling', 'crm'][index.clamp(0, 2)]);
   @override
   void tile(int index) {
-    // Ikon Beranda: 0 Tambah Transaksi, 1 Cari Transaksi, 2 Kurir, 3 Pelanggan, 4 Hari Ini, 5 Chatbot.
+    // Ikon Beranda (sama dengan HTML): 0 Tambah Transaksi, 1 Antar Jemput, 2 Kurir, 3 Pelanggan, 4 Hari Ini, 5 Chatbot.
     switch (index) {
       case 0:
         _startOrder();
       case 1:
-        nav('orders');
+        nav('jemput202');
       case 3:
         nav('customers');
       case 2:
@@ -655,14 +656,14 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       case 4:
         nav('today');
       case 5:
-        nav('whatsapp');
+        nav('whatsappbot');
       default:
         toast('Menu ini sedang dipindahkan ke mode murni');
     }
   }
 
   @override
-  void manageOutlet() => nav('outlets');
+  void manageOutlet() => nav('superbilling');
   @override
   void qr() => scan();
   @override
@@ -1323,6 +1324,41 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   // ---------------- Tambah Transaksi ----------------
+  String _pickupId = '';
+  @override
+  void startOrderFor(String customerName) {
+    _startOrder();
+    widget.store.get(pickupActiveKey).then((v) {
+      try {
+        _pickupId = '${jsonDecode(v ?? '""')}';
+      } catch (_) {
+        _pickupId = '';
+      }
+    });
+    if (_b!.customerByName(customerName) != null) {
+      _aoPickName(customerName);
+      toast('Timbang barang, lalu pilih ongkos kirim di opsi pesanan');
+    } else {
+      toast('Pilih atau tambahkan pelanggan "$customerName", lalu timbang barang');
+    }
+  }
+
+  /// Transaksi dari Sampai Lokasi selesai dibuat: penjemputan ditandai selesai, pesanan masuk Antrian (barang sudah dibawa).
+  Future<void> _pickupFinished(Order o) async {
+    final id = _pickupId;
+    if (id.isEmpty) return;
+    _pickupId = '';
+    final list = await loadPickups(this);
+    final r = list.where((x) => x['id'] == id).firstOrNull;
+    if (r == null) return;
+    r
+      ..['status'] = 'selesai'
+      ..['selesaiAt'] = now.millisecondsSinceEpoch
+      ..['orderId'] = o.id;
+    await widget.store.set(pickupKey, jsonEncode(list));
+    await widget.store.remove(pickupActiveKey);
+  }
+
   void _startOrder() => setState(() {
         _sheets.clear();
         _page = 'addorder';
@@ -1811,6 +1847,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       // Saldo deposit dipotong lewat pembayaran (bukan kas tunai).
       o.detail['paid'] = 0;
       b.pay(o, method: 'Deposit', amount: o.total, now: now);
+    }
+    if (_pickupId.isNotEmpty) {
+      if (o.status == 'jemput') {
+        b.advance(o, now: now, by: _kasir);
+      }
+      _pickupFinished(o);
     }
     _save();
     setState(() {

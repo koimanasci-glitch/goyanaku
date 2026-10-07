@@ -44,6 +44,8 @@ abstract class PureHost {
   void closeFormSheet();
   void openPageSheet(String id);
   void closePageSheet(String id);
+  /// Mulai Tambah Transaksi dengan pelanggan ini sudah terpilih (Antar Jemput → Sampai Lokasi).
+  void startOrderFor(String customerName);
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.

@@ -1,0 +1,363 @@
+{
+ "empty": [
+  {
+   "type": "button",
+   "t": "+ Buat Penjemputan",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Aktif",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    },
+    {
+     "t": "Selesai",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "Belum ada penjemputan aktif. Tekan + Buat Penjemputan."
+  }
+ ],
+ "new": [
+  {
+   "type": "hint",
+   "t": "Berat dan item tidak diisi di sini. Kurir menimbangnya di lokasi, lalu transaksi dibuat saat tombol Sampai Lokasi ditekan."
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Nama pelanggan",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 0
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "No WhatsApp pelanggan",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Alamat penjemputan",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Link Google Maps (opsional)",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "select",
+   "options": [
+    "Secepatnya",
+    "Hari ini · pagi",
+    "Hari ini · siang",
+    "Hari ini · sore",
+    "Besok · pagi",
+    "Besok · siang",
+    "Besok · sore"
+   ],
+   "index": 0,
+   "i": 4
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Jam tertentu, misalnya 15.30 (opsional)",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 5
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Layanan yang diinginkan (opsional)",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 6
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Catatan untuk kurir (opsional)",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 7
+  },
+  {
+   "type": "button",
+   "t": "Buat Penjemputan",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  }
+ ],
+ "one": [
+  {
+   "type": "button",
+   "t": "+ Buat Penjemputan",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Aktif",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    },
+    {
+     "t": "Selesai",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "🛵 Sari"
+  },
+  {
+   "type": "hint",
+   "t": "Secepatnya · Menunggu kurir"
+  },
+  {
+   "type": "hint",
+   "t": "Jl. Mawar 1"
+  },
+  {
+   "type": "hint",
+   "t": "Layanan: Cuci kering"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Pilih kurir",
+    "Budi"
+   ],
+   "index": 0,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Navigasi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "WhatsApp",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    },
+    {
+     "t": "Tugaskan",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 5
+    },
+    {
+     "t": "Sampai Lokasi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 6
+    },
+    {
+     "t": "Batalkan",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 7
+    }
+   ]
+  }
+ ],
+ "assigned": [
+  {
+   "type": "button",
+   "t": "+ Buat Penjemputan",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Aktif",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": true,
+     "i": 1
+    },
+    {
+     "t": "Selesai",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "🛵 Sari"
+  },
+  {
+   "type": "hint",
+   "t": "Secepatnya · Ditugaskan"
+  },
+  {
+   "type": "hint",
+   "t": "Jl. Mawar 1"
+  },
+  {
+   "type": "hint",
+   "t": "Layanan: Cuci kering"
+  },
+  {
+   "type": "hint",
+   "t": "Kurir: Budi"
+  },
+  {
+   "type": "select",
+   "options": [
+    "Pilih kurir",
+    "Budi"
+   ],
+   "index": 1,
+   "i": 0
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Navigasi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 3
+    },
+    {
+     "t": "WhatsApp",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 4
+    },
+    {
+     "t": "Tugaskan",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 5
+    },
+    {
+     "t": "Kirim ke Kurir",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 6
+    },
+    {
+     "t": "Sampai Lokasi",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 7
+    },
+    {
+     "t": "Batalkan",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 8
+    }
+   ]
+  }
+ ]
+}

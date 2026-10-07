@@ -820,4 +820,41 @@ void templateTests() {
     expect(b.kas['ins'], isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Antar Jemput (v202): buat penjemputan, tugaskan kurir, Sampai Lokasi → transaksi; butir sama dengan HTML', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/pickup.json').readAsStringSync()) as Map;
+    final kv = _store();
+    kv.data['goyana-couriers181'] = jsonEncode([{'id': 'k1', 'name': 'Budi', 'phone': '081233334444', 'outlets': [], 'active': true}]);
+    final s = await _pump(tester, kv);
+    s.tile(1);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+    s.fmButton(0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['new']));
+    s.fmInput(0, 'Sari');
+    s.fmInput(1, '081277776666');
+    s.fmButton(0);
+    expect(s.debugToast, 'Isi alamat atau link Maps');
+    s.fmInput(2, 'Jl. Mawar 1');
+    s.fmInput(6, 'Cuci kering');
+    s.fmButton(0);
+    await _settle(tester);
+    expect(s.debugToast, 'Penjemputan dibuat');
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
+    s.fmButton(5);
+    expect(s.debugToast, 'Pilih kurir dulu');
+    s.fmInput(0, 1);
+    s.fmButton(5);
+    await _settle(tester);
+    expect(s.debugToast, 'Ditugaskan ke Budi · tekan Kirim ke Kurir untuk mengabari lewat WhatsApp');
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['assigned']));
+    expect((await Business.load(kv)).customers.any((c) => c.name == 'Sari'), isTrue, reason: 'pelanggan baru ikut tersimpan');
+    s.fmButton(7); // Sampai Lokasi
+    await _settle(tester);
+    expect(s.debugToast, 'Timbang barang, lalu pilih ongkos kirim di opsi pesanan');
+    final saved = (jsonDecode(kv.data['goyana-pickup202']!) as List).single as Map;
+    expect(saved['status'], 'sampai');
+    expect(tester.takeException(), isNull);
+  });
 }
