@@ -24,6 +24,7 @@ import 'delivery.dart';
 import 'discounts.dart';
 import 'mirror_pages.dart';
 import 'page_templates.dart';
+import 'qr_decode.dart';
 
 /// Yang dibutuhkan halaman dari shell.
 abstract class PureHost {
@@ -246,48 +247,153 @@ class PrinterPage extends PurePage {
   }
 }
 
+/// Pengaturan → Pembayaran (qris/v185/gy154): QRIS outlet, QRIS dinamis, metode pembayaran, rekening transfer.
+/// Kunci sama dengan Hibrida: goyana-qris-text, goyana-qris-image, goyana-qris-options185, gy154-bank/account/holder.
 class QrisPage extends PurePage {
   QrisPage(super.host);
-  String text = '';
+  static const optionsKey = 'goyana-qris-options185';
+  String _paste = '', _image = '';
+  List<String> _bank = ['', '', ''];
   @override
-  String get title => 'QRIS Outlet';
+  String get title => 'PEMBAYARAN';
+
+  Map<String, dynamic> get _tg => ((host.settings.raw.putIfAbsent('payToggles', () => <String, dynamic>{})) as Map).cast<String, dynamic>();
+  bool get _dynamic => host.settings.raw['qrisDynamic'] != false;
+
   @override
-  void opened() => text = host.settings.qrisText;
+  void opened() {
+    _paste = host.settings.qrisText;
+    _bank = [host.settings.bank, host.settings.account, host.settings.holder];
+    Future.wait([host.kv.get(Keys.qrisImage), host.kv.get('gy154-bank'), host.kv.get('gy154-account'), host.kv.get('gy154-holder'), host.kv.get(optionsKey)]).then((v) {
+      _image = v[0] ?? '';
+      // Data rekening/opsi yang dibuat di Hibrida dipakai bila Mode Murni belum punya.
+      for (var k = 0; k < 3; k++) {
+        if (_bank[k].isEmpty && (v[k + 1] ?? '').isNotEmpty) _bank[k] = _unq(v[k + 1]!);
+      }
+      try {
+        final o = jsonDecode(v[4] ?? 'null');
+        if (o is Map && host.settings.raw['qrisDynamic'] == null) host.settings.raw['qrisDynamic'] = o['dynamic'] != false;
+      } catch (_) {}
+      host.refresh();
+    });
+  }
+
+  static String _unq(String v) {
+    try {
+      final d = jsonDecode(v);
+      return d is String ? d : v;
+    } catch (_) {
+      return v;
+    }
+  }
+
+  String get _status {
+    if (qrisValid(host.settings.qrisText)) return 'QRIS tersimpan · siap digunakan';
+    if (_image.isEmpty) return 'Upload QRIS outlet terlebih dahulu';
+    return _dynamic ? 'Gambar tersimpan · kode perlu terbaca untuk nominal otomatis' : 'Gambar QRIS statis tersimpan · pelanggan mengisi nominal';
+  }
+
   @override
   List<Map<String, dynamic>> items() {
-    final ok = qrisValid(text);
+    final o = host.business.outlets;
+    final name = (o.where((x) => x.id == host.business.activeOutlet).firstOrNull ?? o.firstOrNull)?.name ?? 'Gramapuri';
+    Map<String, dynamic> inp(String v, String ph, int i, {bool multi = false, bool numeric = false}) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': multi, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    Map<String, dynamic> tg(String t, int i, {String s = '', bool def = true, bool? on}) => {'type': 'toggle', 't': t, 's': s, 'on': on ?? (_tg['$i'] as bool? ?? def), 'i': i};
     return [
-      {'type': 'hint', 't': 'Tempel teks QRIS outlet (isi kode QR). Nominal transaksi diisi otomatis saat kasir memilih QRIS.'},
-      if (ok) {'type': 'qr', 'data': text, 'size': 200},
-      {'type': 'pair', 't': 'Status', 'v': text.isEmpty ? 'Belum diatur' : (ok ? 'Valid · ${qrisMerchant(text).name}' : 'Tidak valid'), 'tone': ok ? 'g' : 'r'},
-      {'type': 'input', 'v': text, 'ph': '00020101021126…', 'multiline': true, 'i': 0},
-      {'type': 'buttons', 'options': [{'t': '📋 Tempel', 'i': 1}, {'t': 'Hapus', 'i': 2}]},
-      {'type': 'button', 't': 'Simpan QRIS', 'primary': true, 'i': 0},
+      {'type': 'entry', 't': 'Outlet $name', 'lines': ['QRIS statis untuk pembayaran outlet'], 'badge': '', 'avatar': name.isEmpty ? '' : name[0].toUpperCase(), 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'image', 'src': _image, 'svg': '', 'mark': _image.isEmpty ? '▦' : '', 't': 'QRIS Outlet', 's': 'Upload QRIS untuk menerima pembayaran'},
+      {'type': 'button', 't': 'Upload / Ganti QRIS', 'primary': true, 'file': 'qris-file', 'after': false, 'i': 0},
+      {'type': 'title', 't': 'QRIS Nominal Otomatis'},
+      {'type': 'hint', 't': 'Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet.'},
+      {'type': 'title', 't': _status},
+      tg('QRIS dinamis · isi nominal transaksi otomatis', 0, on: _dynamic),
+      tg('Nominal unik', 1, s: 'tambah Rp1–99 acak supaya mudah dicocokkan dengan mutasi', def: false),
+      {'type': 'label', 't': 'QR tidak terbaca? Tempel teks QRIS'},
+      inp(_paste, '00020101021126...', 1, multi: true),
+      {'type': 'button', 't': 'Pakai teks ini', 'primary': false, 'file': '', 'after': false, 'i': 1},
+      {'type': 'title', 't': 'Pengaturan QRIS Statis'},
+      {'type': 'hint', 't': 'Atur penggunaan QRIS pada transaksi dan nota.'},
+      tg('Aktifkan QRIS statis untuk pembayaran', 2),
+      tg('Tampilkan QRIS pada Nota', 3),
+      tg('Tampilkan logo outlet di halaman bayar', 4),
+      tg('Cetak total pembayaran bersama QRIS', 5),
+      {'type': 'title', 't': 'Metode Pembayaran'},
+      {'type': 'hint', 't': 'Metode yang tersedia untuk kasir.'},
+      tg('Tunai', 6),
+      tg('QRIS', 7),
+      tg('Transfer Bank', 8),
+      {'type': 'title', 't': 'Rekening Transfer Outlet'},
+      {'type': 'hint', 't': 'Ditampilkan saat kasir memilih Transfer.'},
+      inp(_bank[0], 'Nama bank, contoh BCA', 2),
+      inp(_bank[1], 'Nomor rekening', 3, numeric: true),
+      inp(_bank[2], 'Nama pemilik rekening', 4),
+      {'type': 'button', 't': 'Simpan Pengaturan', 'primary': true, 'file': '', 'after': false, 'i': 2},
     ];
   }
 
   @override
   void input(int i, Object value) {
-    text = '$value'.trim();
+    if (i == 1) _paste = '$value';
+    if (i >= 2 && i <= 4) _bank[i - 2] = '$value';
+  }
+
+  @override
+  void toggle(int i) {
+    if (i == 0) {
+      host.settings.raw['qrisDynamic'] = !_dynamic;
+      host.kv.set(optionsKey, jsonEncode({'dynamic': _dynamic}));
+    } else {
+      _tg['$i'] = !(_tg['$i'] as bool? ?? i != 1);
+    }
+    host.saveAll();
     host.refresh();
   }
 
   @override
-  void button(int i) async {
-    if (i == 1) {
-      final d = await Clipboard.getData('text/plain');
-      text = (d?.text ?? '').trim();
-      return host.refresh();
-    }
-    if (i == 2) {
-      text = '';
-      return host.refresh();
-    }
-    if (text.isNotEmpty && !qrisValid(text)) return host.toast('Teks QRIS tidak valid');
-    host.settings.qrisText = text;
+  void file(String inputId, String name, String mime, String data) async {
+    if (!RegExp(r'^image/(png|jpeg|webp)$').hasMatch(mime)) return host.toast('Pilih gambar PNG, JPG, atau WebP');
+    if (data.length * 3 ~/ 4 > 3 * 1024 * 1024) return host.toast('Gambar QRIS maksimal 3 MB');
+    final url = 'data:$mime;base64,$data';
+    if (!await host.kv.set(Keys.qrisImage, url)) return host.toast('Penyimpanan penuh. Gunakan gambar QRIS lebih kecil.');
+    _image = url;
+    host.settings.qrisText = '';
+    _paste = '';
     await host.saveAll();
-    host.toast('QRIS tersimpan');
-    host.go('settings');
+    host.toast('Gambar QRIS tersimpan · bisa langsung dipakai');
+    host.refresh();
+    // Baca isi QR dari gambar agar nominal otomatis bisa dipakai (di HTML: ZXing).
+    final text = await decodeQrImage(base64Decode(data), mime);
+    if (text != null && qrisValid(text) && _image == url) {
+      host.settings.qrisText = text;
+      _paste = text;
+      await host.saveAll();
+      host.refresh();
+    }
+  }
+
+  @override
+  void button(int i) async {
+    if (i == 0) return; // pemilih file (fmFile)
+    if (i == 1) {
+      final text = _paste.replaceAll(RegExp(r'[\r\n\t]'), '').trim();
+      if (!qrisValid(text)) return host.toast('Teks QRIS tidak valid. Periksa kode yang ditempel.');
+      host.settings.qrisText = text;
+      _paste = text;
+      await host.saveAll();
+      host.toast('QRIS outlet tersimpan');
+      return host.refresh();
+    }
+    final bank = _bank[0].trim(), account = _bank[1].replaceAll(RegExp(r'\D'), ''), holder = _bank[2].trim();
+    if ((bank.isNotEmpty || account.isNotEmpty || holder.isNotEmpty) && (bank.isEmpty || account.length < 6 || holder.isEmpty)) {
+      return host.toast('Lengkapi nama bank, nomor rekening, dan nama pemilik');
+    }
+    host.settings.setBank(bank, account, holder);
+    _bank = [bank, account, holder];
+    await Future.wait([host.kv.set('gy154-bank', bank), host.kv.set('gy154-account', account), host.kv.set('gy154-holder', holder)]);
+    await host.saveAll();
+    host.toast('Pengaturan pembayaran tersimpan');
+    host.refresh();
   }
 }
 

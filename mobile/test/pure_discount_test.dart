@@ -482,4 +482,36 @@ void templateTests() {
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['off']));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Pembayaran: butir, tempel teks QRIS, QRIS dinamis dan rekening sama dengan HTML', (tester) async {
+    final fx = (jsonDecode(File('test/fixtures/pure/qris.json').readAsStringSync().replaceAll('Outlet Gramapuri', 'Outlet Uji').replaceAll('"avatar": "G"', '"avatar": "U"')) as List).cast<Map>();
+    final q = (jsonDecode(File('test/fixtures/core/qris.json').readAsStringSync()) as Map)['static'] as String;
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('qris');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[0]['items']));
+    s.fmButton(1);
+    expect(s.debugToast, 'Teks QRIS tidak valid. Periksa kode yang ditempel.');
+    s.fmInput(1, q);
+    s.fmButton(1);
+    await _settle(tester);
+    expect(s.debugToast, fx[1]['toast']);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[1]['items']));
+    s.fmToggle(0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[2]['items']));
+    expect(jsonDecode(kv.data['goyana-qris-options185']!), {'dynamic': false});
+    s.fmInput(2, 'BCA');
+    s.fmButton(2);
+    expect(s.debugToast, fx[3]['toast']);
+    s.fmInput(3, '1234567');
+    s.fmInput(4, 'Koiman');
+    s.fmButton(2);
+    await _settle(tester);
+    expect(s.debugToast, fx[4]['toast']);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[4]['items']));
+    expect([kv.data['gy154-bank'], kv.data['gy154-account'], kv.data['gy154-holder']], ['BCA', '1234567', 'Koiman']);
+    expect(tester.takeException(), isNull);
+  });
 }

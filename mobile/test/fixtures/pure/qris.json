@@ -1,0 +1,1007 @@
+[
+ {
+  "items": [
+   {
+    "type": "entry",
+    "t": "Outlet Gramapuri",
+    "lines": [
+     "QRIS statis untuk pembayaran outlet"
+    ],
+    "badge": "",
+    "avatar": "G",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "image",
+    "src": "",
+    "svg": "",
+    "mark": "▦",
+    "t": "QRIS Outlet",
+    "s": "Upload QRIS untuk menerima pembayaran"
+   },
+   {
+    "type": "button",
+    "t": "Upload / Ganti QRIS",
+    "primary": true,
+    "file": "qris-file",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "title",
+    "t": "QRIS Nominal Otomatis"
+   },
+   {
+    "type": "hint",
+    "t": "Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet."
+   },
+   {
+    "type": "title",
+    "t": "Upload QRIS outlet terlebih dahulu"
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS dinamis · isi nominal transaksi otomatis",
+    "s": "",
+    "on": true,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Nominal unik",
+    "s": "tambah Rp1–99 acak supaya mudah dicocokkan dengan mutasi",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "label",
+    "t": "QR tidak terbaca? Tempel teks QRIS"
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "00020101021126...",
+    "multiline": true,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Pakai teks ini",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "Pengaturan QRIS Statis"
+   },
+   {
+    "type": "hint",
+    "t": "Atur penggunaan QRIS pada transaksi dan nota."
+   },
+   {
+    "type": "toggle",
+    "t": "Aktifkan QRIS statis untuk pembayaran",
+    "s": "",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan QRIS pada Nota",
+    "s": "",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan logo outlet di halaman bayar",
+    "s": "",
+    "on": true,
+    "i": 4
+   },
+   {
+    "type": "toggle",
+    "t": "Cetak total pembayaran bersama QRIS",
+    "s": "",
+    "on": true,
+    "i": 5
+   },
+   {
+    "type": "title",
+    "t": "Metode Pembayaran"
+   },
+   {
+    "type": "hint",
+    "t": "Metode yang tersedia untuk kasir."
+   },
+   {
+    "type": "toggle",
+    "t": "Tunai",
+    "s": "",
+    "on": true,
+    "i": 6
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS",
+    "s": "",
+    "on": true,
+    "i": 7
+   },
+   {
+    "type": "toggle",
+    "t": "Transfer Bank",
+    "s": "",
+    "on": true,
+    "i": 8
+   },
+   {
+    "type": "title",
+    "t": "Rekening Transfer Outlet"
+   },
+   {
+    "type": "hint",
+    "t": "Ditampilkan saat kasir memilih Transfer."
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama bank, contoh BCA",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 2
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nomor rekening",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 3
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama pemilik rekening",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 4
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": ""
+ },
+ {
+  "items": [
+   {
+    "type": "entry",
+    "t": "Outlet Gramapuri",
+    "lines": [
+     "QRIS statis untuk pembayaran outlet"
+    ],
+    "badge": "",
+    "avatar": "G",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "image",
+    "src": "",
+    "svg": "",
+    "mark": "▦",
+    "t": "QRIS Outlet",
+    "s": "Upload QRIS untuk menerima pembayaran"
+   },
+   {
+    "type": "button",
+    "t": "Upload / Ganti QRIS",
+    "primary": true,
+    "file": "qris-file",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "title",
+    "t": "QRIS Nominal Otomatis"
+   },
+   {
+    "type": "hint",
+    "t": "Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet."
+   },
+   {
+    "type": "title",
+    "t": "QRIS tersimpan · siap digunakan"
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS dinamis · isi nominal transaksi otomatis",
+    "s": "",
+    "on": true,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Nominal unik",
+    "s": "tambah Rp1–99 acak supaya mudah dicocokkan dengan mutasi",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "label",
+    "t": "QR tidak terbaca? Tempel teks QRIS"
+   },
+   {
+    "type": "input",
+    "v": "00020101021126600011ID.DANA.WWW011893600915300123456702120008123456780303UMI5204721153033605802ID5912TEST LAUNDRY6007JAKARTA6304055E",
+    "ph": "00020101021126...",
+    "multiline": true,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Pakai teks ini",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "Pengaturan QRIS Statis"
+   },
+   {
+    "type": "hint",
+    "t": "Atur penggunaan QRIS pada transaksi dan nota."
+   },
+   {
+    "type": "toggle",
+    "t": "Aktifkan QRIS statis untuk pembayaran",
+    "s": "",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan QRIS pada Nota",
+    "s": "",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan logo outlet di halaman bayar",
+    "s": "",
+    "on": true,
+    "i": 4
+   },
+   {
+    "type": "toggle",
+    "t": "Cetak total pembayaran bersama QRIS",
+    "s": "",
+    "on": true,
+    "i": 5
+   },
+   {
+    "type": "title",
+    "t": "Metode Pembayaran"
+   },
+   {
+    "type": "hint",
+    "t": "Metode yang tersedia untuk kasir."
+   },
+   {
+    "type": "toggle",
+    "t": "Tunai",
+    "s": "",
+    "on": true,
+    "i": 6
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS",
+    "s": "",
+    "on": true,
+    "i": 7
+   },
+   {
+    "type": "toggle",
+    "t": "Transfer Bank",
+    "s": "",
+    "on": true,
+    "i": 8
+   },
+   {
+    "type": "title",
+    "t": "Rekening Transfer Outlet"
+   },
+   {
+    "type": "hint",
+    "t": "Ditampilkan saat kasir memilih Transfer."
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama bank, contoh BCA",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 2
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nomor rekening",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 3
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama pemilik rekening",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 4
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "QRIS outlet tersimpan"
+ },
+ {
+  "items": [
+   {
+    "type": "entry",
+    "t": "Outlet Gramapuri",
+    "lines": [
+     "QRIS statis untuk pembayaran outlet"
+    ],
+    "badge": "",
+    "avatar": "G",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "image",
+    "src": "",
+    "svg": "",
+    "mark": "▦",
+    "t": "QRIS Outlet",
+    "s": "Upload QRIS untuk menerima pembayaran"
+   },
+   {
+    "type": "button",
+    "t": "Upload / Ganti QRIS",
+    "primary": true,
+    "file": "qris-file",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "title",
+    "t": "QRIS Nominal Otomatis"
+   },
+   {
+    "type": "hint",
+    "t": "Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet."
+   },
+   {
+    "type": "title",
+    "t": "QRIS tersimpan · siap digunakan"
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS dinamis · isi nominal transaksi otomatis",
+    "s": "",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Nominal unik",
+    "s": "tambah Rp1–99 acak supaya mudah dicocokkan dengan mutasi",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "label",
+    "t": "QR tidak terbaca? Tempel teks QRIS"
+   },
+   {
+    "type": "input",
+    "v": "00020101021126600011ID.DANA.WWW011893600915300123456702120008123456780303UMI5204721153033605802ID5912TEST LAUNDRY6007JAKARTA6304055E",
+    "ph": "00020101021126...",
+    "multiline": true,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Pakai teks ini",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "Pengaturan QRIS Statis"
+   },
+   {
+    "type": "hint",
+    "t": "Atur penggunaan QRIS pada transaksi dan nota."
+   },
+   {
+    "type": "toggle",
+    "t": "Aktifkan QRIS statis untuk pembayaran",
+    "s": "",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan QRIS pada Nota",
+    "s": "",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan logo outlet di halaman bayar",
+    "s": "",
+    "on": true,
+    "i": 4
+   },
+   {
+    "type": "toggle",
+    "t": "Cetak total pembayaran bersama QRIS",
+    "s": "",
+    "on": true,
+    "i": 5
+   },
+   {
+    "type": "title",
+    "t": "Metode Pembayaran"
+   },
+   {
+    "type": "hint",
+    "t": "Metode yang tersedia untuk kasir."
+   },
+   {
+    "type": "toggle",
+    "t": "Tunai",
+    "s": "",
+    "on": true,
+    "i": 6
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS",
+    "s": "",
+    "on": true,
+    "i": 7
+   },
+   {
+    "type": "toggle",
+    "t": "Transfer Bank",
+    "s": "",
+    "on": true,
+    "i": 8
+   },
+   {
+    "type": "title",
+    "t": "Rekening Transfer Outlet"
+   },
+   {
+    "type": "hint",
+    "t": "Ditampilkan saat kasir memilih Transfer."
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama bank, contoh BCA",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 2
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nomor rekening",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 3
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama pemilik rekening",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 4
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "QRIS outlet tersimpan"
+ },
+ {
+  "items": [
+   {
+    "type": "entry",
+    "t": "Outlet Gramapuri",
+    "lines": [
+     "QRIS statis untuk pembayaran outlet"
+    ],
+    "badge": "",
+    "avatar": "G",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "image",
+    "src": "",
+    "svg": "",
+    "mark": "▦",
+    "t": "QRIS Outlet",
+    "s": "Upload QRIS untuk menerima pembayaran"
+   },
+   {
+    "type": "button",
+    "t": "Upload / Ganti QRIS",
+    "primary": true,
+    "file": "qris-file",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "title",
+    "t": "QRIS Nominal Otomatis"
+   },
+   {
+    "type": "hint",
+    "t": "Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet."
+   },
+   {
+    "type": "title",
+    "t": "QRIS tersimpan · siap digunakan"
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS dinamis · isi nominal transaksi otomatis",
+    "s": "",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Nominal unik",
+    "s": "tambah Rp1–99 acak supaya mudah dicocokkan dengan mutasi",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "label",
+    "t": "QR tidak terbaca? Tempel teks QRIS"
+   },
+   {
+    "type": "input",
+    "v": "00020101021126600011ID.DANA.WWW011893600915300123456702120008123456780303UMI5204721153033605802ID5912TEST LAUNDRY6007JAKARTA6304055E",
+    "ph": "00020101021126...",
+    "multiline": true,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Pakai teks ini",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "Pengaturan QRIS Statis"
+   },
+   {
+    "type": "hint",
+    "t": "Atur penggunaan QRIS pada transaksi dan nota."
+   },
+   {
+    "type": "toggle",
+    "t": "Aktifkan QRIS statis untuk pembayaran",
+    "s": "",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan QRIS pada Nota",
+    "s": "",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan logo outlet di halaman bayar",
+    "s": "",
+    "on": true,
+    "i": 4
+   },
+   {
+    "type": "toggle",
+    "t": "Cetak total pembayaran bersama QRIS",
+    "s": "",
+    "on": true,
+    "i": 5
+   },
+   {
+    "type": "title",
+    "t": "Metode Pembayaran"
+   },
+   {
+    "type": "hint",
+    "t": "Metode yang tersedia untuk kasir."
+   },
+   {
+    "type": "toggle",
+    "t": "Tunai",
+    "s": "",
+    "on": true,
+    "i": 6
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS",
+    "s": "",
+    "on": true,
+    "i": 7
+   },
+   {
+    "type": "toggle",
+    "t": "Transfer Bank",
+    "s": "",
+    "on": true,
+    "i": 8
+   },
+   {
+    "type": "title",
+    "t": "Rekening Transfer Outlet"
+   },
+   {
+    "type": "hint",
+    "t": "Ditampilkan saat kasir memilih Transfer."
+   },
+   {
+    "type": "input",
+    "v": "BCA",
+    "ph": "Nama bank, contoh BCA",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 2
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nomor rekening",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 3
+   },
+   {
+    "type": "input",
+    "v": "",
+    "ph": "Nama pemilik rekening",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 4
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "Lengkapi nama bank, nomor rekening, dan nama pemilik"
+ },
+ {
+  "items": [
+   {
+    "type": "entry",
+    "t": "Outlet Gramapuri",
+    "lines": [
+     "QRIS statis untuk pembayaran outlet"
+    ],
+    "badge": "",
+    "avatar": "G",
+    "svg": "",
+    "color": "",
+    "amount": "",
+    "btns": []
+   },
+   {
+    "type": "image",
+    "src": "",
+    "svg": "",
+    "mark": "▦",
+    "t": "QRIS Outlet",
+    "s": "Upload QRIS untuk menerima pembayaran"
+   },
+   {
+    "type": "button",
+    "t": "Upload / Ganti QRIS",
+    "primary": true,
+    "file": "qris-file",
+    "after": false,
+    "i": 0
+   },
+   {
+    "type": "title",
+    "t": "QRIS Nominal Otomatis"
+   },
+   {
+    "type": "hint",
+    "t": "Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet."
+   },
+   {
+    "type": "title",
+    "t": "QRIS tersimpan · siap digunakan"
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS dinamis · isi nominal transaksi otomatis",
+    "s": "",
+    "on": false,
+    "i": 0
+   },
+   {
+    "type": "toggle",
+    "t": "Nominal unik",
+    "s": "tambah Rp1–99 acak supaya mudah dicocokkan dengan mutasi",
+    "on": false,
+    "i": 1
+   },
+   {
+    "type": "label",
+    "t": "QR tidak terbaca? Tempel teks QRIS"
+   },
+   {
+    "type": "input",
+    "v": "00020101021126600011ID.DANA.WWW011893600915300123456702120008123456780303UMI5204721153033605802ID5912TEST LAUNDRY6007JAKARTA6304055E",
+    "ph": "00020101021126...",
+    "multiline": true,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 1
+   },
+   {
+    "type": "button",
+    "t": "Pakai teks ini",
+    "primary": false,
+    "file": "",
+    "after": false,
+    "i": 1
+   },
+   {
+    "type": "title",
+    "t": "Pengaturan QRIS Statis"
+   },
+   {
+    "type": "hint",
+    "t": "Atur penggunaan QRIS pada transaksi dan nota."
+   },
+   {
+    "type": "toggle",
+    "t": "Aktifkan QRIS statis untuk pembayaran",
+    "s": "",
+    "on": true,
+    "i": 2
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan QRIS pada Nota",
+    "s": "",
+    "on": true,
+    "i": 3
+   },
+   {
+    "type": "toggle",
+    "t": "Tampilkan logo outlet di halaman bayar",
+    "s": "",
+    "on": true,
+    "i": 4
+   },
+   {
+    "type": "toggle",
+    "t": "Cetak total pembayaran bersama QRIS",
+    "s": "",
+    "on": true,
+    "i": 5
+   },
+   {
+    "type": "title",
+    "t": "Metode Pembayaran"
+   },
+   {
+    "type": "hint",
+    "t": "Metode yang tersedia untuk kasir."
+   },
+   {
+    "type": "toggle",
+    "t": "Tunai",
+    "s": "",
+    "on": true,
+    "i": 6
+   },
+   {
+    "type": "toggle",
+    "t": "QRIS",
+    "s": "",
+    "on": true,
+    "i": 7
+   },
+   {
+    "type": "toggle",
+    "t": "Transfer Bank",
+    "s": "",
+    "on": true,
+    "i": 8
+   },
+   {
+    "type": "title",
+    "t": "Rekening Transfer Outlet"
+   },
+   {
+    "type": "hint",
+    "t": "Ditampilkan saat kasir memilih Transfer."
+   },
+   {
+    "type": "input",
+    "v": "BCA",
+    "ph": "Nama bank, contoh BCA",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 2
+   },
+   {
+    "type": "input",
+    "v": "1234567",
+    "ph": "Nomor rekening",
+    "multiline": false,
+    "numeric": true,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 3
+   },
+   {
+    "type": "input",
+    "v": "Koiman",
+    "ph": "Nama pemilik rekening",
+    "multiline": false,
+    "numeric": false,
+    "decimal": false,
+    "ro": false,
+    "secret": false,
+    "email": false,
+    "i": 4
+   },
+   {
+    "type": "button",
+    "t": "Simpan Pengaturan",
+    "primary": true,
+    "file": "",
+    "after": false,
+    "i": 2
+   }
+  ],
+  "toast": "Pengaturan pembayaran tersimpan"
+ }
+]

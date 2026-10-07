@@ -1609,7 +1609,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     }
     final qris = _settings!.qrisText;
     _open(_Sheet('confirm', [
-      {'type': 'ao', 'kind': 'qris', 'qr': qrisValid(qris) ? qrisDynamic(qris, _cartTotal) : '', 'total': rpSpaced(_cartTotal)},
+      {'type': 'ao', 'kind': 'qris', 'qr': qrisValid(qris) ? (_settings!.raw['qrisDynamic'] != false ? qrisDynamic(qris, _cartTotal) : qris) : '', 'total': rpSpaced(_cartTotal)},
     ]));
   }
 
