@@ -60,7 +60,7 @@ void main() {
     final kv = _store();
     final s = await _pump(tester, kv);
     // Header spelling follows the approved Flutter brand text.
-    expect(find.text('Goyana'), findsWidgets);
+    expect(find.text('GOYANA'), findsWidgets);
 
     s.tile(0); // Tambah Transaksi
     await _settle(tester);

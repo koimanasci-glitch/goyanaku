@@ -11,6 +11,9 @@ const gInk = Color(0xff27323e);
 const gBrand = Color(0xffe8493f);
 const gFont = 'Poppins';
 
+/// Tulisan merek di header. Mode Murni memakai huruf besar semua (permintaan Koiman 7 Okt); Hybrid tetap "Goyana".
+String gBrandWord = 'Goyana';
+
 TextStyle gText(double size, {FontWeight w = FontWeight.w400, Color c = const Color(0xff17191d), double? h, double ls = 0}) =>
     TextStyle(fontFamily: gFont, fontSize: size, fontWeight: w, color: c, height: h == null ? null : h / size, letterSpacing: ls);
 
@@ -65,7 +68,7 @@ class GTopBar extends StatelessWidget {
             child: Row(children: [
               Image.asset('assets/branding/mark.png', width: 34, height: 34),
               const SizedBox(width: 9),
-              Text('Goyana', style: gText(31, w: FontWeight.w500, c: Colors.white, h: 34, ls: .2)),
+              Text(gBrandWord, style: gText(31, w: FontWeight.w500, c: Colors.white, h: 34, ls: .2)),
               const Spacer(),
               GWhiteSquare(onTap: onScan, child: gSvg(svgScan, 22)),
             ]),

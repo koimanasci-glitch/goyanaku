@@ -306,6 +306,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         _hppSync();
       }
     });
+    gBrandWord = 'GOYANA';
     _loadCrmRule();
     reportExtra = _reportExtra;
     // HTML v133: mesin status otomatis memeriksa tiap 20 detik.
