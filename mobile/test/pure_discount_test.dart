@@ -629,4 +629,21 @@ void templateTests() {
     expect(s.debugDiscOptions().last, '🎟 GY-AAAAA · 15%');
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Manajemen Cabang & Monitor Cabang: butir sama dengan HTML (tanpa pesanan)', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/branches.json').readAsStringSync()) as Map;
+    final kv = _store();
+    final raw = jsonDecode(kv.data[Keys.business]!) as Map;
+    raw['orders'] = <dynamic>[];
+    raw['details'] = <String, dynamic>{};
+    kv.data[Keys.business] = jsonEncode(raw);
+    final s = await _pump(tester, kv);
+    s.nav('superbilling');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
+    s.fmButton(1);
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['monitor']));
+    expect(tester.takeException(), isNull);
+  });
 }

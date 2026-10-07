@@ -1920,7 +1920,10 @@ class OutletsPage extends PurePage {
     }
     final k = (i - 2) ~/ 2;
     if (k < 0 || k >= list.length) return;
-    if (i.isEven) return host.go('branches');
+    if (i.isEven) {
+      BranchMonitorPage.outletId = list[k].id;
+      return host.go('branchmonitor58');
+    }
     OutletEditPage.editId = list[k].id;
     host.go('outletedit');
   }
@@ -2977,5 +2980,91 @@ class CrmNativePage extends PurePage {
       outlet: (o.where((x) => x.id == host.business.activeOutlet).firstOrNull ?? o.firstOrNull)?.name ?? 'Outlet',
       now: () => host.now,
     );
+  }
+}
+
+
+List<Order> _outletOrders(PureHost host, String outletId) {
+  final first = host.business.outlets.isEmpty ? '' : host.business.outlets.first.id;
+  return host.business.orders.where((o) => !o.isCancelled && (o.outlet == outletId || (o.outlet.isEmpty && outletId == first))).toList();
+}
+
+String _monSt(Order o, DateTime now) => o.isLate(now) ? 'telat' : o.status;
+bool _sameDay(DateTime? a, DateTime b) => a != null && a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// Manajemen Cabang (superbilling/v180): ringkasan semua outlet + tombol Monitor per cabang.
+class ManageBranchesPage extends PurePage {
+  ManageBranchesPage(super.host);
+  @override
+  String get title => 'MANAJEMEN CABANG';
+  @override
+  List<Map<String, dynamic>> items() {
+    final b = host.business, n = host.now, outs = b.outlets;
+    final cur = outs.where((o) => o.id == b.activeOutlet).firstOrNull ?? outs.firstOrNull;
+    final all = [for (final o in outs) ..._outletOrders(host, o.id)];
+    final omzet = all.where((o) => _sameDay(o.created, n)).fold<int>(0, (a, o) => a + o.total);
+    Map<String, dynamic> mon(int k) => {'t': 'Monitor ${outs[k].name}', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1 + k};
+    return [
+      {'type': 'entry', 't': cur?.name ?? 'Belum ada outlet', 'lines': ['OUTLET OPERASIONAL', 'Akun ini selalu bekerja di outlet ini. Cabang lain hanya bisa dimonitor, tidak bisa dipindah.'], 'badge': '', 'avatar': '🔒', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'hero', 't': 'Outlet tersimpan', 'v': '${outs.length}', 's': 'Tambahkan dan kelola outlet usaha'},
+      {'type': 'button', 't': '＋ Tambah Cabang', 'primary': false, 'file': '', 'after': false, 'i': 0},
+      {'type': 'stats', 'cells': [
+        {'v': rp(omzet), 't': 'Total Omzet Hari Ini', 'n': '', 'tone': ''},
+        {'v': '${all.where((o) => !const ['selesai', 'diambil'].contains(_monSt(o, n))).length}', 't': 'Order Aktif', 'n': '', 'tone': ''},
+        {'v': '${all.where((o) => o.isLate(n)).length}', 't': 'Terlambat', 'n': '', 'tone': ''},
+      ]},
+      {'type': 'title', 't': 'Monitoring Cabang'},
+      {'type': 'hint', 't': 'Pilih cabang untuk melihat kondisi operasionalnya'},
+      if (outs.isEmpty) {'type': 'hint', 't': 'Tambahkan outlet untuk mulai monitoring.'},
+      if (outs.length == 1) {'type': 'button', 't': 'Monitor ${outs[0].name}', 'primary': true, 'file': '', 'after': false, 'i': 1},
+      if (outs.length > 1) {'type': 'buttons', 'options': [for (var k = 0; k < outs.length; k++) mon(k)]},
+    ];
+  }
+
+  @override
+  void button(int i) {
+    if (i == 0) {
+      OutletEditPage.editId = null;
+      return host.go('outletedit');
+    }
+    final outs = host.business.outlets;
+    if (i - 1 >= outs.length) return;
+    BranchMonitorPage.outletId = outs[i - 1].id;
+    host.go('branchmonitor58');
+  }
+}
+
+/// Monitor Cabang (branchmonitor58/v180): kondisi satu outlet dari data perangkat ini.
+class BranchMonitorPage extends PurePage {
+  BranchMonitorPage(super.host);
+  static String outletId = '';
+  @override
+  String get title => 'MONITOR CABANG';
+  @override
+  String get back => 'superbilling';
+  @override
+  List<Map<String, dynamic>> items() {
+    final n = host.now;
+    final o = host.business.outlets.where((x) => x.id == outletId).firstOrNull ?? host.business.outlets.firstOrNull;
+    final list = o == null ? <Order>[] : _outletOrders(host, o.id);
+    final omzet = list.where((x) => _sameDay(x.created, n)).fold<int>(0, (a, x) => a + x.total);
+    final paid = list.fold<int>(0, (a, x) => a + x.paid);
+    Map<String, dynamic> cell(String v, String t) => {'v': v, 't': t, 'n': '', 'tone': ''};
+    return [
+      {'type': 'entry', 't': 'Mode Monitoring', 'lines': ['Anda sedang melihat data cabang. Transaksi outlet aktif tidak berpindah.'], 'badge': '', 'avatar': '👁', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'hero', 't': 'Omzet Hari Ini', 'v': rp(omzet), 's': o?.name ?? ''},
+      {'type': 'stats', 'cells': [
+        cell('${list.where((x) => !const ['antrian', 'siap', 'selesai', 'diambil'].contains(_monSt(x, n))).length}', 'Diproses'),
+        cell('${list.where((x) => _monSt(x, n) == 'siap').length}', 'Siap Diambil'),
+        cell('${list.where((x) => x.isLate(n)).length}', 'Terlambat'),
+        cell(rp(paid), 'Pembayaran diterima'),
+        cell('${list.where((x) => x.paid < x.total).length}', 'Belum Lunas'),
+      ]},
+      {'type': 'title', 't': 'Pesanan Cabang', 's': ''},
+      if (list.isEmpty) {'type': 'hint', 't': 'Belum ada pesanan tercatat untuk outlet ini di perangkat ini.'},
+      for (var k = 0; k < list.length; k++)
+        {'type': 'entry', 't': list[k].name, 'lines': ['${list[k].id} · ${_monSt(list[k], n)}'], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'hint', 't': 'Monitoring data perangkat ini. Sinkron antar-HP memerlukan server GOYANA.'},
+    ];
   }
 }

@@ -1,0 +1,222 @@
+{
+ "one": [
+  {
+   "type": "entry",
+   "t": "Uji",
+   "lines": [
+    "OUTLET OPERASIONAL",
+    "Akun ini selalu bekerja di outlet ini. Cabang lain hanya bisa dimonitor, tidak bisa dipindah."
+   ],
+   "badge": "",
+   "avatar": "🔒",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hero",
+   "t": "Outlet tersimpan",
+   "v": "1",
+   "s": "Tambahkan dan kelola outlet usaha"
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Cabang",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "Rp0",
+     "t": "Total Omzet Hari Ini",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Order Aktif",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Terlambat",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Monitoring Cabang"
+  },
+  {
+   "type": "hint",
+   "t": "Pilih cabang untuk melihat kondisi operasionalnya"
+  },
+  {
+   "type": "button",
+   "t": "Monitor Uji",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 1
+  }
+ ],
+ "two": [
+  {
+   "type": "entry",
+   "t": "Uji",
+   "lines": [
+    "OUTLET OPERASIONAL",
+    "Akun ini selalu bekerja di outlet ini. Cabang lain hanya bisa dimonitor, tidak bisa dipindah."
+   ],
+   "badge": "",
+   "avatar": "🔒",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hero",
+   "t": "Outlet tersimpan",
+   "v": "2",
+   "s": "Tambahkan dan kelola outlet usaha"
+  },
+  {
+   "type": "button",
+   "t": "＋ Tambah Cabang",
+   "primary": false,
+   "file": "",
+   "after": false,
+   "i": 0
+  },
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "Rp0",
+     "t": "Total Omzet Hari Ini",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Order Aktif",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Terlambat",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Monitoring Cabang"
+  },
+  {
+   "type": "hint",
+   "t": "Pilih cabang untuk melihat kondisi operasionalnya"
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "Monitor Uji",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    },
+    {
+     "t": "Monitor Cabang 2",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 2
+    }
+   ]
+  }
+ ],
+ "monitor": [
+  {
+   "type": "entry",
+   "t": "Mode Monitoring",
+   "lines": [
+    "Anda sedang melihat data cabang. Transaksi outlet aktif tidak berpindah."
+   ],
+   "badge": "",
+   "avatar": "👁",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": []
+  },
+  {
+   "type": "hero",
+   "t": "Omzet Hari Ini",
+   "v": "Rp0",
+   "s": "Uji"
+  },
+  {
+   "type": "stats",
+   "cells": [
+    {
+     "v": "0",
+     "t": "Diproses",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Siap Diambil",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Terlambat",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "Rp0",
+     "t": "Pembayaran diterima",
+     "n": "",
+     "tone": ""
+    },
+    {
+     "v": "0",
+     "t": "Belum Lunas",
+     "n": "",
+     "tone": ""
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "t": "Pesanan Cabang",
+   "s": ""
+  },
+  {
+   "type": "hint",
+   "t": "Belum ada pesanan tercatat untuk outlet ini di perangkat ini."
+  },
+  {
+   "type": "hint",
+   "t": "Monitoring data perangkat ini. Sinkron antar-HP memerlukan server GOYANA."
+  }
+ ]
+}

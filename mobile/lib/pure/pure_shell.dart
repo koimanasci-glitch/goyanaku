@@ -69,7 +69,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
-    'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
+    'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
   @override
@@ -629,7 +629,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   /// Item menu HTML → halaman mode murni. null = belum dipindah.
   static const Map<String, String> _stRoutes = {
-    '0/0': 'profile', '1/0': 'outlets', '1/1': 'branches',
+    '0/0': 'profile', '1/0': 'outlets', '1/1': 'superbilling',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
     '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
