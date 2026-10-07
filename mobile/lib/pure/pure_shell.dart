@@ -18,6 +18,10 @@ import '../native/addorder_page.dart';
 import '../native/addorder_sheet.dart';
 import '../native/order_detail_page.dart';
 import '../native/order_status_qr.dart';
+import '../native/hist115_sheet.dart';
+import '../native/photo115_sheet.dart';
+import '../native/popup_components.dart';
+import '../native/wa131_sheet.dart';
 import 'order_view.dart';
 import 'addorder_assets.dart';
 import 'access.dart';
@@ -61,9 +65,11 @@ class PureShell extends StatefulWidget {
 }
 
 class _Sheet {
-  _Sheet(this.id, this.items);
+  _Sheet(this.id, this.items, {this.mirror});
   final String id;
   final List<Map<String, dynamic>> items;
+  /// Popup dengan widget khusus Hibrida (hist115, wa131, photo115): pohon tampilan.
+  final Map<String, dynamic>? mirror;
 }
 
 class PureShellState extends State<PureShell> implements OrderDetailActions, HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, ServicesActions, PureHost {
@@ -345,6 +351,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   List<Map<String, dynamic>> debugItems() => _pages[_page]?.items() ?? const [];
   @visibleForTesting
   List<Map<String, dynamic>>? debugSheet(String id) => _pages[_page]?.sheetItems(id) ?? _sheets.where((e) => e.id == id).firstOrNull?.items;
+  @visibleForTesting
+  Map<String, dynamic>? debugMirror(String id) => _sheets.where((e) => e.id == id).firstOrNull?.mirror;
   @visibleForTesting
   List<String> debugDiscOptions() => [for (final d in _discs) d[0]];
   @visibleForTesting
@@ -1003,17 +1011,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _open(_Sheet('label', _labelItems(o)));
   }
 
-  void _openPhotos(Order o) {
-    final ph = o.detail['photos'];
-    int n(String k) => ph is Map ? ((ph[k] as List?)?.length ?? 0) : 0;
-    _open(_Sheet('photo115', [
-      {'type': 'title', 't': 'Foto Dokumentasi', 's': ''},
-      {'type': 'hint', 't': 'Bukti kondisi cucian bila ada komplain luntur, rusak atau kurang'},
-      {'type': 'entry', 't': 'Saat Masuk', 'lines': [if (n('in') > 0) '${n('in')} foto'], 'compact': true, 'btns': [{'t': '＋Foto', 'i': 0}]},
-      {'type': 'entry', 't': 'Saat Diambil', 'lines': [if (n('out') > 0) '${n('out')} foto'], 'compact': true, 'btns': [{'t': '＋Foto', 'i': 1}]},
-      {'type': 'button', 't': 'Selesai', 'primary': true, 'i': 2},
-    ]));
-  }
+  void _openPhotos(Order o) => _open(_Sheet('photo115', const [], mirror: orderPhotoMirror(o)));
 
   Future<void> _addPhoto(Order o, String slot) async {
     try {
@@ -1032,10 +1030,18 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
   }
 
-  void _openNota(Order o) {
-    final out = _b!.outlets.where((x) => x.id == _b!.activeOutlet).firstOrNull ?? _b!.outlets.firstOrNull;
-    _open(_Sheet('wa131', orderNotaItems(o, orderNotaText(_b!, o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir))));
+  /// Teks nota WhatsApp (format HTML waNota131). Footer dari Profil Nota; bila kosong, 5 baris bawaan HTML.
+  String _notaWa(Order o) {
+    final b = _b!;
+    final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
+    final foot = _settings!.receipt.footer.split('\n').where((l) => l.trim().isNotEmpty && !RegExp('^-?\\s*terima kasih', caseSensitive: false).hasMatch(l.trim())).join('\n');
+    return orderNotaWa(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir,
+        footer: foot.isNotEmpty
+            ? foot
+            : '- Harap membawa nota ini saat mengambil pakaian\n- Pisahkan pakaian luntur dan tidak luntur\n- Kelunturan di mesin cuci bukan tanggung jawab kami\n- Sprei, selimut, sepatu & bed cover dihitung satuan\n- Kiloan minimal 2 kg');
   }
+
+  void _openNota(Order o) => _open(_Sheet('wa131', const [], mirror: orderNotaMirror(o, _notaWa(o))));
 
   void _openPay(Order o) {
     _form
@@ -1078,30 +1084,135 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     ]));
   }
 
+  // ---------- Edit Transaksi (HTML edit115): layanan ±/hapus/tambah, estimasi, keterangan, parfum, diskon ----------
   List<List<String>> _editDiscList = const [['Tanpa diskon', '0']];
+  List<OrderItem> _edItems = [];
+  bool _edPick = false;
+  List<String> get _edPerfumes => [for (final p in _settings!.perfumes) p.first, 'Tanpa Parfum'];
+  List<Service> _edServices(Order o) => [for (final sv in _b!.services) if (sv.enabledFor(o.dur)) sv];
+
   void _openEdit(Order o) {
+    if (o.isCancelled) return toast('Pesanan batal tidak bisa diedit');
     _editDiscList = _editDiscs(o.discKey);
     final disc = _editDiscList.indexWhere((d) => d[1] == o.discKey);
-    final per = _perfumes.indexOf(o.perfume);
+    final per = _edPerfumes.indexOf(o.perfume);
+    final d = o.due;
+    String two(int n) => n.toString().padLeft(2, '0');
+    _edItems = [for (final it in o.items) OrderItem.fromJson(it.toJson())];
+    _edPick = false;
     _form
       ..clear()
       ..['note'] = o.note == '-' ? '' : o.note
-      ..['perfume'] = per < 0 ? 0 : per
-      ..['disc'] = disc < 0 ? 0 : disc;
-    final days = o.due != null && o.masuk != null ? o.due!.difference(o.masuk!).inHours / 24 : 3;
-    _open(_Sheet('edit', [
-      {'type': 'title', 't': 'Edit Transaksi', 's': o.id},
+      ..['perfume'] = per < 0 ? _edPerfumes.length - 1 : per
+      ..['disc'] = disc < 0 ? 0 : disc
+      ..['due'] = d == null ? '' : '${d.year}-${two(d.month)}-${two(d.day)}T${two(d.hour)}:${two(d.minute)}';
+    _open(_Sheet('edit115', _editItems(o)));
+  }
+
+  String get _edDiscKey => _editDiscList[((_form['disc'] as int?) ?? 0).clamp(0, _editDiscList.length - 1)][1];
+
+  List<Map<String, dynamic>> _editItems(Order o) {
+    final n = _edItems.length;
+    final sv = _edServices(o);
+    return [
+      {'type': 'title', 't': 'Edit Transaksi', 's': ''},
+      {'type': 'hint', 't': '${o.id} · ${o.name}'},
+      {'type': 'entry', 't': 'Detail Order', 'lines': const <String>[], 'compact': true, 'btns': [{'t': '＋ Tambah Layanan', 'on': false, 'i': 0}]},
+      if (_edPick)
+        for (var k = 0; k < sv.length; k++)
+          {'type': 'card', 't': sv[k].name, 's': '${rpSpaced(sv[k].priceFor(o.dur))}/${sv[k].unit}', 'svg': serviceIconSvg(_svIcon(sv[k]), 24), 'ic': '', 'badge': '', 'meta': '', 'on': false, 'i': 1000 + k},
+      for (var k = 0; k < n; k++) ...[
+        {'type': 'title', 't': _edItems[k].name},
+        {'type': 'hint', 't': '${rpSpaced(_edItems[k].price)}/${_edItems[k].unit} · ${rpSpaced(_edItems[k].subtotal)}'},
+        {'type': 'button', 't': '−', 'primary': false, 'i': 1 + 3 * k},
+        {'type': 'input', 'v': qtyText(_edItems[k].qty), 'ph': '', 'numeric': true, 'decimal': true, 'i': k},
+        {'type': 'button', 't': '＋', 'primary': false, 'i': 2 + 3 * k},
+        {'type': 'button', 't': '×', 'primary': false, 'i': 3 + 3 * k},
+      ],
+      if (n == 0) {'type': 'hint', 't': 'Belum ada layanan. Tekan ＋ Tambah Layanan.'},
+      {'type': 'label', 't': 'Estimasi Selesai'},
+      {'type': 'input', 'v': '${_form['due']}', 'ph': '', 'i': n},
       {'type': 'label', 't': 'Keterangan'},
-      {'type': 'input', 'v': '${_form['note']}', 'ph': 'Contoh: 12 pcs · rak B2', 'i': 0},
+      {'type': 'input', 'v': '${_form['note']}', 'ph': 'Contoh: 12 pcs · rak B2', 'i': n + 1},
       {'type': 'label', 't': 'Parfum'},
-      {'type': 'select', 'options': _perfumes, 'index': _form['perfume'], 'i': 1},
+      {'type': 'select', 'options': _edPerfumes, 'index': _form['perfume'], 'i': n + 2},
       {'type': 'label', 't': 'Diskon'},
-      {'type': 'select', 'options': [for (final d in _editDiscList) d[0]], 'index': _form['disc'], 'i': 2},
-      {'type': 'label', 't': 'Estimasi selesai (hari setelah masuk)'},
-      {'type': 'input', 'v': days == days.roundToDouble() ? '${days.round()}' : '', 'ph': 'Contoh: 3', 'numeric': true, 'i': 3},
-      {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'i': 1},
-      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
-    ]));
+      {'type': 'select', 'options': [for (final d in _editDiscList) d[0]], 'index': _form['disc'], 'i': n + 3},
+      {'type': 'pair', 't': 'Total baru', 'v': rpSpaced(calcTotals(_edItems, _edDiscKey, o.ongkir).total), 'tone': '', 'tap': -1},
+      {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'i': 1 + 3 * n},
+    ];
+  }
+
+  String _svIcon(Service sv) => sv.unit == 'kg' ? 'Kiloan' : (sv.unit == 'm' ? 'Meteran' : 'Satuan');
+
+  void _editEvent(String kind, int index, Object? value) {
+    final o = _detailId == null ? null : _b!.orderById(_detailId!);
+    if (o == null || kind == 'close') return _close('edit115');
+    final n = _edItems.length;
+    void redraw() => _open(_Sheet('edit115', _editItems(o)));
+    if (kind == 'input') {
+      if (index < n) {
+        final q = parseQty(value);
+        if (q <= 0) {
+          toast('Isi jumlah yang benar, contoh 1,3');
+        } else {
+          _edItems[index].qty = (q * 100).round() / 100;
+        }
+        return redraw();
+      }
+      if (index == n) _form['due'] = '${value ?? ''}';
+      if (index == n + 1) _form['note'] = '${value ?? ''}';
+      if (index == n + 2) _form['perfume'] = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+      if (index == n + 3) {
+        _form['disc'] = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+        redraw();
+      }
+      return;
+    }
+    if (kind != 'button') return;
+    if (index == 0) {
+      _edPick = !_edPick;
+      return redraw();
+    }
+    if (index >= 1000) {
+      final sv = _edServices(o);
+      if (index - 1000 >= sv.length) return;
+      final pick = sv[index - 1000];
+      final ex = _edItems.where((it) => it.name == pick.name).firstOrNull;
+      if (ex != null) {
+        ex.qty += 1;
+      } else {
+        _edItems.add(OrderItem(name: pick.name, icon: _svIcon(pick), unit: pick.unit, price: pick.priceFor(o.dur), qty: 1));
+      }
+      _edPick = false;
+      return redraw();
+    }
+    if (index == 1 + 3 * n) {
+      if (_edItems.isEmpty) return toast('Minimal 1 layanan');
+      final before = o.total;
+      final due = DateTime.tryParse('${_form['due'] ?? ''}');
+      final per = _edPerfumes;
+      _b!.setItems(o, _edItems);
+      _b!.edit(o, note: '${_form['note'] ?? ''}'.trim().isEmpty ? '-' : '${_form['note']}'.trim(), perfume: per[((_form['perfume'] as int?) ?? per.length - 1).clamp(0, per.length - 1)], discKey: _edDiscKey, due: due);
+      final after = o.total;
+      addAudit(this, '✎', 'Edit transaksi ${o.id}', '$_kasir · total ${rpSpaced(before)} → ${rpSpaced(after)}');
+      saveAll();
+      _close('edit115');
+      toast(before != after ? 'Tersimpan · total ${rpSpaced(before)} → ${rpSpaced(after)} · tercatat di Audit' : 'Perubahan tersimpan · tercatat di Audit');
+      return _refreshDetail();
+    }
+    final k = (index - 1) ~/ 3, act = (index - 1) % 3;
+    if (k < 0 || k >= n) return;
+    final it = _edItems[k];
+    if (act == 2) {
+      _edItems.removeAt(k);
+    } else {
+      final step = it.unit == 'pcs' ? 1.0 : .5;
+      final q = ((it.qty + (act == 0 ? -step : step)) * 100).round() / 100;
+      final min = it.unit == 'pcs' ? 1.0 : .1;
+      it.qty = q < min ? min : q;
+    }
+    redraw();
   }
 
   final Map<int, String> _itemQty = {};
@@ -1143,7 +1254,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _refreshDetail();
   }
 
-  void _openHistory(Order o) => _open(_Sheet('history', orderHistoryItems(o)));
+  void _openHistory(Order o) => _open(_Sheet('hist115', const [], mirror: orderHistoryMirror(o)));
 
   String _phoneOf(Order o) => o.phone.isNotEmpty ? o.phone : (_b!.customerByName(o.name)?.phone ?? '');
 
@@ -1181,6 +1292,22 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       if (o.id == _b!.activeOutlet) return o.name;
     }
     return _b!.outlets.isNotEmpty ? _b!.outlets.first.name : 'GOYANA';
+  }
+
+  Widget _mirrorSheet(_Sheet s) {
+    final a = PopupActions(
+      id: s.id,
+      onButton: (i) => fmScoped(s.id, 'button', i),
+      onTap: (i) => fmScoped(s.id, 'tap', i),
+      onInput: (i, v) => fmScoped(s.id, 'input', i, v),
+      onClose: () => fmScoped(s.id, 'close', 0),
+    );
+    final key = ValueKey('pure-${s.id}-${identityHashCode(s)}');
+    return switch (s.id) {
+      'wa131' => NativeWa131Sheet(key: key, model: s.mirror!, actions: a),
+      'photo115' => NativePhoto115Sheet(key: key, model: s.mirror!, actions: a),
+      _ => NativeHist115Sheet(key: key, model: s.mirror!, actions: a),
+    };
   }
 
   // ---------------- lembar (sheet) ----------------
@@ -1223,16 +1350,20 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       }
       return _close(scope);
     }
+    if (scope == 'hist115') return _close(scope);
+    if (scope == 'edit115') return _editEvent(kind, index, value);
     if (scope == 'wa131') {
       final wo = _detailId == null ? null : b.orderById(_detailId!);
       if (kind == 'button' && wo != null && index == 1) {
-        if (_phoneOf(wo).isEmpty) return toast('Nomor WA pelanggan belum ada');
+        var phone = _phoneOf(wo).replaceAll(RegExp(r'[^0-9]'), '');
+        if (phone.isEmpty) return toast('Nomor WA pelanggan belum ada');
+        if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
         _close(scope);
-        return _sendWa(wo);
+        openMaps('https://wa.me/$phone?text=${Uri.encodeComponent(_notaWa(wo))}');
+        return toast('Membuka WhatsApp pelanggan dengan teks nota…');
       }
       if (kind == 'button' && wo != null && index == 2) {
-        final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
-        Clipboard.setData(ClipboardData(text: orderNotaText(b, wo, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir)));
+        Clipboard.setData(ClipboardData(text: _notaWa(wo)));
         return toast('Teks nota disalin');
       }
       return _close(scope);
@@ -1274,7 +1405,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       final key = switch (scope) {
         'custform' => const ['name', 'phone', 'address'][index.clamp(0, 2)],
         'cancel' => index == 0 ? 'reason' : 'note',
-        'edit' => const ['note', 'perfume', 'disc', 'dueDays'][index.clamp(0, 3)],
         'items' => 'item$index',
         'label' => 'labels',
         'setup' => const ['oname', 'oaddr', 'ophone'][index.clamp(0, 2)],
@@ -1347,23 +1477,6 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           _refreshDetail();
         } else {
           _close('cancel');
-        }
-      case 'edit':
-        if (o == null) return;
-        if (index == 1) {
-          final dueDays = int.tryParse('${_form['dueDays'] ?? ''}');
-          b.edit(o,
-              note: '${_form['note'] ?? o.note}',
-              perfume: _perfumeValue((_form['perfume'] as int?) ?? 0),
-              discKey: _editDiscList[((_form['disc'] as int?) ?? 0).clamp(0, _editDiscList.length - 1)][1],
-              due: dueDays == null ? null : (o.masuk ?? now).add(Duration(days: dueDays)));
-          addAudit(this, '✎', 'Edit transaksi', '$_kasir · ${o.id}');
-          saveAll();
-          _close('edit');
-          toast('Perubahan tersimpan');
-          _refreshDetail();
-        } else {
-          _close('edit');
         }
       case 'history':
         _close('history');
@@ -2229,7 +2342,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           Positioned.fill(child: AoSheet(sheet: _paySheetJson(rpSpaced(po.remaining), po.id, po.name, 'BATAL'), actions: this)),
         for (final s in _sheets)
           Positioned.fill(
-            child: isAoPopup(s.items)
+            child: s.mirror != null
+                ? _mirrorSheet(s)
+                : isAoPopup(s.items)
                 ? AoPopup(key: ValueKey('pure-ao-${s.id}'), id: s.id, data: s.items.first, actions: this)
                 : NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this),
           ),

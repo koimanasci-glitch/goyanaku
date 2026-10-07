@@ -2,9 +2,12 @@
 // dengan bentuk model yang sama dengan yang dikirim HTML ke NativeOrderDetail (capacitor.js orderDetailModel).
 // Aturan baris diambil dari index.html v115 render() + v142 tidy() + v183 renderTimeline/renderTransportDetail.
 
+import 'dart:convert';
+
 import '../core/business.dart';
 import '../core/models.dart';
 import '../core/money.dart';
+import 'page_templates.dart';
 import 'service_icons.dart';
 import 'views.dart';
 
@@ -140,77 +143,128 @@ List<Map<String, dynamic>> orderMenuItems() => [
       {'type': 'button', 't': 'Tutup', 'primary': false, 'file': '', 'after': false, 'i': 6},
     ];
 
-/// Riwayat Status (HTML hist115): nomor, status, "oleh pegawai", waktu.
-List<Map<String, dynamic>> orderHistoryItems(Order o) {
-  String label(String st) => _proc.contains(st)
-      ? 'Proses · ${st[0].toUpperCase()}${st.substring(1)}'
-      : const {'jemput': 'Penjemputan', 'antrian': 'Antrian', 'siap': 'Siap Ambil', 'telat': 'Telat Ambil', 'diantar': 'Diantar', 'diambil': 'Diambil', 'batal': 'Batal'}[st] ?? st;
-  final h = o.history;
-  return [
-    {'type': 'title', 't': 'Riwayat Status', 's': ''},
-    {'type': 'hint', 't': '${o.id} · ${o.name}'},
-    for (var k = 0; k < h.length; k++) ...[
-      {
-        'type': 'entry', 't': label('${h[k]['st']}'), 'compact': true, 'badge': '${k + 1}',
-        'lines': [
-          'oleh ${h[k]['by'] ?? 'Kasir'}${'${h[k]['note'] ?? ''}'.isEmpty ? '' : ' · ${h[k]['note']}'}',
-          if (DateTime.tryParse('${h[k]['at'] ?? h[k]['t'] ?? ''}')?.toLocal() case final d?) fmtDateTime(d),
-        ],
-      },
-    ],
-    {'type': 'button', 't': 'Tutup', 'primary': false, 'i': 0},
-  ];
+// ---------- popup dengan widget khusus Hibrida (pohon tampilan HTML, teks diisi Dart) ----------
+
+Map<String, dynamic> _tpl(String id) => Map<String, dynamic>.from(jsonDecode(jsonEncode((jsonDecode(popupMirrors) as Map)[id])) as Map);
+Map<String, dynamic> _clone(Object? n) => Map<String, dynamic>.from(jsonDecode(jsonEncode(n)) as Map);
+
+/// Ganti teks sebuah simpul (gaya span pertama dipertahankan).
+void _text(Object? node, String t) {
+  final n = node as Map;
+  final first = Map<String, dynamic>.from((n['spans'] as List).first as Map)..['t'] = t;
+  n['spans'] = [first];
+  n.remove('h');
 }
 
-/// Teks nota WhatsApp (HTML wa131), isi dari data pesanan & profil outlet.
-String orderNotaText(Business b, Order o, {required String outlet, String address = '', String phone = '', String kasir = '-'}) {
+String historyLabel(String st) => _proc.contains(st)
+    ? 'Proses'
+    : const {'jemput': 'Penjemputan', 'antrian': 'Antrian', 'siap': 'Siap Ambil', 'telat': 'Telat Ambil', 'diantar': 'Diantar', 'diambil': 'Diambil', 'batal': 'Batal'}[st] ?? st;
+
+/// Riwayat Status (HTML hist115): nomor, status, "oleh pegawai", waktu. Baris terakhir = status sekarang (merah).
+Map<String, dynamic> orderHistoryMirror(Order o) {
+  final m = _tpl('hist115');
+  final box = m['box'] as Map, ch = box['ch'] as List;
+  _text(ch[2], '${o.id} · ${o.name}');
+  final list = ch[3] as Map, rows = list['ch'] as List;
+  final past = rows[0], cur = rows[1];
+  final h = o.history;
+  list['ch'] = [
+    for (var k = 0; k < h.length; k++)
+      () {
+        final row = _clone(k == h.length - 1 ? cur : past);
+        final rc = row['ch'] as List, body = (rc[1] as Map)['ch'] as List;
+        final at = DateTime.tryParse('${h[k]['at'] ?? h[k]['t'] ?? ''}')?.toLocal();
+        final note = '${h[k]['note'] ?? ''}';
+        _text(rc[0], '${k + 1}');
+        _text(body[0], historyLabel('${h[k]['st']}'));
+        _text(body[1], 'oleh ${h[k]['by'] ?? 'Kasir'}${note.isEmpty ? '' : ' · $note'}');
+        _text(rc[2], at == null ? '' : fmtDateTime(at));
+        row.remove('h');
+        return row;
+      }(),
+  ];
+  list.remove('h');
+  box.remove('h');
+  return m;
+}
+
+/// Foto Dokumentasi (HTML photo115): foto tampil sebagai kotak 74px sebelum tombol ＋Foto.
+Map<String, dynamic> orderPhotoMirror(Order o) {
+  final m = _tpl('photo115');
+  final box = m['box'] as Map, ch = box['ch'] as List;
+  final ph = o.detail['photos'];
+  for (final (i, slot) in const ['in', 'out'].indexed) {
+    final row = (ch[3 + i] as Map)['ch'][1] as Map, add = (row['ch'] as List).first as Map;
+    final list = ph is Map ? (ph[slot] as List? ?? const []) : const [];
+    row['ch'] = [
+      for (final src in list)
+        {'s': {'m': [0, 0, 0, 0], 'p': [0, 0, 0, 0], 'br': [12, 12, 12, 12]}, 'w': 74, 'h': 74, 'fixed': 1, 'img': '$src'},
+      add,
+    ];
+    row.remove('h');
+    (ch[3 + i] as Map).remove('h');
+  }
+  box.remove('h');
+  return m;
+}
+
+String _pad(String s, int n) => s.padRight(n);
+
+/// Teks nota WhatsApp (HTML waNota131): *tebal* dan ```rata kolom``` format WhatsApp.
+String orderNotaWa(Order o, {required String outlet, String address = '', String phone = '', String kasir = '-', String footer = ''}) {
   String dt(DateTime? d) => d == null ? '-' : '${_two(d.day)}/${_two(d.month)}/${d.year} ${_two(d.hour)}:${_two(d.minute)}';
   const line = '━━━━━━━━━━━━━━━━━━━━';
   final t = o.totals;
-  final status = o.isPaid ? 'LUNAS (${o.method})' : (o.paid > 0 ? 'DP ${rp(o.paid)} · SISA ${rp(o.remaining)}' : 'BELUM LUNAS (${o.method})');
+  final status = o.isPaid ? 'LUNAS' : (o.paid > 0 ? 'DP ${rp(o.paid)} · SISA ${rp(o.remaining)}' : 'BELUM LUNAS');
+  String cols(List<List<String>> rows) => '```${rows.map((r) => '${_pad(r[0], 11)}: ${r[1]}').join('\n')}```';
+  final foot = [
+    for (final l in footer.split('\n'))
+      if (l.trim().isNotEmpty && l.trim() != '-') l.trim().startsWith('-') ? l.trim() : '- ${l.trim()}',
+  ];
   return [
-    'NOTA ELEKTRONIK',
-    outlet.toUpperCase(),
-    if (address.isNotEmpty) address,
-    if (phone.isNotEmpty) 'WA $phone',
+    '*NOTA ELEKTRONIK*', '', '*${outlet.toUpperCase()}*', address, 'WA $phone', line,
+    cols([['No Nota', o.id], ['Pelanggan', o.name], ['Masuk', dt(o.masuk)], ['Selesai', dt(o.due)], ['Layanan', o.dur], ['Kasir', kasir]]),
     line,
-    'No Nota : ${o.id}',
-    'Pelanggan : ${o.name}',
-    'Masuk : ${dt(o.masuk)}',
-    'Selesai : ${dt(o.due)}',
-    'Layanan : ${o.dur}',
-    'Kasir : $kasir',
-    line,
-    'Rincian Layanan',
+    '*Rincian Layanan*',
     for (final (i, it) in o.items.indexed) '${i + 1}. ${it.name}\n   ${qtyText(it.qty)} ${it.unit} × ${thousands(it.price)} = ${rp(it.subtotal)}',
     line,
-    'Parfum : ${o.perfume.isEmpty ? 'Tanpa Parfum' : o.perfume}',
-    'Penyerahan : ${o.antar ? 'Diantar kurir' : o.handover}',
-    'Catatan : ${o.note.isEmpty ? '-' : o.note}',
-    'Status : $status',
+    cols([['Parfum', o.perfume.isEmpty ? 'Tanpa Parfum' : o.perfume], ['Penyerahan', o.antar ? 'Diantar kurir' : o.handover], ['Catatan', o.note.isEmpty ? '-' : o.note]]),
+    'Status : *$status* (${o.method})',
     line,
-    'Subtotal : ${rp(t.sub)}',
-    'Diskon : ${rp(t.disc)}',
-    if (o.ongkir > 0) 'Ongkir : ${rp(o.ongkir)}',
-    'TOTAL : ${rp(t.total)}',
+    '```${[['Subtotal', rp(t.sub)], ['Diskon', t.disc > 0 ? '-${rp(t.disc)}' : 'Rp0'], if (o.ongkir > 0) ['Ongkir', rp(o.ongkir)]].map((r) => '${_pad(r[0], 11)}: ${r[1].padLeft(12)}').join('\n')}```',
+    '*TOTAL : ${rp(t.total)}*',
     line,
-    '- Harap membawa nota ini saat mengambil pakaian',
-    '- Pisahkan pakaian luntur dan tidak luntur',
-    '- Kelunturan di mesin cuci bukan tanggung jawab kami',
-    '- Sprei, selimut, sepatu & bed cover dihitung satuan',
-    '- Kiloan minimal 2 kg',
-    '- Cucian yang tidak diambil lebih dari 30 hari dikenakan biaya simpan Rp1.000/hari.',
-    '',
-    'Terima kasih 🙏',
+    ...foot,
+    if (foot.isNotEmpty) '',
+    'Cek status & struk:', 'https://goyana.id/s/${o.id}', '', 'Terima kasih 🙏',
   ].join('\n');
 }
 
-/// Popup Nota WhatsApp (HTML wa131) sebagai butir lembar.
-List<Map<String, dynamic>> orderNotaItems(Order o, String text) => [
-      {'type': 'title', 't': 'Nota WhatsApp', 's': ''},
-      {'type': 'hint', 't': 'Pratinjau · ${o.id}'},
-      {'type': 'hint', 't': text},
-      {'type': 'button', 't': 'Kirim ke WhatsApp Pelanggan', 'primary': true, 'i': 1},
-      {'type': 'button', 't': 'Salin Teks Nota', 'primary': false, 'i': 2},
-      {'type': 'button', 't': 'Kembali', 'primary': false, 'i': 3},
-    ];
+/// Popup Nota WhatsApp (HTML wa131): pratinjau gelembung hijau dari teks [wa].
+Map<String, dynamic> orderNotaMirror(Order o, String wa) {
+  final m = _tpl('wa131');
+  final box = m['box'] as Map, ch = box['ch'] as List;
+  _text(ch[2], 'Pratinjau · ${o.id}');
+  final bubble = ch[3] as Map, blk = (bubble['ch'] as List).first as Map, nodes = blk['ch'] as List;
+  final plain = nodes[0], mono = nodes[1];
+  final bold = Map<String, dynamic>.from(((plain as Map)['spans'] as List).first as Map);
+  final parts = wa.split('```');
+  blk['ch'] = [
+    for (var i = 0; i < parts.length; i++)
+      if (i.isOdd)
+        _clone(mono)
+          ..['spans'] = [{'t': parts[i]}]
+          ..remove('h')
+      else if ((i == 0 ? parts[i] : parts[i].replaceFirst(RegExp(r'^\n'), '')).isNotEmpty)
+        _clone(plain)
+          ..['spans'] = [
+            for (final (k, seg) in (i == 0 ? parts[i] : parts[i].replaceFirst(RegExp(r'^\n'), '')).split('*').indexed)
+              if (seg.isNotEmpty) k.isOdd ? {...bold, 't': seg} : {'t': seg},
+          ]
+          ..remove('h'),
+  ];
+  blk.remove('h');
+  bubble.remove('h');
+  box.remove('h');
+  return m;
+}

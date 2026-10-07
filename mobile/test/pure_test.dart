@@ -116,6 +116,8 @@ void main() {
     final s = await _pump(tester, kv);
     s.nav('orders');
     await _settle(tester);
+    s.tab(8); // Belum Bayar (pesanan contoh sudah lewat 1 jam, otomatis pindah ke Proses seperti HTML)
+    await _settle(tester);
     expect(find.text('Budi Native'), findsWidgets);
     s.openCard(0);
     await _settle(tester);
@@ -143,8 +145,8 @@ void main() {
 
     s.fmScoped('detail', 'button', 8); // Riwayat
     await _settle(tester);
-    expect(find.text('Riwayat Status'), findsOneWidget);
-    s.fmScoped('history', 'button', 0);
+    expect(s.debugMirror('hist115'), isNotNull, reason: 'popup Riwayat Status terbuka');
+    s.fmScoped('hist115', 'button', 0);
     await _settle(tester);
     s.tab(6);
     s.search('budi');
@@ -214,15 +216,33 @@ void main() {
     await _settle(tester);
     s.fmScoped('detail', 'button', 7);
     await _settle(tester);
-    s.fmScoped('edit', 'input', 0, 'rak B2');
-    s.fmScoped('edit', 'input', 2, 3); // Potongan Rp5.000
-    s.fmScoped('edit', 'input', 3, '5');
-    s.fmScoped('edit', 'button', 1);
+    // Lembar edit115 (sama dengan HTML): 1 layanan → input 0 jumlah, 1 estimasi, 2 keterangan, 3 parfum, 4 diskon; tombol 4 simpan.
+    final before = (await Business.load(kv)).orders.first;
+    expect(s.debugSheet('edit115')!.where((e) => e['type'] == 'button').map((e) => e['t']).toList(), ['−', '＋', '×', 'Simpan Perubahan']);
+    s.fmScoped('edit115', 'input', 2, 'rak B2');
+    s.fmScoped('edit115', 'input', 4, 3); // Potongan Rp5.000
+    s.fmScoped('edit115', 'input', 1, '2026-10-08T09:30');
+    s.fmScoped('edit115', 'button', 4);
     await _settle(tester);
-    final o = (await Business.load(kv)).orders.first;
+    var o = (await Business.load(kv)).orders.first;
     expect(o.note, 'rak B2');
     expect(o.total, 9000);
-    expect(o.due!.difference(o.masuk!).inDays, 5);
+    expect(o.due, DateTime(2026, 10, 8, 9, 30));
+    expect(s.debugToast, 'Tersimpan · total Rp 14.000 → Rp 9.000 · tercatat di Audit');
+
+    // Tambah jumlah (＋ = +0,5 kg) lalu hapus tidak boleh sampai kosong.
+    s.fmScoped('detail', 'button', 7);
+    await _settle(tester);
+    s.fmScoped('edit115', 'button', 2);
+    s.fmScoped('edit115', 'button', 4);
+    await _settle(tester);
+    o = (await Business.load(kv)).orders.first;
+    expect(o.items.single.qty, before.items.single.qty + .5);
+    s.fmScoped('detail', 'button', 7);
+    await _settle(tester);
+    s.fmScoped('edit115', 'button', 3);
+    s.fmScoped('edit115', 'button', 1);
+    expect(s.debugToast, 'Minimal 1 layanan');
     expect(tester.takeException(), isNull);
   });
 

@@ -970,6 +970,28 @@ void templateTests() {
     await _settle(tester);
     expect([for (final it in s.debugSheet('act115')!) '${it['type']}|${it['t']}|${it['s'] ?? ''}|${it['i']}'],
         [for (final it in (fx['act115'] as List).cast<Map>()) '${it['type']}|${it['t']}|${it['s'] ?? ''}|${it['i']}'], reason: 'menu ⋯');
+
+    // Popup khusus (widget Hibrida): Riwayat Status & Nota WhatsApp, teks dari data Dart.
+    String flat(Object? n) => n is Map
+        ? (n['spans'] is List ? (n['spans'] as List).map((e) => '${(e as Map)['t']}').join() : '') + (n['ch'] is List ? (n['ch'] as List).map(flat).join('|') : '')
+        : '';
+    final pm = jsonDecode(File('test/fixtures/pure/popups.json').readAsStringSync()) as Map;
+    s.fmScoped('act115', 'button', 2);
+    await _settle(tester);
+    final hist = flat((s.debugMirror('hist115')!)['box']);
+    expect(hist, contains('Riwayat Status'));
+    expect(hist, contains('1|Antrian|oleh '));
+    expect(hist, contains('4|Diambil|oleh '));
+    s.fmScoped('hist115', 'button', 0);
+    s.odButton(s.debugDetail()!['banner'] == null ? 8 : 9);
+    await _settle(tester);
+    String nota(String t) => t
+        .replaceAll(RegExp(r'GY-\d{6}'), 'GY-000000')
+        .replaceAll(RegExp(r'\d\d/\d\d/\d{4} \d\d:\d\d'), 'TGL')
+        .replaceAll(RegExp(r'Kasir      : .*'), 'Kasir      : -');
+    expect(nota(flat((s.debugMirror('wa131')!)['box'])), nota(flat((pm['wa131'] as Map)['box'])), reason: 'teks Nota WhatsApp sama dengan HTML');
+    s.fmScoped('wa131', 'button', 3);
+    await _settle(tester);
     expect(tester.takeException(), isNull);
   });
 }
