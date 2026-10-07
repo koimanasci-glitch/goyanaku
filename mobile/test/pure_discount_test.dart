@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
+import 'package:goyana_flutter/core/hpp.dart';
+import 'package:goyana_flutter/core/stock.dart';
 import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/pure/delivery.dart';
 import 'package:goyana_flutter/native/cash_page.dart';
@@ -1074,6 +1076,38 @@ void templateTests() {
     final o = (await Business.load(kv)).orders.first;
     expect(o.status, 'antrian');
     expect(o.history.last['by'], 'Andi');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('HPP v182: resep → pemakaian bahan otomatis saat pesanan diproduksi; pembelian lunas masuk kas', (tester) async {
+    final kv = _store();
+    final first = (await Business.load(kv)).orders.first;
+    final item = first.items.first;
+    kv.data[StockBook.key] = jsonEncode({
+      'items': [{'id': 'b1', 'name': 'Deterjen', 'unit': 'ml', 'min': 0, 'cost': 20}],
+      'ledger': [{'id': 'm0', 'itemId': 'b1', 'outletId': first.outlet, 'type': 'Stok Awal', 'qty': 1000, 'at': '2026-10-01T00:00:00.000Z'}],
+      'suppliers': [], 'recipes': [{'id': 'r1', 'service': item.name, 'itemId': 'b1', 'qty': 30}],
+      'purchases': [{'id': 'p1', 'itemId': 'b1', 'qty': 10, 'total': 5000, 'paid': 5000, 'at': '2026-10-02T03:00:00.000Z'}],
+    });
+    // Pesanan contoh sudah lewat 1 jam di Antrian → otomatis Proses → bahan terpakai.
+    final s = await _pump(tester, kv);
+    await _settle(tester);
+    await _settle(tester);
+    final stock = await StockBook.load(kv);
+    final use = (stock.raw['ledger'] as List).cast<Map>().where((x) => x['type'] == 'Pemakaian Otomatis').single;
+    expect(use['qty'], -30 * item.qty);
+    expect(use['orderId'], first.id);
+    final b = await Business.load(kv);
+    expect(b.orders.first.dataset['hpp182'], '1');
+    expect(hppTotal(stock, DateTime(2026, 10, 3), DateTime(2026, 10, 4)), 30 * item.qty * 20);
+    final outs = (b.kas['outs'] as List).cast<Map>().where((x) => x['purchase182'] == 'p1').toList();
+    expect(outs.single['t'], 'Bahan Baku · Deterjen');
+    expect(outs.single['a'], 5000);
+    // Dibuka ulang: tidak dicatat dua kali.
+    await _pump(tester, kv);
+    await _settle(tester);
+    expect(((await StockBook.load(kv)).raw['ledger'] as List).where((x) => (x as Map)['type'] == 'Pemakaian Otomatis').length, 1);
+    expect(s.debugToast, isNotNull);
     expect(tester.takeException(), isNull);
   });
 }

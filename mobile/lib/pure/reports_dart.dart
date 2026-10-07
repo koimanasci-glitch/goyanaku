@@ -17,7 +17,13 @@ const _cats = [
 const reportCategoryIds = ['keu', 'trx', 'plg', 'peg', 'stk', 'ops', 'exp'];
 
 /// Laporan yang bisa dibuka sebagai halaman detail Dart (selain tautan ke halaman lain).
-bool reportHasDetail(String id) => reportIdsA8.contains(id);
+bool reportHasDetail(String id) => reportIdsA8.contains(id) || id == 'hpp182' || id == 'labaop182';
+
+/// Laporan tambahan v182 (HPP Bahan Terpakai, Laba Operasional) yang butuh data stok; diisi oleh shell.
+Object? Function(String id, RepCtx ctx, RepRange r)? reportExtra;
+
+/// Data satu laporan: laporan v182 dari [reportExtra], selebihnya logika A8.
+Object? reportAny(String id, RepCtx ctx, RepRange r) => (id == 'hpp182' || id == 'labaop182') ? reportExtra?.call(id, ctx, r) : reportA8(id, ctx, r);
 
 /// Id laporan pada urutan tampil (sesuai bagian & saringan) — indeks `rpOpen(i)` merujuk ke daftar ini.
 List<String> reportVisibleIds({String cat = 'all', String query = ''}) {
@@ -108,7 +114,7 @@ num _amount(RepCtx ctx, RepRange r, String method) {
 String _preview(RepCtx ctx, RepRange r, String id) {
   if (id.startsWith('x-') || id == 'ralat' || id == 'tutup') return '';
   try {
-    final o = reportA8(id, ctx, r);
+    final o = reportAny(id, ctx, r);
     if (o is! Map || o['pv'] == null) return '';
     final pv = o['pv'];
     if (pv is num) return o['unit'] == null ? shA8(pv) : '$pv ${o['unit']}';

@@ -12,6 +12,7 @@ import '../core/money.dart';
 import '../core/qris.dart';
 import '../core/receipt.dart';
 import '../core/settings.dart';
+import '../core/hpp.dart';
 import '../core/stock.dart';
 import '../core/store.dart';
 import '../native/form_page.dart' show FormActions;
@@ -1184,6 +1185,21 @@ class StockPage extends PurePage {
     ];
     Map<String, dynamic> title(String t) => {'type': 'title', 't': t, 's': ''};
     return switch (tool) {
+      // Resep HPP Bahan (HTML v182 g182-modal).
+      'recipe' => [
+          title('Resep HPP Bahan'),
+          if (hppRecipes(b).isEmpty) {'type': 'hint', 't': 'Belum ada resep. Pemakaian bahan otomatis dicatat saat order mulai diproduksi, bukan saat order baru dibuat.'},
+          for (final r in hppRecipes(b))
+            {
+              'type': 'entry', 't': '${r['service']}', 'lines': ['${b.items.where((x) => x['id'] == r['itemId']).firstOrNull?['name'] ?? 'Bahan'}'], 'compact': true,
+              'amount': '${r['qty']} ${b.items.where((x) => x['id'] == r['itemId']).firstOrNull?['unit'] ?? ''}', 'btns': <dynamic>[],
+            },
+          inp('Nama layanan persis, contoh Cuci Kering', 0),
+          pick(itemOpt, 1),
+          inp('Pemakaian per 1 unit layanan', 2, numeric: true, decimal: true),
+          {'type': 'button', 't': 'Simpan Resep', 'primary': true, 'file': '', 'after': false, 'i': 0},
+          {'type': 'button', 't': 'Tutup', 'primary': false, 'file': '', 'after': false, 'i': 1},
+        ],
       'add' => [title('Tambah Bahan'), inp('Nama bahan', 0), inp('Stok awal', 1, numeric: true, decimal: true), inp('Satuan', 2), inp('Minimum', 3, numeric: true, decimal: true), inp('Harga/unit', 4, numeric: true), ...ok],
       'move' => [title('Mutasi Stok'), pick(itemOpt, 0), pick(const ['Stok Masuk', 'Pemakaian / Keluar'], 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Catatan', 3), ...ok],
       'op' => [title('Stock Opname'), pick(itemOpt, 0), inp('Stok fisik', 1, numeric: true, decimal: true), inp('Alasan jika ada selisih', 2),
@@ -1215,6 +1231,14 @@ class StockPage extends PurePage {
     final its = b.items, o = outletId, now = host.now;
     String itemId(int k) => its.isEmpty ? '' : '${its[(sel[k] ?? 0).clamp(0, its.length - 1)]['id']}';
     void led(Map<String, dynamic> x) => (b.raw['ledger'] as List).add({'id': 'mut-${now.microsecondsSinceEpoch}-${(b.raw['ledger'] as List).length}', 'at': now.toUtc().toIso8601String(), ...x});
+    if (tool == 'recipe') {
+      final err = saveRecipe(b, service: f[0] ?? '', itemId: itemId(1), qty: _num(f[2]), now: now);
+      if (err != null) return host.toast(err);
+      b.save();
+      f.clear();
+      host.toast('Resep HPP tersimpan');
+      return host.refresh();
+    }
     switch (tool) {
       case 'add':
         final n = (f[0] ?? '').trim(), q = _num(f[1]), u = (f[2] ?? '').trim(), m = _num(f[3]), c = parseRupiah(f[4]);
@@ -1297,7 +1321,7 @@ class StockPage extends PurePage {
       await b.save();
       return host.refresh();
     }
-    if (i == 6) return host.toast('Resep HPP belum tersedia di Mode Murni');
+    if (i == 6) return _open('recipe');
     if (i == 0) return _open('add');
     if (b.items.isEmpty) return host.toast('Tambahkan bahan dulu');
     if (i == 2 && !planAccess.has('opname', host.now)) return host.toast(planAccess.lockedText('opname'));

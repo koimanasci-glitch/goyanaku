@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/business.dart';
+import '../core/hpp.dart';
+import '../core/stock.dart';
 import '../core/models.dart';
 import '../core/qris.dart';
 import '../core/receipt.dart';
@@ -133,14 +135,14 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       actions: this,
       model: ReportDetailModel(
         id: ent.$1, title: ent.$3, category: reportCategoryName(ent.$1), desc: ent.$5, periodKey: _rpKey,
-        periodLabel: periodLabelA8(_rpKey, range), data: reportA8(ent.$1, ctx, range) ?? const {}, isExport: ent.$1.startsWith('x-'),
+        periodLabel: periodLabelA8(_rpKey, range), data: reportAny(ent.$1, ctx, range) ?? const {}, isExport: ent.$1.startsWith('x-'),
       ),
     );
   }
 
   Object? _rpData() {
     final ctx = _rpCtx();
-    return reportA8(_rpId, ctx, ctx.range(_rpKey, from: _rpFrom, to: _rpTo));
+    return reportAny(_rpId, ctx, ctx.range(_rpKey, from: _rpFrom, to: _rpTo));
   }
 
   @override
@@ -299,9 +301,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           _locked = _settings!.raw['pinLock'] == true && (_settings!.raw['employees'] as List? ?? const []).isNotEmpty;
         });
         _applyAuto();
+        _hppSync();
       }
     });
     _loadCrmRule();
+    reportExtra = _reportExtra;
     // HTML v133: mesin status otomatis memeriksa tiap 20 detik.
     _autoTimer = Timer.periodic(const Duration(seconds: 20), (_) => _applyAuto());
   }
@@ -342,6 +346,58 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   Future<void> _save() async {
     final ok = await _b!.save();
     if (!ok) toast('Penyimpanan perangkat penuh. Data belum tersimpan permanen.');
+    await _hppSync();
+  }
+
+  // ---------- HPP bahan v182: pemakaian otomatis saat produksi, pembelian lunas → kas, laporan ----------
+  StockBook? _stock;
+  bool _hppBusy = false;
+
+  Future<void> _hppSync() async {
+    final b = _b;
+    if (b == null || _hppBusy) return;
+    _hppBusy = true;
+    try {
+      final s = await StockBook.load(widget.store);
+      final r = reconcileHpp(b, s, now);
+      final cash = syncPurchaseCash(b, s, now);
+      if (r.stock || cash) await s.save();
+      if (r.orders || cash) await b.save();
+      _stock = s;
+      if (!mounted) return;
+      if (r.consumed > 0) toast('HPP bahan tercatat saat produksi dimulai · ${r.consumed} mutasi');
+    } catch (_) {
+    } finally {
+      _hppBusy = false;
+    }
+  }
+
+  Object? _reportExtra(String id, RepCtx ctx, RepRange r) {
+    final s = _stock;
+    if (s == null) return const <String, dynamic>{'k': <dynamic>[], 'cols': <dynamic>[], 'rows': <dynamic>[], 'raw': 1, 'empty': 'Belum ada pemakaian otomatis.'};
+    String money(num n) => rp(n.round());
+    if (id == 'hpp182') {
+      final a = hppRows(s, r.s, r.e);
+      final v = a.fold<double>(0, (q, x) => q + (x[3] as double));
+      return {
+        'k': [['Total HPP', money(v), '${a.length} bahan', 'w']],
+        'cols': ['Bahan', 'Terpakai Bersih', 'Biaya'],
+        'rows': [for (final x in a) [x[0], '${qtyText(x[2] as double)} ${x[1]}', money(x[3] as double)]],
+        'raw': 1, 'pv': v.round(), 'empty': 'Belum ada pemakaian otomatis.',
+      };
+    }
+    final rev = ctx.ords(r).fold<num>(0, (a, o) => a + o.total), cost = hppTotal(s, r.s, r.e);
+    final ops = ctx.exps(r).where((x) => !RegExp('Bahan Baku', caseSensitive: false).hasMatch(x.cat)).fold<num>(0, (a, x) => a + x.a);
+    final profit = rev - cost - ops;
+    return {
+      'k': [
+        ['Laba operasional', money(profit), rev != 0 ? 'Margin ${(profit / rev * 100).round()}%' : '', 'w'],
+        ['Omzet', money(rev), '', 'g'], ['HPP', money(cost), '', 'r'], ['Biaya operasional', money(ops), '', 'r'],
+      ],
+      'cols': ['Pos', '', 'Nominal'],
+      'rows': [['Omzet', '', money(rev)], ['HPP bahan', '', money(-cost)], ['Biaya operasional', '', money(-ops)], ['<b>Laba operasional</b>', '', '<b>${money(profit)}</b>']],
+      'raw': 1, 'pv': profit.round(),
+    };
   }
 
   void _open(_Sheet s) => setState(() {
@@ -663,6 +719,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final gate = pageGates[pageId];
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
     if (_page == 'crm') _loadCrmRule();
+    if (_page == 'stock') _hppSync();
     setState(() {
       _sheets.clear();
       _pageSheets.clear();
@@ -1674,8 +1731,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         }
         if (index == 1) {
           if (_pendingMethod == 'Saldo Deposit') {
-            final bal = _b!.depositOf(_aoCustomer);
-            if (bal < _cartTotal) return toast('Saldo deposit $_aoCustomer ${rp(bal)} tidak cukup');
+            final bal = _b!.depositOf(_payName);
+            if (bal < _cartTotal) return toast('Saldo deposit $_payName ${rp(bal)} tidak cukup');
           }
           _finishOrder(_pendingMethod);
         }
@@ -2319,8 +2376,21 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       ]));
     }
     final qris = _settings!.qrisText;
+    if (!qrisValid(qris)) {
+      // Butir sama dengan HTML qris193-setup.
+      return _open(_Sheet('confirm', [
+        {'type': 'title', 't': 'Upload QRIS Outlet'},
+        {'type': 'hint', 't': 'QRIS dinamis membutuhkan QRIS usaha Anda terlebih dahulu. Upload gambar QRIS untuk mengisi nominal transaksi otomatis.'},
+        {'type': 'button', 't': 'Upload QRIS', 'primary': true, 'i': 4},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
+      ]));
+    }
+    // HTML f61-qris: kartu QR + nominal, SUDAH LUNAS, Batal.
     _open(_Sheet('confirm', [
-      {'type': 'ao', 'kind': 'qris', 'qr': qrisValid(qris) ? (_settings!.raw['qrisDynamic'] != false ? qrisDynamic(qris, _cartTotal) : qris) : '', 'total': rpSpaced(_cartTotal)},
+      {'type': 'qr', 'data': _settings!.raw['qrisDynamic'] != false ? qrisDynamic(qris, _cartTotal) : qris, 'size': 220},
+      {'type': 'title', 't': rpSpaced(_cartTotal)},
+      {'type': 'button', 't': 'SUDAH LUNAS', 'primary': true, 'i': 1},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
     ]));
   }
 
