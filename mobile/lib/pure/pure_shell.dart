@@ -2726,8 +2726,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   /// Jarak aman bawah: menu bawah & tombol bawah halaman dinaikkan setinggi bilah gestur/lengkung layar HP,
   /// supaya tidak tertimpa. Popup tetap selebar layar penuh (mereka menambah jarak aman sendiri).
   Widget _lift(BuildContext context, Widget child) {
+    // Susunan widget harus selalu sama: saat keyboard muncul jarak aman jadi 0, dan bila pembungkusnya
+    // berubah halaman dibuat ulang → kolom isian kehilangan fokus → keyboard menutup lagi.
     final inset = MediaQuery.paddingOf(context).bottom;
-    if (inset <= 0) return child;
     return ColoredBox(
       color: Colors.white,
       child: Padding(padding: EdgeInsets.only(bottom: inset), child: MediaQuery.removePadding(context: context, removeBottom: true, child: child)),

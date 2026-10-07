@@ -1363,6 +1363,31 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Keyboard tetap terbuka di HP berbilah gestur (jarak aman bawah tidak membuat ulang halaman)', (tester) async {
+    final s = await _pump(tester, _store());
+    tester.view.padding = const FakeViewPadding(bottom: 48);
+    tester.view.viewPadding = const FakeViewPadding(bottom: 48);
+    s.nav('customers');
+    s.cuAdd();
+    await _settle(tester);
+    s.fmScoped('gp128', 'button', 0);
+    await _settle(tester);
+    await tester.tap(find.byType(EditableText).first);
+    await tester.pump();
+    expect(tester.testTextInput.hasAnyClients, isTrue);
+    final field = tester.state(find.byType(EditableText).first);
+    // Android: saat keyboard muncul, jarak aman bawah menjadi 0 dan viewInsets terisi.
+    tester.view.padding = FakeViewPadding.zero;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.state(find.byType(EditableText).first), same(field), reason: 'kolom isian tidak dibuat ulang');
+    expect(tester.testTextInput.hasAnyClients, isTrue, reason: 'keyboard tidak tertutup');
+    expect(FocusManager.instance.primaryFocus?.hasPrimaryFocus, isTrue);
+    await tester.enterText(find.byType(EditableText).first, 'Sari');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Otomasi Pelanggan: tiap pesan otomatis bisa dinyalakan/dimatikan, hari pengingat bisa dipilih', (tester) async {
     planAccess.testPlan = 'PLATINUM';
     final s = await _pump(tester, _store());
