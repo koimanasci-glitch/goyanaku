@@ -2230,6 +2230,7 @@ class OutletEditPage extends PurePage {
   void button(int i) async {
     if (i == 0) return; // pemilihan file ditangani shell (fmFile)
     if (i == 1) {
+      if (_logo.isEmpty) return host.toast('Belum ada logo untuk dihapus');
       _logo = '';
       return host.refresh();
     }
