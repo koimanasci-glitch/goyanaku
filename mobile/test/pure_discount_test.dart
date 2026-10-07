@@ -1205,10 +1205,12 @@ void templateTests() {
     await tester.drag(find.text('Pilih Paket'), const Offset(0, -220));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('SILVER'));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Paket SILVER'), findsOneWidget);
     expect(find.text('Stok bahan, opname dan HPP'), findsOneWidget);
     await tester.tap(find.text('Pilih Paket Ini'));
+    await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(s.debugToast, 'Pembayaran paket belum tersedia di versi ini · paket SILVER belum diaktifkan');
     await _settle(tester);
