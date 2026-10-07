@@ -959,7 +959,7 @@ class OutletPage extends PurePage {
 class TodayPage extends PurePage {
   TodayPage(super.host);
   @override
-  String get title => 'Harus Selesai Hari Ini';
+  String get title => 'HARUS SELESAI HARI INI';
   @override
   String get back => 'home';
   @override
@@ -974,7 +974,7 @@ class TodayPage extends PurePage {
     ids = list.map((o) => o.id).toList();
     String hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     return [
-      {'type': 'hint', 't': 'Pesanan yang masih perlu diselesaikan hari ini (termasuk yang terlambat).'},
+      {'type': 'hint', 't': 'Pesanan outlet aktif yang masih perlu diselesaikan hari ini.'},
       if (list.isEmpty) {'type': 'hint', 't': 'Tidak ada pesanan yang harus diselesaikan hari ini.'},
       for (var k = 0; k < list.length; k++)
         {'type': 'card', 't': list[k].name, 's': '${list[k].id} · ${list[k].isLate(n) ? 'terlambat sejak' : 'estimasi'} ${hm(list[k].due!)}',
@@ -2323,6 +2323,7 @@ Map<String, PurePage> templatePages(PureHost host) => {
         host.refresh();
       }),
       'reminder': TemplatePage(host, 'reminder'),
+      'upgrade': UpgradePage(host),
       'helpcenter': HelpCenterPage(host),
       'datacenter': DataCenterPage(host),
       'aboutgoyana': TemplatePage(host, 'aboutgoyana'),
@@ -3069,4 +3070,24 @@ class BranchMonitorPage extends PurePage {
       {'type': 'hint', 't': 'Monitoring data perangkat ini. Sinkron antar-HP memerlukan server GOYANA.'},
     ];
   }
+}
+
+
+/// Harga Paket (upgrade/v190): daftar paket dari HTML; pembayaran menunggu server, sama seperti HTML.
+class UpgradePage extends TemplatePage {
+  // ignore: use_super_parameters
+  UpgradePage(PureHost host) : super(host, 'upgrade');
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = super.items();
+    final n = host.now, tu = planAccess.trialUntil, test = planAccess.testPlan;
+    if (out.isNotEmpty && out.first['type'] == 'hero') {
+      out.first['v'] = test != null ? '$test · MODE UJI' : (planAccess.rank(n) > 0 ? 'FREE · TRIAL BASIC' : 'FREE');
+      out.first['s'] = tu == null ? '' : (planAccess.rank(n) > 0 && test == null ? 'Trial Basic sampai ${tu.day}/${tu.month}/${tu.year}' : (test != null ? 'Mode Uji aktif · tanpa pembayaran' : 'Trial berakhir · pilih paket'));
+    }
+    return out;
+  }
+
+  @override
+  void button(int i) => host.toast(i == 0 ? 'Belum ada riwayat transaksi paket' : 'Pembayaran Google Play dan verifikasi server belum terhubung. Paket belum diaktifkan.');
 }

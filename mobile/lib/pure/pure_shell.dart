@@ -665,7 +665,13 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void manageOutlet() => nav('superbilling');
   @override
-  void qr() => scan();
+  void qr() => _open(_Sheet('qr160-menu', [
+        {'type': 'title', 't': 'QR', 's': ''},
+        {'type': 'button', 't': 'Scan Struk', 'primary': false, 'file': '', 'after': false, 'i': 0},
+        {'type': 'button', 't': 'Cari Pesanan', 'primary': false, 'file': '', 'after': false, 'i': 1},
+        {'type': 'button', 't': 'Buat Label Barcode', 'primary': false, 'file': '', 'after': false, 'i': 2},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 3},
+      ]));
   @override
   void monthly() => nav('reports');
 
@@ -737,11 +743,11 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   @override
   void stSyncNow() => toast('Server GOYANA belum aktif');
   @override
-  void stAcctGo() => nav('plan');
+  void stAcctGo() => nav('upgrade');
   @override
-  void stAcctAction(int index) => nav('plan');
+  void stAcctAction(int index) => nav('upgrade');
   @override
-  void stAcctLink() => nav('plan');
+  void stAcctLink() => nav('upgrade');
   @override
   void stLogout() => toast('Akun server belum aktif');
   @override
@@ -771,7 +777,12 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     }
   }
   @override
-  void helpChat() => _device.invokeMethod('App.openUrl', {'url': 'https://wa.me/6281234567890'}).catchError((_) => null);
+  void helpChat() {
+    final o = _b!.outlets;
+    final name = (o.where((x) => x.id == _b!.activeOutlet).firstOrNull ?? o.firstOrNull)?.name ?? 'Outlet';
+    _device.invokeMethod('App.openUrl', {'url': 'https://wa.me/${HelpCenterPage.supportWa}?text=${Uri.encodeComponent('Halo tim GOYANA, saya butuh bantuan. Outlet: $name. Kendala: ')}'}).catchError((_) => null);
+    toast('Membuka WhatsApp CS GOYANA…');
+  }
 
   // ---------------- Pesanan ----------------
   @override
@@ -996,6 +1007,17 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     if (b == null) return;
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
     if (scope == 'cat99') return _catEvent(kind, index, value);
+    if (scope == 'qr160-menu') {
+      _close('qr160-menu');
+      if (kind != 'button') return;
+      if (index == 0) scan();
+      if (index == 1) nav('orders');
+      if (index == 2) {
+        nav('orders');
+        toast('Pilih pesanan dulu');
+      }
+      return;
+    }
     if (scope == 'deposits178') return _depositEvent(kind, index, value);
     if (scope == 'perm178') {
       _close('perm178');
@@ -1004,7 +1026,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     }
     if (scope == 'lock111') {
       _close('lock111');
-      if (kind == 'button') nav('plan');
+      if (kind == 'button') nav('upgrade');
       return;
     }
     if (_pageSheets.contains(scope)) {

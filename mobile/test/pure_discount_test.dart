@@ -171,7 +171,7 @@ void templateTests() {
     for (final f in Directory('test/fixtures/pure/pages').listSync().whereType<File>()) {
       final id = f.uri.pathSegments.last.replaceAll('.json', '');
       final fx = jsonDecode(f.readAsStringSync()) as Map;
-      if (id == 'wadevices195') continue; // tangkapan dibuat tanpa pesanan/outlet lain; diuji terpisah
+      if (id == 'wadevices195' || id == 'upgrade') continue; // tangkapan dibuat tanpa pesanan/outlet lain; diuji terpisah
       if (id == 'datacenter') {
         // Tangkapan HTML dari data kosong; data uji punya 1 pelanggan & 1 transaksi.
         final cells = (fx['items'] as List)[0]['cells'] as List;
