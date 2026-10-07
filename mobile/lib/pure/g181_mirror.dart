@@ -21,7 +21,7 @@ Map<String, dynamic> _input(Map it, {List? options, int index = -1}) => {
 Map<String, dynamic> _note(String t, {int? tap}) => {
       's': _s({'m': [0, 0, 6, 0], 'p': [9, 9, 9, 9], 'fs': 11, 'lh': 15.4, 'c': 'rgb(126, 135, 149)', 'bg': 'rgb(247, 248, 250)', 'br': [10, 10, 10, 10]}),
       'spans': [{'t': t}],
-      if (tap != null) 'tap': tap,
+      'tap': ?tap,
     };
 
 /// Pohon tampilan g181-modal dari butir lembar (title, input, select, label/hint, toggle, date, entry, button).
