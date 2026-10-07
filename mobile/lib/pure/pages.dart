@@ -17,6 +17,7 @@ import '../core/store.dart';
 import '../native/form_page.dart' show FormActions;
 import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
+import 'discounts.dart';
 import 'mirror_pages.dart';
 
 /// Yang dibutuhkan halaman dari shell.
@@ -34,6 +35,8 @@ abstract class PureHost {
   MethodChannel get device;
   void openFormSheet(FormSheetDef def);
   void closeFormSheet();
+  void openPageSheet(String id);
+  void closePageSheet(String id);
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
@@ -68,6 +71,9 @@ abstract class PurePage {
   void opened() {}
   /// Jika tidak null, dipakai menggantikan NativeForm (halaman cermin yang sama dengan Hibrida).
   Widget? custom(BuildContext context, FormActions actions) => null;
+  /// Popup milik halaman (butir NativeForm); null = popup tidak dikenal.
+  List<Map<String, dynamic>>? sheetItems(String id) => null;
+  void sheetEvent(String id, String kind, int index, Object? value) {}
 }
 
 Map<String, dynamic> card(String t, String s, String ic, int i) => {'type': 'card', 't': t, 's': s, 'ic': ic, 'i': i};
@@ -977,43 +983,175 @@ class CourierPage extends PurePage {
   }
 }
 
+/// Pengaturan → Diskon: butir dan popup sama dengan yang dikirim HTML (v127) ke Mode Hibrida.
 class DiscountPage extends PurePage {
   DiscountPage(super.host);
-  String name = '', value = '';
-  bool percent = true;
+  int? _editId;
+  String _name = '', _val = '', _min = '', _until = '';
+  bool _percent = true;
+  int _scope = 0;
   @override
-  String get title => 'Diskon';
-  List<dynamic> get _list => (host.settings.raw['discounts'] as List?) ?? (host.settings.raw['discounts'] = <dynamic>[]);
+  String get title => 'PENGATURAN DISKON';
+  List<Map<String, dynamic>> get _list => discountsOf(host.settings.raw);
+  Map<String, dynamic> get _cfg => discCfgOf(host.settings.raw);
+
   @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'hint', 't': 'Diskon aktif muncul sebagai pilihan saat kasir membuat pesanan.'},
-        for (var k = 0; k < _list.length; k++)
-          {'type': 'entry', 't': '${(_list[k] as List)[0]}', 'lines': <String>[], 'compact': true, 'btns': [{'t': '×', 'i': 100 + k}]},
-        {'type': 'input', 'v': name, 'ph': 'Nama diskon, contoh: Member', 'i': 0},
-        {'type': 'buttons', 'options': [{'t': 'Persen (%)', 'on': percent, 'i': 1}, {'t': 'Nominal (Rp)', 'on': !percent, 'i': 2}]},
-        {'type': 'input', 'label': percent ? 'Besar potongan (%)' : 'Besar potongan', 'pre': percent ? '' : 'Rp', 'suf': percent ? '%' : '', 'v': value, 'numeric': true, 'i': 1},
-        {'type': 'button', 't': 'Simpan Diskon', 'primary': true, 'i': 3},
-      ];
+  List<Map<String, dynamic>> items() {
+    final list = _list;
+    return [
+      {'type': 'button', 't': '+ Tambah Diskon', 'primary': false, 'file': '', 'after': false, 'i': 0},
+      if (list.isEmpty) {'type': 'title', 't': 'Belum ada diskon. Tekan + Tambah Diskon.'},
+      for (var k = 0; k < list.length; k++) ...[
+        {'type': 'title', 't': discLabel(list[k])},
+        {'type': 'title', 't': '${list[k]['name']}'},
+        {'type': 'hint', 't': discDesc(list[k])},
+        if (discExpired(list[k], host.now)) {'type': 'hint', 't': 'Sudah berakhir'},
+        {'type': 'toggle', 't': '✎🗑', 's': '', 'on': list[k]['on'] != false, 'i': k},
+        {
+          'type': 'buttons',
+          'options': [
+            {'t': '✎', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1 + 2 * k},
+            {'t': '🗑', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 2 + 2 * k},
+          ],
+        },
+      ],
+      {'type': 'title', 't': 'Aturan Kasir'},
+      {'type': 'hint', 't': 'Kasir boleh isi diskon manualPotongan Rp bebas saat membuat pesanan'},
+      {'type': 'toggle', 't': 'Kasir boleh isi diskon manual', 's': '', 'on': _cfg['manual'] == true, 'i': list.length},
+      {'type': 'input', 'label': 'Maksimal diskon kasir', 'sub': 'Diskon di atas batas ini harus oleh owner/admin', 'pre': '', 'suf': '', 'v': '${_cfg['maxPct']}', 'ph': '', 'numeric': false, 'decimal': false, 'ro': false, 'i': 0},
+      {'type': 'hint', 't': 'Semua diskon tercatat di Audit AktivitasSiapa memberi diskon, berapa, di pesanan mana'},
+      {'type': 'title', 't': 'Aktif'},
+    ];
+  }
+
+  Future<void> _persist() async {
+    await host.saveAll();
+    host.refresh();
+  }
+
   @override
-  void input(int i, Object value) => i == 0 ? name = '$value' : this.value = '$value';
+  void toggle(int i) {
+    final list = _list;
+    if (i == list.length) {
+      _cfg['manual'] = _cfg['manual'] != true;
+      host.toast('Aturan diskon tersimpan');
+    } else if (i >= 0 && i < list.length) {
+      list[i]['on'] = list[i]['on'] == false;
+      host.toast(list[i]['on'] == true ? 'Diskon diaktifkan' : 'Diskon dinonaktifkan');
+    }
+    _persist();
+  }
+
   @override
-  void button(int i) async {
-    if (i == 1 || i == 2) {
-      percent = i == 1;
+  void input(int i, Object value) {
+    // Disimpan tiap ketikan tanpa toast (HTML baru menyimpan saat isian ditinggalkan).
+    _cfg['maxPct'] = parseRupiah('$value').clamp(0, 100);
+    host.saveAll();
+  }
+
+  @override
+  void button(int i) {
+    final list = _list;
+    if (i == 0) return _open(null);
+    final k = (i - 1) ~/ 2;
+    if (k < 0 || k >= list.length) return;
+    final d = list[k];
+    if (i.isOdd) return _open(d);
+    host.openFormSheet(FormSheetDef(
+      'Hapus diskon?',
+      const [],
+      'Ya, Hapus',
+      (_) {
+        list.remove(d);
+        _persist();
+        host.toast('Diskon dihapus');
+        return null;
+      },
+      sub: 'Diskon "${d['name']}" tidak bisa dipilih lagi. Pesanan lama tidak berubah.',
+      danger: true,
+    ));
+  }
+
+  void _open(Map<String, dynamic>? d) {
+    _editId = d == null ? null : d['id'] as int?;
+    _name = '${d?['name'] ?? ''}';
+    _percent = (d?['type'] ?? 'p') == 'p';
+    final v = d?['val'], m = d?['min'];
+    _val = v is num && v > 0 ? '${v.round()}' : '';
+    _min = m is num && m > 0 ? '${m.round()}' : '';
+    _until = '${d?['until'] ?? ''}';
+    final sc = discScopes.indexOf('${d?['scope'] ?? discScopes[0]}');
+    _scope = sc < 0 ? 0 : sc;
+    host.openPageSheet('disc127');
+  }
+
+  @override
+  List<Map<String, dynamic>>? sheetItems(String id) => id != 'disc127'
+      ? null
+      : [
+          {'type': 'title', 't': _editId == null ? 'Tambah Diskon' : 'Edit Diskon', 's': ''},
+          {'type': 'hint', 't': 'Diskon aktif muncul sebagai pilihan saat kasir membuat pesanan'},
+          {'type': 'label', 't': 'Nama diskon'},
+          {'type': 'input', 'v': _name, 'ph': 'Contoh: Member, Promo Jumat', 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 0},
+          {'type': 'label', 't': 'Jenis potongan'},
+          {
+            'type': 'buttons',
+            'options': [
+              {'t': 'Persen (%)', 'svg': '', 'file': '', 'after': false, 'on': _percent, 'i': 0},
+              {'t': 'Nominal (Rp)', 'svg': '', 'file': '', 'after': false, 'on': !_percent, 'i': 1},
+            ],
+          },
+          {'type': 'label', 't': _percent ? 'Besar potongan (%)' : 'Besar potongan (Rp)'},
+          {'type': 'input', 'v': _val, 'ph': _percent ? '10' : '5000', 'multiline': false, 'numeric': true, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 1},
+          {'type': 'label', 't': 'Berlaku untuk'},
+          {'type': 'select', 'options': discScopes, 'index': _scope, 'i': 2},
+          {'type': 'label', 't': 'Minimal transaksi (opsional)'},
+          {'type': 'input', 'v': _min, 'ph': 'Contoh: 50000', 'multiline': false, 'numeric': true, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 3},
+          {'type': 'label', 't': 'Berlaku sampai (opsional)'},
+          {'type': 'date', 'v': _until, 'i': 4},
+          {'type': 'button', 't': 'Simpan Diskon', 'primary': true, 'file': '', 'after': false, 'i': 2},
+        ];
+
+  @override
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    if (kind == 'input') {
+      final v = '${value ?? ''}';
+      switch (index) {
+        case 0:
+          _name = v;
+        case 1:
+          _val = v;
+        case 2:
+          _scope = (value is int ? value : int.tryParse(v) ?? 0).clamp(0, discScopes.length - 1);
+          host.refresh();
+        case 3:
+          _min = v;
+        case 4:
+          _until = v;
+          host.refresh();
+      }
+      return;
+    }
+    if (kind != 'button') return;
+    if (index == 0 || index == 1) {
+      _percent = index == 0;
       return host.refresh();
     }
-    if (i >= 100) {
-      if (i - 100 < _list.length) _list.removeAt(i - 100);
+    final name = _name.trim(), val = parseRupiah(_val);
+    if (name.isEmpty) return host.toast('Isi nama diskon');
+    if (val == 0) return host.toast('Isi besar potongan');
+    if (_percent && val > 100) return host.toast('Persen maksimal 100');
+    final o = <String, dynamic>{'name': name, 'type': _percent ? 'p' : 'n', 'val': val, 'scope': discScopes[_scope], 'min': parseRupiah(_min), 'until': _until};
+    final list = _list;
+    final cur = list.where((d) => d['id'] == _editId).firstOrNull;
+    if (cur != null) {
+      cur.addAll(o);
     } else {
-      final n = parseRupiah(value);
-      if (name.trim().isEmpty || n <= 0 || (percent && n > 100)) return host.toast('Isi nama dan besar potongan yang benar');
-      _list.add(['${name.trim()} (${percent ? '$n%' : rp(n)})', percent ? 'p$n' : 'n$n']);
-      name = '';
-      value = '';
+      list.add({...o, 'id': nextDiscId(list), 'on': true});
     }
-    await host.saveAll();
-    host.toast('Diskon tersimpan');
-    host.refresh();
+    host.closePageSheet('disc127');
+    _persist();
+    host.toast('Diskon "$name" tersimpan');
   }
 }
 

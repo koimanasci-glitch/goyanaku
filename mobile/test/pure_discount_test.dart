@@ -1,0 +1,110 @@
+// Mode murni: Pengaturan → Diskon mengirim butir yang sama persis dengan HTML (tangkapan test/fixtures/pure/discount.json).
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/pure/pure_shell.dart';
+
+MemoryKvStore _store() {
+  final s = jsonDecode(File('test/fixtures/core/snapshot.json').readAsStringSync()) as Map<String, dynamic>;
+  return MemoryKvStore({
+    for (final k in [Keys.business, Keys.services, Keys.outlets, Keys.activeOutlet, Keys.perfumes])
+      if (s[k] is String) k: s[k] as String,
+  });
+}
+
+Future<PureShellState> _pump(WidgetTester tester, MemoryKvStore kv) async {
+  tester.view.physicalSize = const Size(390 * 2, 844 * 2);
+  tester.view.devicePixelRatio = 2;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(MaterialApp(home: PureShell(store: kv, clock: () => DateTime(2026, 10, 3, 10))));
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+  await tester.pump();
+  return tester.state<PureShellState>(find.byType(PureShell));
+}
+
+Future<void> _settle(WidgetTester tester) async {
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 30)));
+  await tester.pump(const Duration(milliseconds: 300));
+}
+
+void main() {
+  setUpAll(() async {
+    final loader = FontLoader('Poppins');
+    for (final f in ['Regular', 'Medium', 'SemiBold']) {
+      final bytes = File('assets/fonts/Poppins-$f.ttf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+    }
+    await loader.load();
+  });
+
+  testWidgets('Diskon: butir halaman dan popup sama dengan HTML di tiap langkah', (tester) async {
+    final fx = (jsonDecode(File('test/fixtures/pure/discount.json').readAsStringSync()) as List).cast<Map>();
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('discounts');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[0]['model']['items']), reason: 'halaman kosong');
+
+    s.fmButton(0);
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('disc127')), jsonEncode(fx[1]['sheet']['items']), reason: 'popup Tambah Diskon');
+    s.fmScoped('disc127', 'button', 2);
+    expect(s.debugToast, 'Isi nama diskon');
+    s.fmScoped('disc127', 'input', 0, 'Member');
+    s.fmScoped('disc127', 'input', 1, '10');
+    s.fmScoped('disc127', 'input', 3, '50000');
+    s.fmScoped('disc127', 'button', 2);
+    await _settle(tester);
+    expect(s.debugToast, fx[2]['toast']);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx[2]['model']['items']), reason: 'halaman dengan 1 diskon');
+    expect(s.debugSheet('disc127') == null || find.text('Tambah Diskon').evaluate().isEmpty, isTrue);
+
+    s.fmButton(1); // ✎
+    await _settle(tester);
+    expect(jsonEncode(s.debugSheet('disc127')), jsonEncode(fx[3]['sheet']['items']), reason: 'popup Edit Diskon');
+    s.fmScoped('disc127', 'close', 0);
+    await _settle(tester);
+
+    s.fmButton(2); // 🗑
+    await _settle(tester);
+    final want = (fx[4]['sheet']['items'] as List).cast<Map>();
+    for (final it in want) {
+      expect(find.text('${it['t']}'), findsOneWidget, reason: '${it['t']}');
+    }
+    s.fmScoped('gs107', 'button', 1); // Batal
+    await _settle(tester);
+
+    // Tersimpan permanen (di HTML daftar diskon hilang saat aplikasi ditutup).
+    final t = await _pump(tester, kv);
+    t.nav('discounts');
+    await _settle(tester);
+    expect(jsonEncode(t.debugItems()), jsonEncode(fx[2]['model']['items']));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Diskon di Atur Pesanan: pilihan, minimal transaksi, dan diskon manual seperti HTML', (tester) async {
+    final kv = _store();
+    kv.data['goyana-pure-settings'] = jsonEncode({
+      'discounts': [
+        {'id': 4, 'name': 'Member', 'type': 'p', 'val': 10, 'scope': 'Semua layanan', 'min': 50000, 'until': '', 'on': true},
+        {'id': 5, 'name': 'Promo Satuan', 'type': 'n', 'val': 5000, 'scope': 'Satuan', 'min': 0, 'until': '', 'on': true},
+        {'id': 6, 'name': 'Lama', 'type': 'p', 'val': 5, 'scope': 'Semua layanan', 'min': 0, 'until': '2026-01-01', 'on': true},
+        {'id': 7, 'name': 'Mati', 'type': 'p', 'val': 5, 'scope': 'Semua layanan', 'min': 0, 'until': '', 'on': false},
+      ],
+    });
+    final s = await _pump(tester, kv);
+    expect(s.debugDiscOptions(), ['Tidak', 'Member · 10% · min Rp50.000', 'Promo Satuan · Rp5.000 (Satuan)', 'Diskon manual (Rp)…']);
+    s.aoSheetSelect(1, 1); // keranjang kosong: di bawah minimal
+    expect(s.debugToast, '"Member" butuh minimal transaksi Rp50.000');
+    s.aoSheetSelect(1, 3);
+    await _settle(tester);
+    expect(find.text('Diskon manual'), findsOneWidget);
+    expect(find.text('Potongan (Rp)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}

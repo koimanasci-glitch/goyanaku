@@ -1,0 +1,665 @@
+[
+ {
+  "page": "discount",
+  "model": {
+   "title": "PENGATURAN DISKON",
+   "items": [
+    {
+     "type": "button",
+     "t": "+ Tambah Diskon",
+     "primary": false,
+     "file": "",
+     "after": false,
+     "i": 0
+    },
+    {
+     "type": "title",
+     "t": "Belum ada diskon. Tekan + Tambah Diskon."
+    },
+    {
+     "type": "title",
+     "t": "Aturan Kasir"
+    },
+    {
+     "type": "hint",
+     "t": "Kasir boleh isi diskon manualPotongan Rp bebas saat membuat pesanan"
+    },
+    {
+     "type": "toggle",
+     "t": "Kasir boleh isi diskon manual",
+     "s": "",
+     "on": true,
+     "i": 0
+    },
+    {
+     "type": "input",
+     "label": "Maksimal diskon kasir",
+     "sub": "Diskon di atas batas ini harus oleh owner/admin",
+     "pre": "",
+     "suf": "",
+     "v": "20",
+     "ph": "",
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "i": 0
+    },
+    {
+     "type": "hint",
+     "t": "Semua diskon tercatat di Audit AktivitasSiapa memberi diskon, berapa, di pesanan mana"
+    },
+    {
+     "type": "title",
+     "t": "Aktif"
+    }
+   ]
+  },
+  "sheet": null,
+  "toast": ""
+ },
+ {
+  "page": "discount",
+  "model": {
+   "title": "PENGATURAN DISKON",
+   "items": [
+    {
+     "type": "button",
+     "t": "+ Tambah Diskon",
+     "primary": false,
+     "file": "",
+     "after": false,
+     "i": 0
+    },
+    {
+     "type": "title",
+     "t": "Belum ada diskon. Tekan + Tambah Diskon."
+    },
+    {
+     "type": "title",
+     "t": "Aturan Kasir"
+    },
+    {
+     "type": "hint",
+     "t": "Kasir boleh isi diskon manualPotongan Rp bebas saat membuat pesanan"
+    },
+    {
+     "type": "toggle",
+     "t": "Kasir boleh isi diskon manual",
+     "s": "",
+     "on": true,
+     "i": 0
+    },
+    {
+     "type": "input",
+     "label": "Maksimal diskon kasir",
+     "sub": "Diskon di atas batas ini harus oleh owner/admin",
+     "pre": "",
+     "suf": "",
+     "v": "20",
+     "ph": "",
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "i": 0
+    },
+    {
+     "type": "hint",
+     "t": "Semua diskon tercatat di Audit AktivitasSiapa memberi diskon, berapa, di pesanan mana"
+    },
+    {
+     "type": "title",
+     "t": "Aktif"
+    }
+   ]
+  },
+  "sheet": {
+   "id": "disc127",
+   "items": [
+    {
+     "type": "title",
+     "t": "Tambah Diskon",
+     "s": ""
+    },
+    {
+     "type": "hint",
+     "t": "Diskon aktif muncul sebagai pilihan saat kasir membuat pesanan"
+    },
+    {
+     "type": "label",
+     "t": "Nama diskon"
+    },
+    {
+     "type": "input",
+     "v": "",
+     "ph": "Contoh: Member, Promo Jumat",
+     "multiline": false,
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "secret": false,
+     "email": false,
+     "i": 0
+    },
+    {
+     "type": "label",
+     "t": "Jenis potongan"
+    },
+    {
+     "type": "buttons",
+     "options": [
+      {
+       "t": "Persen (%)",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": true,
+       "i": 0
+      },
+      {
+       "t": "Nominal (Rp)",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 1
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "t": "Besar potongan (%)"
+    },
+    {
+     "type": "input",
+     "v": "",
+     "ph": "10",
+     "multiline": false,
+     "numeric": true,
+     "decimal": false,
+     "ro": false,
+     "secret": false,
+     "email": false,
+     "i": 1
+    },
+    {
+     "type": "label",
+     "t": "Berlaku untuk"
+    },
+    {
+     "type": "select",
+     "options": [
+      "Semua layanan",
+      "Kiloan",
+      "Satuan",
+      "Meteran"
+     ],
+     "index": 0,
+     "i": 2
+    },
+    {
+     "type": "label",
+     "t": "Minimal transaksi (opsional)"
+    },
+    {
+     "type": "input",
+     "v": "",
+     "ph": "Contoh: 50000",
+     "multiline": false,
+     "numeric": true,
+     "decimal": false,
+     "ro": false,
+     "secret": false,
+     "email": false,
+     "i": 3
+    },
+    {
+     "type": "label",
+     "t": "Berlaku sampai (opsional)"
+    },
+    {
+     "type": "date",
+     "v": "",
+     "i": 4
+    },
+    {
+     "type": "button",
+     "t": "Simpan Diskon",
+     "primary": true,
+     "file": "",
+     "after": false,
+     "i": 2
+    }
+   ]
+  },
+  "toast": ""
+ },
+ {
+  "page": "discount",
+  "model": {
+   "title": "PENGATURAN DISKON",
+   "items": [
+    {
+     "type": "button",
+     "t": "+ Tambah Diskon",
+     "primary": false,
+     "file": "",
+     "after": false,
+     "i": 0
+    },
+    {
+     "type": "title",
+     "t": "10%"
+    },
+    {
+     "type": "title",
+     "t": "Member"
+    },
+    {
+     "type": "hint",
+     "t": "Semua layanan · min Rp50.000"
+    },
+    {
+     "type": "toggle",
+     "t": "✎🗑",
+     "s": "",
+     "on": true,
+     "i": 0
+    },
+    {
+     "type": "buttons",
+     "options": [
+      {
+       "t": "✎",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 1
+      },
+      {
+       "t": "🗑",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 2
+      }
+     ]
+    },
+    {
+     "type": "title",
+     "t": "Aturan Kasir"
+    },
+    {
+     "type": "hint",
+     "t": "Kasir boleh isi diskon manualPotongan Rp bebas saat membuat pesanan"
+    },
+    {
+     "type": "toggle",
+     "t": "Kasir boleh isi diskon manual",
+     "s": "",
+     "on": true,
+     "i": 1
+    },
+    {
+     "type": "input",
+     "label": "Maksimal diskon kasir",
+     "sub": "Diskon di atas batas ini harus oleh owner/admin",
+     "pre": "",
+     "suf": "",
+     "v": "20",
+     "ph": "",
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "i": 0
+    },
+    {
+     "type": "hint",
+     "t": "Semua diskon tercatat di Audit AktivitasSiapa memberi diskon, berapa, di pesanan mana"
+    },
+    {
+     "type": "title",
+     "t": "Aktif"
+    }
+   ]
+  },
+  "sheet": null,
+  "toast": "Diskon \"Member\" tersimpan"
+ },
+ {
+  "page": "discount",
+  "model": {
+   "title": "PENGATURAN DISKON",
+   "items": [
+    {
+     "type": "button",
+     "t": "+ Tambah Diskon",
+     "primary": false,
+     "file": "",
+     "after": false,
+     "i": 0
+    },
+    {
+     "type": "title",
+     "t": "10%"
+    },
+    {
+     "type": "title",
+     "t": "Member"
+    },
+    {
+     "type": "hint",
+     "t": "Semua layanan · min Rp50.000"
+    },
+    {
+     "type": "toggle",
+     "t": "✎🗑",
+     "s": "",
+     "on": true,
+     "i": 0
+    },
+    {
+     "type": "buttons",
+     "options": [
+      {
+       "t": "✎",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 1
+      },
+      {
+       "t": "🗑",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 2
+      }
+     ]
+    },
+    {
+     "type": "title",
+     "t": "Aturan Kasir"
+    },
+    {
+     "type": "hint",
+     "t": "Kasir boleh isi diskon manualPotongan Rp bebas saat membuat pesanan"
+    },
+    {
+     "type": "toggle",
+     "t": "Kasir boleh isi diskon manual",
+     "s": "",
+     "on": true,
+     "i": 1
+    },
+    {
+     "type": "input",
+     "label": "Maksimal diskon kasir",
+     "sub": "Diskon di atas batas ini harus oleh owner/admin",
+     "pre": "",
+     "suf": "",
+     "v": "20",
+     "ph": "",
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "i": 0
+    },
+    {
+     "type": "hint",
+     "t": "Semua diskon tercatat di Audit AktivitasSiapa memberi diskon, berapa, di pesanan mana"
+    },
+    {
+     "type": "title",
+     "t": "Aktif"
+    }
+   ]
+  },
+  "sheet": {
+   "id": "disc127",
+   "items": [
+    {
+     "type": "title",
+     "t": "Edit Diskon",
+     "s": ""
+    },
+    {
+     "type": "hint",
+     "t": "Diskon aktif muncul sebagai pilihan saat kasir membuat pesanan"
+    },
+    {
+     "type": "label",
+     "t": "Nama diskon"
+    },
+    {
+     "type": "input",
+     "v": "Member",
+     "ph": "Contoh: Member, Promo Jumat",
+     "multiline": false,
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "secret": false,
+     "email": false,
+     "i": 0
+    },
+    {
+     "type": "label",
+     "t": "Jenis potongan"
+    },
+    {
+     "type": "buttons",
+     "options": [
+      {
+       "t": "Persen (%)",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": true,
+       "i": 0
+      },
+      {
+       "t": "Nominal (Rp)",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 1
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "t": "Besar potongan (%)"
+    },
+    {
+     "type": "input",
+     "v": "10",
+     "ph": "10",
+     "multiline": false,
+     "numeric": true,
+     "decimal": false,
+     "ro": false,
+     "secret": false,
+     "email": false,
+     "i": 1
+    },
+    {
+     "type": "label",
+     "t": "Berlaku untuk"
+    },
+    {
+     "type": "select",
+     "options": [
+      "Semua layanan",
+      "Kiloan",
+      "Satuan",
+      "Meteran"
+     ],
+     "index": 0,
+     "i": 2
+    },
+    {
+     "type": "label",
+     "t": "Minimal transaksi (opsional)"
+    },
+    {
+     "type": "input",
+     "v": "50000",
+     "ph": "Contoh: 50000",
+     "multiline": false,
+     "numeric": true,
+     "decimal": false,
+     "ro": false,
+     "secret": false,
+     "email": false,
+     "i": 3
+    },
+    {
+     "type": "label",
+     "t": "Berlaku sampai (opsional)"
+    },
+    {
+     "type": "date",
+     "v": "",
+     "i": 4
+    },
+    {
+     "type": "button",
+     "t": "Simpan Diskon",
+     "primary": true,
+     "file": "",
+     "after": false,
+     "i": 2
+    }
+   ]
+  },
+  "toast": "Diskon \"Member\" tersimpan"
+ },
+ {
+  "page": "discount",
+  "model": {
+   "title": "PENGATURAN DISKON",
+   "items": [
+    {
+     "type": "button",
+     "t": "+ Tambah Diskon",
+     "primary": false,
+     "file": "",
+     "after": false,
+     "i": 0
+    },
+    {
+     "type": "title",
+     "t": "10%"
+    },
+    {
+     "type": "title",
+     "t": "Member"
+    },
+    {
+     "type": "hint",
+     "t": "Semua layanan · min Rp50.000"
+    },
+    {
+     "type": "toggle",
+     "t": "✎🗑",
+     "s": "",
+     "on": true,
+     "i": 0
+    },
+    {
+     "type": "buttons",
+     "options": [
+      {
+       "t": "✎",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 1
+      },
+      {
+       "t": "🗑",
+       "svg": "",
+       "file": "",
+       "after": false,
+       "on": false,
+       "i": 2
+      }
+     ]
+    },
+    {
+     "type": "title",
+     "t": "Aturan Kasir"
+    },
+    {
+     "type": "hint",
+     "t": "Kasir boleh isi diskon manualPotongan Rp bebas saat membuat pesanan"
+    },
+    {
+     "type": "toggle",
+     "t": "Kasir boleh isi diskon manual",
+     "s": "",
+     "on": true,
+     "i": 1
+    },
+    {
+     "type": "input",
+     "label": "Maksimal diskon kasir",
+     "sub": "Diskon di atas batas ini harus oleh owner/admin",
+     "pre": "",
+     "suf": "",
+     "v": "20",
+     "ph": "",
+     "numeric": false,
+     "decimal": false,
+     "ro": false,
+     "i": 0
+    },
+    {
+     "type": "hint",
+     "t": "Semua diskon tercatat di Audit AktivitasSiapa memberi diskon, berapa, di pesanan mana"
+    },
+    {
+     "type": "title",
+     "t": "Aktif"
+    }
+   ]
+  },
+  "sheet": {
+   "id": "gs107",
+   "items": [
+    {
+     "type": "title",
+     "t": "Hapus diskon?",
+     "s": ""
+    },
+    {
+     "type": "hint",
+     "t": "Diskon \"Member\" tidak bisa dipilih lagi. Pesanan lama tidak berubah."
+    },
+    {
+     "type": "button",
+     "t": "Ya, Hapus",
+     "primary": true,
+     "file": "",
+     "after": false,
+     "i": 0
+    },
+    {
+     "type": "button",
+     "t": "Batal",
+     "primary": false,
+     "file": "",
+     "after": false,
+     "i": 1
+    }
+   ]
+  },
+  "toast": ""
+ }
+]

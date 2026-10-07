@@ -17,6 +17,7 @@ import '../core/store.dart';
 import '../native/addorder_page.dart';
 import 'addorder_assets.dart';
 import 'addorder_popups.dart';
+import 'discounts.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
@@ -297,6 +298,23 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       });
   void _close(String id) => setState(() => _sheets.removeWhere((e) => e.id == id));
 
+  /// Untuk tes kesetaraan: butir halaman/popup aktif persis seperti yang digambar.
+  @visibleForTesting
+  List<Map<String, dynamic>> debugItems() => _pages[_page]?.items() ?? const [];
+  @visibleForTesting
+  List<Map<String, dynamic>>? debugSheet(String id) => _pages[_page]?.sheetItems(id) ?? _sheets.where((e) => e.id == id).firstOrNull?.items;
+  @visibleForTesting
+  List<String> debugDiscOptions() => [for (final d in _discs) d[0]];
+  @visibleForTesting
+  String get debugToast => _toast;
+
+  // ---------------- popup milik halaman ----------------
+  final Set<String> _pageSheets = {};
+  @override
+  void openPageSheet(String id) => setState(() => _pageSheets.add(id));
+  @override
+  void closePageSheet(String id) => setState(() => _pageSheets.remove(id));
+
   // ---------------- popup isian serbaguna (formSheet107) ----------------
   FormSheetDef? _fs;
   List<String> _fsVals = [];
@@ -359,6 +377,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void nav(String pageId) {
     setState(() {
       _sheets.clear();
+      _pageSheets.clear();
       _page = pageId;
       if (pageId == 'orders') _search = '';
     });
@@ -582,8 +601,10 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     ]));
   }
 
+  List<List<String>> _editDiscList = const [['Tanpa diskon', '0']];
   void _openEdit(Order o) {
-    final disc = _discs.indexWhere((d) => d[1] == o.discKey);
+    _editDiscList = _editDiscs(o.discKey);
+    final disc = _editDiscList.indexWhere((d) => d[1] == o.discKey);
     final per = _perfumes.indexOf(o.perfume);
     _form
       ..clear()
@@ -598,7 +619,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       {'type': 'label', 't': 'Parfum'},
       {'type': 'select', 'options': _perfumes, 'index': _form['perfume'], 'i': 1},
       {'type': 'label', 't': 'Diskon'},
-      {'type': 'select', 'options': [for (final d in _discs) d[0]], 'index': _form['disc'], 'i': 2},
+      {'type': 'select', 'options': [for (final d in _editDiscList) d[0]], 'index': _form['disc'], 'i': 2},
       {'type': 'label', 't': 'Estimasi selesai (hari setelah masuk)'},
       {'type': 'input', 'v': days == days.roundToDouble() ? '${days.round()}' : '', 'ph': 'Contoh: 3', 'numeric': true, 'i': 3},
       {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'i': 1},
@@ -705,6 +726,10 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final b = _b;
     if (b == null) return;
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
+    if (_pageSheets.contains(scope)) {
+      if (kind == 'close') return closePageSheet(scope);
+      return _pages[_page]?.sheetEvent(scope, kind, index, value);
+    }
     if (scope == 'pin') {
       if (kind == 'input') _pin = '${value ?? ''}'.replaceAll(RegExp(r'\D'), '');
       if (kind == 'button') {
@@ -809,7 +834,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
           b.edit(o,
               note: '${_form['note'] ?? o.note}',
               perfume: _perfumeValue((_form['perfume'] as int?) ?? 0),
-              discKey: _discs[((_form['disc'] as int?) ?? 0).clamp(0, _discs.length - 1)][1],
+              discKey: _editDiscList[((_form['disc'] as int?) ?? 0).clamp(0, _editDiscList.length - 1)][1],
               due: dueDays == null ? null : (o.masuk ?? now).add(Duration(days: dueDays)));
           _save();
           _close('edit');
@@ -1017,6 +1042,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
         _aoCat = 0;
         _aoSheet = null;
         _cart.clear();
+        _manualDisc = 0;
         _opt
           ..['perfume'] = 0
           ..['disc'] = 0
@@ -1049,14 +1075,88 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
             OrderItem(name: s.name, icon: s.unit == 'kg' ? 'Kiloan' : (s.unit == 'm' ? 'Meteran' : 'Satuan'), unit: s.unit, price: s.priceFor(_aoDur), qty: e.value),
       ];
 
-  static const _baseDiscs = [['Tidak', '0'], ['Diskon 5%', 'p5'], ['Diskon 10%', 'p10'], ['Potongan Rp5.000', 'n5000'], ['Potongan Rp10.000', 'n10000']];
-  List<List<String>> get _discs => [
-        ..._baseDiscs,
-        for (final d in (_settings!.raw['discounts'] as List? ?? const []))
-          if (d is List && d.length > 1) ['${d[0]}', '${d[1]}'],
+  int _manualDisc = 0;
+  List<Map<String, dynamic>> get _activeDiscs => [for (final d in discountsOf(_settings!.raw)) if (discActive(d, now)) d];
+  List<List<String>> get _voucherDiscs => [
         for (final v in (_settings!.raw['vouchers'] as List? ?? const []))
           if (v is Map && v['key'] != null) ['Voucher ${v['code']}', '${v['key']}'],
       ];
+
+  /// Pilihan diskon di Atur Pesanan (sama dengan HTML): Tidak, diskon aktif, diskon manual, voucher.
+  /// Tiap butir: [label, kunci diskon untuk keranjang saat ini].
+  List<List<String>> get _discs {
+    final cart = _cartItems;
+    return [
+      ['Tidak', '0'],
+      for (final d in _activeDiscs) [discOption(d), discKey(d, cart)],
+      if (discCfgOf(_settings!.raw)['manual'] == true) [_manualDisc > 0 ? 'Diskon manual · ${rp(_manualDisc)}' : 'Diskon manual (Rp)…', 'n$_manualDisc'],
+      ..._voucherDiscs,
+    ];
+  }
+
+  String get _optDiscKey {
+    final d = _discs;
+    return d[(_opt['disc'] as int).clamp(0, d.length - 1)][1];
+  }
+
+  /// Pilihan diskon di Edit Transaksi: "Tanpa diskon", diskon aktif, voucher, dan diskon pesanan saat ini bila tak ada di daftar.
+  List<List<String>> _editDiscs(String current) {
+    final out = <List<String>>[
+      ['Tanpa diskon', '0'],
+      for (final d in _activeDiscs) ['${d['name']} · ${discLabel(d)}', '${d['type']}${d['val']}'],
+      ..._voucherDiscs,
+    ];
+    if (current != '0' && !out.any((e) => e[1] == current)) {
+      final m = RegExp(r'^([pn])(\d+)$').firstMatch(current);
+      out.add([m == null ? current : (m.group(1) == 'p' ? 'Diskon ${m.group(2)}%' : 'Potongan ${rp(int.parse(m.group(2)!))}'), current]);
+    }
+    return out;
+  }
+
+  void _pickDisc(int option) {
+    final act = _activeDiscs;
+    final total = calcTotals(_cartItems, '0', 0).total;
+    final cfg = discCfgOf(_settings!.raw);
+    final maxPct = cfg['maxPct'] as int;
+    if (option >= 1 && option <= act.length) {
+      final d = act[option - 1];
+      final min = (d['min'] as num?)?.round() ?? 0;
+      if (min > 0 && total < min) {
+        setState(() => _opt['disc'] = 0);
+        return toast('"${d['name']}" butuh minimal transaksi ${rp(min)}');
+      }
+      final a = discAmount(d, _cartItems);
+      if (a == 0) {
+        setState(() => _opt['disc'] = 0);
+        return toast('Tidak ada layanan ${d['scope']} di pesanan ini');
+      }
+      setState(() => _opt['disc'] = option);
+      final v = (d['val'] as num).round();
+      return toast(d['type'] == 'p' && v > maxPct ? 'Diskon $v% · perlu persetujuan owner (tercatat di audit)' : 'Hemat ${rp(a)}');
+    }
+    if (cfg['manual'] == true && option == act.length + 1) {
+      final limit = total * maxPct / 100;
+      setState(() => _opt['disc'] = option);
+      return openFormSheet(FormSheetDef(
+        'Diskon manual',
+        const [FormSheetField('Potongan (Rp)', placeholder: '5000', numeric: true, required: true)],
+        'Pakai',
+        (v) {
+          final n = parseRupiah(v[0]);
+          if (n > limit) {
+            toast('Melebihi batas diskon kasir $maxPct%');
+            return false;
+          }
+          setState(() => _manualDisc = n);
+          toast('Diskon ${rp(n)} dipakai');
+          return null;
+        },
+        sub: 'Maksimal $maxPct% dari total (${rp(limit)})',
+      ));
+    }
+    setState(() => _opt['disc'] = option);
+  }
+
   static const _hands = ['Datang Langsung', 'Antar ke Pelanggan', 'Jemput & Antar'];
 
   Map<String, dynamic> _addOrderJson() {
@@ -1076,7 +1176,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       m['empty'] = (m['people'] as List).isEmpty ? (q.isEmpty ? 'Belum ada pelanggan. Tambahkan pelanggan baru.' : 'Pelanggan tidak ditemukan.') : '';
       return m;
     }
-    final t = calcTotals(_cartItems, _discs[(_opt['disc'] as int)][1], 0);
+    final t = calcTotals(_cartItems, _optDiscKey, 0);
     m['step'] = 'Langkah 2 dari 5';
     m['customer'] = {'name': _aoCustomer, 'sub': _aoDur, 'avatar': aoBarAvatar};
     m['durations'] = [for (final d in _durations) {'t': d, 's': '${durationHours(d)} Jam', 'on': d == _aoDur}];
@@ -1245,7 +1345,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   }
 
   @override
-  void aoSheetSelect(int field, int option) => setState(() => _opt[const ['perfume', 'disc', 'hand'][field]] = option);
+  void aoSheetSelect(int field, int option) => field == 1 ? _pickDisc(option) : setState(() => _opt[const ['perfume', 'disc', 'hand'][field]] = option);
   @override
   void aoSheetSwitch(int field) => setState(() => _opt['prio'] = _opt['prio'] != true);
   @override
@@ -1259,7 +1359,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   String _pendingMethod = '';
 
-  int get _cartTotal => calcTotals(_cartItems, _discs[(_opt['disc'] as int)][1], 0).total;
+  int get _cartTotal => calcTotals(_cartItems, _optDiscKey, 0).total;
 
   @override
   void aoPay(int index) {
@@ -1356,7 +1456,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     final hand = _hands[_opt['hand'] as int];
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
-      discKey: _discs[(_opt['disc'] as int)][1], perfume: _perfumeValue((_opt['perfume'] as int)),
+      discKey: _optDiscKey, perfume: _perfumeValue((_opt['perfume'] as int)),
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
       payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );
@@ -1436,6 +1536,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_sheets.isNotEmpty) return fmScoped(_sheets.last.id, 'close', 0);
+        if (_pageSheets.isNotEmpty) return closePageSheet(_pageSheets.last);
         if (_aoSheet != null) return aoSheetClose();
         if (_page == 'addorder' && _aoStage == 'services') return aoBack();
         if (_page != 'home') return nav('home');
@@ -1449,6 +1550,9 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
                 ? AoPopup(key: ValueKey('pure-ao-${s.id}'), id: s.id, data: s.items.first, actions: this)
                 : NativeSheet(key: ValueKey('pure-${s.id}-${s.items.length}'), id: s.id, items: s.items, actions: this, full: s.full),
           ),
+        for (final id in _pageSheets)
+          if (_pages[_page]?.sheetItems(id) case final items?)
+            Positioned.fill(child: NativeSheet(key: ValueKey('pure-ps-$id'), id: id, items: items, actions: this)),
         if (_toast.isNotEmpty)
           Positioned(left: 24, right: 24, bottom: 130, child: IgnorePointer(child: Center(child: NativeToast(text: _toast)))),
       ]),

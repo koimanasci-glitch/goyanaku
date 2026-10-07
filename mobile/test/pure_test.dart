@@ -15,6 +15,13 @@ MemoryKvStore _store() {
   return MemoryKvStore({
     for (final k in [Keys.business, Keys.services, Keys.outlets, Keys.activeOutlet, Keys.perfumes])
       if (s[k] is String) k: s[k] as String,
+    // Diskon uji (di HTML daftar diskon kosong sampai dibuat di Pengaturan → Diskon).
+    'goyana-pure-settings': jsonEncode({
+      'discounts': [
+        for (final d in [['Diskon 5%', 'p', 5], ['Diskon 10%', 'p', 10], ['Potongan Rp5.000', 'n', 5000], ['Potongan Rp10.000', 'n', 10000]])
+          {'id': 4 + [5, 10, 5000, 10000].indexOf(d[2] as int), 'name': d[0], 'type': d[1], 'val': d[2], 'scope': 'Semua layanan', 'min': 0, 'until': '', 'on': true},
+      ],
+    }),
   });
 }
 
@@ -312,7 +319,7 @@ void main() {
     t.fmScoped('detail', 'button', 7); // edit
     await _settle(tester);
     expect(find.text('Voucher KANGEN15'), findsNothing, reason: 'dropdown tertutup');
-    t.fmScoped('edit', 'input', 2, 5); // voucher = indeks setelah 5 diskon dasar
+    t.fmScoped('edit', 'input', 2, 5); // voucher = setelah Tanpa diskon + 4 diskon
     t.fmScoped('edit', 'button', 1);
     await _settle(tester);
     final o = (await Business.load(kv2)).orders.first;
