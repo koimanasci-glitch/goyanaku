@@ -2447,6 +2447,53 @@ class TemplatePage extends PurePage {
   void button(int i) => onButton?.call(this, i);
 }
 
+/// Otomasi Pelanggan: tiap pesan otomatis bisa dinyalakan/dimatikan (HTML hanya menampilkan daftar tetap).
+/// Pilihan tersimpan di perangkat; pengiriman otomatis baru berjalan setelah WhatsApp terhubung ke server.
+class AutomationPage extends TemplatePage {
+  // ignore: use_super_parameters
+  AutomationPage(PureHost host) : super(host, 'automation');
+
+  static const dayOptions = [1, 2, 3, 5, 7];
+
+  /// Hari tunggu sebelum pelanggan diingatkan (bawaan 2).
+  int get days {
+    final n = int.tryParse('${_bag('in')['0'] ?? 2}') ?? 2;
+    return dayOptions.contains(n) ? n : 2;
+  }
+
+  @override
+  bool toggleValue(int i) {
+    final v = _bag('tg')['$i'];
+    return v is bool ? v : i < 3;
+  }
+
+  @override
+  List<Map<String, dynamic>> items() {
+    Map<String, dynamic> tg(int i, String t, String s) => {'type': 'toggle', 't': t, 's': s, 'on': toggleValue(i), 'i': i};
+    return [
+      {'type': 'title', 't': 'Otomasi Pelanggan'},
+      {'type': 'hint', 't': 'Pilih pesan WhatsApp yang dikirim otomatis ke pelanggan. Pilihan tersimpan di perangkat ini; pengiriman otomatis berjalan setelah WhatsApp terhubung ke server.'},
+      tg(0, 'Pesanan diterima', 'Kirim nota saat pesanan baru dibuat'),
+      tg(1, 'Pesanan siap diambil', 'Kabari pelanggan saat cucian selesai'),
+      tg(2, 'Belum diambil $days hari', 'Ingatkan pelanggan yang cuciannya sudah siap tetapi belum diambil'),
+      if (toggleValue(2)) ...[
+        {'type': 'label', 't': 'Ingatkan setelah berapa hari'},
+        {'type': 'select', 'options': [for (final d in dayOptions) '$d hari'], 'index': dayOptions.indexOf(days), 'i': 0},
+      ],
+      tg(3, 'Chatbot status pesanan', 'Chatbot menjawab status, tagihan dan jam outlet'),
+      {'type': 'hint', 't': 'Chatbot dapat membaca status order, total tagihan, jam outlet dan informasi layanan tanpa mengubah data transaksi.'},
+    ];
+  }
+
+  @override
+  void input(int i, Object value) {
+    if (value is! int || value < 0 || value >= dayOptions.length) return;
+    _bag('in')['0'] = dayOptions[value];
+    host.saveAll();
+    host.refresh();
+  }
+}
+
 /// Halaman berpola tetap beserta aksi tombolnya (teks toast sama dengan HTML).
 Map<String, PurePage> templatePages(PureHost host) => {
       'profile': TemplatePage(host, 'profile', transient: const {2}, onButton: (p, i) {

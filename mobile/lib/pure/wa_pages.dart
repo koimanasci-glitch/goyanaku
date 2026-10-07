@@ -289,7 +289,7 @@ Map<String, PurePage> whatsappPages(PureHost host) => {
       'quickreply': TemplatePage(host, 'quickreply', backTo: 'whatsappbot', onButton: (p, i) {
         if (_gate(host, 'quick')) host.go('triggers191');
       }),
-      'automation': TemplatePage(host, 'automation'),
+      'automation': AutomationPage(host),
       'wadevices195': TemplatePage(host, 'wadevices195', onButton: (p, i) {
         if (host.business.outlets.isEmpty) return host.toast('Tambahkan pusat atau cabang di Pengaturan Outlet terlebih dahulu.');
         host.toast('Menautkan WhatsApp memerlukan layanan WhatsApp GOYANA (server belum aktif).');

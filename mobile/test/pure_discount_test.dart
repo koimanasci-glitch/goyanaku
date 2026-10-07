@@ -1162,6 +1162,28 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Otomasi Pelanggan: tiap pesan otomatis bisa dinyalakan/dimatikan, hari pengingat bisa dipilih', (tester) async {
+    planAccess.testPlan = 'PLATINUM';
+    final s = await _pump(tester, _store());
+    s.nav('automation');
+    await _settle(tester);
+    List<Map> tg() => s.debugItems().where((e) => e['type'] == 'toggle').toList();
+    expect([for (final t in tg()) t['t']], ['Pesanan diterima', 'Pesanan siap diambil', 'Belum diambil 2 hari', 'Chatbot status pesanan']);
+    expect([for (final t in tg()) t['on']], [true, true, true, false]);
+    s.fmToggle(0);
+    s.fmInput(0, 3);
+    expect(tg()[0]['on'], false);
+    expect(tg()[2]['t'], 'Belum diambil 5 hari');
+    s.fmToggle(2);
+    expect(s.debugItems().any((e) => e['type'] == 'select'), isFalse);
+    s.nav('settings');
+    s.nav('automation');
+    await _settle(tester);
+    expect([for (final t in tg()) t['on']], [false, true, false, false]);
+    planAccess.testPlan = null;
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Tambah Pelanggan (customeradd): popup pria/wanita lalu susunan halaman sama dengan HTML; lokasi Maps tersimpan', (tester) async {
     final fx = jsonDecode(File('test/fixtures/pure/customeradd.json').readAsStringSync()) as Map;
     final kv = _store();
