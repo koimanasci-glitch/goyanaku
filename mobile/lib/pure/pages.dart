@@ -2553,7 +2553,7 @@ class AuditPage extends PurePage {
     }
     return [
       {'type': 'title', 't': '⌕'},
-      {'type': 'input', 'v': _q, 'ph': 'Cari pegawai / Order ID...', 'multiline': false, 'numeric': false, 'ro': false, 'secret': false, 'email': false, 'i': 0},
+      {'type': 'input', 'v': _q, 'ph': 'Cari pegawai / Order ID...', 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 0},
       {'type': 'button', 't': '≡', 'primary': false, 'file': '', 'after': false, 'i': 0},
       {'type': 'buttons', 'options': [for (var k = 0; k < _chips.length; k++) {'t': _chips[k], 'svg': '', 'file': '', 'after': false, 'on': k == _chip, 'i': 1 + k}]},
       {'type': 'title', 't': 'HARI INI'},
