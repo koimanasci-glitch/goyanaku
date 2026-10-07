@@ -14,6 +14,7 @@ import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
+import 'package:goyana_flutter/pure/views.dart';
 
 MemoryKvStore _store() {
   final s = jsonDecode(File('test/fixtures/core/snapshot.json').readAsStringSync()) as Map<String, dynamic>;
@@ -902,6 +903,47 @@ void templateTests() {
     s.aoSheetMain();
     await _settle(tester);
     same('payment');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Beranda, Pelanggan dan Pesanan: model sama dengan HTML (bundel final), sebelum dan sesudah 1 pesanan Bayar Nanti', (tester) async {
+    Object? canon(Object? v) {
+      if (v is Map) return {for (final k in (v.keys.map((e) => '$e').toList()..sort())) k: canon(v[k])};
+      if (v is List) return [for (final x in v) canon(x)];
+      return v;
+    }
+
+    String norm(Object? m) => jsonEncode(canon(m)).replaceAll(RegExp(r'GY-\d{6}'), 'GY-000000');
+    final fx = jsonDecode(File('test/fixtures/pure/main_pages.json').readAsStringSync()) as Map;
+    final kv = _store();
+    final raw = jsonDecode(kv.data[Keys.business]!) as Map;
+    raw['orders'] = <dynamic>[];
+    raw['details'] = <String, dynamic>{};
+    kv.data[Keys.business] = jsonEncode(raw);
+    final now = DateTime(2026, 10, 3, 10);
+    final s = await _pump(tester, kv);
+    var b = await Business.load(kv);
+    expect(norm(homeJson(b, now)), norm(fx['home0']), reason: 'Beranda kosong');
+    expect(norm(customersJson(b, '')), norm(fx['customers']), reason: 'Pelanggan');
+    expect(norm(ordersJson(b, tab: 1, search: '', now: now)), norm(fx['orders0']), reason: 'Pesanan kosong');
+
+    s.tile(0);
+    s.aoPickCustomer(0);
+    await _settle(tester);
+    s.fmScoped('dur', 'button', 0);
+    s.aoService(0);
+    await _settle(tester);
+    s.fmScoped('qty', 'input', 0, '2,5');
+    s.fmScoped('qty', 'button', 1);
+    s.aoNext();
+    s.aoSheetMain();
+    await _settle(tester);
+    s.aoPay(3); // Bayar Nanti
+    await _settle(tester);
+    expect(s.debugToast, 'Pesanan tersimpan · kirim nota lewat tombol WA hijau');
+    b = await Business.load(kv);
+    expect(norm(ordersJson(b, tab: 1, search: '', now: now)), norm(fx['orders1']), reason: 'Pesanan dengan 1 antrian');
+    expect(norm(homeJson(b, now)), norm(fx['home1']), reason: 'Beranda dengan 1 pesanan');
     expect(tester.takeException(), isNull);
   });
 }
