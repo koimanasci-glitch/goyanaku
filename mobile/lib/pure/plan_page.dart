@@ -71,8 +71,9 @@ class PlanPricing extends StatelessWidget {
 
   Color _light(Color c) => Color.lerp(c, Colors.white, .28)!;
 
-  void _detail(BuildContext context, PlanInfo p) {
-    final active = p.id == current;
+  /// Lembar rincian (dipakai paket & tambahan): kepala berikon, harga, daftar butir, tombol utama, Tutup.
+  void _infoSheet(BuildContext context, {required Widget icon, required String title, required String sub, required String price, required String per,
+      required Color soft, required Color tick, required String listTitle, required Iterable<String> points, required String action, VoidCallback? onAction}) {
     showModalBottomSheet<void>(
       context: context, isScrollControlled: true, backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -83,50 +84,50 @@ class PlanPricing extends StatelessWidget {
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xffd9dde2), borderRadius: BorderRadius.circular(4)))),
             const SizedBox(height: 16),
             Row(children: [
-              _tile(p.icon, _light(p.color), p.color, 52),
+              icon,
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Paket ${p.id}', style: gText(18, w: FontWeight.w600, c: _ink)),
-                  Text(p.tagline, style: gText(12, c: _muted, h: 17)),
+                  Text(title, style: gText(18, w: FontWeight.w600, c: _ink)),
+                  Text(sub, style: gText(12, c: _muted, h: 17)),
                 ]),
               ),
             ]),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(color: p.soft, borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(14)),
               child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(p.price, style: gText(24, w: FontWeight.w600, c: _ink)),
+                Text(price, style: gText(24, w: FontWeight.w600, c: _ink)),
                 const SizedBox(width: 6),
-                Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(p.per, style: gText(12.5, c: _muted))),
+                Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(per, style: gText(12.5, c: _muted)))),
               ]),
             ),
             const SizedBox(height: 14),
-            Text('Yang didapat', style: gText(13, w: FontWeight.w600, c: _ink)),
+            Text(listTitle, style: gText(13, w: FontWeight.w600, c: _ink)),
             const SizedBox(height: 8),
-            for (final f in p.features)
+            for (final f in points)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(width: 18, height: 18, margin: const EdgeInsets.only(top: 1), alignment: Alignment.center,
-                      decoration: BoxDecoration(color: p.soft, shape: BoxShape.circle), child: Icon(Icons.check_rounded, size: 13, color: p.color)),
+                      decoration: BoxDecoration(color: soft, shape: BoxShape.circle), child: Icon(Icons.check_rounded, size: 13, color: tick)),
                   const SizedBox(width: 10),
                   Expanded(child: Text(f, style: gText(13, c: _ink, h: 19))),
                 ]),
               ),
             const SizedBox(height: 6),
             GestureDetector(
-              onTap: active
+              onTap: onAction == null
                   ? null
                   : () {
                       Navigator.pop(ctx);
-                      onChoose(p);
+                      onAction();
                     },
               child: Container(
                 height: 50, alignment: Alignment.center,
-                decoration: BoxDecoration(color: active ? const Color(0xffeef0f3) : gBrand, borderRadius: BorderRadius.circular(14)),
-                child: Text(active ? 'Paket Aktif' : 'Pilih Paket Ini', style: gText(14.5, w: FontWeight.w600, c: active ? _muted : Colors.white)),
+                decoration: BoxDecoration(color: onAction == null ? const Color(0xffeef0f3) : gBrand, borderRadius: BorderRadius.circular(14)),
+                child: Text(action, style: gText(14.5, w: FontWeight.w600, c: onAction == null ? _muted : Colors.white)),
               ),
             ),
             const SizedBox(height: 8),
@@ -139,6 +140,12 @@ class PlanPricing extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _detail(BuildContext context, PlanInfo p) {
+    final active = p.id == current;
+    _infoSheet(context, icon: _tile(p.icon, _light(p.color), p.color, 52), title: 'Paket ${p.id}', sub: p.tagline, price: p.price, per: p.per, soft: p.soft, tick: p.color,
+        listTitle: 'Yang didapat', points: p.features, action: active ? 'Paket Aktif' : 'Pilih Paket Ini', onAction: active ? null : () => onChoose(p));
   }
 
   Widget _planCard(BuildContext context, PlanInfo p, {bool wide = false}) {
@@ -235,67 +242,8 @@ class PlanPricing extends StatelessWidget {
 
   void _addonDetail(BuildContext context, String svg, Color a, Color b, int i) {
     final d = addons[i];
-    showModalBottomSheet<void>(
-      context: context, isScrollControlled: true, backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 16),
-          child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xffd9dde2), borderRadius: BorderRadius.circular(4)))),
-            const SizedBox(height: 16),
-            Row(children: [
-              _tile(svg, a, b, 52),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(d[0], style: gText(18, w: FontWeight.w600, c: _ink)),
-                  Text(d[4], style: gText(12, c: _muted, h: 17)),
-                ]),
-              ),
-            ]),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(color: Color.lerp(a, Colors.white, .82), borderRadius: BorderRadius.circular(14)),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(d[2], style: gText(24, w: FontWeight.w600, c: _ink)),
-                const SizedBox(width: 6),
-                Expanded(child: Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(d[3], style: gText(12.5, c: _muted)))),
-              ]),
-            ),
-            const SizedBox(height: 14),
-            Text('Rincian', style: gText(13, w: FontWeight.w600, c: _ink)),
-            const SizedBox(height: 8),
-            for (final f in d.skip(5))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Container(width: 18, height: 18, margin: const EdgeInsets.only(top: 1), alignment: Alignment.center,
-                      decoration: BoxDecoration(color: Color.lerp(a, Colors.white, .82), shape: BoxShape.circle), child: Icon(Icons.check_rounded, size: 13, color: b)),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(f, style: gText(13, c: _ink, h: 19))),
-                ]),
-              ),
-            const SizedBox(height: 6),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(ctx);
-                onAddon(i);
-              },
-              child: Container(height: 50, alignment: Alignment.center, decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(14)),
-                  child: Text('Beli Tambahan Ini', style: gText(14.5, w: FontWeight.w600, c: Colors.white))),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => Navigator.pop(ctx),
-              child: Container(height: 46, alignment: Alignment.center,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: _line)), child: Text('Tutup', style: gText(14, w: FontWeight.w500, c: _ink))),
-            ),
-          ])),
-        ),
-      ),
-    );
+    _infoSheet(context, icon: _tile(svg, a, b, 52), title: d[0], sub: d[4], price: d[2], per: d[3], soft: Color.lerp(a, Colors.white, .82)!, tick: b,
+        listTitle: 'Rincian', points: d.skip(5), action: 'Beli Tambahan Ini', onAction: () => onAddon(i));
   }
 
   Widget _addon(BuildContext context, String svg, Color a, Color b, int i) => Expanded(

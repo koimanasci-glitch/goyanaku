@@ -1268,11 +1268,18 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
   }
 
+  /// Outlet aktif; bila tidak ketemu, outlet pertama.
+  Outlet? get _outletNow => _b!.outlets.where((x) => x.id == _b!.activeOutlet).firstOrNull ?? _b!.outlets.firstOrNull;
+
+  /// Gambar struk pesanan (kepala outlet aktif).
+  Future<Uint8List> _receiptPngOf(Order o) {
+    final out = _outletNow;
+    return receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir));
+  }
+
   Future<void> _openStruk(Order o) async {
-    final b = _b!;
-    final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
     try {
-      final png = await receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir));
+      final png = await _receiptPngOf(o);
       if (!mounted) return;
       _strukPng = png;
       _open(_Sheet('rc106', [
@@ -1318,8 +1325,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   /// Teks nota WhatsApp (format HTML waNota131). Footer dari Profil Nota; bila kosong, 5 baris bawaan HTML.
   String _notaWa(Order o) {
-    final b = _b!;
-    final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
+    final out = _outletNow;
     final foot = _settings!.receipt.footer.split('\n').where((l) => l.trim().isNotEmpty && !RegExp('^-?\\s*terima kasih', caseSensitive: false).hasMatch(l.trim())).join('\n');
     return orderNotaWa(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', phone: out?.phone ?? '', kasir: _kasir,
         footer: [
@@ -1347,12 +1353,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (o == null || (kind != 'button' && kind != 'card' && kind != 'tap')) return;
     if (index == 1) return _openNota(o);
     if (index != 0) return;
-    final b = _b!;
-    final out = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
     var phone = _phoneOf(o).replaceAll(RegExp(r'[^0-9]'), '');
     if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
     try {
-      final png = await receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir));
+      final png = await _receiptPngOf(o);
       await _device.invokeMethod('Files.share', {
         'title': 'Nota ${o.id}', 'whatsapp': phone,
         'files': [{'name': 'nota-${o.id}.png', 'mime': 'image/png', 'data': base64Encode(png)}],

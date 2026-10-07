@@ -50,6 +50,12 @@ List<_Hit> _hits(Object? node, [List<_Hit>? out]) {
   return out;
 }
 
+String explain(Object ex) {
+  final lines = '$ex'.split('\n');
+  final loc = lines.where((l) => l.contains('file:///')).map((l) => l.trim().replaceAll(RegExp(r'file:///.*/mobile/'), '')).take(2).join(' ; ');
+  return '${lines.first}${loc.isEmpty ? '' : ' [$loc]'}';
+}
+
 void main() {
   setUp(() => planAccess.testPlan = 'PLATINUM');
   tearDown(() => planAccess.testPlan = null);
@@ -64,6 +70,7 @@ void main() {
       return null;
     });
     late MemoryKvStore kv;
+    final opening = <String, String>{};
     Future<void> settle() async {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 25)));
       await tester.pump(const Duration(milliseconds: 250));
@@ -79,24 +86,24 @@ void main() {
         s.nav(page);
         await settle();
       }
+      final ex = tester.takeException();
+      if (ex != null) opening['${page ?? 'home'} (saat dibuka)'] = explain(ex);
       return s;
     }
 
     String snap(PureShellState s) => '${s.debugState()}|${jsonEncode(s.debugItems())}|${jsonEncode(kv.data)}|$device|${find.byType(BottomSheet).evaluate().length}';
     final dead = <String>[], stub = <String>[], errors = <String>[], ok = <String>[];
-    final stubRe = RegExp('belum tersedia|belum aktif|belum terhubung|sedang dipindah|menunggu (layanan|server)|segera hadir', caseSensitive: false);
-
     Future<void> judge(String where, PureShellState s, String before, void Function() press) async {
       try {
         press();
         await settle();
       } catch (e) {
-        errors.add('$where → ${'$e'.split('\n').first}');
+        errors.add('$where → ${explain(e)}');
         return;
       }
       final ex = tester.takeException();
       if (ex != null) {
-        errors.add('$where → ${'$ex'.split('\n').first}');
+        errors.add('$where → ${explain(ex)}');
         return;
       }
       final toast = s.debugToast;
@@ -109,6 +116,8 @@ void main() {
       }
     }
 
+    String fatal = '';
+    try {
     // ---- Beranda ----
     for (final (name, act) in <(String, void Function(PureShellState))>[
       for (var k = 0; k < 6; k++) ('Beranda · ikon $k', (s) => s.tile(k)),
@@ -188,9 +197,15 @@ void main() {
       }
     }
 
+    } catch (e, st) {
+      fatal = '${explain(e)}\n${'$st'.split('\n').take(6).join('\n')}';
+    }
+    tester.takeException();
     final report = StringBuffer()
       ..writeln('AUDIT TOMBOL MODE MURNI')
       ..writeln('diperiksa: ${dead.length + stub.length + errors.length + ok.length} · berfungsi: ${ok.length} · tidak bereaksi: ${dead.length} · belum tersedia: ${stub.length} · galat: ${errors.length}')
+      ..writeln(fatal.isEmpty ? '' : '\n!! AUDIT BERHENTI DI TENGAH: $fatal')
+      ..writeln('\n== GALAT SAAT HALAMAN DIBUKA (${opening.length}) ==\n${opening.entries.map((e) => '${e.key} → ${e.value}').join('\n')}')
       ..writeln('\n== GALAT (${errors.length}) ==\n${errors.join('\n')}')
       ..writeln('\n== TIDAK BEREAKSI (${dead.length}) ==\n${dead.join('\n')}')
       ..writeln('\n== BELUM TERSEDIA (${stub.length}) ==\n${stub.join('\n')}')
