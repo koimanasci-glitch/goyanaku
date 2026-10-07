@@ -67,7 +67,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
     'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
     'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
     'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'help': HelpPage(this),
-    'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
+    'crm': CrmPage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'branches': BranchesPage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
   };
 
   @override
@@ -614,7 +614,7 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
 
   /// Item menu HTML → halaman mode murni. null = belum dipindah.
   static const Map<String, String> _stRoutes = {
-    '0/0': 'profile', '1/0': 'outlet', '1/1': 'outlets',
+    '0/0': 'profile', '1/0': 'outlets', '1/1': 'branches',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
     '3/0': 'employees', '3/1': 'cashier', '3/3': 'couriers',
     '4/0': 'customers', '4/1': 'crm', '4/2': 'whatsapp', '4/3': 'whatsapp', '4/4': 'whatsapp', '4/5': 'whatsapp',
@@ -1108,7 +1108,17 @@ class PureShellState extends State<PureShell> implements HomeActions, OrdersActi
   void fmButton(int index) => _pages[_page]?.button(index);
 
   @override
-  void fmFile(String inputId) {}
+  Future<void> fmFile(String inputId) async {
+    try {
+      final uris = await _device.invokeListMethod<String>('Files.pick', {'accept': ['image/png', 'image/jpeg', 'image/webp'], 'multiple': false, 'capture': false});
+      if (uris == null || uris.isEmpty) return;
+      final f = await _device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
+      if (f == null) return;
+      _pages[_page]?.file(inputId, '${f['name']}', '${f['mime']}', '${f['data']}');
+    } catch (_) {
+      toast('File tidak dapat dibaca');
+    }
+  }
   @override
   void fmTap(int index) {}
 

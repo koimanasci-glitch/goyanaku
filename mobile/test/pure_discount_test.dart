@@ -327,4 +327,26 @@ void templateTests() {
     transportAll.clear();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Outlet & Edit Outlet: butir sama dengan HTML (outlet Uji)', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/outlets.json').readAsStringSync()) as Map;
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('outlets');
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['list']));
+    s.fmButton(3); // Edit
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['edit']));
+    s.nav('outlets');
+    s.fmButton(1); // Tambah
+    await _settle(tester);
+    expect(jsonEncode(s.debugItems()), jsonEncode(fx['new']));
+    s.fmInput(1, 'uji');
+    s.fmInput(2, 'jakarta');
+    s.fmInput(3, '081234567890');
+    s.fmButton(2);
+    expect(s.debugToast, 'Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -80,6 +80,23 @@ class Business {
     return store.set(Keys.outlets, jsonEncode(outlets.map((e) => e.raw).toList()));
   }
 
+  /// Tambah/ubah outlet (v180). Outlet pertama otomatis menjadi outlet aktif. Mengembalikan id, null bila gagal simpan.
+  Future<String?> upsertOutlet({String? id, required String name, required String address, required String phone, String logo = ''}) async {
+    var o = id == null ? null : outlets.where((x) => x.id == id).firstOrNull;
+    if (o == null) {
+      o = Outlet({'id': id ?? 'outlet180-${DateTime.now().microsecondsSinceEpoch}'});
+      outlets.add(o);
+    }
+    o.raw
+      ..['name'] = name
+      ..['address'] = address
+      ..['phone'] = phone
+      ..['logo'] = logo;
+    if (!await store.set(Keys.outlets, jsonEncode(outlets.map((e) => e.raw).toList()))) return null;
+    if (activeOutlet.isEmpty) await setActiveOutlet(o.id);
+    return o.id;
+  }
+
   Future<void> setActiveOutlet(String id) async {
     activeOutlet = id;
     await store.set(Keys.activeOutlet, jsonEncode(id));

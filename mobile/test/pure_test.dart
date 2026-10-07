@@ -332,9 +332,17 @@ void main() {
       await _settle(tester);
     }
     t.nav('outlets');
-    t.fmInput(0, 'Cabang 2');
     t.fmButton(1);
     await _settle(tester);
+    t.fmInput(1, 'Cabang 2');
+    t.fmInput(2, 'Bandung');
+    t.fmInput(3, '0812');
+    t.fmButton(2);
+    expect(t.debugToast, 'Lengkapi nama, alamat, dan nomor WA outlet');
+    t.fmInput(3, '081299998888');
+    t.fmButton(2);
+    await _settle(tester);
+    expect(t.debugToast, 'Outlet tersimpan');
     expect((await Business.load(kv2)).outlets.length, 2);
     expect(tester.takeException(), isNull);
   });

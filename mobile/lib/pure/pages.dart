@@ -78,6 +78,8 @@ abstract class PurePage {
   /// Popup milik halaman (butir NativeForm); null = popup tidak dikenal.
   List<Map<String, dynamic>>? sheetItems(String id) => null;
   void sheetEvent(String id, String kind, int index, Object? value) {}
+  /// File yang dipilih pengguna untuk tombol ber-'file' (data = base64).
+  void file(String inputId, String name, String mime, String data) {}
   /// Popup dengan widget khusus (sama dengan Hibrida); null = pakai butir [sheetItems].
   Widget? sheetWidget(String id, BuildContext context) => null;
 }
@@ -1405,11 +1407,144 @@ class WhatsAppPage extends PurePage {
   }
 }
 
+/// Pengaturan → Outlet: daftar outlet (v180). Tombol: 1 tambah, lalu tiap outlet Monitoring 2+2k dan Edit 3+2k.
 class OutletsPage extends PurePage {
   OutletsPage(super.host);
+  @override
+  String get title => 'OUTLET';
+  @override
+  List<Map<String, dynamic>> items() {
+    final list = host.business.outlets;
+    return [
+      {'type': 'hint', 't': '${list.length} outlet tersimpan'},
+      {'type': 'button', 't': '+ Tambah Outlet', 'primary': true, 'file': '', 'after': false, 'i': 1},
+      {'type': 'hint', 't': 'Logo cabang bisa di-upload di Edit Outlet. Jika belum ada, tampil ikon toko. Nomor WA divalidasi minimal 10 digit.'},
+      if (list.isEmpty) {'type': 'hint', 't': 'Belum ada data. Gunakan tombol tambah untuk mulai.'},
+      for (var k = 0; k < list.length; k++)
+        {
+          'type': 'entry', 't': list[k].name, 'lines': [list[k].address, 'WA ${list[k].phone}'], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '',
+          'btns': [{'t': 'Monitoring', 'on': false, 'i': 2 + 2 * k}, {'t': 'Edit', 'on': false, 'i': 3 + 2 * k}],
+        },
+    ];
+  }
+
+  @override
+  void button(int i) {
+    final list = host.business.outlets;
+    if (i == 1) {
+      OutletEditPage.editId = null;
+      return host.go('outletedit');
+    }
+    final k = (i - 2) ~/ 2;
+    if (k < 0 || k >= list.length) return;
+    if (i.isEven) return host.go('branches');
+    OutletEditPage.editId = list[k].id;
+    host.go('outletedit');
+  }
+}
+
+/// Edit Outlet (v180): logo, nama, alamat, nomor WA; validasi dan pesan sama dengan HTML.
+class OutletEditPage extends PurePage {
+  OutletEditPage(super.host);
+  static String? editId;
+  String _name = '', _address = '', _phone = '', _logo = '';
+  @override
+  String get title => 'EDIT OUTLET';
+  @override
+  String get back => 'outlets';
+
+  @override
+  void opened() {
+    final o = host.business.outlets.where((x) => x.id == editId).firstOrNull;
+    _name = o?.name ?? '';
+    _address = o?.address ?? '';
+    _phone = o?.phone ?? '';
+    _logo = '${o?.raw['logo'] ?? ''}';
+  }
+
+  Map<String, dynamic> get _use => (host.settings.raw.putIfAbsent('logoUse', () => <String, dynamic>{}) as Map).cast<String, dynamic>();
+
+  @override
+  List<Map<String, dynamic>> items() {
+    Map<String, dynamic> inp(String v, int i, {bool multi = false, bool numeric = false, String ph = ''}) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': multi, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    const uses = ['Tampilkan di Beranda', 'Tampilkan di Nota', 'Tampilkan di Invoice', 'Tampilkan di Label Barcode', 'Tampilkan di Pembayaran QRIS'];
+    return [
+      {'type': 'title', 't': 'Logo Outlet'},
+      {'type': 'hint', 't': 'Logo ini dapat tampil di Beranda, Nota, Invoice dan Label.'},
+      {'type': 'image', 'src': _logo, 'svg': '', 'mark': _logo.isEmpty ? '▦' : '', 't': '', 's': ''},
+      {
+        'type': 'buttons',
+        'options': [
+          {'t': '↑ Upload Logo', 'svg': '', 'file': 'outlet-logo-file', 'after': false, 'on': false, 'i': 0},
+          {'t': 'Hapus Logo', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1},
+        ],
+      },
+      {'type': 'hint', 't': 'PNG/JPG/WebP · disarankan logo persegi · maks. 2 MB'},
+      {'type': 'label', 't': 'Nama Outlet'},
+      inp(_name, 1),
+      {'type': 'label', 't': 'Alamat'},
+      inp(_address, 2, multi: true),
+      {'type': 'label', 't': 'No. WhatsApp Outlet'},
+      inp(_phone, 3, numeric: true, ph: 'Masukkan nomor WhatsApp'),
+      {'type': 'title', 't': 'Penggunaan Logo'},
+      for (var k = 0; k < uses.length; k++) {'type': 'toggle', 't': uses[k], 's': '', 'on': _use['$k'] != false, 'i': k},
+      {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'file': '', 'after': false, 'i': 2},
+    ];
+  }
+
+  @override
+  void input(int i, Object value) {
+    if (i == 1) _name = '$value';
+    if (i == 2) _address = '$value';
+    if (i == 3) _phone = '$value';
+  }
+
+  @override
+  void toggle(int i) {
+    _use['$i'] = _use['$i'] == false;
+    host.saveAll();
+    host.refresh();
+  }
+
+  @override
+  void file(String inputId, String name, String mime, String data) {
+    if (!RegExp(r'^image/(png|jpeg|webp)$').hasMatch(mime) || data.length * 3 ~/ 4 > 2 * 1024 * 1024) {
+      return host.toast('Gunakan PNG/JPG/WebP maksimal 2 MB');
+    }
+    _logo = 'data:$mime;base64,$data';
+    host.refresh();
+  }
+
+  @override
+  void button(int i) async {
+    if (i == 0) return; // pemilihan file ditangani shell (fmFile)
+    if (i == 1) {
+      _logo = '';
+      return host.refresh();
+    }
+    final b = host.business;
+    final name = _name.trim(), address = _address.trim(), phone = _phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (name.isEmpty || address.isEmpty || !RegExp(r'^\+?\d{10,15}$').hasMatch(phone)) return host.toast('Lengkapi nama, alamat, dan nomor WA outlet');
+    if (b.outlets.any((o) => o.id != editId && o.name.trim().toLowerCase() == name.toLowerCase() && o.address.trim().toLowerCase() == address.toLowerCase())) {
+      return host.toast('Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');
+    }
+    final id = await b.upsertOutlet(id: editId, name: name, address: address, phone: phone, logo: _logo);
+    if (id == null) return host.toast('Penyimpanan perangkat penuh');
+    editId = id;
+    host.toast('Outlet tersimpan');
+    host.go('outlets');
+  }
+}
+
+/// Monitoring cabang sementara (rancangan Mode Murni lama) sampai branchmonitor58/superbilling dipindah.
+class BranchesPage extends PurePage {
+  BranchesPage(super.host);
   String name = '';
   @override
   String get title => 'Cabang & Monitoring';
+  @override
+  String get back => 'outlets';
   @override
   List<Map<String, dynamic>> items() {
     final b = host.business, n = host.now;

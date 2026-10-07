@@ -1,0 +1,321 @@
+{
+ "list": [
+  {
+   "type": "hint",
+   "t": "1 outlet tersimpan"
+  },
+  {
+   "type": "button",
+   "t": "+ Tambah Outlet",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 1
+  },
+  {
+   "type": "hint",
+   "t": "Logo cabang bisa di-upload di Edit Outlet. Jika belum ada, tampil ikon toko. Nomor WA divalidasi minimal 10 digit."
+  },
+  {
+   "type": "entry",
+   "t": "Uji",
+   "lines": [
+    "Jakarta",
+    "WA 081234567890"
+   ],
+   "badge": "",
+   "avatar": "",
+   "svg": "",
+   "color": "",
+   "amount": "",
+   "btns": [
+    {
+     "t": "Monitoring",
+     "on": false,
+     "i": 2
+    },
+    {
+     "t": "Edit",
+     "on": false,
+     "i": 3
+    }
+   ]
+  }
+ ],
+ "edit": [
+  {
+   "type": "title",
+   "t": "Logo Outlet"
+  },
+  {
+   "type": "hint",
+   "t": "Logo ini dapat tampil di Beranda, Nota, Invoice dan Label."
+  },
+  {
+   "type": "image",
+   "src": "",
+   "svg": "",
+   "mark": "▦",
+   "t": "",
+   "s": ""
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "↑ Upload Logo",
+     "svg": "",
+     "file": "outlet-logo-file",
+     "after": false,
+     "on": false,
+     "i": 0
+    },
+    {
+     "t": "Hapus Logo",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "PNG/JPG/WebP · disarankan logo persegi · maks. 2 MB"
+  },
+  {
+   "type": "label",
+   "t": "Nama Outlet"
+  },
+  {
+   "type": "input",
+   "v": "Uji",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Alamat"
+  },
+  {
+   "type": "input",
+   "v": "Jakarta",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "No. WhatsApp Outlet"
+  },
+  {
+   "type": "input",
+   "v": "081234567890",
+   "ph": "Masukkan nomor WhatsApp",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "title",
+   "t": "Penggunaan Logo"
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Beranda",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Nota",
+   "s": "",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Invoice",
+   "s": "",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Label Barcode",
+   "s": "",
+   "on": true,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Pembayaran QRIS",
+   "s": "",
+   "on": true,
+   "i": 4
+  },
+  {
+   "type": "button",
+   "t": "Simpan Perubahan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  }
+ ],
+ "new": [
+  {
+   "type": "title",
+   "t": "Logo Outlet"
+  },
+  {
+   "type": "hint",
+   "t": "Logo ini dapat tampil di Beranda, Nota, Invoice dan Label."
+  },
+  {
+   "type": "image",
+   "src": "",
+   "svg": "",
+   "mark": "▦",
+   "t": "",
+   "s": ""
+  },
+  {
+   "type": "buttons",
+   "options": [
+    {
+     "t": "↑ Upload Logo",
+     "svg": "",
+     "file": "outlet-logo-file",
+     "after": false,
+     "on": false,
+     "i": 0
+    },
+    {
+     "t": "Hapus Logo",
+     "svg": "",
+     "file": "",
+     "after": false,
+     "on": false,
+     "i": 1
+    }
+   ]
+  },
+  {
+   "type": "hint",
+   "t": "PNG/JPG/WebP · disarankan logo persegi · maks. 2 MB"
+  },
+  {
+   "type": "label",
+   "t": "Nama Outlet"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": false,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 1
+  },
+  {
+   "type": "label",
+   "t": "Alamat"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "",
+   "multiline": true,
+   "numeric": false,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 2
+  },
+  {
+   "type": "label",
+   "t": "No. WhatsApp Outlet"
+  },
+  {
+   "type": "input",
+   "v": "",
+   "ph": "Masukkan nomor WhatsApp",
+   "multiline": false,
+   "numeric": true,
+   "decimal": false,
+   "ro": false,
+   "secret": false,
+   "email": false,
+   "i": 3
+  },
+  {
+   "type": "title",
+   "t": "Penggunaan Logo"
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Beranda",
+   "s": "",
+   "on": true,
+   "i": 0
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Nota",
+   "s": "",
+   "on": true,
+   "i": 1
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Invoice",
+   "s": "",
+   "on": true,
+   "i": 2
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Label Barcode",
+   "s": "",
+   "on": true,
+   "i": 3
+  },
+  {
+   "type": "toggle",
+   "t": "Tampilkan di Pembayaran QRIS",
+   "s": "",
+   "on": true,
+   "i": 4
+  },
+  {
+   "type": "button",
+   "t": "Simpan Perubahan",
+   "primary": true,
+   "file": "",
+   "after": false,
+   "i": 2
+  }
+ ]
+}
