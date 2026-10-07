@@ -1494,12 +1494,14 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         'setup' => const ['oname', 'oaddr', 'ophone'][index.clamp(0, 2)],
         _ => 'amount',
       };
+      if (scope == 'dp' && index == 1) {
+        _form['dpMethod'] = const ['Tunai', 'QRIS', 'Transfer'][(value is num ? value.toInt() : int.tryParse('$value') ?? 0).clamp(0, 2)];
+        return;
+      }
       _form[key] = value ?? '';
       if (scope == 'items') _itemQty[index] = '${value ?? ''}';
       // Lembar yang menampilkan hitungan (kembalian, subtotal, sisa) ikut diperbarui.
       if (scope == 'cash') _open(_Sheet('cash', _cashItems()));
-      if (scope == 'qty' && _qtyService != null) _open(_Sheet('qty', _qtyItems()));
-      if (scope == 'dp') _open(_Sheet('dp', _dpItems()));
       return;
     }
     if (kind != 'button') return;
@@ -2124,10 +2126,15 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _open(_Sheet('qty', _qtyItems()));
   }
 
+  /// Butir sama dengan HTML qty116 (isian jumlah + satuan, SIMPAN, BATAL).
   List<Map<String, dynamic>> _qtyItems() {
     final sv = _qtyService!;
     return [
-      {'type': 'ao', 'kind': 'qty', 'v': '${_form['amount']}', 'unit': sv.unit, 'hasRemove': _cart.containsKey(sv.name)},
+      {'type': 'input', 'v': '${_form['amount']}', 'ph': '0,0', 'numeric': true, 'decimal': true, 'i': 0},
+      {'type': 'title', 't': sv.unit},
+      {'type': 'button', 't': 'SIMPAN', 'primary': true, 'i': 1},
+      if (_cart.containsKey(sv.name)) {'type': 'button', 't': 'HAPUS DARI PESANAN', 'primary': false, 'i': 2},
+      {'type': 'button', 't': 'BATAL', 'primary': false, 'i': 3},
     ];
   }
 
@@ -2144,7 +2151,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       if (q <= 0) return toast('Isi jumlah dulu');
       setState(() => _cart[s.name] = q);
       _close('qty');
-      toast('${s.name} ditambahkan');
+      toast('${s.name} · ${qtyText(q)} ${s.unit} ditambahkan');
     } else if (index == 2) {
       setState(() => _cart.remove(s.name));
       _close('qty');
@@ -2247,8 +2254,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void _confirm(String method) {
     _pendingMethod = method;
     if (method == 'Saldo Deposit') {
+      // Butir sama dengan HTML depositpay178.
       return _open(_Sheet('confirm', [
-        {'type': 'ao', 'kind': 'deposit', 'title': 'Saldo Deposit', 'sub': '$_payName · saldo ${rp(_b!.depositOf(_payName))} · tagihan ${rp(_cartTotal)}', 'ok': 'Bayar dengan Deposit'},
+        {'type': 'title', 't': 'Saldo Deposit'},
+        {'type': 'hint', 't': '$_payName · saldo ${rp(_b!.depositOf(_payName))} · tagihan ${rp(_cartTotal)}'},
+        {'type': 'button', 't': 'Bayar dengan Deposit', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
       ]));
     }
     final qris = _settings!.qrisText;
@@ -2257,21 +2268,34 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     ]));
   }
 
+  /// Pecahan cepat (HTML gy154-cash): puluhan ribu di atas total, 50rb, 100rb — hanya yang lebih besar dari total.
+  List<int> get _cashChips {
+    final total = _cartTotal;
+    return {((total + 9999) ~/ 10000) * 10000, 50000, 100000}.where((v) => v > total).toList();
+  }
+
+  /// Butir sama dengan HTML gy154-cash.
   List<Map<String, dynamic>> _cashItems() {
     final total = _cartTotal, got = parseRupiah(_form['amount']);
+    final chips = _cashChips;
     return [
-      {
-        'type': 'ao', 'kind': 'cash', 'v': '${_form['amount']}', 'total': rpSpaced(total),
-        'chips': [{'t': 'Uang pas', 'i': 10}, {'t': '20rb', 'i': 13}, {'t': '50rb', 'i': 11}, {'t': '100rb', 'i': 12}],
-        'change': got >= total && got > 0 ? rpSpaced(got - total) : '—', 'changeOk': got >= total && got > 0,
-        'ok': got == 0 || got == total ? 'SUDAH DIBAYAR (UANG PAS)' : 'SUDAH DIBAYAR',
-      },
+      {'type': 'title', 't': 'Pembayaran Tunai'},
+      {'type': 'pair', 't': 'Total Tagihan', 'v': rpSpaced(total), 'tone': '', 'tap': -1},
+      {'type': 'input', 'label': 'Uang diterima', 'v': got > 0 ? thousands(got) : '', 'ph': '0', 'numeric': true, 'i': 0},
+      {'type': 'buttons', 'options': [
+        {'t': 'Uang pas', 'on': false, 'i': 10},
+        for (var k = 0; k < chips.length; k++) {'t': '${chips[k] ~/ 1000}rb', 'on': false, 'i': 11 + k},
+      ]},
+      {'type': 'pair', 't': 'Kembalian', 'v': got >= total && got > 0 ? rpSpaced(got - total) : '—', 'tone': got >= total && got > 0 ? 'g' : '', 'tap': -1},
+      {'type': 'button', 't': got == 0 || got == total ? 'SUDAH DIBAYAR (UANG PAS)' : 'SUDAH DIBAYAR', 'primary': true, 'i': 1},
+      {'type': 'button', 't': 'BATAL', 'primary': false, 'i': 2},
     ];
   }
 
   void _cashButton(int index) {
     if (index >= 10) {
-      _form['amount'] = '${index == 10 ? _cartTotal : (index == 11 ? 50000 : (index == 13 ? 20000 : 100000))}';
+      final chips = _cashChips;
+      _form['amount'] = '${index == 10 || index - 11 >= chips.length ? _cartTotal : chips[index - 11]}';
       return _open(_Sheet('cash', _cashItems()));
     }
     if (index == 1) {
@@ -2284,8 +2308,16 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
   }
 
+  /// Butir sama dengan HTML dp178.
   List<Map<String, dynamic>> _dpItems() => [
-        {'type': 'ao', 'kind': 'dp', 'v': '${_form['amount']}', 'method': '${_form['dpMethod']}', 'sub': '$_payName · sisa tagihan ${rp(_cartTotal)}'},
+        {'type': 'title', 't': 'DP / Uang Muka'},
+        {'type': 'hint', 't': '$_payName · sisa tagihan ${rp(_cartTotal)}'},
+        {'type': 'label', 't': 'Nominal DP'},
+        {'type': 'input', 'v': '${_form['amount']}', 'ph': '', 'numeric': true, 'i': 0},
+        {'type': 'label', 't': 'Metode pembayaran'},
+        {'type': 'select', 'options': const ['Tunai', 'QRIS', 'Transfer'], 'index': const ['Tunai', 'QRIS', 'Transfer'].indexOf('${_form['dpMethod']}').clamp(0, 2), 'i': 1},
+        {'type': 'button', 't': 'Simpan DP', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 2},
       ];
 
   void _dpButton(int index) {
