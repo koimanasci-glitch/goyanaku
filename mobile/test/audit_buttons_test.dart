@@ -57,6 +57,15 @@ String explain(Object ex) {
 }
 
 void main() {
+  setUpAll(() async {
+    // Font asli aplikasi; tanpa ini font uji yang lebih lebar membuat tampilan seolah meluber.
+    final loader = FontLoader('Poppins');
+    for (final f in ['Regular', 'Medium', 'SemiBold']) {
+      final bytes = File('assets/fonts/Poppins-$f.ttf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.view(bytes.buffer)));
+    }
+    await loader.load();
+  });
   setUp(() => planAccess.testPlan = 'PLATINUM');
   tearDown(() => planAccess.testPlan = null);
 
@@ -78,10 +87,11 @@ void main() {
 
     Future<PureShellState> fresh([String? page]) async {
       kv = MemoryKvStore(_seed());
-      await tester.pumpWidget(MaterialApp(home: PureShell(key: UniqueKey(), store: kv, clock: () => DateTime(2026, 10, 3, 10))));
+      // Kunci baru di MaterialApp: Navigator ikut baru, jadi rute/popup dari tekanan sebelumnya tidak tersisa.
+      await tester.pumpWidget(MaterialApp(key: UniqueKey(), home: PureShell(store: kv, clock: () => DateTime(2026, 10, 3, 10))));
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 40)));
       await tester.pump();
-      final s = tester.state<PureShellState>(find.byType(PureShell));
+      final s = tester.state<PureShellState>(find.byType(PureShell, skipOffstage: false));
       if (page != null) {
         s.nav(page);
         await settle();
