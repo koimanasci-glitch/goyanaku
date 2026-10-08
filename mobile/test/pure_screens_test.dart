@@ -184,6 +184,18 @@ void main() {
     await shot('pengeluaran');
     s.nav('automation');
     await shot('otomasi');
+    // Hubungkan WhatsApp: formulir Tambah Device, daftar dengan satu draf, lalu popup Scan QR / Kode WhatsApp.
+    s.nav('wadevices195');
+    await shot('wa_perangkat_kosong');
+    s.fmButton(0);
+    s.fmScoped('wa195-form', 'input', 0, 'WA Kasir');
+    s.fmScoped('wa195-form', 'input', 1, '081234567890');
+    await shot('wa_perangkat_form');
+    s.fmScoped('wa195-form', 'button', 0);
+    await shot('wa_perangkat');
+    s.fmButton(1000);
+    await shot('wa_perangkat_hubungkan');
+    s.fmScoped('wa195-pair', 'button', 2);
     s.nav('datacenter');
     await shot('pusat_data');
     (s.debugPage('datacenter') as DataCenterPage).previewImport(0, importTemplates[0]);
