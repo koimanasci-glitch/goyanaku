@@ -22,6 +22,20 @@ return [
     // Trial/Basic 2, Silver 3, Gold 4, Platinum 5). Angka di bawah dipakai bila paket tidak menyebutnya.
     'cashier_devices_per_outlet' => 2,
 
+    // Masuk dengan Google (pemilik): Client ID OAuth yang diterima server, dipisah koma di GOYANA_GOOGLE_CLIENT_IDS.
+    // Kosong = masuk Google dimatikan. Client ID bukan rahasia, tetapi tetap diatur di .env server, bukan di repo.
+    'google' => ['client_ids' => array_values(array_filter(array_map('trim', explode(',', (string) env('GOYANA_GOOGLE_CLIENT_IDS', '')))))],
+
+    // Email pemilik yang usahanya selalu mendapat paket tertinggi tanpa masa berakhir (akun uji pemilik GOYANA).
+    // Diatur di .env server (GOYANA_FULL_ACCESS_EMAILS, dipisah koma), tidak pernah di dalam APK.
+    'full_access' => [
+        'emails' => array_values(array_filter(array_map(fn ($e) => mb_strtolower(trim($e)), explode(',', (string) env('GOYANA_FULL_ACCESS_EMAILS', ''))))),
+        'package' => 'Platinum',
+    ],
+
+    // Sesi aplikasi pemilik: sekali masuk tetap masuk; diperpanjang setiap aplikasi dibuka (keputusan pengguna 8 Oktober 2026).
+    'session' => ['owner_days' => 90],
+
     // Login pegawai (kasir, produksi, kurir) memakai nomor HP + PIN (keputusan pengguna 8 Oktober 2026).
     // Owner dan admin pusat tetap email + password.
     'pin' => [

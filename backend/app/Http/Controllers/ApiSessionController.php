@@ -1,11 +1,12 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{SharedDevice, User};
+use App\Models\{Business, SharedDevice, User};
 use App\Support\{Devices, Outlets, Team};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -23,7 +24,60 @@ class ApiSessionController {
         if (!$user->isActive()) {
             throw ValidationException::withMessages(['email' => 'Akun dinonaktifkan. Hubungi owner usaha.']);
         }
-        return response()->json($this->issue($user, 'android-'.$user->role, now()->addDay(), $data['device_id'] ?? null));
+        return response()->json($this->issue($user, 'android-'.$user->role, $this->passwordExpiry($user), $data['device_id'] ?? null));
+    }
+
+    /** Pemilik tetap masuk lama (diperpanjang tiap aplikasi dibuka); akun pegawai lama dengan password mengikuti masa sesi PIN. */
+    private function passwordExpiry(User $user) {
+        return now()->addDays((int) ($user->role === 'owner' ? config('goyana.session.owner_days') : config('goyana.pin.session_days')));
+    }
+
+    /**
+     * Masuk atau daftar dengan Google. Aplikasi mengirim tanda masuk (ID token) dari Google; server memeriksanya ke Google
+     * dan tidak pernah melihat password. Email yang belum terdaftar langsung dibuatkan usaha baru (trial), sebagai pemilik.
+     */
+    public function google(Request $request) {
+        $data = $request->validate(['id_token' => 'required|string|max:4096', 'device_id' => 'nullable|string|min:8|max:64',
+            'business_name' => 'nullable|string|max:120']);
+        $clients = (array) config('goyana.google.client_ids');
+        abort_if(!$clients, 503, 'Masuk dengan Google belum diaktifkan di server ini.');
+        $fail = fn (string $why = 'Tanda masuk Google tidak valid. Coba lagi.') => throw ValidationException::withMessages(['id_token' => $why]);
+        try {
+            $reply = Http::timeout(10)->acceptJson()->get('https://oauth2.googleapis.com/tokeninfo', ['id_token' => $data['id_token']]);
+        } catch (\Throwable) {
+            abort(503, 'Server tidak dapat menghubungi Google. Coba lagi sebentar.');
+        }
+        $info = $reply->successful() ? (array) $reply->json() : [];
+        $email = mb_strtolower(trim((string) ($info['email'] ?? '')));
+        $verified = in_array($info['email_verified'] ?? false, [true, 'true'], true);
+        if (!in_array((string) ($info['aud'] ?? ''), $clients, true) || !in_array((string) ($info['iss'] ?? ''), ['accounts.google.com', 'https://accounts.google.com'], true)
+            || (int) ($info['exp'] ?? 0) < time() || $email === '' || !$verified || empty($info['sub'])) $fail();
+        $sub = (string) $info['sub'];
+
+        $user = User::where('google_id', $sub)->first() ?? User::where('email', $email)->first();
+        $created = false;
+        if ($user) {
+            // Administrator pusat hanya masuk lewat web dengan verifikasi dua langkah.
+            if ($user->is_platform_admin || !$user->business_id) $fail('Akun ini tidak bisa dipakai di aplikasi kasir.');
+            if (!$user->isActive()) $fail('Akun dinonaktifkan. Hubungi owner usaha.');
+            if (!$user->google_id) { $user->google_id = $sub; $user->email_verified_at ??= now(); $user->save(); }
+        } else {
+            $name = mb_substr(trim((string) ($info['name'] ?? '')) ?: strstr($email, '@', true), 0, 120);
+            $businessName = trim((string) ($data['business_name'] ?? '')) ?: 'Laundry '.mb_substr($name, 0, 100);
+            $user = DB::transaction(function () use ($name, $email, $sub, $businessName) {
+                $business = Business::create(['name' => $businessName, 'trial_ends_at' => now()->addMonthsNoOverflow((int) config('goyana.trial.months'))]);
+                $business->outlets()->create(['name' => $businessName.' — Pusat']);
+                $user = new User(['name' => $name, 'email' => $email]);
+                $user->business()->associate($business);
+                $user->role = 'owner'; $user->google_id = $sub; $user->email_verified_at = now();
+                $user->save();
+                Team::audit($user, 'owner.registered_google', ['user_id' => $user->id]);
+                return $user;
+            });
+            $created = true;
+        }
+        return response()->json($this->issue($user, 'google-'.$user->role, $this->passwordExpiry($user), $data['device_id'] ?? null) + ['created' => $created],
+            $created ? 201 : 200);
     }
 
     /** Login pegawai: nomor HP + PIN di HP sendiri, atau pilih nama + PIN di HP outlet yang sudah diikat owner. */
@@ -87,6 +141,14 @@ class ApiSessionController {
         $home = $user->role === 'owner' ? null : $outlets->firstWhere('id', $user->outlet_id);
         $device = (string) $request->query('device_id', '');
         $deviceCode = $user->orderMode() === 'courier' ? 'K'.$user->id : ($home && $device !== '' ? Devices::slot($home->id, $device) : null);
+        // Sekali masuk tetap masuk: masa sesi diperpanjang setiap aplikasi dibuka.
+        $token = $user->currentAccessToken(); $expires = null;
+        if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
+            $fresh = str_starts_with((string) $token->name, 'pin-') || str_starts_with((string) $token->name, 'bersama-')
+                ? now()->addDays((int) config('goyana.pin.session_days')) : $this->passwordExpiry($user);
+            if (!$token->expires_at || $token->expires_at->lt($fresh->copy()->subDay())) { $token->expires_at = $fresh; $token->save(); }
+            $expires = $token->expires_at?->toIso8601String();
+        }
         return response()->json([
             'user' => ['id' => $user->id, 'name' => $user->name, 'role' => $user->role, 'role_label' => $user->roleLabel(),
                 'permissions' => $user->permissions(), 'outlet_id' => $user->outlet_id, 'phone' => $user->phone,
@@ -99,6 +161,8 @@ class ApiSessionController {
             ],
             'outlets' => $outlets->map(fn ($o) => Outlets::present($o))->values(),
             'note' => ['prefix' => $home ? Outlets::ensureCode($home) : null, 'device' => $deviceCode === null ? null : (string) $deviceCode],
+            'session' => ['expires_at' => $expires],
+            'google' => ['client_ids' => (array) config('goyana.google.client_ids')],
             'rules' => ['stages' => config('goyana.orders.stages'), 'done_status' => config('goyana.orders.done_status'),
                 'pin_length' => (int) config('goyana.pin.length')],
         ]);

@@ -58,6 +58,8 @@ class _Server {
   List<String>? perms;
   String noteDevice = '1';
   int outletLimit = 3;
+  List<String> googleClients = ['client-goyana.apps.googleusercontent.com'];
+  String sessionExpires = '';
   List<Map<String, dynamic>> outlets = [
     {'id': 5, 'key': 'srv-5', 'name': 'Pusat', 'code': 'PUS', 'address': 'Jl. Server', 'phone': '6281'},
   ];
@@ -66,7 +68,13 @@ class _Server {
     final data = body == null ? <String, dynamic>{} : Map<String, dynamic>.from(jsonDecode(body) as Map);
     calls.add({'method': method, 'path': url.path, 'query': url.query, 'auth': headers['Authorization'] ?? '', 'body': data});
     if (status != 200) return ServerReply(status, jsonEncode({'message': 'Ditolak'}));
-    if (url.path == '/api/session' || url.path == '/api/session/pin') {
+    if (url.path == '/api/session/options') {
+      return ServerReply(200, jsonEncode({
+        'google': {'client_ids': googleClients},
+        'pin_length': 6,
+      }));
+    }
+    if (url.path == '/api/session' || url.path == '/api/session/pin' || url.path == '/api/session/google') {
       return ServerReply(200, jsonEncode({'token': 'tok-1', 'expires_at': '2099-01-01T00:00:00+00:00'}));
     }
     if (url.path == '/api/me') {
@@ -76,6 +84,7 @@ class _Server {
         'access': {'package': 'Silver', 'read_only': false, 'outlet_limit': 3, 'cashier_device_limit': 3},
         'outlets': outlets,
         'note': {'prefix': 'PUS', 'device': noteDevice},
+        if (sessionExpires.isNotEmpty) 'session': {'expires_at': sessionExpires},
       }));
     }
     if (url.path == '/api/outlets' && method == 'POST') {
@@ -568,6 +577,36 @@ void main() {
     await sync.unbindShared();
     expect(sync.sharedBound, isFalse);
     expect(await sync.roster(), isEmpty);
+  });
+
+  test('masuk dengan Google: tanda masuk dikirim ke server, sesi diperpanjang tiap aplikasi dibuka', () async {
+    final kv = _phone(), server = _Server();
+    final sync = ServerSync(kv, send: server.send, clock: () => DateTime.utc(2026, 10, 8));
+    await sync.load();
+    await sync.setUrl('https://app.goyana.test');
+    expect(await sync.googleClientIds(), ['client-goyana.apps.googleusercontent.com']);
+    await expectLater(sync.loginGoogle(''), throwsA(isA<ServerFailure>()));
+    await sync.loginGoogle('tanda-dari-google');
+    final sent = server.calls.lastWhere((c) => c['path'] == '/api/session/google')['body'] as Map;
+    expect(sent['id_token'], 'tanda-dari-google');
+    expect('${sent['device_id']}'.length, greaterThanOrEqualTo(8));
+    expect([sync.loggedIn, sync.role], [true, 'owner']);
+    expect(jsonDecode(kv.data[Keys.activeOutlet]!), 'srv-5');
+
+    // Server memperpanjang sesi saat profil diambil; masa baru disimpan di HP sehingga aplikasi tetap masuk.
+    server.sessionExpires = '2027-01-06T00:00:00+00:00';
+    await sync.refreshProfile();
+    expect((jsonDecode(kv.data[serverAuthKey]!) as Map)['expires_at'], '2027-01-06T00:00:00+00:00');
+    final later = ServerSync(kv, send: server.send, clock: () => DateTime.utc(2026, 12, 20));
+    await later.load();
+    expect(later.loggedIn, isTrue);
+    final tooLate = ServerSync(kv, send: server.send, clock: () => DateTime.utc(2027, 2, 1));
+    await tooLate.load();
+    expect(tooLate.loggedIn, isFalse);
+
+    // APK uji: alamat server yang diisi sendiri bisa dilepas, aplikasi kembali tanpa akun.
+    await sync.clearUrl();
+    expect([sync.url, kv.data.containsKey(serverUrlKey)], ['', false]);
   });
 
   test('HP pegawai tidak mengirim data yang bukan haknya', () async {

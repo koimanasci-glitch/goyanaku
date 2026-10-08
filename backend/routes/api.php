@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/session', [ApiSessionController::class, 'login'])->middleware('throttle:login');
 Route::post('/session/pin', [ApiSessionController::class, 'loginPin'])->middleware('throttle:pin');
+Route::post('/session/google', [ApiSessionController::class, 'google'])->middleware('throttle:login');
+// Yang perlu diketahui layar masuk aplikasi sebelum ada sesi: apakah masuk Google aktif dan Client ID-nya.
+Route::get('/session/options', fn () => response()->json(['google' => ['client_ids' => (array) config('goyana.google.client_ids')], 'pin_length' => (int) config('goyana.pin.length')]));
 Route::post('/devices/roster', [ApiSessionController::class, 'roster'])->middleware('throttle:pin');
 
 Route::middleware(['auth:sanctum', 'active', 'throttle:api'])->group(function () {

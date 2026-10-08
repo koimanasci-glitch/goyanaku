@@ -41,6 +41,11 @@ class Business extends Model {
         }
         $rank = fn ($p) => config("goyana.packages.$p.rank", 0);
         $best = $candidates->sort(fn ($a, $b) => [$rank($b['package']), $b['ends_at']->getTimestamp()] <=> [$rank($a['package']), $a['ends_at']->getTimestamp()])->first();
+        // Akun uji pemilik GOYANA (config goyana.full_access): selalu paket tertinggi, tanpa masa berakhir.
+        $full = (array) config('goyana.full_access.emails');
+        if ($full && $this->users()->where('role', 'owner')->whereNull('deactivated_at')->whereIn('email', $full)->exists()) {
+            return $this->accessFor((string) config('goyana.full_access.package'), 'beta', $now->toImmutable()->addYears(10), false);
+        }
         if ($best) return $this->accessFor($best['package'], $best['source'], $best['ends_at'], false);
         if ($this->trial_ends_at->isFuture()) {
             return $this->accessFor(config('goyana.trial.package'), 'trial', $this->trial_ends_at, false);

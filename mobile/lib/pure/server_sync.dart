@@ -758,6 +758,29 @@ class ServerSync {
     return _startSession(session, id);
   }
 
+  /// Client ID Google yang diterima server untuk "Masuk dengan Google"; kosong = belum diaktifkan di server.
+  Future<List<String>> googleClientIds() async {
+    final j = await _request('GET', '/session/options');
+    return [for (final c in _asList(_asMap(j['google'])['client_ids'])) if (_text(c).isNotEmpty) _text(c)];
+  }
+
+  /// Masuk atau daftar dengan Google. [idToken] = tanda masuk dari Google di HP ini; password tidak pernah lewat aplikasi.
+  /// Email yang belum terdaftar langsung dibuatkan usaha baru oleh server. Mengembalikan true bila data outlet di HP berubah.
+  Future<bool> loginGoogle(String idToken) async {
+    if (idToken.isEmpty) throw const ServerFailure('Google tidak memberikan tanda masuk. Coba lagi.');
+    final device = await deviceId();
+    await _prepareDevice();
+    final session = await _request('POST', '/session/google', {'id_token': idToken, 'device_id': device});
+    return _startSession(session, 'google');
+  }
+
+  /// Lepas alamat server yang diisi sendiri (APK uji): aplikasi kembali bisa dipakai tanpa akun.
+  Future<void> clearUrl() async {
+    await kv.remove(serverUrlKey);
+    _url = serverDefaultUrl.replaceAll(RegExp(r'/+$'), '');
+    onChanged?.call();
+  }
+
   /// Ambil profil, paket, dan outlet akun ini, lalu petakan outlet ke id server.
   Future<bool> refreshProfile() async {
     final device = await deviceId();
@@ -767,6 +790,9 @@ class ServerSync {
     for (final k in const ['user', 'business', 'access', 'outlets', 'note', 'rules']) {
       a[k] = me[k];
     }
+    // Sekali masuk tetap masuk: server memperpanjang masa sesi setiap aplikasi dibuka.
+    final expires = _text(_asMap(me['session'])['expires_at']);
+    if (expires.isNotEmpty) a['expires_at'] = expires;
     // Slot HP kasir di outlet tugas mengikuti server: slot yang dicabut owner tidak dipakai lagi untuk nomor nota.
     final home = _text(_asMap(me['user'])['outlet_id']);
     if (home.isNotEmpty && can('orders.create')) {

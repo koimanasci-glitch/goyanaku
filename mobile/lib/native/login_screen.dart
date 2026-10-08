@@ -46,10 +46,30 @@ class LoginBindings {
 /// Login screen: red gradient, frosted card, the G with the perched bird.
 /// Fields and buttons act on the same elements of the HTML form.
 class NativeLogin extends StatefulWidget {
-  const NativeLogin({super.key, required this.items, required this.bindings, required this.actions});
+  const NativeLogin({
+    super.key,
+    required this.items,
+    required this.bindings,
+    required this.actions,
+    this.onGoogle,
+    this.onRegister,
+    this.note = '',
+    this.footer = '',
+    this.onFooter,
+  });
   final List<Map<String, dynamic>> items;
   final LoginBindings bindings;
   final FormActions actions;
+
+  /// Mode Murni: tombol Google dan "Buat Akun Baru" tersambung ke server. null = keterangan "belum tersedia" (Hibrida).
+  final VoidCallback? onGoogle, onRegister;
+
+  /// Pesan dari luar (mis. "PIN tidak sesuai"), tampil di bawah tombol Google.
+  final String note;
+
+  /// Tautan kecil di bawah kartu (mis. "Pakai tanpa server" pada APK uji). Kosong = tidak tampil.
+  final String footer;
+  final VoidCallback? onFooter;
   @override
   State<NativeLogin> createState() => _NativeLoginState();
 }
@@ -195,7 +215,7 @@ class _NativeLoginState extends State<NativeLogin> {
                               key: const Key('login-pass'),
                               c: _pass,
                               icon: Icons.lock_outline_rounded,
-                              hint: 'Masukkan password',
+                              hint: widget.onGoogle == null ? 'Masukkan password' : 'Masukkan password atau PIN',
                               secret: true,
                               action: TextInputAction.done,
                               onChanged: (v) => widget.actions.fmInput(b.pass, v),
@@ -272,7 +292,7 @@ class _NativeLoginState extends State<NativeLogin> {
                             const SizedBox(height: 14),
                             GestureDetector(
                               key: const Key('login-google'),
-                              onTap: () => setState(() => _note = 'Masuk dengan Google belum tersedia di versi ini.'),
+                              onTap: widget.onGoogle ?? () => setState(() => _note = 'Masuk dengan Google belum tersedia di versi ini.'),
                               child: Container(
                                 height: 52,
                                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
@@ -285,17 +305,17 @@ class _NativeLoginState extends State<NativeLogin> {
                                 ]),
                               ),
                             ),
-                            if (_note.isNotEmpty)
+                            if (widget.note.isNotEmpty || _note.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 10),
-                                child: Text(_note, textAlign: TextAlign.center, style: gText(12.5, c: Colors.white)),
+                                child: Text(widget.note.isNotEmpty ? widget.note : _note, textAlign: TextAlign.center, style: gText(12.5, c: Colors.white)),
                               ),
                             const SizedBox(height: 16),
                             Center(child: Text('Belum punya akun?', style: gText(13.5, c: Colors.white))),
                             const SizedBox(height: 8),
                             GestureDetector(
                               key: const Key('login-register'),
-                              onTap: () => setState(() => _note = 'Pendaftaran akun baru menyusul.'),
+                              onTap: widget.onRegister ?? () => setState(() => _note = 'Pendaftaran akun baru menyusul.'),
                               child: Container(
                                 height: 48,
                                 margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -316,6 +336,21 @@ class _NativeLoginState extends State<NativeLogin> {
                         ),
                       ),
                     ),
+                    if (widget.footer.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 14),
+                        child: Center(
+                          child: GestureDetector(
+                            key: const Key('login-footer'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: widget.onFooter,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Text(widget.footer, style: gText(13, c: Colors.white)),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

@@ -39,6 +39,7 @@ import 'discounts.dart';
 import '../native/common.dart';
 import '../native/customers_page.dart';
 import '../native/form_page.dart';
+import '../native/login_screen.dart';
 import '../native/home_page.dart';
 import '../logic/crm.dart';
 import '../logic/reports_a8.dart';
@@ -49,6 +50,7 @@ import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import '../logic/reports_catalog.dart';
 import 'courier_home.dart';
+import 'google_login.dart';
 import 'pages.dart';
 import 'pickup_pages.dart';
 import 'ralat.dart';
@@ -81,6 +83,45 @@ class _Sheet {
   final List<Map<String, dynamic>> items;
   /// Popup dengan widget khusus Hibrida (hist115, wa131, photo115): pohon tampilan.
   final Map<String, dynamic>? mirror;
+}
+
+/// Penghubung layar masuk (NativeLogin) ke mesin sinkronisasi: isian 0 = email/nomor HP, 1 = password/PIN;
+/// tombol 0 = Masuk, tombol 1 = Lupa Password (dibuka di web server).
+class _GateActions implements FormActions {
+  _GateActions(this.shell);
+  final PureShellState shell;
+  @override
+  void fmInput(int index, Object value) {
+    if (index == 0) shell._srvUser = '$value';
+    if (index == 1) shell._srvPass = '$value';
+  }
+
+  @override
+  void fmButton(int index) {
+    if (index == 0) {
+      shell._srvRoster = [];
+      shell._srvLogin();
+    } else {
+      shell._gateOpen('/forgot-password');
+    }
+  }
+
+  @override
+  void scan() {}
+  @override
+  void nav(String pageId) {}
+  @override
+  void fmBack() {}
+  @override
+  void fmToggle(int index) {}
+  @override
+  void fmRadio(int index) {}
+  @override
+  void fmFile(String inputId) {}
+  @override
+  void fmTap(int index) {}
+  @override
+  void fmScoped(String scope, String kind, int index, [Object? value]) {}
 }
 
 class PureShellState extends State<PureShell> implements OrderDetailActions, HomeActions, OrdersActions, AddOrderActions, CustomersActions, FormActions, SettingsActions, ReportsActions, ReportDetailActions, ServicesActions, PureHost {
@@ -417,6 +458,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     serverNoteCode = _srv.noteCode;
     await _srv.load();
     if (!mounted) return;
+    setState(() => _srvLoaded = true);
+    // HP outlet yang dipakai bergantian langsung menampilkan pilihan nama.
+    if (_gate && _srv.sharedBound) unawaited(_srvOpenRoster());
     // Peran tersimpan langsung berlaku; lalu diperbarui dari server (paket, peran, outlet bisa berubah sejak terakhir dibuka).
     _srvAdopt();
     if (_srv.loggedIn) {
@@ -522,6 +566,75 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   List<Map<String, dynamic>> _srvRoster = [];
   int _srvPick = 0;
 
+  // ---------- layar masuk (wajib selama aplikasi tersambung ke server dan belum ada akun yang masuk) ----------
+  bool _srvLoaded = false;
+
+  /// Butir pilihan nama + PIN untuk HP outlet saat layar masuk tampil; null = formulir masuk biasa.
+  List<Map<String, dynamic>>? _gateRoster;
+  late final _GateActions _gateActions = _GateActions(this);
+
+  /// Masuk wajib, cukup sekali (keputusan pengguna 8 Oktober 2026): selama alamat server ada dan belum ada akun yang masuk,
+  /// yang tampil hanya layar masuk. APK tanpa alamat server tetap bisa dipakai tanpa akun.
+  bool get _gate => _srvLoaded && _srv.url.isNotEmpty && !_srv.loggedIn;
+
+  /// Butir lembar/layar masuk yang sedang tampil.
+  List<Map<String, dynamic>> get _loginItems =>
+      _gateRoster ?? _sheets.where((e) => e.id == 'srvlogin').firstOrNull?.items ?? const <Map<String, dynamic>>[];
+
+  void _gateOpen(String path) {
+    _device.invokeMethod('App.openUrl', {'url': '${_srv.url}$path'}).catchError((_) => null);
+  }
+
+  Future<void> _gateGoogle() async {
+    if (_srvLogging) return;
+    _srvLogging = true;
+    try {
+      final ids = await _srv.googleClientIds();
+      if (!mounted) return;
+      if (ids.isEmpty) return toast('Masuk dengan Google belum diaktifkan di server.');
+      final token = await googleIdToken(ids.first);
+      if (token == null || !mounted) return;
+      toast('Masuk ke server…');
+      await _srv.loginGoogle(token);
+      await _srvEntered();
+    } on ServerFailure catch (e) {
+      if (mounted) toast(e.offline ? 'Butuh internet untuk masuk' : e.message);
+    } on GoogleLoginFailure catch (e) {
+      if (mounted) toast(e.message);
+    } finally {
+      _srvLogging = false;
+    }
+  }
+
+  /// Sesudah berhasil masuk dengan cara apa pun: terapkan peran dan paket, muat data, lalu sinkronkan.
+  Future<void> _srvEntered() async {
+    if (!mounted) return;
+    _srvPass = '';
+    _gateRoster = null;
+    _close('srvlogin');
+    _srvAdopt();
+    await reloadAll();
+    if (mounted) toast('Berhasil masuk · data disinkronkan');
+    await _srvCycle();
+  }
+
+  Widget _gateScreen() {
+    final roster = _gateRoster;
+    if (roster != null) return NativeSheet(id: 'srvlogin', screen: true, actions: this, items: roster);
+    final shared = _srv.sharedBound;
+    return NativeLogin(
+      key: const ValueKey('gate-login'),
+      items: const [],
+      bindings: const LoginBindings(0, 1, 0, 1),
+      actions: _gateActions,
+      onGoogle: _gateGoogle,
+      onRegister: () => _gateOpen('/register'),
+      note: _toast,
+      footer: shared ? 'HP outlet · pilih nama lalu PIN' : (serverDefaultUrl.isEmpty ? 'Pakai tanpa server (APK uji)' : ''),
+      onFooter: shared ? _srvOpenRoster : _srv.clearUrl,
+    );
+  }
+
   /// HP outlet: pegawai memilih nama lalu mengetik PIN. Daftar nama diambil dari server.
   Future<void> _srvOpenRoster() async {
     toast('Memuat daftar pegawai…');
@@ -536,15 +649,17 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (_srvRoster.isEmpty) return _srvOpenLogin(form: true);
     _srvPick = 0;
     _srvPass = '';
-    _open(_Sheet('srvlogin', [
+    final items = <Map<String, dynamic>>[
       {'type': 'title', 't': 'Masuk · ${_srv.sharedOutletName}', 's': ''},
       {'type': 'hint', 't': 'Pilih nama Anda, lalu ketik PIN dari pemilik.'},
       {'type': 'select', 'options': [for (final m in _srvRoster) '${m['name']} · ${m['role_label'] ?? ''}'], 'index': 0, 'i': 0},
       {'type': 'input', 'v': '', 'ph': 'PIN', 'numeric': true, 'secret': true, 'i': 1},
       {'type': 'button', 't': 'Masuk', 'primary': true, 'i': 0},
       {'type': 'button', 't': 'Masuk dengan akun lain', 'primary': false, 'i': 2},
-      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1},
-    ]));
+      if (!_gate) {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1},
+    ];
+    if (_gate) return setState(() => _gateRoster = items);
+    _open(_Sheet('srvlogin', items));
   }
 
   void _srvOpenLogin({bool form = false}) {
@@ -555,6 +670,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _srvRoster = [];
     _srvUser = '';
     _srvPass = '';
+    // Layar masuk sudah memuat formulirnya sendiri.
+    if (_gate) return setState(() => _gateRoster = null);
     _open(_Sheet('srvlogin', [
       {'type': 'title', 't': 'Masuk ke server', 's': ''},
       {'type': 'hint', 't': 'Pemilik: email dan password akun GOYANA. Kasir, pegawai, dan kurir: nomor HP dan PIN dari pemilik.'},
@@ -569,8 +686,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (kind == 'input' && index == 0 && _srvRoster.isNotEmpty) {
       // Pilihan nama di HP outlet.
       _srvPick = value is int ? value : int.tryParse('$value') ?? 0;
-      final sheet = _sheets.where((e) => e.id == 'srvlogin').firstOrNull;
-      for (final it in sheet?.items ?? const <Map<String, dynamic>>[]) {
+      for (final it in _loginItems) {
         if (it['type'] == 'select') it['index'] = _srvPick;
       }
       return;
@@ -580,8 +696,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       if (index == 0) _srvUser = text;
       if (index == 1) _srvPass = text;
       // Isian disimpan di butir lembar supaya tidak kosong lagi saat layar digambar ulang.
-      final sheet = _sheets.where((e) => e.id == 'srvlogin').firstOrNull;
-      for (final it in sheet?.items ?? const <Map<String, dynamic>>[]) {
+      for (final it in _loginItems) {
         if (it['type'] == 'input' && it['i'] == index) it['v'] = text;
       }
       return;
@@ -605,14 +720,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       } else {
         await _srv.login(_srvUser, _srvPass);
       }
-      if (mounted) {
-        _srvPass = '';
-        _close('srvlogin');
-        _srvAdopt();
-        await reloadAll();
-        if (mounted) toast('Berhasil masuk · data disinkronkan');
-        await _srvCycle();
-      }
+      await _srvEntered();
     } on ServerFailure catch (e) {
       if (mounted) toast(e.message);
     } finally {
@@ -3193,6 +3301,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   Widget build(BuildContext context) {
     final b = _b;
     if (b == null || _settings == null) return const Material(color: Colors.white, child: Center(child: CircularProgressIndicator(color: gBrand)));
+    if (_gate) return _gateScreen();
     final n = now;
     if (b.outlets.isEmpty) {
       return NativeSheet(id: 'setup', screen: true, actions: this, items: [
