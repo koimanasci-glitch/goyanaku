@@ -885,9 +885,15 @@ Keputusan pengguna 8 Oktober 2026. Yang bertentangan dengan bagian lama **mengga
 - **Monitoring** `GET /api/monitoring` dan peringatan: cucian telat, siap ambil tak diambil, tunai lama dipegang kurir, selisih setoran, HP belum sinkron, kurir tanpa outlet. Dashboard web owner menampilkan peringatan.
 - Rincian endpoint: `backend/README.md`.
 
+### Sisi aplikasi yang sudah dikerjakan 8 Oktober (izin pengguna: "Lanjut satu dan dua")
+- **Kunci Pegawai dibuka di Trial/Basic** di Mode Murni dan HTML; label "(Khusus Paket Premium)" pada hak tahapan dihapus; daftar fitur paket disesuaikan (pengecualian sempit butir 13).
+- **Mode Murni tersambung ke server** (`mobile/lib/pure/server_sync.dart`): Pengaturan → kartu "Sinkronisasi server" → isi alamat → "Simpan & masuk" → lembar masuk (email + password untuk pemilik, nomor HP + PIN untuk kasir/pegawai/kurir). Sinkronisasi dua arah otomatis (setelah menyimpan, tiap 60 detik, dan tombol "Sinkronkan sekarang") dengan protokol yang sama seperti HTML; data server diterapkan saat pengguna tidak sedang mengisi sesuatu. Tugas penjemputan ikut tersinkron. "Keluar Akun" mengakhiri sesi tanpa menghapus data HP.
+- **Paket dan peran dari server berlaku di aplikasi:** fitur terbuka mengikuti paket server; akun selain pemilik tidak bisa membuka Cabang, Pegawai, Kasir, Paket, Pusat Data, dan (tanpa izin) Laporan, Harga/Setelan, Stok.
+- Alamat server bawaan bisa ditanam saat build dengan `--dart-define=GOYANA_API_URL=…` (workflow CI belum diubah; tanpa itu alamat diisi di Pengaturan).
+
 ### Belum (sisi aplikasi, putaran berikutnya)
-- Mode Murni belum tersambung ke server (login, sinkron, Pegawai/Outlet/Kurir/Monitor Cabang masih data HP). Ini syarat agar semua di atas terasa di aplikasi.
-- Tampilan tiga menu kurir, tombol Selesai Proses, tampilan tahap per barang, popup konfirmasi timbangan, penomoran nota baru, pengikatan HP outlet.
-- Pengecualian HTML (butir 13) dan membuka kunci Pegawai di Mode Murni: menyentuh tampilan/fixture dan memakai jatah CI Flutter, jadi menunggu izin pengguna.
+- Halaman Pegawai, Outlet, Kurir, dan Monitor Cabang di Mode Murni masih menulis/membaca data HP; belum memanggil API Kelola Pegawai/Cabang/Monitoring. Sementara ini akun pegawai dibuat owner di dashboard web.
+- Tampilan tiga menu kurir, tombol Selesai Proses, tampilan tahap per barang, popup konfirmasi timbangan, penomoran nota baru, pengikatan HP outlet, layar masuk saat aplikasi pertama dibuka.
+- Sesi server disimpan di penyimpanan aplikasi (SQLite privat), belum di secure storage. Di HP yang dipakai bergantian, data pengguna sebelumnya masih ada di HP setelah keluar akun.
 - Alasan wajib saat mundur tahap: server siap (`goyana.orders.require_reason_for_backward`), dinyalakan setelah aplikasi mengirim alasan.
 - "Diskon terbatas" kasir belum ditegakkan server. Ongkir pada transaksi kurir belum dicocokkan dengan tarif. Belum diuji di MySQL (tes memakai SQLite).

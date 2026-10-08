@@ -1612,3 +1612,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
   - Pengecualian HTML yang disetujui (kunci Pegawai ke Basic, tulisan Silver, label Premium tahapan) dan pembukaan kunci Pegawai di Mode Murni belum dikerjakan: mengubah fixture/tampilan dan memakai jatah CI Flutter. Menunggu izin CI.
   - Klien lama yang dipakai akun pegawai: tombol "Tandai Siap" akan kembali ke tahap semula setelah sinkron (hanya kasir/owner yang boleh). Akun kurir di klien lama tidak lagi menerima database pelanggan.
   - Belum diuji di MySQL. "Diskon terbatas" kasir dan pencocokan ongkir transaksi kurir belum ditegakkan server.
+
+### [Claude] Aplikasi: Pegawai di Basic + Mode Murni tersambung ke server (8 Okt, izin "Lanjut satu dan dua")
+- **Bagian 1 — kunci Pegawai**: `access.dart` (employees 2→1), label hak tahapan di `pages.dart`, daftar fitur `plan_page.dart`, fixture `forms/employees.json` + `pure/employees.json`, tes kunci paket; HTML: `goyana-v190-subscription-layout.js` (kunci + baris Silver), `index.html` (4 label). Uji lokal HTML: package-ui, subscription-stock, regression lulus.
+- **Bagian 2 — Mode Murni ke server**: baru `mobile/lib/pure/server_sync.dart`, `mobile/test/server_sync_test.dart`; diubah `pure_shell.dart` (kartu sinkron, lembar masuk, keluar akun, pembatasan menu per peran, jeda terapkan data), `access.dart` (`serverPlan`). Tampilan tidak berubah selama alamat server kosong.
+- **CI bagian 1**: `Flutter foundation` run 37740950318 (commit Pegawai di Basic) — SUCCESS: jembatan browser, analyze, tes unit, screenshot, APK hibrida + APK Mode Murni terbit di rilis `flutter-uji`. 1 CI dipakai.
+- **Flutter SDK tidak ada di cloud** dan tidak bisa diunduh dari sini, jadi kode Dart bagian 2 hanya dicek sintaksnya (tree-sitter) sebelum CI. Hasil CI bagian 2 dicatat di bawah.
+- **Belum**: halaman Pegawai/Outlet/Kurir/Monitor Cabang memanggil API; tampilan kurir; lihat SISTEM-PUSAT §49 "Belum".

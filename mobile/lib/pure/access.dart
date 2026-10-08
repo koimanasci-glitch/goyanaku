@@ -41,10 +41,16 @@ class PlanAccess {
     }
   }
 
-  /// Belum ada pembayaran paket (menunggu server), jadi: Mode Uji → paket uji; trial aktif → rank 1; selain itu 0.
+  /// Paket dari server setelah masuk (BASIC/SILVER/GOLD/PLATINUM). null = belum masuk ke server;
+  /// teks kosong = paket berakhir (baca saja). Server adalah sumber aturan paket.
+  String? serverPlan;
+
+  /// Mode Uji → paket uji; sudah masuk ke server → paket dari server; selain itu trial lokal aktif → rank 1, habis → 0.
   int rank(DateTime now) {
     final t = testPlan;
     if (t != null) return planCatalog.firstWhere((p) => p[0] == t, orElse: () => planCatalog.last)[1] as int;
+    final sp = serverPlan;
+    if (sp != null) return (planCatalog.where((p) => p[0] == sp).firstOrNull?[1] as int?) ?? 0;
     return trialUntil != null && trialUntil!.isAfter(now) ? 1 : 0;
   }
 

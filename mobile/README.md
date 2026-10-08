@@ -79,3 +79,11 @@ Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
 | Printer & Nota, Profil | ✅ lewat **formulir generik** (`form_page.dart`). Halaman form sederhana lain cukup ditambah ke `formModel` + `_formPages` |
 | Pegawai, Outlet, Kurir, Stok, CRM, WhatsApp, dll. | berikutnya |
 | Pengaturan, stok, kurir, WhatsApp, dll. | bertahap |
+
+## Mode Murni tersambung ke server (8 Oktober 2026)
+
+`lib/pure/server_sync.dart` adalah padanan Dart dari `goyana-sync-core.js` + `goyana-v197-sync.js`: memetakan penyimpanan lokal (kunci yang sama dengan HTML) ke koleksi server, masuk ke server, dan menjalankan putaran tarik → kirim. Status dan sesinya memakai kunci `goyana-psync-*`, terpisah dari mesin sinkron HTML; id perangkat (`goyana-sync-device`) dan alamat server (`goyana-api-url`) dipakai bersama.
+
+- Masuk: Pengaturan → "Sinkronisasi server" → alamat server → "Simpan & masuk". Email + password (pemilik) atau nomor HP + PIN (kasir, pegawai, kurir).
+- Uji tanpa jaringan: `test/server_sync_test.dart` memakai server tiruan (pemetaan data, masuk, kirim sekali tanpa bolak-balik, bentrok, ditolak, offline, sesi dicabut).
+- Belum diuji dengan server sungguhan dari HP. Butuh server yang sudah online (HTTPS) untuk uji itu.

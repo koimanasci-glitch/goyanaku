@@ -55,6 +55,7 @@ import 'rank_page.dart';
 import 'reminders.dart';
 import 'reports_dart.dart';
 import 'scan_page.dart';
+import 'server_sync.dart';
 import 'service_icons.dart';
 import 'settings_menu.dart';
 import 'views.dart';
@@ -342,6 +343,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         _applyAuto();
         _hppSync();
         syncReminders();
+        _srvStart();
       }
     });
     gBrandWord = 'GOYANA';
@@ -356,7 +358,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   void _applyAuto() {
     final b = _b;
-    if (!mounted || b == null || _settings == null) return;
+    if (!mounted || b == null || _settings == null || _srvBusy) return;
     final a = _auto;
     final steps = a['p'] == true
         ? {for (final e in const {'cuci': 60, 'kering': 90, 'setrika': 60, 'packing': 20}.entries) e.key: (num.tryParse('${(a['step'] as Map?)?[e.key] ?? e.value}') ?? e.value).toDouble()}
@@ -374,6 +376,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _autoTimer?.cancel();
     _pointTimer?.cancel();
     _remTimer?.cancel();
+    _srvTimer?.cancel();
+    _srvSoon?.cancel();
     super.dispose();
   }
 
@@ -387,10 +391,168 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   Future<void> _save() async {
+    // Saat data dari server sedang diterapkan, isi memori segera diganti; jangan menimpanya ke penyimpanan.
+    if (_srvBusy) return;
     final ok = await _b!.save();
     if (!ok) toast('Penyimpanan perangkat penuh. Data belum tersimpan permanen.');
     await _hppSync();
     syncReminders();
+    _srvKick();
+  }
+
+  // ---------------- Server GOYANA: masuk dan sinkronisasi (server_sync.dart) ----------------
+  late final ServerSync _srv = ServerSync(widget.store, onChanged: _srvChanged);
+  Timer? _srvTimer, _srvSoon;
+  bool _srvBusy = false, _srvLogging = false;
+  String _srvUrlDraft = '', _srvUser = '', _srvPass = '';
+
+  void _srvChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _srvStart() async {
+    await _srv.load();
+    if (!mounted) return;
+    _srvAdopt();
+    await _srvApply();
+    if (!mounted) return;
+    _srvTimer = Timer.periodic(const Duration(seconds: 60), (_) => _srvCycle());
+    await _srvCycle();
+  }
+
+  /// Peran dan paket dari server berlaku di aplikasi: selain pemilik dibatasi seperti sesi kasir.
+  void _srvAdopt() {
+    if (!_srv.loggedIn) {
+      planAccess.serverPlan = null;
+      return;
+    }
+    final access = _srv.access;
+    planAccess.serverPlan = access['read_only'] == true ? '' : '${access['package'] ?? ''}'.toUpperCase();
+    final name = '${_srv.user['name'] ?? ''}';
+    setState(() {
+      if (name.isNotEmpty) _kasir = name;
+      _kasirSession = _srv.role != 'owner';
+    });
+  }
+
+  /// Menu yang dibatasi peran saat akun pegawai masuk ke server (server juga menolak tindakannya).
+  /// Mengembalikan pesan penolakan, atau null bila boleh dibuka.
+  String? _srvDenied(String pageId) {
+    if (!_srv.loggedIn || _srv.role == 'owner') return null;
+    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
+      return 'Hanya pemilik yang bisa membuka menu ini';
+    }
+    if (const {'reports', 'rp', 'branchmonitor58'}.contains(pageId) && !_srv.can('reports.view')) return 'Laporan hanya untuk pemilik';
+    if (const {'services', 'duration', 'perfume', 'discounts', 'delivery', 'qris', 'finance'}.contains(pageId) && !_srv.can('prices.edit')) {
+      return 'Harga dan setelan usaha diatur pemilik';
+    }
+    if (pageId == 'stock' && !_srv.can('stock.manage') && !_srv.can('stock.use')) return 'Stok diatur pemilik';
+    if (pageId == 'addorder' && !_srv.can('orders.create') && !_srv.can('courier.tasks')) return 'Akun ini tidak membuat transaksi';
+    return null;
+  }
+
+  /// Perubahan lokal dikirim tidak lama setelah disimpan (beberapa perubahan beruntun cukup sekali).
+  void _srvKick() {
+    if (!_srv.loggedIn) return;
+    _srvSoon?.cancel();
+    _srvSoon = Timer(const Duration(milliseconds: 2500), _srvCycle);
+  }
+
+  Future<void> _srvCycle() async {
+    if (!mounted || !_srv.loggedIn) return;
+    await _srv.cycle();
+    await _srvApply();
+  }
+
+  /// Data dari server diterapkan saat pengguna tidak sedang mengisi sesuatu (sama dengan aplikasi HTML).
+  bool get _srvIdle =>
+      _sheets.isEmpty && _pageSheets.isEmpty && _detailId == null && _payOrderId == null && _aoSheet == null &&
+      const {'home', 'orders', 'customers', 'reports', 'settings', 'datacenter'}.contains(_page);
+
+  Future<void> _srvApply() async {
+    if (_srvBusy || !mounted || !_srvIdle) return;
+    _srvBusy = true;
+    try {
+      if (await _srv.inboxCount() > 0 && mounted && _srvIdle) {
+        await _srv.applyInbox();
+        if (mounted) await reloadAll();
+      }
+    } finally {
+      _srvBusy = false;
+    }
+  }
+
+  Future<void> _srvSaveUrl() async {
+    final problem = await _srv.setUrl(_srvUrlDraft.trim().isEmpty ? _srv.url : _srvUrlDraft);
+    if (!mounted) return;
+    if (problem != null) return toast(problem);
+    if (_srv.loggedIn) return toast('Alamat server tersimpan');
+    _srvOpenLogin();
+  }
+
+  void _srvOpenLogin() {
+    _srvUser = '';
+    _srvPass = '';
+    _open(_Sheet('srvlogin', [
+      {'type': 'title', 't': 'Masuk ke server', 's': ''},
+      {'type': 'hint', 't': 'Pemilik: email dan password akun GOYANA. Kasir, pegawai, dan kurir: nomor HP dan PIN dari pemilik.'},
+      {'type': 'input', 'v': '', 'ph': 'Email atau nomor HP', 'i': 0},
+      {'type': 'input', 'v': '', 'ph': 'Password atau PIN', 'secret': true, 'i': 1},
+      {'type': 'button', 't': 'Masuk', 'primary': true, 'i': 0},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1},
+    ]));
+  }
+
+  void _srvLoginEvent(String kind, int index, Object? value) {
+    if (kind == 'input') {
+      final text = '${value ?? ''}';
+      if (index == 0) _srvUser = text;
+      if (index == 1) _srvPass = text;
+      // Isian disimpan di butir lembar supaya tidak kosong lagi saat layar digambar ulang.
+      final sheet = _sheets.where((e) => e.id == 'srvlogin').firstOrNull;
+      for (final it in sheet?.items ?? const <Map<String, dynamic>>[]) {
+        if (it['type'] == 'input' && it['i'] == index) it['v'] = text;
+      }
+      return;
+    }
+    if (kind == 'button' && index == 0) {
+      _srvLogin();
+      return;
+    }
+    _close('srvlogin');
+  }
+
+  Future<void> _srvLogin() async {
+    if (_srvLogging) return;
+    _srvLogging = true;
+    toast('Masuk ke server…');
+    try {
+      await _srv.login(_srvUser, _srvPass);
+      if (mounted) {
+        _srvPass = '';
+        _close('srvlogin');
+        _srvAdopt();
+        await reloadAll();
+        if (mounted) toast('Berhasil masuk · data disinkronkan');
+        await _srvCycle();
+      }
+    } on ServerFailure catch (e) {
+      if (mounted) toast(e.message);
+    } finally {
+      _srvLogging = false;
+    }
+  }
+
+  Future<void> _srvLogout() async {
+    if (!_srv.loggedIn) return toast('Akun server belum masuk di HP ini');
+    await _srv.logout();
+    planAccess.serverPlan = null;
+    if (!mounted) return;
+    setState(() {
+      _kasir = 'Kasir';
+      _kasirSession = false;
+    });
+    toast('Keluar dari akun server · data di HP ini tetap ada');
   }
 
   // ---------- Reminder Pekerjaan: notifikasi HP dijadwalkan dari data pesanan & stok ----------
@@ -804,6 +966,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void nav(String pageId) {
     final gate = pageGates[pageId];
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
+    final denied = _srvDenied(pageId);
+    if (denied != null) return toast(denied);
     if (_kasirSession && const {'cashier', 'employees', 'pinlock'}.contains(pageId)) return toast('Hanya pemilik · buka aplikasi dengan PIN Admin');
     if (_page == 'crm') _loadCrmRule();
     if (_page == 'stock') _hppSync();
@@ -870,6 +1034,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   final Set<int> _stOpen = {};
   Map<String, dynamic> _settingsJson() {
     final m = jsonDecode(settingsMenuJson) as Map<String, dynamic>;
+    // Kartu sinkronisasi: tanpa alamat server tampil seperti semula ("Belum terhubung").
+    final card = _srv.card();
+    if (card != null) m['sync'] = card;
     // Permintaan Koiman (7 Okt): 4 menu WhatsApp yang berdiri sendiri digabung jadi satu kategori "WhatsApp Chatbot"
     // dengan ikon berwarna; salinannya di grup Pelanggan dibuang supaya Pengaturan tidak kepanjangan.
     final groups = m['groups'] as List;
@@ -953,11 +1120,19 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void stItem(int group, int item) => _stGo('$group/$item');
   @override
-  void stSyncUrl(String url) {}
+  void stSyncUrl(String url) => _srvUrlDraft = url;
   @override
-  void stSyncSave() => toast('Server GOYANA belum aktif');
+  void stSyncSave() {
+    _srvSaveUrl();
+  }
+
   @override
-  void stSyncNow() => toast('Server GOYANA belum aktif');
+  void stSyncNow() {
+    if (!_srv.loggedIn) return toast('Masuk ke server dulu');
+    toast('Menyinkronkan…');
+    _srvCycle();
+  }
+
   @override
   void stAcctGo() => nav('upgrade');
   @override
@@ -965,7 +1140,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void stAcctLink() => nav('upgrade');
   @override
-  void stLogout() => toast('Akun server belum aktif');
+  void stLogout() {
+    _srvLogout();
+  }
+
   @override
   void stTutorial() => nav('helpcenter');
 
@@ -1804,6 +1982,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void fmScoped(String scope, String kind, int index, [Object? value]) {
     final b = _b;
     if (b == null) return;
+    if (scope == 'srvlogin') return _srvLoginEvent(kind, index, value);
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
     if (scope == 'cat99') return _catEvent(kind, index, value);
     if (scope == 'qr160-menu') {
