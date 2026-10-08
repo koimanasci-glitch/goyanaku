@@ -38,12 +38,13 @@ class _WhatsAppDevicesPageState extends State<WhatsAppDevicesPage> {
     try {
       await work();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => notice = e is WaFailure
               ? e.message
               : 'Proses belum berhasil. Periksa koneksi lalu coba lagi.',
         );
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -431,12 +432,13 @@ class _DeviceFormState extends State<_DeviceForm> {
       ),
       FilledButton(
         onPressed: () {
-          if (form.currentState!.validate())
+          if (form.currentState!.validate()) {
             Navigator.pop(context, (
               name: name.text,
               phone: phone.text,
               outlet: outlet!,
             ));
+          }
         },
         child: const Text('Simpan'),
       ),
@@ -467,8 +469,9 @@ class _PairingDialogState extends State<_PairingDialog>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed && mounted)
+    if (state != AppLifecycleState.resumed && mounted) {
       setState(() => hidden = true);
+    }
   }
 
   @override

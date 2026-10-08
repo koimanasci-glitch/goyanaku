@@ -104,16 +104,18 @@ class WaPairing {
 }
 
 String normalizeWaPhone(String value) {
-  if (!RegExp(r'^\+?[0-9 ()-]+$').hasMatch(value.trim()))
+  if (!RegExp(r'^\+?[0-9 ()-]+$').hasMatch(value.trim())) {
     throw const WaFailure('Nomor WhatsApp tidak valid.');
+  }
   var n = value.replaceAll(RegExp(r'\D'), '');
   if (n.startsWith('0')) {
     n = '62${n.substring(1)}';
   } else if (n.startsWith('8')) {
     n = '62$n';
   }
-  if (!RegExp(r'^[1-9][0-9]{7,14}$').hasMatch(n))
+  if (!RegExp(r'^[1-9][0-9]{7,14}$').hasMatch(n)) {
     throw const WaFailure('Nomor WhatsApp tidak valid.');
+  }
   return n;
 }
 
@@ -134,8 +136,9 @@ class WaDeviceStore {
     this.request,
     DateTime Function()? clock,
   }) : clock = clock ?? DateTime.now {
-    if (accountScope.trim().isEmpty)
+    if (accountScope.trim().isEmpty) {
       throw ArgumentError('A stable local business/account scope is required.');
+    }
   }
   final WaStorage storage;
   // Must be recreated on account change, including request/token callback.
@@ -162,10 +165,11 @@ class WaDeviceStore {
   }
 
   Future<void> _persist(List<WaDevice> next) async {
-    if (!_storageReadable)
+    if (!_storageReadable) {
       throw const WaFailure(
         'Draf lama tidak dapat dibaca. Pulihkan penyimpanan sebelum mengubah data.',
       );
+    }
     if (!await storage.write(
       storageKey,
       jsonEncode(next.map((d) => d.toJson()).toList()),
@@ -184,10 +188,11 @@ class WaDeviceStore {
     String path, [
     Map<String, dynamic>? data,
   ]) async {
-    if (request == null)
+    if (request == null) {
       throw const WaFailure(
         'Draf tersimpan. Hubungkan ke server Goyana untuk memasangkan WhatsApp.',
       );
+    }
     return request!(method, '/api/whatsapp/$path', data);
   }
 
@@ -238,17 +243,21 @@ class WaDeviceStore {
     required String outletKey,
   }) => _exclusive(() async {
     final n = name.trim();
-    if (n.isEmpty || n.length > 80)
+    if (n.isEmpty || n.length > 80) {
       throw const WaFailure('Isi nama perangkat, maksimal 80 karakter.');
+    }
     final p = normalizeWaPhone(phone);
     final outlet = outlets.where((o) => o.key == outletKey).firstOrNull;
-    if (outlet == null)
+    if (outlet == null) {
       throw const WaFailure('Pilih outlet yang sudah dibuat.');
-    if (_devices.any((d) => d.phone == p && d.id != id))
+    }
+    if (_devices.any((d) => d.phone == p && d.id != id)) {
       throw const WaFailure('Nomor sudah ada dalam daftar.');
+    }
     final old = _devices.where((d) => d.id == id).firstOrNull;
-    if (id != null && old == null)
+    if (id != null && old == null) {
       throw const WaFailure('Perangkat tidak ditemukan.');
+    }
     var next = WaDevice(
       id: id ?? newWaId(),
       name: n,
@@ -257,8 +266,9 @@ class WaDeviceStore {
       serverOutletId: outlet.serverId,
     );
     if (old?.registered == true) {
-      if (outlet.serverId == null)
+      if (outlet.serverId == null) {
         throw const WaFailure('Outlet belum tersinkron ke server.');
+      }
       final json = await _call('PUT', 'devices/${old!.id}', {
         'name': n,
         'phone': p,
@@ -278,16 +288,18 @@ class WaDeviceStore {
       _devices.where((d) => d.id == id).firstOrNull ??
       (throw const WaFailure('Perangkat tidak ditemukan.'));
   Future<WaPairing> pair(String id, String method) => _exclusive(() async {
-    if (!['qr', 'code'].contains(method))
+    if (!['qr', 'code'].contains(method)) {
       throw const WaFailure('Pilih QR atau kode pemasangan.');
+    }
     var d = _get(id);
     if (!d.registered) {
       final outletId = outlets
           .where((o) => o.key == d.outletKey)
           .firstOrNull
           ?.serverId;
-      if (outletId == null)
+      if (outletId == null) {
         throw const WaFailure('Outlet belum tersinkron. Simpan draf dahulu.');
+      }
       final json = await _call('POST', 'devices', {
         'id': d.id,
         'name': d.name,
@@ -315,8 +327,9 @@ class WaDeviceStore {
     required bool services,
   }) => _exclusive(() async {
     final d = _get(id);
-    if (!d.registered)
+    if (!d.registered) {
       throw const WaFailure('Hubungkan perangkat ke server terlebih dahulu.');
+    }
     final json = await _call('PUT', 'devices/$id/automation', {
       'reply_status': status,
       'reply_services': services,
