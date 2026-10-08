@@ -36,6 +36,25 @@ void main() {
   tearDown(() => planAccess.testPlan = null);
   setUpAll(_loadFonts);
 
+  testWidgets('mode murni: pertama kali, Siapkan Outlet', (tester) async {
+    tester.view.physicalSize = const Size(390 * 2, 844 * 2);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: RepaintBoundary(key: const Key('screen'), child: PureShell(store: MemoryKvStore({}), clock: () => DateTime(2026, 10, 3, 10))),
+    ));
+    for (var i = 0; i < 4; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 60)));
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    // Gambar logo dimuat dari aset: beri waktu sampai tergambar.
+    await tester.runAsync(() => precacheImage(const AssetImage('assets/branding/mark.png'), tester.element(find.byType(PureShell))));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(tester.takeException(), isNull);
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('screens/pure_siapkan_outlet.png'));
+  });
+
   testWidgets('mode murni: layar utama', (tester) async {
     tester.view.physicalSize = const Size(390 * 2, 844 * 2);
     tester.view.devicePixelRatio = 2;

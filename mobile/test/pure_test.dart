@@ -307,14 +307,14 @@ void main() {
   testWidgets('pertama kali: isi profil outlet', (tester) async {
     final kv = MemoryKvStore({});
     final s = await _pump(tester, kv);
-    expect(find.text('Selamat datang di GOYANA'), findsOneWidget);
+    expect(find.text('SIAPKAN OUTLET'), findsOneWidget);
     s.fmScoped('setup', 'button', 1);
     await _settle(tester);
-    expect(find.text('Selamat datang di GOYANA'), findsOneWidget, reason: 'nama wajib');
+    expect(find.text('SIAPKAN OUTLET'), findsOneWidget, reason: 'nama wajib');
     s.fmScoped('setup', 'input', 0, 'Goyana Cibubur');
     s.fmScoped('setup', 'button', 1);
     await _settle(tester);
-    expect(find.text('Selamat datang di GOYANA'), findsNothing);
+    expect(find.text('SIAPKAN OUTLET'), findsNothing);
     expect((await Business.load(kv)).outlets.single.name, 'Goyana Cibubur');
     expect(tester.takeException(), isNull);
   });

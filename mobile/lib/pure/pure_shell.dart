@@ -19,6 +19,7 @@ import '../core/store.dart';
 import '../native/addorder_page.dart';
 import '../native/addorder_sheet.dart';
 import '../native/order_detail_page.dart';
+import '../native/outlet_setup.dart';
 import '../native/order_status_qr.dart';
 import '../native/hist115_sheet.dart';
 import '../native/photo115_sheet.dart';
@@ -3304,13 +3305,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (_gate) return _gateScreen();
     final n = now;
     if (b.outlets.isEmpty) {
-      return NativeSheet(id: 'setup', screen: true, actions: this, items: [
-        {'type': 'title', 't': 'Selamat datang di GOYANA', 's': 'Isi data outlet untuk mulai'},
-        {'type': 'input', 'label': 'Nama outlet', 'v': '${_form['oname'] ?? ''}', 'ph': 'Contoh: Goyana Laundry Cibubur', 'i': 0},
-        {'type': 'input', 'label': 'Alamat', 'v': '${_form['oaddr'] ?? ''}', 'ph': 'Alamat outlet (tampil di struk)', 'i': 1},
-        {'type': 'input', 'label': 'Nomor WhatsApp outlet', 'v': '${_form['ophone'] ?? ''}', 'ph': '08…', 'numeric': true, 'i': 2},
-        {'type': 'button', 't': 'Mulai', 'primary': true, 'i': 1},
-        {'type': 'hint', 't': 'Bisa diubah nanti di Pengaturan → Profil Outlet.'},
+      return Stack(children: [
+        Positioned.fill(child: NativeOutletSetup(actions: this, name: '${_form['oname'] ?? ''}', address: '${_form['oaddr'] ?? ''}', phone: '${_form['ophone'] ?? ''}')),
+        // Pesan "Isi nama outlet" dulu tidak terlihat di layar ini.
+        if (_toast.isNotEmpty) Positioned(left: 24, right: 24, bottom: 60, child: IgnorePointer(child: Center(child: NativeToast(text: _toast)))),
       ]);
     }
     if (_locked) {
