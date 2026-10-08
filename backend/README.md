@@ -87,6 +87,12 @@ Semua endpoint di bawah memakai token Sanctum (`Authorization: Bearer …`) kecu
 | `GET /api/courier/cash` | kurir | Tunai yang dipegang dan riwayatnya |
 | `GET /api/courier-cash`, `POST /api/courier-cash/{kurir}/deposit` | kasir/admin outlet (outletnya), owner | Daftar tunai dipegang kurir; terima setoran (`amount`, `note` wajib bila selisih) |
 
+Masuk aplikasi (8 Oktober 2026 malam):
+- `POST /api/session/google` (`id_token`, `device_id`, opsional `business_name`): tanda masuk Google diperiksa ke Google (audiens harus salah satu `GOYANA_GOOGLE_CLIENT_IDS`). Email yang belum terdaftar langsung dibuatkan usaha baru (trial) sebagai owner; jawabannya memuat `created`.
+- `GET /api/session/options`: Client ID Google dan panjang PIN untuk layar masuk.
+- Sesi owner 90 hari (`goyana.session.owner_days`), sesi PIN 30 hari; `GET /api/me` memperpanjangnya dan mengembalikan `session.expires_at`.
+- `GOYANA_FULL_ACCESS_EMAILS` (di `.env` server): usaha yang owner-nya memakai email itu selalu berpaket Platinum tanpa masa berakhir.
+
 Sinkronisasi (`/api/sync/push`):
 - Hasil `conflict` kini bisa membawa `message`: kiriman tidak diterima sesuai hak peran dan HP harus memakai `record` dari server. Klien lama mengabaikan `message` dan tetap benar.
 - Koleksi baru `pickups` (tugas penjemputan, per outlet). `customers` tidak lagi dikirim ke kurir dan pegawai.
