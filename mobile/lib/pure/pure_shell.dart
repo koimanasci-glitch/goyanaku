@@ -411,9 +411,18 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   Future<void> _srvStart() async {
+    serverNoteCode = _srv.noteCode;
     await _srv.load();
     if (!mounted) return;
+    // Peran tersimpan langsung berlaku; lalu diperbarui dari server (paket, peran, outlet bisa berubah sejak terakhir dibuka).
     _srvAdopt();
+    if (_srv.loggedIn) {
+      try {
+        if (await _srv.refreshProfile() && mounted) await reloadAll();
+      } on ServerFailure catch (_) {}
+      if (!mounted) return;
+      _srvAdopt();
+    }
     await _srvApply();
     if (!mounted) return;
     _srvTimer = Timer.periodic(const Duration(seconds: 60), (_) => _srvCycle());
@@ -460,6 +469,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   Future<void> _srvCycle() async {
     if (!mounted || !_srv.loggedIn) return;
+    await _srv.claimSlot(_b?.activeOutlet ?? '');
     await _srv.cycle();
     await _srvApply();
   }
@@ -986,7 +996,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   Future<void> scan() async {
     final code = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const ScanPage()));
     if (code == null || !mounted) return;
-    final m = RegExp(r'GY-\d{6}-\d+').firstMatch(code);
+    // Nomor nota lama (GY-YYMMDD-NNNN) dan baru (KODE-YYMMDD-HP-NNNN).
+    final m = RegExp(r'[A-Z]{2,4}-\d{6}-(?:[A-Z0-9]{1,6}-)?\d+').firstMatch(code);
     final id = m?.group(0) ?? code.trim();
     if (_b!.orderById(id) == null) return toast('Pesanan $id tidak ditemukan');
     nav('orders');

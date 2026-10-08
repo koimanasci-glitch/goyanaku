@@ -91,6 +91,9 @@ return [
             // Tugas penjemputan sebelum transaksi dibuat (dari kasir, owner, atau chatbot).
             'pickups' => ['scope' => 'outlet', 'read' => ['courier.assign', 'courier.tasks'], 'write' => ['courier.assign', 'courier.tasks']],
             'services' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
+            // Setelan usaha. Kunci yang dikirim Mode Murni (mobile/lib/pure/server_sync.dart): tarif antar-jemput, QRIS,
+            // parfum, durasi layanan, dan "goyana-pure-shared" (diskon, kategori pengeluaran, izin kasir, rekening,
+            // status otomatis, voucher, templat nota). Setelan milik HP (printer, PIN) tidak pernah dikirim.
             'settings' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
             'outlet_profiles' => ['scope' => 'business', 'read' => ['*'], 'write' => ['owner']],
             'couriers' => ['scope' => 'business', 'read' => ['courier.assign', 'courier.tasks'], 'write' => ['courier.assign']],

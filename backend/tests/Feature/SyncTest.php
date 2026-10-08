@@ -177,4 +177,20 @@ class SyncTest extends TestCase {
         ]);
         $this->actingAs($owner)->get('/dashboard')->assertOk()->assertSee('Rp25.000')->assertSee('2 pesanan')->assertSee('1 belum lunas')->assertSee('HP terpasang');
     }
+
+    public function test_business_settings_set_by_owner_reach_staff_phones_but_staff_cannot_change_them(): void {
+        $owner = $this->owner(); $kasir = $this->staff($owner, 'kasir', 0);
+        $shared = json_encode(['discounts' => [['id' => 1, 'name' => 'Diskon 10%']], 'tpl' => ['cashier' => ['tg' => ['3' => false]]]]);
+        $rev = $this->push($this->token($owner), [
+            ['collection' => 'settings', 'key' => 'goyana-pure-shared', 'data' => $shared],
+            ['collection' => 'settings', 'key' => 'goyana-perfumes178', 'data' => '[["Lavender","rgb(1, 2, 3)"]]'],
+        ])->assertJsonPath('results.0.status', 'applied')->json('results.0.rev');
+        $t = $this->token($kasir);
+        $seen = collect($this->pull($t)->json('records'))->where('collection', 'settings')->keyBy('key');
+        $this->assertSame($shared, $seen['goyana-pure-shared']['data']);
+        $this->assertArrayHasKey('goyana-perfumes178', $seen->all());
+        $this->push($t, [['collection' => 'settings', 'key' => 'goyana-pure-shared', 'data' => '{"discounts":[]}', 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'rejected');
+        $this->assertSame($shared, json_decode(\Illuminate\Support\Facades\DB::table('sync_records')->where('record_key', 'goyana-pure-shared')->value('data')));
+    }
 }

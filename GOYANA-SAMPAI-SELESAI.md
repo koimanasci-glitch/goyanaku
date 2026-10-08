@@ -44,6 +44,8 @@ Target akhir (keputusan Koko):
     - Temuan / pertanyaan untuk Koko
     - Lalu ubah status bagian itu di tabel dokumen ini.
 
+11. **Backend VPS dan Mode Murni selalu dikerjakan berpasangan** (permintaan Koko 8 Okt 2026, "catat"). Setiap perubahan aturan, data, atau fitur dikerjakan di dua sisi sekaligus: `backend/` (Laravel) dan `mobile/lib/pure/` (Mode Murni). Sebelum laporan, periksa dua arah: (a) data baru yang disimpan aplikasi sudah ikut sinkron ke server (`server_sync.dart` + `config/goyana.php` → `sync.collections`), dan (b) aturan baru di server sudah dikenal aplikasi. Yang sengaja belum dipasangkan wajib ditulis di laporan sebagai "belum berpasangan". HTML/Hibrida tidak ikut dikembangkan (SISTEM-PUSAT §50).
+
 ### Pelajaran dari A4 (jangan diulang)
 - Label tombol/teks **harus diambil persis dari fixture**, jangan dikarang ("WhatsApp" padahal HTML "Kirim nota WA"; "Siap" padahal "Siap Ambil").
 - Tipe data harus sama dengan HTML: jumlah tab adalah **teks** `'1'`, bukan angka `1`.

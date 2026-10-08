@@ -1621,3 +1621,9 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **Belum**: halaman Pegawai/Outlet/Kurir/Monitor Cabang memanggil API; tampilan kurir; lihat SISTEM-PUSAT §49 "Belum".
 - **CI bagian 2**: `Flutter foundation` run 37743425434 (commit d17dbda) — SUCCESS pada percobaan pertama: jembatan browser, `flutter analyze` bersih, tes unit (termasuk `server_sync_test.dart`), screenshot, APK hibrida dan APK Mode Murni terbit di rilis `flutter-uji`. 1 CI dipakai (total 2 CI Flutter untuk dua bagian ini).
 - **Belum diuji**: di HP sungguhan dan terhadap server sungguhan (server belum online). Uji itu yang berikutnya paling berharga.
+
+### [Claude] Pasangan backend ↔ Mode Murni: nomor nota, setelan usaha, kirim sesuai hak (8 Okt sore)
+- **Permintaan Koko**: "catat kalo kamu kerja sekarang harus dua-duanya di sinkronasi ya yg vps sama yg murni" → aturan §0 butir 11 di GOYANA-SAMPAI-SELESAI.md; daftar pasangan di SISTEM-PUSAT §51.
+- **Aplikasi**: `core/business.dart` (nomor nota `KODE-YYMMDD-HP-NNNN` saat masuk ke server), `pure/server_sync.dart` (kode nota, slot HP kasir, setelan usaha bersama, parfum/durasi/pilihan QRIS, kirim sesuai hak peran, profil diperbarui tiap buka), `pure/pure_shell.dart` (pemindai menerima nomor baru), `test/server_sync_test.dart` (+3 tes).
+- **Backend**: `config/goyana.php` (catatan kunci setelan), `SyncTest` (+1: setelan pemilik sampai ke HP kasir, kasir tidak bisa mengubahnya). PHPUnit 107 tes lulus di lokal.
+- **Belum berpasangan**: tabel di SISTEM-PUSAT §51.

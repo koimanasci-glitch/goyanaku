@@ -908,3 +908,29 @@ Keputusan pengguna 8 Oktober 2026 sore. **Menggantikan** target "dashboard web o
 - **HTML dan APK Hibrida tidak dikembangkan lagi.** Dibiarkan apa adanya sebagai cadangan sampai Mode Murni teruji di HP sungguhan, lalu dipensiunkan. Versi web HTML (`/app/`) masih bisa dibangun dan dipakai owner sementara itu, dengan batasan: isinya HTML lama dan hanya login email + password.
 - Tidak membuat Flutter web. Pertimbangan: butuh pengganti penyimpanan/printer/scan untuk browser, tata letak layar lebar, dan lebih berat saat pertama dibuka; sementara kebutuhan web hanya memantau dan mengatur.
 - Akibat untuk pekerjaan berikutnya: daftar perbedaan HTML vs Mode Murni (§49 butir 13) tidak perlu dibuat. Tes kesetaraan yang masih membandingkan Dart dengan HTML tetap dipakai selama HTML masih ada di repo; pelepasannya diputuskan saat HTML dipensiunkan.
+
+## 51. Pasangan Backend ↔ Mode Murni: Hasil Pemeriksaan — 8 Oktober 2026
+
+Aturan kerja (GOYANA-SAMPAI-SELESAI.md §0 butir 11): backend VPS dan Mode Murni selalu dikerjakan berpasangan. Daftar ini diperbarui setiap putaran.
+
+**Sudah berpasangan (data Mode Murni tersinkron ke server)**
+Pesanan dan rincian, pembayaran, pelanggan, deposit, kas per kasir, layanan dan harga, kurir, tugas penjemputan, stok (barang, mutasi, supplier, pembelian, resep), profil outlet, tarif antar-jemput, QRIS (teks, gambar, pilihan), parfum, durasi layanan, dan setelan usaha bersama `goyana-pure-shared` (diskon, kategori pengeluaran, izin kasir dan sakelar halaman, rekening, status otomatis, voucher, QRIS dinamis, templat nota).
+
+**Dibereskan 8 Oktober sore**
+- **Nomor nota tidak bisa kembar lagi.** Saat masuk ke server, nota baru bernomor `KODE-YYMMDD-HP-NNNN` (kode cabang dari server + slot HP kasir; HP kurir `K` + id; selama slot belum didapat dipakai kode dari id perangkat). Tanpa server tetap `GY-YYMMDD-NNNN`. Nota lama tidak diubah. Pemindai menerima kedua bentuk.
+- **Setelan usaha ikut tersinkron**, jadi izin kasir, diskon, parfum, durasi, dan kategori pengeluaran yang diatur pemilik sampai ke HP kasir. Setelan milik HP (printer, kunci PIN, PIN admin, daftar PIN pegawai lama, catatan audit) tidak pernah dikirim.
+- **HP pegawai hanya mengirim data yang menjadi haknya** (sama dengan `sync.collections` di server), sehingga tidak terus-menerus ditolak.
+- Paket, peran, dan outlet diperbarui dari server setiap aplikasi dibuka.
+
+**Belum berpasangan**
+| Hal | Sisi yang tertinggal | Akibat sekarang |
+|---|---|---|
+| Cabang ditambah dari aplikasi | Aplikasi belum memanggil `POST /api/outlets` | Pesanan cabang itu tercatat di server sebagai outlet Pusat |
+| Halaman Pegawai di aplikasi | Aplikasi belum memanggil `/api/team` | Pegawai hanya tersimpan di HP; akun dibuat lewat dashboard web |
+| Monitor Cabang | Aplikasi belum memanggil `/api/monitoring` | Hanya menghitung data di HP itu |
+| Status Selesai Proses, tahap per barang | Server siap; aplikasi belum punya tombol/tampilan | Tidak berdampak sampai tombolnya dibuat |
+| Konfirmasi timbangan, setoran kurir, tampilan tiga menu kurir | Server siap; aplikasi belum | Fitur belum bisa dipakai dari HP |
+| Aturan CRM/poin (`goyana-crm203`) | Belum dirancang di dua sisi | Poin pelanggan per HP |
+| Pengikatan HP outlet (pilih nama + PIN) | Server siap; aplikasi belum | Pegawai masuk dengan nomor HP + PIN |
+| Alasan mundur tahap, "diskon terbatas" kasir, ongkir transaksi kurir | Belum ditegakkan/dikirim | Lihat §49 |
+| Dashboard web owner (monitoring, kelola cabang/pegawai) | Web baru menampilkan ringkasan dan peringatan | Kelola lengkap baru lewat API |

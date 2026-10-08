@@ -36,11 +36,40 @@ const _stockParts = {
   'stock_recipes': 'recipes',
 };
 
-/// Setelan yang disimpan sebagai teks apa adanya (bukan JSON).
-const _settingKeys = [_transportKey, Keys.qrisText, Keys.qrisImage];
+/// Setelan usaha yang dikirim sebagai teks apa adanya: tarif antar-jemput, QRIS, parfum, durasi layanan.
+const _settingKeys = [_transportKey, Keys.qrisText, Keys.qrisImage, Keys.qrisOptions, Keys.perfumes, 'goyana-durations199'];
+
+/// Bagian setelan Mode Murni yang berlaku untuk seluruh usaha (diskon, kategori pengeluaran, izin kasir dan
+/// sakelar halaman, rekening, status otomatis, voucher, QRIS dinamis, templat nota). Sisanya milik HP itu saja
+/// (printer, kunci PIN, PIN admin, catatan audit) dan tidak pernah dikirim.
+const pureSettingsKey = 'goyana-pure-settings';
+const sharedSettingsRecord = 'goyana-pure-shared';
+const _sharedSettingParts = ['discounts', 'expenseCats', 'tpl', 'bank', 'account', 'holder', 'auto133', 'vouchers', 'qrisDynamic', 'notaTpl'];
+
+/// Hak tulis tiap koleksi, sama dengan sync.collections di backend/config/goyana.php.
+/// Data yang tidak boleh ditulis akun ini tidak dikirim, supaya HP pegawai tidak terus-menerus ditolak server.
+const _writeRules = {
+  'orders': ['orders.create', 'orders.update', 'orders.status', 'payments.receive', 'courier.tasks'],
+  'pickups': ['courier.assign', 'courier.tasks'],
+  'kas': ['cash.manage'],
+  'deposits': ['payments.receive'],
+  'customers': ['customers.manage', 'orders.create'],
+  'services': ['prices.edit'],
+  'settings': ['prices.edit'],
+  'outlet_profiles': <String>[],
+  'couriers': ['courier.assign'],
+  'stock_items': ['stock.manage'],
+  'stock_ledger': ['stock.manage', 'stock.use'],
+  'stock_suppliers': ['stock.manage'],
+  'stock_purchases': ['stock.manage'],
+  'stock_recipes': ['stock.manage'],
+};
 
 /// Kunci penyimpanan yang isinya ikut disinkronkan: perubahan padanya memicu sinkronisasi.
-const serverWatchedKeys = [Keys.business, Keys.services, _stockKey, _couriersKey, Keys.outlets, _pickupsKey, _transportKey, Keys.qrisText, Keys.qrisImage];
+const serverWatchedKeys = [
+  Keys.business, Keys.services, _stockKey, _couriersKey, Keys.outlets, _pickupsKey, _transportKey, Keys.qrisText, Keys.qrisImage,
+  Keys.qrisOptions, Keys.perfumes, 'goyana-durations199', pureSettingsKey,
+];
 
 class ServerFailure implements Exception {
   const ServerFailure(this.message, {this.offline = false});
@@ -215,6 +244,9 @@ Future<Map<String, LocalRecord>> extractLocal(KvStore kv) async {
     final v = await kv.get(k);
     if (v != null && v.isNotEmpty) put('settings', k, null, v);
   }
+  final pure = _asMap(_decode(await kv.get(pureSettingsKey)));
+  final shared = <String, dynamic>{for (final k in _sharedSettingParts) if (pure.containsKey(k)) k: pure[k]};
+  if (shared.isNotEmpty) put('settings', sharedSettingsRecord, null, canonJson(shared));
   return out;
 }
 
@@ -296,7 +328,20 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
         pickups ??= _asList(_decode(await kv.get(_pickupsKey)));
         _upsert(pickups, key, (x) => x is Map ? _text(x['id']) : '', data, deleted);
       case 'settings':
-        if (_settingKeys.contains(key)) {
+        if (key == sharedSettingsRecord) {
+          final shared = data is String ? _decode(data) : null;
+          if (!deleted && shared is Map) {
+            final pure = _asMap(_decode(await kv.get(pureSettingsKey)));
+            for (final k in _sharedSettingParts) {
+              if (shared.containsKey(k)) {
+                pure[k] = shared[k];
+              } else {
+                pure.remove(k);
+              }
+            }
+            await kv.set(pureSettingsKey, jsonEncode(pure));
+          }
+        } else if (_settingKeys.contains(key)) {
           if (deleted) {
             await kv.remove(key);
           } else if (data is String) {
@@ -354,8 +399,8 @@ Future<bool> mapServerOutlets(KvStore kv, List<dynamic> serverOutlets, String ro
     if (legacy is Map) {
       final old = _text(legacy['id']);
       for (final k in [...serverWatchedKeys, Keys.activeOutlet]) {
-        // Teks QRIS disimpan apa adanya (bukan JSON) dan tidak memuat id outlet.
-        if (k == Keys.qrisText || k == Keys.qrisImage) continue;
+        // Teks QRIS disimpan apa adanya (bukan JSON) dan tidak memuat id outlet; setelan Mode Murni juga tidak.
+        if (k == Keys.qrisText || k == Keys.qrisImage || k == pureSettingsKey) continue;
         final raw = await kv.get(k);
         final v = _decode(raw);
         if (v == null) continue;
@@ -414,6 +459,7 @@ class ServerSync {
   String _url = '';
   Map<String, dynamic>? _auth;
   Future<void>? _running;
+  String _fallbackDevice = '';
 
   /// Alamat server tanpa garis miring di akhir; kosong = belum diatur.
   String get url => _url;
@@ -431,12 +477,52 @@ class ServerSync {
     return list.contains('*') || list.contains(permission);
   }
 
+  bool _mayWrite(String collection) {
+    if (role == 'owner') return true;
+    final rule = _writeRules[collection];
+    return rule != null && rule.any(can);
+  }
+
+  /// [kode cabang, kode HP] untuk nomor nota di outlet lokal ini, atau null bila belum masuk / outlet tidak dikenal server.
+  /// Kode HP: slot HP kasir dari server; HP kurir memakai kode kurirnya; selama slot belum didapat dipakai kode dari id perangkat.
+  List<String>? noteCode(String outletKey) {
+    if (!loggedIn) return null;
+    var prefix = '';
+    for (final o in _asList(_auth?['outlets'])) {
+      if (o is Map && 'srv-${_text(o['id'])}' == outletKey) prefix = _text(o['code']);
+    }
+    if (prefix.isEmpty) return null;
+    var device = !can('orders.create') && can('courier.tasks') ? _text(note['device']) : _text(_asMap(_auth?['slots'])[outletKey]);
+    if (device.isEmpty) device = _fallbackDevice;
+    return device.isEmpty ? null : [prefix, device];
+  }
+
+  /// Minta slot HP kasir untuk outlet ini supaya nomor nota memuat kode HP. Gagal (mis. slot penuh) tidak menghentikan apa pun.
+  Future<void> claimSlot(String outletKey) async {
+    final a = _auth;
+    final m = RegExp(r'^srv-(\d+)$').firstMatch(outletKey);
+    if (a == null || m == null || !can('orders.create') || _text(_asMap(a['slots'])[outletKey]).isNotEmpty) return;
+    try {
+      final j = await _request('POST', '/devices/claim', {'device_id': await deviceId(), 'outlet_id': int.parse(m.group(1)!)});
+      final slots = _asMap(a['slots']);
+      slots[outletKey] = _text(j['slot']);
+      a['slots'] = slots;
+      await kv.set(serverAuthKey, jsonEncode(a));
+    } on ServerFailure catch (_) {}
+  }
+
+  Future<void> _prepareDevice() async {
+    final h = shortHash(await deviceId()).split(':').first.toUpperCase();
+    _fallbackDevice = 'X${h.length > 3 ? h.substring(0, 3) : h}';
+  }
+
   Future<void> load() async {
     final saved = _text(await kv.get(serverUrlKey)).trim();
     _url = (saved.isNotEmpty ? saved : serverDefaultUrl).replaceAll(RegExp(r'/+$'), '');
     final a = _asMap(_decode(await kv.get(serverAuthKey)));
     final expires = DateTime.tryParse(_text(a['expires_at']));
     _auth = _text(a['token']).isNotEmpty && (expires == null || expires.isAfter(_clock())) ? a : null;
+    if (loggedIn) await _prepareDevice();
     status.pending = loggedIn ? (await _pending()).length : 0;
   }
 
@@ -498,6 +584,7 @@ class ServerSync {
     if (id.isEmpty) throw const ServerFailure('Isi email atau nomor HP');
     if (secret.isEmpty) throw const ServerFailure('Isi password atau PIN');
     final device = await deviceId();
+    await _prepareDevice();
     Map<String, dynamic> session;
     if (id.contains('@')) {
       session = await _request('POST', '/session', {'email': id.toLowerCase(), 'password': secret, 'device_id': device});
@@ -522,6 +609,18 @@ class ServerSync {
     if (a == null) return false;
     for (final k in const ['user', 'business', 'access', 'outlets', 'note', 'rules']) {
       a[k] = me[k];
+    }
+    // Slot HP kasir di outlet tugas mengikuti server: slot yang dicabut owner tidak dipakai lagi untuk nomor nota.
+    final home = _text(_asMap(me['user'])['outlet_id']);
+    if (home.isNotEmpty && can('orders.create')) {
+      final slots = _asMap(a['slots']);
+      final slot = _text(_asMap(me['note'])['device']);
+      if (slot.isEmpty) {
+        slots.remove('srv-$home');
+      } else {
+        slots['srv-$home'] = slot;
+      }
+      a['slots'] = slots;
     }
     await kv.set(serverAuthKey, jsonEncode(a));
     final changed = await mapServerOutlets(kv, _asList(me['outlets']), _text(_asMap(me['user'])['role']));
@@ -566,6 +665,7 @@ class ServerSync {
       final h = fingerprintOf(e.value), known = recs[e.key];
       if (staged.contains(e.key) || (known is Map && known['h'] == h)) continue;
       final i = e.key.indexOf('|');
+      if (!_mayWrite(e.key.substring(0, i))) continue;
       list.add({
         'ck': e.key, 'h': h, 'collection': e.key.substring(0, i), 'key': e.key.substring(i + 1), 'outlet': e.value.outlet,
         'data': e.value.data, 'deleted': false, 'base_rev': known is Map ? (known['rev'] ?? 0) : 0,
@@ -575,6 +675,7 @@ class ServerSync {
       final known = e.value;
       if (known is! Map || known['h'] == null || staged.contains(e.key) || now.containsKey(e.key)) continue;
       final i = e.key.indexOf('|');
+      if (!_mayWrite(e.key.substring(0, i))) continue;
       list.add({
         'ck': e.key, 'h': null, 'collection': e.key.substring(0, i), 'key': e.key.substring(i + 1), 'outlet': null,
         'data': null, 'deleted': true, 'base_rev': known['rev'] ?? 0,

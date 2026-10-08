@@ -8,6 +8,9 @@ import 'models.dart';
 import 'money.dart';
 import 'store.dart';
 
+/// Diisi Mode Murni saat masuk ke server: [kode cabang, kode HP] untuk outlet itu, atau null bila tidak dikenal.
+List<String>? Function(String outlet)? serverNoteCode;
+
 String _two(int n) => n.toString().padLeft(2, '0');
 String _dmyHm(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year} · ${_two(d.hour)}:${_two(d.minute)}';
 
@@ -267,13 +270,19 @@ class Business {
   }
 
   /// "GY-YYMMDD-0NNN": nomor urut melanjutkan nomor terbesar yang sudah ada (mulai 133 seperti HTML).
+  /// Saat masuk ke server: "KODE-YYMMDD-HP-NNNN" (kode cabang + kode HP, keputusan 8 Okt 2026), supaya dua HP
+  /// yang sama-sama offline tidak bisa menghasilkan nomor nota yang sama.
   String nextOrderId(DateTime now) {
     var n = 132;
     for (final o in orders) {
       final m = RegExp(r'-(\d+)$').firstMatch(o.id);
       if (m != null) n = n > int.parse(m.group(1)!) ? n : int.parse(m.group(1)!);
     }
-    return 'GY-${now.year.toString().substring(2)}${_two(now.month)}${_two(now.day)}-${(n + 1).toString().padLeft(4, '0')}';
+    final date = '${now.year.toString().substring(2)}${_two(now.month)}${_two(now.day)}';
+    final seq = (n + 1).toString().padLeft(4, '0');
+    final code = serverNoteCode?.call(activeOutlet);
+    if (code != null && code.length == 2 && code[0].isNotEmpty && code[1].isNotEmpty) return '${code[0]}-$date-${code[1]}-$seq';
+    return 'GY-$date-$seq';
   }
 
   /// Membuat pesanan dari keranjang. [payMethod]: Tunai, QRIS, Transfer, Deposit, DP, atau "Bayar Nanti".

@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/server_sync.dart';
@@ -54,6 +55,8 @@ class _Server {
   Map<String, dynamic> Function(Map<String, dynamic> change)? onChange;
   int status = 200;
   String role = 'owner';
+  List<String>? perms;
+  String noteDevice = '1';
 
   Future<ServerReply> send(String method, Uri url, Map<String, String> headers, String? body) async {
     final data = body == null ? <String, dynamic>{} : Map<String, dynamic>.from(jsonDecode(body) as Map);
@@ -64,14 +67,17 @@ class _Server {
     }
     if (url.path == '/api/me') {
       return ServerReply(200, jsonEncode({
-        'user': {'id': 7, 'name': 'Rina', 'role': role, 'role_label': role == 'owner' ? 'Owner' : 'Kasir', 'permissions': role == 'owner' ? ['*'] : ['orders.create']},
+        'user': {'id': 7, 'name': 'Rina', 'role': role, 'role_label': role == 'owner' ? 'Owner' : 'Kasir', 'permissions': perms ?? (role == 'owner' ? ['*'] : ['orders.create'])},
         'business': {'id': 1, 'name': 'Laundry Bekasi', 'allow_debt': true},
         'access': {'package': 'Silver', 'read_only': false, 'outlet_limit': 3, 'cashier_device_limit': 3},
         'outlets': [
           {'id': 5, 'key': 'srv-5', 'name': 'Pusat', 'code': 'PUS', 'address': 'Jl. Server', 'phone': '6281'},
         ],
-        'note': {'prefix': 'PUS', 'device': '1'},
+        'note': {'prefix': 'PUS', 'device': noteDevice},
       }));
+    }
+    if (url.path == '/api/devices/claim') {
+      return ServerReply(200, jsonEncode({'slot': 2, 'note': {'prefix': 'PUS', 'device': '2'}}));
     }
     if (url.path == '/api/sync/pull') {
       final out = pullRecords;
@@ -301,6 +307,88 @@ void main() {
     expect(fresh.card(), isNull);
     expect(await fresh.setUrl('app.goyana.id'), isNotNull);
     expect(await fresh.setUrl('https://app.goyana.id'), isNull);
+  });
+
+  test('nomor nota memakai kode cabang dan kode HP setelah masuk ke server', () async {
+    final kv = _phone(), server = _Server();
+    final sync = await _connected(kv, server);
+    // Slot HP kasir belum didapat: kode sementara dari id perangkat, tetap unik per HP.
+    expect(sync.noteCode('srv-5')![0], 'PUS');
+    expect(sync.noteCode('srv-5')![1], startsWith('X'));
+    expect(sync.noteCode('srv-99'), isNull);
+    await sync.claimSlot('srv-5');
+    expect(sync.noteCode('srv-5'), ['PUS', '2']);
+    final b = await Business.load(kv);
+    final at = DateTime(2026, 10, 8, 9);
+    expect(b.nextOrderId(at), 'GY-261008-0133');
+    serverNoteCode = sync.noteCode;
+    addTearDown(() => serverNoteCode = null);
+    expect(b.nextOrderId(at), 'PUS-261008-2-0133');
+
+    // HP kurir memakai kode kurirnya dan tidak mengambil slot HP kasir.
+    final kurir = _Server()
+      ..role = 'kurir'
+      ..perms = ['courier.tasks']
+      ..noteDevice = 'K7';
+    final ksync = await _connected(_phone(), kurir, account: '081234567890', secret: '482915');
+    expect(ksync.noteCode('srv-5'), ['PUS', 'K7']);
+    await ksync.claimSlot('srv-5');
+    expect(kurir.calls.any((c) => c['path'] == '/api/devices/claim'), isFalse);
+  });
+
+  test('setelan usaha ikut tersinkron; setelan milik HP tidak pernah dikirim', () async {
+    final kv = _phone(), server = _Server();
+    kv.data[pureSettingsKey] = jsonEncode({
+      'discounts': [
+        {'id': 1, 'name': 'Diskon 10%'},
+      ],
+      'tpl': {
+        'cashier': {
+          'tg': {'3': false},
+        },
+      },
+      'adminPin': 'PIN-ADMIN-RAHASIA', 'printer': 'AA:BB:CC', 'pinLock': true,
+      'employees': [
+        {'name': 'Rina', 'pin': 'PIN-PEGAWAI-RAHASIA'},
+      ],
+    });
+    kv.data[Keys.perfumes] = jsonEncode([
+      ['Lavender', 'rgb(1, 2, 3)'],
+    ]);
+    final sync = await _connected(kv, server);
+    await sync.cycle();
+    final sent = <String, Object?>{
+      for (final c in server.pushed())
+        if (c['collection'] == 'settings') '${c['key']}': c['data'],
+    };
+    expect(sent.keys.toSet(), {'goyana-qris-text', 'goyana-perfumes178', sharedSettingsRecord});
+    final shared = jsonDecode(sent[sharedSettingsRecord] as String) as Map;
+    expect(shared.keys.toSet(), {'discounts', 'tpl'});
+    final all = sent.values.join('|');
+    expect(all.contains('RAHASIA') || all.contains('AA:BB:CC'), isFalse);
+
+    // HP kasir menerima setelan pemilik (izin kasir, diskon, parfum); setelan HP-nya sendiri tidak tersentuh.
+    final other = MemoryKvStore({
+      pureSettingsKey: jsonEncode({'printer': 'DD:EE:FF', 'adminPin': '1111', 'discounts': <dynamic>[], 'expenseCats': ['Lama']}),
+    });
+    await applyRemote(other, [
+      {'collection': 'settings', 'key': sharedSettingsRecord, 'data': sent[sharedSettingsRecord], 'deleted': false, 'rev': 3},
+      {'collection': 'settings', 'key': 'goyana-perfumes178', 'data': sent['goyana-perfumes178'], 'deleted': false, 'rev': 4},
+    ]);
+    final now = jsonDecode(other.data[pureSettingsKey]!) as Map;
+    expect([now['printer'], now['adminPin'], now.containsKey('expenseCats')], ['DD:EE:FF', '1111', false]);
+    expect((((now['tpl'] as Map)['cashier'] as Map)['tg'] as Map)['3'], false);
+    expect(((now['discounts'] as List).single as Map)['name'], 'Diskon 10%');
+    expect(other.data[Keys.perfumes], kv.data[Keys.perfumes]);
+  });
+
+  test('HP pegawai tidak mengirim data yang bukan haknya', () async {
+    final kv = _phone(), server = _Server()..role = 'kasir';
+    final sync = await _connected(kv, server, account: '081234567890', secret: '482915');
+    await sync.cycle();
+    expect(server.pushed().map((c) => c['collection']).toSet(), {'orders', 'customers'});
+    expect(sync.status.pending, 0);
+    expect(sync.card()!['line'], startsWith('Online · semua data tersinkron'));
   });
 
   test('paket dari server menentukan fitur yang terbuka', () {
