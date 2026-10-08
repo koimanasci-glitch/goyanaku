@@ -120,4 +120,5 @@ Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian
 - "Administrator itu untuk kontrol client misal tambahkan paket."
 - Marketing: mengumpulkan nomor pemilik laundry, disimpan di database, WA blast diatur sistem dan AI pusat. Sasaran: pemilik laundry (client dan calon), bukan pelanggan milik laundry.
 - "Kamu bisa kan atur wa blast biar aman misal di gilir sehari jangan banyak-banyak" → angka awal disetujui ("Ok"), lalu "Gas buat". Rincian di GOYANA-SISTEM-PUSAT.md §52.
-- Belum dijawab Paduka: nama paket (dipakai Basic/Silver/Gold/Platinum), sumber calon client (dibuat: manual dan impor file), nomor WhatsApp khusus marketing (sistem menolak nomor CS pusat untuk blast).
+- Dijawab 8 Okt 21.57: nama paket **jangan diganti**, tetap sesuai paket kita (Basic, Silver, Gold, Platinum). Nomor WhatsApp khusus marketing: **nanti dulu**.
+- Belum dijawab: sumber calon client selain isi manual dan impor file.
