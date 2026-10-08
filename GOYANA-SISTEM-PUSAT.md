@@ -897,3 +897,14 @@ Keputusan pengguna 8 Oktober 2026. Yang bertentangan dengan bagian lama **mengga
 - Sesi server disimpan di penyimpanan aplikasi (SQLite privat), belum di secure storage. Di HP yang dipakai bergantian, data pengguna sebelumnya masih ada di HP setelah keluar akun.
 - Alasan wajib saat mundur tahap: server siap (`goyana.orders.require_reason_for_backward`), dinyalakan setelah aplikasi mengirim alasan.
 - "Diskon terbatas" kasir belum ditegakkan server. Ongkir pada transaksi kurir belum dicocokkan dengan tarif. Belum diuji di MySQL (tes memakai SQLite).
+
+## 50. Arah Akhir: Mode Murni untuk HP, Laravel untuk Web — 8 Oktober 2026
+
+Keputusan pengguna 8 Oktober 2026 sore. **Menggantikan** target "dashboard web owner memakai aplikasi HTML yang dilayani Laravel" (GOYANA-SAMPAI-SELESAI.md target 2 dan Fase 3).
+
+- **HP:** hanya Mode Murni (Flutter + Dart tanpa WebView). Transaksi kasir dilakukan di HP.
+- **Web owner:** dashboard Laravel yang diperluas, untuk memantau cabang, melihat laporan, dan mengatur pegawai, cabang, serta paket. Tidak untuk transaksi kasir. Datanya dari API dan catatan server yang sama dengan HP (§49), jadi aturannya satu sumber.
+- **Administrator pusat:** tetap panel Laravel `/admin` yang sudah ada.
+- **HTML dan APK Hibrida tidak dikembangkan lagi.** Dibiarkan apa adanya sebagai cadangan sampai Mode Murni teruji di HP sungguhan, lalu dipensiunkan. Versi web HTML (`/app/`) masih bisa dibangun dan dipakai owner sementara itu, dengan batasan: isinya HTML lama dan hanya login email + password.
+- Tidak membuat Flutter web. Pertimbangan: butuh pengganti penyimpanan/printer/scan untuk browser, tata letak layar lebar, dan lebih berat saat pertama dibuka; sementara kebutuhan web hanya memantau dan mengatur.
+- Akibat untuk pekerjaan berikutnya: daftar perbedaan HTML vs Mode Murni (§49 butir 13) tidak perlu dibuat. Tes kesetaraan yang masih membandingkan Dart dengan HTML tetap dipakai selama HTML masih ada di repo; pelepasannya diputuskan saat HTML dipensiunkan.

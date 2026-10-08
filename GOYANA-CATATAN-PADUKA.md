@@ -98,3 +98,7 @@ Diskusi panjang lalu "Gas semuanya". Tiga belas keputusan tercatat lengkap di `G
 - Flutter murni jadi acuan aturan; backend dan versi web mengikutinya.
 - Ditunda: upah pegawai. Tidak dibuat: ambil di cabang lain.
 - Penunjukan kurir oleh kasir (owner juga bisa). Tunai kurir disetor ke outletnya.
+
+## 8 Oktober 2026, 15:06 WIB — arah akhir HP dan web
+
+"Ok setuju deh": HP memakai Mode Murni saja; web owner dan administrator memakai Laravel (memantau dan mengatur, bukan transaksi); HTML dan APK Hibrida tidak dikembangkan lagi dan dipensiunkan setelah Mode Murni teruji di HP. Rincian: `GOYANA-SISTEM-PUSAT.md` §50.
