@@ -106,7 +106,7 @@ class _GuideIntroState extends State<GuideIntro> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xffff3a3f), Color(0xffed0026)],
+            colors: [Color(0xffff6b48), Color(0xfff0472f)],
           ),
         ),
         child: Padding(
@@ -219,7 +219,7 @@ class _GuideIntroState extends State<GuideIntro> {
                         onPressed: _next,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xffed0026),
+                          foregroundColor: const Color(0xfff0472f),
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           shape: RoundedRectangleBorder(
@@ -231,7 +231,7 @@ class _GuideIntroState extends State<GuideIntro> {
                           style: gText(
                             13,
                             w: FontWeight.w600,
-                            c: const Color(0xffed0026),
+                            c: const Color(0xfff0472f),
                           ),
                         ),
                       ),

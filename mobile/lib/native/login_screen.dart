@@ -142,13 +142,13 @@ class _NativeLoginState extends State<NativeLogin> {
     final b = widget.bindings;
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
     return Material(
-      color: const Color(0xffed0026),
+      color: const Color(0xfff0472f),
       child: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xffff7956), Color(0xffff2636), Color(0xffed0026)],
+            colors: [Color(0xffff8a66), Color(0xffff6b48), Color(0xfff0472f)],
           ),
         ),
         child: Stack(children: [
@@ -212,7 +212,7 @@ class _NativeLoginState extends State<NativeLogin> {
                                       width: 22,
                                       height: 22,
                                       decoration: BoxDecoration(
-                                        color: _remember ? const Color(0xffff1f3d) : Colors.transparent,
+                                        color: _remember ? const Color(0xfff0472f) : Colors.transparent,
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(color: Colors.white, width: 1.4),
                                       ),
@@ -250,8 +250,8 @@ class _NativeLoginState extends State<NativeLogin> {
                                 padding: const EdgeInsets.symmetric(horizontal: 20),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(14),
-                                  gradient: const LinearGradient(colors: [Color(0xffff1f3d), Color(0xffd9001f)]),
-                                  boxShadow: const [BoxShadow(color: Color(0x59780014), blurRadius: 14, offset: Offset(0, 6))],
+                                  gradient: const LinearGradient(colors: [Color(0xffff6b48), Color(0xfff0472f)]),
+                                  boxShadow: const [BoxShadow(color: Color(0x597a2410), blurRadius: 14, offset: Offset(0, 6))],
                                 ),
                                 child: Row(children: [
                                   const SizedBox(width: 24),

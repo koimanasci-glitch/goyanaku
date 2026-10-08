@@ -139,9 +139,9 @@ class _BrandIntroState extends State<BrandIntro> with TickerProviderStateMixin {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xffff7956),
-                    Color(0xffff2636),
-                    Color(0xffed0026),
+                    Color(0xffff8a66),
+                    Color(0xffff6b48),
+                    Color(0xfff0472f),
                   ],
                 ),
               ),
