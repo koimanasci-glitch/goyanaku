@@ -46,6 +46,11 @@ class SyncController {
         ];
     }
 
+    /** Versi server yang dikembalikan ke HP (bentrok atau kiriman tidak diterima) juga mengikuti peran, sama seperti saat tarik data. */
+    private function presentFor(User $user, object $row): array {
+        return $this->forRole($user, collect([$this->present($row)]))->first();
+    }
+
     public function pull(Request $request) {
         $user = $this->user($request);
         $data = $request->validate(['cursor' => 'nullable|integer|min:0', 'limit' => 'nullable|integer|min:1|max:1000']);
@@ -184,7 +189,7 @@ class SyncController {
             }
             DB::table('sync_conflicts')->insert(['business_id' => $business->id, 'collection' => $change['collection'],
                 'record_key' => $change['key'], 'losing_data' => $json, 'user_id' => $user->id, 'device_uuid' => $device, 'created_at' => now()]);
-            return ['status' => 'conflict', 'record' => $this->present($existing)];
+            return ['status' => 'conflict', 'record' => $this->presentFor($user, $existing)];
         }
         if (!$existing && $deleted) return ['status' => 'applied', 'rev' => 0];
 
@@ -203,7 +208,7 @@ class SyncController {
             if ($existing && !$existing->deleted && OrderGuard::canon($verdict['data']) === OrderGuard::canon($old)) {
                 // Tidak ada yang berubah di server. HP yang kirimannya tidak diterima diminta mengambil versi server.
                 if (!$verdict['altered'] || $verdict['quiet']) return ['status' => 'applied', 'rev' => (int) $existing->rev];
-                return ['status' => 'conflict', 'record' => $this->present($existing), 'message' => $verdict['message']];
+                return ['status' => 'conflict', 'record' => $this->presentFor($user, $existing), 'message' => $verdict['message']];
             }
         }
 
@@ -223,7 +228,7 @@ class SyncController {
         }
         if ($verdict && $verdict['altered']) {
             $stored = DB::table('sync_records')->where('business_id', $business->id)->where('collection', $change['collection'])->where('record_key', $change['key'])->first();
-            return ['status' => 'conflict', 'record' => $this->present($stored), 'message' => $verdict['message']];
+            return ['status' => 'conflict', 'record' => $this->presentFor($user, $stored), 'message' => $verdict['message']];
         }
         return ['status' => 'applied', 'rev' => $rev];
     }

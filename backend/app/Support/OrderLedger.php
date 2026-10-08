@@ -68,6 +68,31 @@ final class OrderLedger {
         $this->payment($user, $outletId, $key, $oldOrder ? OrderData::paid($oldOrder) : (int) $index->paid, $new, $event);
     }
 
+    /**
+     * Mengisi order_index untuk pesanan yang sudah ada di server sebelum catatan ini dibuat
+     * (php artisan goyana:reindex-orders). Riwayat peristiwa lama tidak bisa direka ulang, jadi tidak dibuat.
+     */
+    public static function reindex(Business $business): int {
+        $n = 0;
+        $known = DB::table('order_index')->where('business_id', $business->id)->pluck('record_key')->flip();
+        DB::table('sync_records')->where('business_id', $business->id)->where('collection', 'orders')->where('deleted', false)->whereNotNull('outlet_id')
+            ->orderBy('id')->chunk(200, function ($rows) use ($business, $known, &$n) {
+                foreach ($rows as $row) {
+                    $d = json_decode((string) $row->data, true);
+                    if (isset($known[$row->record_key]) || !OrderData::isOrder($d)) continue;
+                    $status = OrderData::status($d); $time = fn ($v) => is_string($v) && $v !== '' ? rescue(fn () => \Illuminate\Support\Carbon::parse($v)->utc(), null, false) : null;
+                    DB::table('order_index')->insert(['business_id' => $business->id, 'outlet_id' => $row->outlet_id, 'record_key' => $row->record_key, 'status' => $status,
+                        'total' => max(0, OrderData::total($d)), 'paid' => max(0, OrderData::paid($d)), 'discount' => max(0, (int) ($d['card']['dataset']['disc'] ?? 0)),
+                        'delivery' => OrderData::delivery($d), 'customer' => mb_substr(OrderData::customer($d), 0, 160) ?: null, 'customer_key' => OrderData::customerKey($d),
+                        'courier_key' => OrderData::courier($d) ?: null, 'created_by' => $row->updated_by,
+                        'ordered_at' => $time($d['card']['dataset']['created177'] ?? ($d['detail']['masuk'] ?? null)) ?? $row->created_at, 'due_at' => $time($d['detail']['due'] ?? null),
+                        'ready_at' => in_array($status, ['siap', 'telat'], true) ? $row->updated_at : null, 'created_at' => now(), 'updated_at' => now()]);
+                    $n++;
+                }
+            });
+        return $n;
+    }
+
     public function deleted(string $key): void {
         DB::table('order_index')->where('business_id', $this->business->id)->where('record_key', $key)->update(['deleted' => true, 'updated_at' => now()]);
     }

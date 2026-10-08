@@ -26,6 +26,13 @@ Artisan::command('goyana:admin-reset-mfa {email}', function (string $email) {
     return 0;
 })->purpose('Reset OTP administrator pusat yang kehilangan HP (jalankan dari terminal server tepercaya)');
 
+Artisan::command('goyana:reindex-orders', function () {
+    $total = 0;
+    foreach (\App\Models\Business::orderBy('id')->cursor() as $business) $total += \App\Support\OrderLedger::reindex($business);
+    $this->info($total.' pesanan lama dimasukkan ke indeks monitoring.');
+    return 0;
+})->purpose('Isi indeks monitoring untuk pesanan yang tersinkron sebelum fitur monitoring (jalankan sekali setelah update)');
+
 // ---------- Otomatis (GOYANA-SISTEM-PUSAT.md §43, §45). Server: cron "* * * * * php artisan schedule:run" ----------
 
 Artisan::command('goyana:health', function () {

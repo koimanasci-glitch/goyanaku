@@ -2,6 +2,7 @@
 @section('content')
 <p class="row"><span>@if(file_exists(public_path('app/index.html')))<a class="button" href="{{ url('/app/') }}">Buka aplikasi GOYANA (web)</a>@endif</span><a class="button secondary" href="{{ route('support') }}">Bantuan / Tiket CS</a></p>
 <h1>{{ $business->name }}</h1><p class="muted">Dashboard pemilik · Data usaha Anda</p>
+@if(!empty($alerts))<section class="card"><h2>Perlu diperhatikan</h2><ul>@foreach($alerts as $alert)<li>{{ $alert['outlet'] ? $alert['outlet'].': ' : '' }}{{ $alert['text'] }}</li>@endforeach</ul></section>@endif
 <div class="grid"><section class="card"><h2>Paket</h2><strong>{{ $access['package'] ?? 'Berakhir' }}</strong> <span class="badge">{{ ['subscription' => 'Berlangganan', 'beta' => 'Beta', 'trial' => 'Trial', 'expired' => 'Berakhir'][$access['source']] ?? $access['source'] }}</span>
 <p>{{ $access['read_only'] ? 'Mode baca saja — data tetap bisa dilihat, transaksi baru terkunci sampai paket aktif.' : 'Akses operasional aktif' }}</p>
 @if($access['ends_at'])<small>{{ $access['read_only'] ? 'Berakhir sejak' : 'Aktif sampai' }}: {{ $access['ends_at']->timezone('Asia/Jakarta')->format('d M Y H:i') }} WIB</small>@endif</section>

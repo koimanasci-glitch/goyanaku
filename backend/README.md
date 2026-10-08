@@ -60,3 +60,35 @@ POST /api/session (email/password) mengeluarkan token Sanctum business:read, ber
 - `GET /api/sync/pull?cursor=N` dan `POST /api/sync/push` (token Sanctum). Aturan per jenis data di `config/goyana.php` → `sync`.
 - Uji end-to-end dengan server sungguhan: `cd tests && npm install && node sync-e2e.cjs` (butuh `composer install` di backend).
 - APK membaca alamat server dari variabel GitHub `GOYANA_API_URL` saat build. API butuh HTTPS di produksi; CORS `api/*` terbuka karena aplikasi memakai token, bukan cookie.
+
+## Tim, cabang, kurir, tahapan, uang, monitoring (8 Oktober 2026)
+
+Keputusan dan batasannya: `GOYANA-SISTEM-PUSAT.md` §49. Jalankan `php artisan migrate`, lalu sekali `php artisan goyana:reindex-orders` bila server sudah berisi pesanan.
+
+Semua endpoint di bawah memakai token Sanctum (`Authorization: Bearer …`) kecuali yang bertanda *terbuka*. Usaha dan outlet selalu ditentukan server dari akun, tidak dari kiriman aplikasi.
+
+| Endpoint | Siapa | Guna |
+|---|---|---|
+| `POST /api/session` *terbuka* | owner, akun lama | Login email + password |
+| `POST /api/session/pin` *terbuka* | kasir, pegawai, kurir, admin outlet | Login `phone` + `pin` + `device_id`; di HP outlet: `user_id` + `pin` + `device_id` + `device_secret` |
+| `POST /api/devices/roster` *terbuka* | HP outlet yang diikat | Daftar nama pegawai outlet itu (`device_id`, `device_secret`) |
+| `GET /api/me?device_id=` | semua | Profil, paket, outlet, `note.prefix` + `note.device` untuk nomor nota |
+| `POST /api/me/pin`, `POST /api/me/password` | semua | Ganti PIN/password sendiri (wajib yang lama) |
+| `GET /api/me/summary` | kasir, pegawai, kurir | Ringkasan milik sendiri hari ini |
+| `POST /api/devices/claim` | kasir, admin outlet, owner | Mengisi slot HP kasir sebelum transaksi pertama |
+| `GET/POST /api/team`, `PATCH /api/team/{id}` | owner | Kelola Pegawai: `name, role, outlet_id, phone, pin, email, password, courier_key` |
+| `POST /api/team/{id}/pin`, `/password`, `/deactivate`, `/activate` | owner | Ganti PIN/password, nonaktif/aktif |
+| `GET/POST /api/outlets`, `PATCH /api/outlets/{id}` | owner | Kelola Cabang: `name, code, address, phone, process_outlet_id` |
+| `POST /api/outlets/{id}/deactivate`, `/activate` | owner | Status cabang |
+| `GET /api/devices`, `POST /api/devices/shared`, `DELETE /api/devices/shared/{id}`, `DELETE /api/devices/cashier/{id}` | owner | HP kasir dan HP outlet bergantian (ikat/cabut) |
+| `PATCH /api/business` | owner | `allow_debt` (boleh hutang) |
+| `GET /api/monitoring?outlet_id=&from=&to=` | owner; admin outlet (outletnya) | Monitoring lengkap |
+| `GET /api/monitoring/alerts` | owner; admin outlet | Peringatan otomatis |
+| `GET /api/courier/cash` | kurir | Tunai yang dipegang dan riwayatnya |
+| `GET /api/courier-cash`, `POST /api/courier-cash/{kurir}/deposit` | kasir/admin outlet (outletnya), owner | Daftar tunai dipegang kurir; terima setoran (`amount`, `note` wajib bila selisih) |
+
+Sinkronisasi (`/api/sync/push`):
+- Hasil `conflict` kini bisa membawa `message`: kiriman tidak diterima sesuai hak peran dan HP harus memakai `record` dari server. Klien lama mengabaikan `message` dan tetap benar.
+- Koleksi baru `pickups` (tugas penjemputan, per outlet). `customers` tidak lagi dikirim ke kurir dan pegawai.
+- Pesanan boleh membawa tahap per barang di `detail.items[i].st` dan status baru `selesaiproses`.
+- Aturan ada di `config/goyana.php` (`orders`, `pin`, `alerts`, `packages.*.cashier_devices`).

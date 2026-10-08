@@ -82,3 +82,19 @@ Jatah pertama dari tiga tambahan dipakai untuk CI5 pada kode terbaru dengan acua
 - Unduh: https://github.com/rajabadutiklan-lab/Goyana/releases/download/flutter-uji/GOYANA-Flutter-Uji.apk
 - **Counter tiga jatah tambahan: 1/3 terpakai, 2 tersisa.** Commit laporan [skip ci] tidak memakai jatah. Dua sisanya tetap tercatat lintas sesi; tidak menjalankan CI lain sesudah hasil ini lulus.
 - A7 koreksi hitungan dan branding selesai pada tahap paritas + pengaman. Aplikasi masih hybrid dengan writer HTML sampai D2; belum mengklaim seluruh proyek murni Dart atau sudah diuji HP nyata. A8 tetap langkah berikutnya pada putaran terpisah.
+
+## 8 Oktober 2026 — cabang, pegawai, kasir, kurir
+
+Diskusi panjang lalu "Gas semuanya". Tiga belas keputusan tercatat lengkap di `GOYANA-SISTEM-PUSAT.md` §49. Ringkasnya:
+
+- Login pegawai nomor HP + PIN; owner email + password.
+- HP kasir per outlet: Trial/Basic 2, Silver 3, Gold 4, Platinum 5 (pilihan C).
+- Admin Outlet tetap dimunculkan (pilihan C).
+- Akun kurir hanya Jemput, Antar, Setoran; kurir satu outlet; kurir lama menunggu owner memilihkan outlet (pilihan B).
+- Pegawai dan tahapan dibuka di Trial dan Basic; "Free" = Trial 2 bulan, tidak ada paket gratis permanen.
+- Tahap per barang: server dulu, tampilan menyusul.
+- Nomor nota `BKS-261008-1-0133`.
+- Hibrida/HTML: pengecualian sempit saja (kunci Pegawai, tulisan Silver, label Premium tahapan).
+- Flutter murni jadi acuan aturan; backend dan versi web mengikutinya.
+- Ditunda: upah pegawai. Tidak dibuat: ambil di cabang lain.
+- Penunjukan kurir oleh kasir (owner juga bisa). Tunai kurir disetor ke outletnya.

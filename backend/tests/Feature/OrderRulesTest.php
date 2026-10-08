@@ -287,4 +287,19 @@ class OrderRulesTest extends TestCase {
         $seen = collect($this->pull($t)->json('records'))->where('collection', 'pickups')->keyBy('key');
         $this->assertFalse($seen['jp-1']['deleted']); $this->assertTrue($seen['jp-2']['deleted']);
     }
+
+    public function test_server_copy_returned_to_a_phone_is_limited_to_what_the_role_may_see(): void {
+        $order = $this->order('GY-K', [$this->baju()], 'cuci'); $rev = $this->create('GY-K', $order);
+        // Pegawai dengan data basi menerima versi server tanpa harga, pembayaran, dan nomor HP pelanggan.
+        $r = $this->push($this->token($this->staff('produksi')), [['collection' => 'orders', 'key' => 'GY-K', 'data' => $this->withStatus($order, 'kering'), 'base_rev' => $rev + 5]]);
+        $r->assertJsonPath('results.0.status', 'conflict');
+        $record = $r->json('results.0.record');
+        $this->assertArrayNotHasKey('total', $record['data']['card']);
+        $this->assertArrayNotHasKey('phone', $record['data']['detail']);
+        $this->assertStringNotContainsString('7000', json_encode($record));
+        // Kurir tidak bisa memancing isi pesanan orang lain lewat kiriman basi.
+        $r = $this->push($this->token($this->staff('kurir', 0, 'kur-1')), [['collection' => 'orders', 'key' => 'GY-K', 'data' => $this->withStatus($order, 'diambil'), 'base_rev' => $rev + 5]]);
+        $r->assertJsonPath('results.0.status', 'conflict')->assertJsonPath('results.0.record.deleted', true)->assertJsonPath('results.0.record.data', null);
+        $this->assertStringNotContainsString('Siti', $r->getContent());
+    }
 }

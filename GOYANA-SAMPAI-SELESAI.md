@@ -120,9 +120,9 @@ Acuan: `GOYANA-SISTEM-PUSAT.md` (terutama bagian 2–10, 12, 17, 19, 22–29), `
 
 | No | Bagian | Status |
 |---|---|---|
-| F2-1 | Akun: verifikasi email, reset password, MFA admin, undangan staf + hak akses per outlet (kasir, kurir, supervisor, owner) | belum |
-| F2-2 | API Android: login token, pairing/binding perangkat (maks 2 kasir per outlet), cabut perangkat | belum |
-| F2-3 | API data operasional: pelanggan, layanan/harga, pesanan, pembayaran, kas, stok, kurir — semua dipisah per usaha/outlet (tes lintas tenant wajib) | belum |
+| F2-1 | Akun: verifikasi email, reset password, MFA admin, undangan staf + hak akses per outlet (kasir, kurir, supervisor, owner) | akun staf + hak akses per outlet + login PIN: SELESAI 8 Okt (branch `backend/tim-outlet-kurir`, SISTEM-PUSAT §49); sisanya lihat §39 |
+| F2-2 | API Android: login token, pairing/binding perangkat (maks 2 kasir per outlet), cabut perangkat | SELESAI 8 Okt — batas HP kini per paket (2/3/4/5), HP outlet bergantian, cabut perangkat (§49) |
+| F2-3 | API data operasional: pelanggan, layanan/harga, pesanan, pembayaran, kas, stok, kurir — semua dipisah per usaha/outlet (tes lintas tenant wajib) | sebagian 8 Okt — aturan pesanan per peran, kurir, tahapan, setoran, monitoring di atas sinkronisasi yang ada (§49) |
 | F2-4 | Protokol sinkron offline-first: ID unik dari HP, anti-duplikat (idempotency), kirim bertahap/incremental, penanganan konflik, status sinkron (lihat SISTEM-PUSAT bagian 27–29) | belum |
 | F2-5 | Panel Administrator: daftar usaha, paket manual/beta, perangkat, audit, saldo AI (tidak hangus), anggaran AI pusat, CS/bantuan, FAQ | sebagian ada, lengkapi |
 | F2-6 | Paket berakhir → mode baca saja; retensi data (SISTEM-PUSAT bagian 23–24) | sebagian ada, cek |

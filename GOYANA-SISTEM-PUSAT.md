@@ -855,3 +855,39 @@ Status: **mesin jawaban sudah dibangun & diuji** (`backend/app/Support/QuickRepl
 - Spek awal: Ubuntu 24.04, 2 vCPU, 2 GB RAM, SSD 40–60 GB, lokasi Jakarta/Singapura.
 - Panduan: `deploy/README.md` bagian A.
 - CHATKU tetap di VPS terpisah (§41).
+
+## 49. Cabang, Tim, Login PIN, Kurir, Tahapan, Uang dan Monitoring — 8 Oktober 2026 (branch backend/tim-outlet-kurir)
+
+Keputusan pengguna 8 Oktober 2026. Yang bertentangan dengan bagian lama **menggantikan** bagian itu: batas 2 HP kasir (§4, ROADMAP §37), tampilan kurir (ROADMAP §37), kurir di beberapa outlet (ROADMAP §4), dan kunci menu Pegawai di Silver.
+
+### Keputusan
+1. **Login.** Owner: email + password. Kasir, pegawai, kurir, admin outlet: **nomor HP + PIN 6 angka** yang dibuatkan owner. Akun lama email + password tetap bisa masuk.
+2. **HP kasir per outlet mengikuti paket:** Trial/Basic 2, Silver 3, Gold 4, Platinum 5 (termasuk pusat). Pegawai dan kurir tidak memakai jatah ini.
+3. **Peran:** owner, kasir, pegawai (`produksi` di kode), kurir. **Admin Outlet tetap ada sebagai pilihan** (hak di atas kasir, laporan outletnya sendiri, tidak bisa mengelola pegawai/cabang).
+4. **Penempatan:** setiap orang selain owner terikat **tepat satu outlet**. Hanya owner yang menambah, menempatkan, memindahkan, menonaktifkan. Kasir otomatis punya kemampuan pegawai.
+5. **Kurir satu outlet.** Akun kurir hanya melihat Jemput, Antar, Setoran dan hanya tugas yang ditunjuk kasir/owner. Kurir lama yang tercentang banyak outlet atau "Semua Outlet" **belum bisa menerima tugas** sampai owner memilihkan satu outlet.
+6. **Kurir di lokasi:** boleh membuat transaksi saat jemput (harga dari daftar harga, tanpa diskon), menimbang, dan menerima pembayaran. Transaksi kurir menunggu **konfirmasi timbangan kasir**.
+7. **Tahapan:** Cuci → Kering → Setrika → Packing → **Selesai Proses** (baru) → Siap Ambil. Pegawai memajukan satu tahap sampai Selesai Proses. **Siap Ambil hanya kasir/admin outlet/owner**, yang juga boleh melompat; tahap yang dilompati dicatat. Tahap mengikuti "Alur proses" tiap layanan. **Tahap per barang** disimpan server; tampilan aplikasi tetap per nota dulu.
+8. **Uang:** tunai yang diterima kurir tercatat "dipegang kurir" sampai disetor ke **kasir outletnya** dan dikonfirmasi; selisih tercatat atas nama kurir. Hutang jadi setelan usaha (bawaan: boleh).
+9. **Paket:** menu Pegawai dan hak tahapan dibuka di **Trial dan Basic**. "Free" = Trial 2 bulan; tetap tidak ada paket gratis permanen (§5). Batas cabang tidak berubah.
+10. **Nomor nota:** `KODE-YYMMDD-HP-NNNN`, contoh `BKS-261008-1-0133` (kode cabang, tanggal, kode HP, nomor urut). Kode HP = slot HP kasir, atau `K<id>` untuk HP kurir. Nota lama tidak diubah.
+11. **Monitoring owner lengkap** antar cabang + peringatan otomatis. Laporan lengkap hanya owner; kasir/pegawai/kurir melihat ringkasan miliknya. Upah **ditunda**: hanya dicatat siapa mengerjakan apa.
+12. **Tidak dibuat:** ambil cucian di cabang lain.
+13. **Acuan aturan = Flutter murni.** Backend menjadi sumber aturan tunggal; versi web (`/app/`, HTML) mengikuti. Pengecualian sempit yang disetujui untuk HTML: kunci Pegawai ke Basic, tulisan fitur Silver, label "Khusus Paket Premium" pada hak tahapan. Perubahan HTML lain menunggu daftar perbedaan yang disetujui pengguna.
+
+### Sudah dibangun di backend (106 tes PHPUnit + uji sinkron 2 HP lulus di lokal)
+- **Celah sinkronisasi ditutup** (`App\Support\OrderGuard`): server tidak lagi menerima isi pesanan utuh dari akun yang hanya boleh mengubah status. Pegawai/kurir tidak bisa mengubah harga, diskon, pembayaran, atau isi pesanan. Kiriman yang tidak diterima dikembalikan ke HP sebagai versi server (`status: conflict` + `message`); status otomatis aplikasi dari HP yang tidak berhak diabaikan tanpa memantul.
+- **Yang dikirim ke HP mengikuti peran:** kurir hanya menerima tugasnya (dengan alamat pelanggan), bukan database pelanggan; pegawai menerima pesanan tanpa harga, pembayaran, dan nomor HP pelanggan.
+- **Login PIN** (`POST /api/session/pin`): kunci 15 menit setelah 5 kali salah, satu akun pegawai aktif di satu HP, sesi 30 hari, pencabutan seketika. **HP outlet bergantian:** owner mengikat HP ke outlet, pegawai memilih nama + PIN.
+- **Kelola Pegawai dan Cabang lewat API** (sebelumnya hanya dashboard web); aturan satu sumber di `App\Support\Team` dan `Outlets`. Cabang: kode nota, alamat, WA, aktif/nonaktif, tempat pengerjaan (sendiri atau dikirim ke outlet lain).
+- **Akun kurir = data kurir** (koleksi sinkron `couriers`) dengan tepat satu outlet; data kurir lama bisa disambungkan ke akun.
+- **Catatan milik server** yang tidak bisa diubah dari HP: `order_index`, `order_events` (buat, maju, lompat, mundur, batal, timbang, bayar), `courier_ledger`.
+- **Monitoring** `GET /api/monitoring` dan peringatan: cucian telat, siap ambil tak diambil, tunai lama dipegang kurir, selisih setoran, HP belum sinkron, kurir tanpa outlet. Dashboard web owner menampilkan peringatan.
+- Rincian endpoint: `backend/README.md`.
+
+### Belum (sisi aplikasi, putaran berikutnya)
+- Mode Murni belum tersambung ke server (login, sinkron, Pegawai/Outlet/Kurir/Monitor Cabang masih data HP). Ini syarat agar semua di atas terasa di aplikasi.
+- Tampilan tiga menu kurir, tombol Selesai Proses, tampilan tahap per barang, popup konfirmasi timbangan, penomoran nota baru, pengikatan HP outlet.
+- Pengecualian HTML (butir 13) dan membuka kunci Pegawai di Mode Murni: menyentuh tampilan/fixture dan memakai jatah CI Flutter, jadi menunggu izin pengguna.
+- Alasan wajib saat mundur tahap: server siap (`goyana.orders.require_reason_for_backward`), dinyalakan setelah aplikasi mengirim alasan.
+- "Diskon terbatas" kasir belum ditegakkan server. Ongkir pada transaksi kurir belum dicocokkan dengan tarif. Belum diuji di MySQL (tes memakai SQLite).

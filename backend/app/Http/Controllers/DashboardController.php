@@ -14,7 +14,8 @@ class DashboardController {
             'outlets' => $business->outlets()->with('devices')->get(),
             'team' => $business->users()->where('role', '!=', 'owner')->with('outlet')->orderBy('name')->get(),
             'roles' => collect(config('goyana.roles'))->except('owner'),
-            'summary' => $this->summary($business)]);
+            'summary' => $this->summary($business),
+            'alerts' => (new \App\Support\Monitoring($business))->alerts()]);
     }
 
     /** Omzet & order counts from orders synced by the phones (Asia/Jakarta days). */

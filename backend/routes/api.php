@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{ApiOutletController, ApiSessionController, ApiTeamController, SyncController};
+use App\Http\Controllers\{ApiMonitoringController, ApiOutletController, ApiSessionController, ApiTeamController, SyncController};
 use Illuminate\Support\Facades\Route;
 
 Route::post('/session', [ApiSessionController::class, 'login'])->middleware('throttle:login');
@@ -14,6 +14,15 @@ Route::middleware(['auth:sanctum', 'active', 'throttle:api'])->group(function ()
     Route::post('/devices/claim', [ApiSessionController::class, 'claimDevice']);
     Route::get('/sync/pull', [SyncController::class, 'pull']);
     Route::post('/sync/push', [SyncController::class, 'push'])->middleware('throttle:sync');
+
+    // Monitoring: laporan lengkap untuk owner (admin outlet: outletnya sendiri); yang lain ringkasan milik sendiri.
+    Route::get('/monitoring', [ApiMonitoringController::class, 'report']);
+    Route::get('/monitoring/alerts', [ApiMonitoringController::class, 'alerts']);
+    Route::get('/me/summary', [ApiMonitoringController::class, 'own']);
+    // Tunai kurir: dipegang kurir sampai disetor ke kasir outletnya.
+    Route::get('/courier/cash', [ApiMonitoringController::class, 'courierOwn']);
+    Route::get('/courier-cash', [ApiMonitoringController::class, 'courierCash']);
+    Route::post('/courier-cash/{courier}/deposit', [ApiMonitoringController::class, 'deposit'])->whereNumber('courier');
 
     // Kelola Cabang, Kelola Pegawai, HP outlet, setelan usaha: hanya owner.
     Route::middleware('owner')->group(function () {

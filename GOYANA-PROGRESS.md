@@ -1597,3 +1597,18 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **Reminder Pekerjaan (8 Okt)**: `lib/pure/reminders.dart` — 4 aturan menghasilkan notifikasi HP lewat alarm Android (`LocalNotifications.schedule`, tetap muncul walau aplikasi ditutup): 2 jam sebelum deadline, saat deadline terlewat, stok menipis (langsung), ringkasan belum bayar tiap 09.00. Dijadwalkan ulang tiap data disimpan; hanya yang berubah (kunci `goyana-reminders203`). Halaman Reminder menampilkan "Pengingat Saat Ini", izin notifikasi dan Tes Notifikasi. Belum diuji di HP.
 - **WA Support**: `6285280218627` (Pusat Bantuan & tombol bantuan Beranda).
 - **Bagian B (8 Okt)**: *Penjemputan Baru* — pelanggan dipilih dari daftar (cari) atau Tambah Pelanggan Baru lalu kembali otomatis; alamat mengikuti pelanggan (bisa diubah); Atur Jam Jemput = Secepatnya/Hari ini/Besok/Lusa + jam 07.00–21.00. *Hapus Pelanggan* di Edit Pelanggan (ditolak bila ada deposit/tagihan; riwayat pesanan tetap; izin kasir #2 berlaku lagi). *Nomor WhatsApp* satu aturan `waNumber` (7 salinan digabung; nomor tanpa 0 di depan kini benar). Sengaja dibiarkan: jalur lembar 'detail' lama di pure_shell (dipakai banyak tes) dan `Business.normalizedPhone` (kunci deposit, jangan diubah).
+
+### [Claude] Backend: cabang, tim, login PIN, kurir, tahapan, uang, monitoring (8 Okt)
+- **Status**: SELESAI sisi backend. Sisi aplikasi belum (lihat Temuan).
+- **Branch**: `backend/tim-outlet-kurir`, dibuat dari `flutter/panduan-baru` karena backend terbaru ada di jalur itu (`backend/laravel-foundation` tertinggal sejak 2 Okt). Belum digabung ke mana pun.
+- **Acuan keputusan**: `GOYANA-SISTEM-PUSAT.md` §49, `GOYANA-CATATAN-PADUKA.md` 8 Okt.
+- **File baru**: `backend/app/Support/{OrderData,OrderGuard,OrderLedger,Team,Outlets,Devices,SyncStore,Monitoring}.php`, `backend/app/Http/Controllers/{ApiTeamController,ApiOutletController,ApiMonitoringController}.php`, `backend/app/Models/SharedDevice.php`, 2 migrasi `2026_10_08_*`, tes `OrderRulesTest`, `TeamApiTest`, `MonitoringTest`.
+- **File berubah**: `SyncController`, `ApiSessionController`, `TeamController`, `OutletController`, `DeviceController`, `DashboardController`, model `User/Outlet/Business`, `config/goyana.php`, `routes/api.php`, `routes/web.php`, `routes/console.php`, `dashboard.blade.php`, `SyncTest` (satu tes kurir disesuaikan: dulu memastikan kurir boleh mengirim pesanan apa saja, yaitu celah yang ditutup).
+- **Tidak disentuh**: aplikasi Flutter, HTML/Hibrida, workflow CI.
+- **Hasil uji lokal** (PHP 8.3.6, SQLite): PHPUnit 106 tes / 863 asersi lulus (sebelumnya 63); `php -l` bersih; `route:list` 91 rute; `view:cache` lulus; `tests/sync-e2e.cjs` 6/6 PASS dengan klien HTML sungguhan (2 HP owner + HP kasir).
+- **CI**: belum dijalankan saat catatan ini ditulis; satu kali push di akhir memicu `backend.yml`.
+- **Temuan / pertanyaan untuk Koko**:
+  - Mode Murni belum tersambung ke server, jadi fitur ini belum terlihat di aplikasi Flutter murni. Itu pekerjaan berikutnya (A11/F4).
+  - Pengecualian HTML yang disetujui (kunci Pegawai ke Basic, tulisan Silver, label Premium tahapan) dan pembukaan kunci Pegawai di Mode Murni belum dikerjakan: mengubah fixture/tampilan dan memakai jatah CI Flutter. Menunggu izin CI.
+  - Klien lama yang dipakai akun pegawai: tombol "Tandai Siap" akan kembali ke tahap semula setelah sinkron (hanya kasir/owner yang boleh). Akun kurir di klien lama tidak lagi menerima database pelanggan.
+  - Belum diuji di MySQL. "Diskon terbatas" kasir dan pencocokan ongkir transaksi kurir belum ditegakkan server.
