@@ -1619,3 +1619,5 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **CI bagian 1**: `Flutter foundation` run 37740950318 (commit Pegawai di Basic) — SUCCESS: jembatan browser, analyze, tes unit, screenshot, APK hibrida + APK Mode Murni terbit di rilis `flutter-uji`. 1 CI dipakai.
 - **Flutter SDK tidak ada di cloud** dan tidak bisa diunduh dari sini, jadi kode Dart bagian 2 hanya dicek sintaksnya (tree-sitter) sebelum CI. Hasil CI bagian 2 dicatat di bawah.
 - **Belum**: halaman Pegawai/Outlet/Kurir/Monitor Cabang memanggil API; tampilan kurir; lihat SISTEM-PUSAT §49 "Belum".
+- **CI bagian 2**: `Flutter foundation` run 37743425434 (commit d17dbda) — SUCCESS pada percobaan pertama: jembatan browser, `flutter analyze` bersih, tes unit (termasuk `server_sync_test.dart`), screenshot, APK hibrida dan APK Mode Murni terbit di rilis `flutter-uji`. 1 CI dipakai (total 2 CI Flutter untuk dua bagian ini).
+- **Belum diuji**: di HP sungguhan dan terhadap server sungguhan (server belum online). Uji itu yang berikutnya paling berharga.
