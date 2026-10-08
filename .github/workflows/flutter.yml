@@ -129,3 +129,5 @@ jobs:
           NEW=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Murni-Uji-baru.apk") | .id')
           if [ -n "$OLD" ]; then gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$OLD"; fi
           gh api -X PATCH "repos/${{ github.repository }}/releases/assets/$NEW" -f name=GOYANA-Murni-Uji.apk >/dev/null
+          # APK Hibrida lama tidak dipajang lagi di halaman rilis.
+          for ID in $(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji.apk" or .name=="GOYANA-Flutter-Uji-baru.apk") | .id'); do gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$ID"; done
