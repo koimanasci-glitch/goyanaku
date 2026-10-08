@@ -446,87 +446,6 @@ class QrisPage extends PurePage {
   }
 }
 
-class ServicesPage extends PurePage {
-  ServicesPage(super.host);
-  final Map<int, String> _price = {};
-  @override
-  String get title => 'Layanan & Harga';
-  static const durs = ['Reguler', 'Express', 'Kilat'];
-  String newName = '', newUnit = 'kg', newPrice = '';
-
-  @override
-  List<Map<String, dynamic>> items() {
-    final list = host.business.services;
-    final out = <Map<String, dynamic>>[];
-    for (var s = 0; s < list.length; s++) {
-      out.add({'type': 'title', 't': list[s].name, 's': 'per ${list[s].unit}'});
-      for (var d = 0; d < durs.length; d++) {
-        final idx = s * 10 + d;
-        out.add({'type': 'input', 'label': durs[d], 'pre': 'Rp', 'v': _price[idx] ?? '${list[s].priceFor(durs[d])}', 'numeric': true, 'i': idx});
-        out.add({'type': 'toggle', 't': '${durs[d]} aktif', 'on': list[s].enabledFor(durs[d]), 'i': idx});
-      }
-    }
-    out.addAll([
-      {'type': 'title', 't': 'Tambah layanan'},
-      {'type': 'input', 'v': newName, 'ph': 'Nama layanan, contoh: Cuci Sepatu', 'i': 9000},
-      {'type': 'choice', 't': 'Satuan', 'options': [
-        for (final (k, u) in const ['kg', 'pcs', 'm'].indexed) {'t': u, 'on': newUnit == u, 'i': k},
-      ]},
-      {'type': 'input', 'label': 'Harga Reguler', 'pre': 'Rp', 'v': newPrice, 'numeric': true, 'i': 9001},
-      {'type': 'button', 't': '+ Tambah Layanan', 'primary': false, 'i': 1},
-      {'type': 'button', 't': 'Simpan Harga', 'primary': true, 'i': 0},
-    ]);
-    return out;
-  }
-
-  @override
-  void input(int i, Object value) {
-    if (i == 9000) {
-      newName = '$value';
-    } else if (i == 9001) {
-      newPrice = '$value';
-    } else {
-      _price[i] = '$value';
-    }
-  }
-
-  @override
-  void toggle(int i) {
-    final list = host.business.services;
-    final s = i ~/ 10, d = i % 10;
-    if (s < list.length && d < durs.length) host.business.toggleService(list[s], durs[d]);
-    host.refresh();
-  }
-
-  @override
-  void radio(int i) {
-    newUnit = const ['kg', 'pcs', 'm'][i.clamp(0, 2)];
-    host.refresh();
-  }
-
-  @override
-  void button(int i) async {
-    final b = host.business;
-    if (i == 1) {
-      final err = b.addService(newName, newUnit, parseRupiah(newPrice));
-      if (err != null) return host.toast(err);
-      newName = '';
-      newPrice = '';
-      await b.saveServices();
-      host.toast('Layanan ditambahkan');
-      return host.refresh();
-    }
-    _price.forEach((idx, v) {
-      final s = idx ~/ 10, d = idx % 10;
-      if (s < b.services.length && d < durs.length) b.setServicePrice(b.services[s], durs[d], parseRupiah(v));
-    });
-    _price.clear();
-    await b.saveServices();
-    host.toast('Harga layanan tersimpan');
-    host.go('settings');
-  }
-}
-
 class PerfumePage extends PurePage {
   PerfumePage(super.host);
   static const colors = ['#e9b949', '#5aa9e6', '#9b7ae0', '#2bb3a3', '#f07aa0', '#E8493F', '#8A8FA3'];
@@ -1504,30 +1423,6 @@ class PinLockPage extends PurePage {
   }
 }
 
-class HelpPage extends PurePage {
-  HelpPage(super.host);
-  @override
-  String get title => 'Pusat Bantuan';
-  @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'title', 't': 'Ada yang bisa kami bantu?'},
-        card('Membuat Pesanan', 'Tambah Transaksi → pelanggan → durasi → layanan → bayar', '🧾', 0),
-        card('Status Laundry', 'Tekan tombol di kartu pesanan untuk lanjut ke tahap berikutnya', '🧺', 1),
-        card('Pembayaran & QRIS', 'Atur QRIS & rekening di Pengaturan', '▦', 2),
-        card('Printer & Struk', 'Pasangkan printer di Bluetooth HP, lalu Pengaturan → Printer', '🖨', 3),
-        {'type': 'button', 't': 'Hubungi Support GOYANA', 'primary': true, 'i': 10},
-        {'type': 'hint', 't': 'Jangan pernah membagikan password, PIN, atau kode OTP.'},
-      ];
-  @override
-  void button(int i) {
-    if (i == 10) {
-      host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/6281234567890?text=${Uri.encodeComponent('Halo GOYANA, saya butuh bantuan')}'}).catchError((_) => null);
-    } else {
-      host.toast(const ['Tambah Transaksi ada di Beranda', 'Tombol merah di kartu = tahap berikutnya', 'Pengaturan → QRIS Outlet / Rekening', 'Pengaturan → Printer Bluetooth'][i.clamp(0, 3)]);
-    }
-  }
-}
-
 /// Kirim pesan WA lewat aplikasi WhatsApp HP (tanpa server).
 void openWa(PureHost host, String phone, String text) {
   var p = phone.replaceAll(RegExp(r'\D'), '');
@@ -1802,57 +1697,6 @@ class OutletEditPage extends PurePage {
     editId = id;
     host.toast('Outlet tersimpan');
     host.go('outlets');
-  }
-}
-
-/// Monitoring cabang sementara (rancangan Mode Murni lama) sampai branchmonitor58/superbilling dipindah.
-class BranchesPage extends PurePage {
-  BranchesPage(super.host);
-  String name = '';
-  @override
-  String get title => 'Cabang & Monitoring';
-  @override
-  String get back => 'outlets';
-  @override
-  List<Map<String, dynamic>> items() {
-    final b = host.business, n = host.now;
-    bool today(DateTime? d) => d != null && d.year == n.year && d.month == n.month && d.day == n.day;
-    final list = b.outlets;
-    return [
-      {'type': 'hint', 't': 'Order baru masuk ke outlet aktif. Ganti outlet aktif untuk bekerja di cabang lain.'},
-      for (var k = 0; k < list.length; k++) ...[
-        () {
-          final orders = b.orders.where((o) => !o.isCancelled && (o.outlet == list[k].id || (o.outlet.isEmpty && k == 0))).toList();
-          final omzet = orders.where((o) => today(o.created)).fold<int>(0, (a, o) => a + o.total);
-          final active = orders.where((o) => !['diambil', 'batal'].contains(o.status)).length;
-          final late = orders.where((o) => o.isLate(n)).length;
-          return {
-            'type': 'entry', 't': list[k].name, 'lines': ['Omzet hari ini ${rp(omzet)} · $active aktif · $late terlambat', if (list[k].address.isNotEmpty) list[k].address],
-            'badge': list[k].id == b.activeOutlet ? 'Aktif' : '',
-            'btns': [if (list[k].id != b.activeOutlet) {'t': 'Jadikan Aktif', 'i': 100 + k}],
-          };
-        }(),
-      ],
-      {'type': 'input', 'v': name, 'ph': 'Nama cabang baru', 'i': 0},
-      {'type': 'button', 't': '+ Tambah Cabang', 'primary': true, 'i': 1},
-    ];
-  }
-
-  @override
-  void input(int i, Object value) => name = '$value'.trim();
-  @override
-  void button(int i) async {
-    final b = host.business;
-    if (i >= 100) {
-      if (i - 100 < b.outlets.length) await b.setActiveOutlet(b.outlets[i - 100].id);
-      host.toast('Outlet aktif diganti');
-    } else {
-      if (name.isEmpty) return host.toast('Isi nama cabang');
-      await b.addOutlet(name);
-      name = '';
-      host.toast('Cabang ditambahkan');
-    }
-    host.refresh();
   }
 }
 

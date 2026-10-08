@@ -163,7 +163,7 @@ void main() {
 
   testWidgets('halaman pelanggan, laporan, pengaturan tampil tanpa error', (tester) async {
     final s = await _pump(tester, _store());
-    for (final p in ['customers', 'reports', 'settings', 'printer', 'qris', 'services', 'perfume', 'today', 'stock', 'couriers', 'discounts', 'employees', 'help', 'crm', 'outlets', 'datacenter', 'upgrade', 'cashin', 'cashout', 'cashclose', 'home']) {
+    for (final p in ['customers', 'reports', 'settings', 'printer', 'qris', 'services', 'perfume', 'today', 'stock', 'couriers', 'discounts', 'employees', 'helpcenter', 'crm', 'outlets', 'datacenter', 'upgrade', 'cashin', 'cashout', 'cashclose', 'home']) {
       s.nav(p);
       await _settle(tester);
       expect(tester.takeException(), isNull, reason: p);

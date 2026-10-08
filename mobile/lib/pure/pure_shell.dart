@@ -90,7 +90,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -921,7 +921,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void stLogout() => toast('Akun server belum aktif');
   @override
-  void stTutorial() => nav('help');
+  void stTutorial() => nav('helpcenter');
 
   // ---------------- Cetak struk ----------------
   Future<void> _print(Order o) => _printRaw(receiptText(o, _settings!.receipt, printedAt: now), o.id, 'Struk dicetak');
