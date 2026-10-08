@@ -415,14 +415,17 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kunci paket seperti HTML: trial Basic menolak Pegawai/Stok/CRM/Ekspor; Mode Uji membukanya', (tester) async {
+  testWidgets('Kunci paket seperti HTML: trial Basic membuka Pegawai, menolak Stok/CRM/Ekspor; Mode Uji membukanya', (tester) async {
     expect(sha256Hex(utf8.encode('abc')), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
     final kv = _store();
     final s = await _pump(tester, kv);
     await _settle(tester);
     expect(jsonDecode(kv.data['goyana-trial190']!)['until'], isNotNull);
+    // Keputusan 8 Okt 2026: Pegawai terbuka di Trial dan Basic.
+    expect(planAccess.has('employees', s.now), isTrue);
     s.nav('employees');
-    expect(s.debugToast, 'Pegawai membutuhkan paket Silver');
+    await _settle(tester);
+    expect(s.debugToast, isNot('Pegawai membutuhkan paket Silver'));
     s.nav('stock');
     expect(s.debugToast, 'Stok bahan membutuhkan paket Silver');
     s.nav('crm');

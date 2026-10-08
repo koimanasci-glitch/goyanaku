@@ -14,7 +14,7 @@ const planCatalog = [
   ['PLATINUM', 4, 5],
 ];
 
-const _need = {'export': 2, 'opname': 2, 'quick': 2, 'ai': 3, 'messages': 3, 'blast': 4, 'stock': 2, 'crm': 3, 'transfer': 4, 'employees': 2};
+const _need = {'export': 2, 'opname': 2, 'quick': 2, 'ai': 3, 'messages': 3, 'blast': 4, 'stock': 2, 'crm': 3, 'transfer': 4, 'employees': 1};
 const _labels = {
   'export': 'Ekspor Data', 'opname': 'Stok Opname', 'quick': 'Balasan Cepat', 'ai': 'Chatbot AI', 'messages': 'Pesan otomatis',
   'blast': 'WhatsApp Blast', 'stock': 'Stok bahan', 'crm': 'Loyalitas pelanggan', 'transfer': 'Transfer stok', 'employees': 'Pegawai',

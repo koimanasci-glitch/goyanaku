@@ -102,28 +102,28 @@
   },
   {
    "type": "toggle",
-   "t": "Cuci (Khusus Paket Premium)",
+   "t": "Cuci",
    "s": "",
    "on": false,
    "i": 5
   },
   {
    "type": "toggle",
-   "t": "Kering (Khusus Paket Premium)",
+   "t": "Kering",
    "s": "",
    "on": false,
    "i": 6
   },
   {
    "type": "toggle",
-   "t": "Setrika (Khusus Paket Premium)",
+   "t": "Setrika",
    "s": "",
    "on": false,
    "i": 7
   },
   {
    "type": "toggle",
-   "t": "Packing (Khusus Paket Premium)",
+   "t": "Packing",
    "s": "",
    "on": false,
    "i": 8

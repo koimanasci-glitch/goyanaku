@@ -2759,8 +2759,8 @@ class EmployeesPage extends PurePage {
   static const key = 'goyana_employees_v157';
   static const perms = [
     ['order_create', 'Membuat Order / Transaksi'], ['order_backdate', 'Membuat Order Backdate (Tanggal Mundur)'], ['order_edit', 'Edit Order / Transaksi'],
-    ['order_cancel', 'Membatalkan Order / Transaksi'], ['expense_create', 'Membuat Pengeluaran'], ['wash', 'Cuci (Khusus Paket Premium)'],
-    ['dry', 'Kering (Khusus Paket Premium)'], ['iron', 'Setrika (Khusus Paket Premium)'], ['pack', 'Packing (Khusus Paket Premium)'],
+    ['order_cancel', 'Membatalkan Order / Transaksi'], ['expense_create', 'Membuat Pengeluaran'], ['wash', 'Cuci'],
+    ['dry', 'Kering'], ['iron', 'Setrika'], ['pack', 'Packing'],
     ['services', 'Mengelola Layanan / Produk'], ['customers', 'Mengelola Data Pelanggan'], ['employees', 'Mengelola Data Pegawai'],
     ['revenue', 'Menampilkan Nilai Omset'], ['transactions_report', 'Akses Laporan Transaksi'], ['finance_report', 'Akses Laporan Keuangan'],
     ['performance_report', 'Akses Laporan Kinerja'], ['customers_report', 'Akses Laporan Pelanggan'],
