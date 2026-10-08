@@ -4,8 +4,8 @@ return [
     'enabled' => false,
     'connection_packages' => ['Silver', 'Gold', 'Platinum'],
     'base_slots' => 1,
-    // Pending Paduka's decision: no package is implicitly granted status replies.
-    'status_packages' => [],
+    // Keputusan Paduka 8 Oktober 2026: Balas Status WhatsApp mulai dari Silver (Basic tidak).
+    'status_packages' => ['Silver', 'Gold', 'Platinum'],
     'services_packages' => ['Gold', 'Platinum'],
     'event_max_age_seconds' => 300,
     'template_ai_enabled' => false,

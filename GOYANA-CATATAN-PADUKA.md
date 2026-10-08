@@ -122,3 +122,5 @@ Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian
 - "Kamu bisa kan atur wa blast biar aman misal di gilir sehari jangan banyak-banyak" → angka awal disetujui ("Ok"), lalu "Gas buat". Rincian di GOYANA-SISTEM-PUSAT.md §52.
 - Dijawab 8 Okt 21.57: nama paket **jangan diganti**, tetap sesuai paket kita (Basic, Silver, Gold, Platinum). Nomor WhatsApp khusus marketing: **nanti dulu**.
 - Belum dijawab: sumber calon client selain isi manual dan impor file.
+
+- 8 Oktober 2026 — Balas Status WhatsApp otomatis: mulai paket Silver (Silver, Gold, Platinum). Basic tidak dapat.
