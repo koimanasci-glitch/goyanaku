@@ -4,6 +4,7 @@
 import 'package:flutter/services.dart';
 
 import '../core/models.dart';
+import '../core/money.dart';
 import '../core/receipt.dart';
 import 'pages.dart';
 import 'receipt_image.dart';
@@ -69,6 +70,18 @@ class LabelPage extends PurePage {
       ? 'Proses'
       : const {'jemput': 'Penjemputan', 'antrian': 'Antrian', 'siap': 'Siap Ambil', 'telat': 'Telat Ambil', 'diantar': 'Diantar'}[o.status] ?? o.status;
 
+  /// Isi label menurut sakelar Pengaturan → Barcode & Label (5 nama, 6 alamat, 7 layanan & berat, 8 estimasi, 9 total, 10 status bayar).
+  bool _opt(int i) => tplToggle(host.settings, 'barcode', i);
+  String _name(Order o) => _opt(5) ? o.name : '';
+  String _meta(Order o, String est) => [
+        o.dur,
+        if (_opt(7)) o.items.map((e) => '${e.name} ${qtyText(e.qty)} ${e.unit}').join(', '),
+        if (_opt(8) && est.isNotEmpty && est != '-') 'Est $est',
+        if (_opt(9)) rp(o.total),
+        if (_opt(10)) (o.isPaid ? 'LUNAS' : 'BELUM BAYAR'),
+        if (_opt(6) && (host.business.customerByName(o.name)?.address ?? '').isNotEmpty) host.business.customerByName(o.name)!.address,
+      ].where((e) => e.isNotEmpty).join(' · ');
+
   String _outlet() {
     final b = host.business;
     final o = b.outlets.where((x) => x.id == b.activeOutlet).firstOrNull ?? b.outlets.firstOrNull;
@@ -106,7 +119,7 @@ class LabelPage extends PurePage {
         for (var k = 1; k <= bags; k++)
           {
             'type': 'labelprev',
-            'lines': ['GOYANA · ${_outlet()}', o.name, '$k/$bags KANTONG', '${o.dur} · Est $est · ${o.isPaid ? 'LUNAS' : 'BELUM BAYAR'}', '${o.id}/$k'],
+            'lines': ['GOYANA · ${_outlet()}', _name(o), '$k/$bags KANTONG', _meta(o, est), '${o.id}/$k'],
             'svg': code128Svg('${o.id}/$k'),
           },
         {'type': 'buttons', 'options': [{'t': '✓ Cek Kantong', 'on': false, 'i': 7}, {'t': '🖨 Cetak Label', 'on': false, 'i': 8}]},
@@ -162,7 +175,7 @@ class LabelPage extends PurePage {
     String esc(String v) => v.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     String two(int n) => n.toString().padLeft(2, '0');
     final w = const ['50mm', '40mm', '58mm'][size], auto = size == 2;
-    final est = o.due == null ? '' : ' · Est ${two(o.due!.day)}/${two(o.due!.month)}/${o.due!.year} · ${two(o.due!.hour)}:${two(o.due!.minute)}';
+    final est = o.due == null ? '' : '${two(o.due!.day)}/${two(o.due!.month)}/${o.due!.year} · ${two(o.due!.hour)}:${two(o.due!.minute)}';
     final css = '@page{size:$w ${auto ? '40mm' : '30mm'};margin:1.5mm}body{margin:0;font-family:Arial,Helvetica,sans-serif}'
         '.l{width:100%;height:${auto ? 'auto' : '26mm'};box-sizing:border-box;page-break-after:always;padding:0}.l:last-child{page-break-after:auto}'
         '.h{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}.h small{display:block;font-size:6.5pt;font-weight:700}'
@@ -171,8 +184,8 @@ class LabelPage extends PurePage {
         '.m{font-size:7pt;margin:1pt 0 2pt}svg{display:block;width:100%;height:9mm}.c{text-align:center;font:700 7pt monospace}';
     final body = StringBuffer();
     for (var k = 1; k <= bags; k++) {
-      body.write('<div class="l"><div class="h"><div><small>GOYANA · ${esc(_outlet())}</small><b>${esc(o.name)}</b></div><div class="k">$k/$bags<small>KANTONG</small></div></div>'
-          '<div class="m">${esc(o.dur)}$est${o.isPaid ? ' · LUNAS' : ' · BELUM BAYAR'}</div>${code128Svg('${o.id}/$k')}<div class="c">${esc(o.id)}/$k</div></div>');
+      body.write('<div class="l"><div class="h"><div><small>GOYANA · ${esc(_outlet())}</small><b>${esc(_name(o))}</b></div><div class="k">$k/$bags<small>KANTONG</small></div></div>'
+          '<div class="m">${esc(_meta(o, est))}</div>${code128Svg('${o.id}/$k')}<div class="c">${esc(o.id)}/$k</div></div>');
     }
     return '<html><head><style>$css</style></head><body>$body</body></html>';
   }

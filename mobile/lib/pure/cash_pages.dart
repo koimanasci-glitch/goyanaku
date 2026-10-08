@@ -67,8 +67,8 @@ class CashEntryPage extends PurePage {
     return {
       'title': title, 'heading': 'Saldo Kas',
       'stats': [
-        {'icon': r'$', 'kind': 'cash', 't': 'Saldo Tunai', 'v': rp(c['expect']!)},
-        {'icon': '◌', 'kind': 'noncash', 't': 'Saldo Non-Tunai', 'v': rp(c['nt']!)},
+        {'icon': r'$', 'kind': 'cash', 't': 'Saldo Tunai', 'v': host.kasirCan(4) ? rp(c['expect']!) : 'Rp •••'},
+        {'icon': '◌', 'kind': 'noncash', 't': 'Saldo Non-Tunai', 'v': host.kasirCan(5) ? rp(c['nt']!) : 'Rp •••'},
       ],
       'type': {'v': type, 'options': types, 'index': types.indexOf(type).clamp(0, 2)},
       'amount': {'v': amount, 'ph': 'Jumlah'},
@@ -87,6 +87,9 @@ class CashEntryPage extends PurePage {
   void submit() {
     if (amount.trim().isEmpty) return host.toast('Isi jumlah terlebih dahulu');
     final a = parseRupiah(amount);
+    if (!income && !host.kasirCan(type.contains('Non') ? 7 : 6)) {
+      return host.toast('Kasir tidak diizinkan mengurangi kas ${type.contains('Non') ? 'non-tunai' : 'tunai'} · hubungi pemilik');
+    }
     if (a > 0) {
       final non = type.contains('Non'), at = host.now.toUtc().toIso8601String();
       final kas = host.business.kas;

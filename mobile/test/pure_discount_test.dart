@@ -17,6 +17,7 @@ import 'package:goyana_flutter/native/cash_page.dart';
 import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/import_csv.dart';
+import 'package:goyana_flutter/pure/label_page.dart';
 import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, restoreBackup;
 import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
@@ -171,7 +172,7 @@ void servicesTests() {
 }
 
 // ---- Halaman berpola tetap (butir = tangkapan HTML) ----
-const _redesigned = {'automation', 'datacenter'};
+const _redesigned = {'automation', 'datacenter', 'cashier', 'barcode'};
 void templateTests() {
   testWidgets('Halaman pola tetap: butir sama persis dengan HTML dan bisa digambar', (tester) async {
     planAccess.testPlan = 'PLATINUM';
@@ -1385,6 +1386,86 @@ void templateTests() {
     expect(tester.testTextInput.hasAnyClients, isTrue, reason: 'keyboard tidak tertutup');
     expect(FocusManager.instance.primaryFocus?.hasPrimaryFocus, isTrue);
     await tester.enterText(find.byType(EditableText).first, 'Sari');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Izin kasir sungguh membatasi: batal pesanan, kurangi kas, saldo, laporan; pemilik (PIN Admin) bebas', (tester) async {
+    final kv = _store();
+    kv.data[AppSettings.key] = jsonEncode({
+      'seed203': {'services': true, 'expenseCats': true}, 'pinLock': true, 'adminPin': '9911',
+      'employees': [{'name': 'Rina', 'phone': '0812', 'pin': '4321'}],
+      'tpl': {'cashier': {'tg': {'0': false, '3': false, '4': false, '8': false}}},
+    });
+    var s = await _pump(tester, kv);
+    expect(find.text('Masukkan PIN'), findsOneWidget);
+    s.fmScoped('pin', 'input', 0, '4321');
+    s.fmScoped('pin', 'button', 1);
+    await _settle(tester);
+    expect(s.debugToast, 'Halo, Rina');
+    expect(s.kasirCan(3), isFalse);
+    expect(s.kasirCan(6), isFalse, reason: 'bawaan: kasir tidak boleh mengurangi kas tunai');
+    expect(s.kasirCan(1), isTrue);
+    // Batalkan pesanan ditolak.
+    final id = (await Business.load(kv)).orders.first.id;
+    s.openOrder(id);
+    await _settle(tester);
+    s.fmScoped('detail', 'button', 3);
+    expect(s.debugToast, 'Kasir tidak diizinkan membatalkan pesanan · hubungi pemilik');
+    expect(s.debugSheet('cancel'), isNull);
+    // Pengeluaran tunai ditolak, saldo disembunyikan.
+    s.nav('cashout');
+    await _settle(tester);
+    final cash = s.debugPage('cashout') as CashEntryPage;
+    expect(((cash.model()['stats'] as List).first as Map)['v'], 'Rp •••');
+    cash
+      ..type = 'Tunai'
+      ..amount = '5000'
+      ..submit();
+    expect(s.debugToast, 'Kasir tidak diizinkan mengurangi kas tunai · hubungi pemilik');
+    expect(((await Business.load(kv)).kas['outs'] as List), isEmpty);
+    // Halaman izin & pegawai hanya untuk pemilik.
+    s.nav('cashier');
+    expect(s.debugToast, 'Hanya pemilik · buka aplikasi dengan PIN Admin');
+
+    // Pemilik masuk dengan PIN Admin: semua bebas.
+    s = await _pump(tester, kv);
+    s.fmScoped('pin', 'input', 0, '9911');
+    s.fmScoped('pin', 'button', 1);
+    await _settle(tester);
+    expect(s.debugToast, 'Halo, Pemilik');
+    expect(s.kasirCan(3), isTrue);
+    s.nav('cashier');
+    await _settle(tester);
+    expect(s.debugItems().where((e) => e['type'] == 'toggle').length, 8, reason: '"Menghapus Pelanggan" disembunyikan (fiturnya belum ada)');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Barcode & Label: sakelar isi label dan barcode struk benar-benar dipakai; angka ringkasan dari data', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    s.nav('barcode');
+    await _settle(tester);
+    final cells = s.debugItems().first['cells'] as List;
+    expect([(cells[0] as Map)['v'], (cells[1] as Map)['v']], ['0', '0'], reason: 'bukan angka contoh 128 / 6');
+    expect([for (final t in s.debugItems().where((e) => e['type'] == 'toggle')) t['i']], [0, 2, 5, 6, 7, 8, 9, 10]);
+    final label = s.debugPage('printlabel') as LabelPage;
+    final o = (await Business.load(kv)).orders.first;
+    expect(label.labelHtml(o), contains(o.name));
+    expect(label.labelHtml(o), contains('BELUM BAYAR'));
+    expect(label.labelHtml(o), isNot(contains('Rp')));
+    final st = AppSettings.key;
+    kv.data[st] = jsonEncode((jsonDecode(kv.data[st]!) as Map)..['tpl'] = {'barcode': {'tg': {'5': false, '9': true, '10': false, '2': false}}});
+    final s2 = await _pump(tester, kv);
+    await _settle(tester);
+    final label2 = s2.debugPage('printlabel') as LabelPage;
+    final html = label2.labelHtml(o);
+    expect(html, isNot(contains('<b>${o.name}</b>')));
+    expect(html, contains('Rp'));
+    expect(html, isNot(contains('BELUM BAYAR')));
+    final d = ReceiptData.of(o, outlet: 'Uji', barcode: false);
+    final plain = await tester.runAsync(() => receiptPng(d));
+    final withBar = await tester.runAsync(() => receiptPng(ReceiptData.of(o, outlet: 'Uji')));
+    expect(plain!.length, lessThan(withBar!.length));
     expect(tester.takeException(), isNull);
   });
 

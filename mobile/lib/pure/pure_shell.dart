@@ -87,11 +87,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   late final Map<String, PurePage> _pages = {
     ...templatePages(this),
     ...whatsappPages(this),
-    'settings': SettingsPage(this), 'receipt': ReceiptPage(this), 'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
-    'bank': BankPage(this), 'perfume': PerfumePage(this), 'duration': DurationPage(this), 'kas': KasPage(this),
-    'reports': ReportsPage(this), 'outlet': OutletPage(this), 'today': TodayPage(this), 'data': DataPage(this),
+    'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
+    'perfume': PerfumePage(this), 'duration': DurationPage(this), 
+    'today': TodayPage(this), 
     'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'help': HelpPage(this),
-    'crm': CrmNativePage(this), 'whatsapp': WhatsAppPage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 'notif': NotifPage(this), 'plan': PlanPage(this),
+    'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 
   };
 
   @override
@@ -99,6 +99,27 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   /// Kasir yang sedang login (PIN); dicatat di riwayat pesanan.
   String _kasir = 'Kasir';
+  /// True bila aplikasi dibuka dengan PIN pegawai (bukan PIN Admin): izin di Pengaturan → Kasir berlaku.
+  bool _kasirSession = false;
+  static const _kasirDefault = [true, true, false, true, true, true, false, false, true];
+
+  /// Izin kasir ke-[k] (urutan sakelar Pengaturan Kasir): 0 statistik harian, 1 statistik layanan, 2 hapus pelanggan,
+  /// 3 batalkan pesanan, 4 lihat saldo tunai, 5 lihat saldo non-tunai, 6 kurangi kas tunai, 7 kurangi kas non-tunai, 8 mutasi kas.
+  @override
+  bool kasirCan(int k) {
+    if (!_kasirSession || k < 0 || k >= _kasirDefault.length) return true;
+    final v = (((_settings?.raw['tpl'] as Map?)?['cashier'] as Map?)?['tg'] as Map?)?['$k'];
+    return v is bool ? v : _kasirDefault[k];
+  }
+
+  bool _deny(int k, String what) {
+    if (kasirCan(k)) return false;
+    toast('Kasir tidak diizinkan $what · hubungi pemilik');
+    return true;
+  }
+
+  @visibleForTesting
+  set debugKasirSession(bool v) => _kasirSession = v;
   bool _locked = false;
   String _pin = '';
 
@@ -154,7 +175,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void rpPeriod(int index) => rdPeriod(reportPeriodsA8[index].$1);
   @override
   void rpKpi(int index) {
-    setState(() => _rpId = const ['keluar', 'laba', 'piutang', 'tumbuh'][index]);
+    final id = const ['keluar', 'laba', 'piutang', 'tumbuh'][index];
+    if (_denyReport(id)) return;
+    setState(() => _rpId = id);
     nav('rp');
   }
 
@@ -174,8 +197,17 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final id = ids[index];
     if (id == 'tutup') return nav('cashclose');
     if (id == 'ralat') return nav('ralat139');
+    if (_denyReport(id)) return;
     setState(() => _rpId = id);
     nav('rp');
+  }
+
+  /// Izin kasir untuk laporan: mutasi kas (Arus Kas), statistik harian (keuangan) dan statistik layanan.
+  bool _denyReport(String id) {
+    if (id == 'arus') return _deny(8, 'melihat mutasi kas');
+    if (const {'layanan', 'durasi'}.contains(id)) return _deny(1, 'melihat statistik layanan');
+    final cat = reportCatalogA8.where((r) => r.$1 == id).firstOrNull?.$2;
+    return cat == 'keu' && _deny(0, 'melihat statistik keuangan');
   }
 
   @override
@@ -726,6 +758,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void nav(String pageId) {
     final gate = pageGates[pageId];
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
+    if (_kasirSession && const {'cashier', 'employees', 'pinlock'}.contains(pageId)) return toast('Hanya pemilik · buka aplikasi dengan PIN Admin');
     if (_page == 'crm') _loadCrmRule();
     if (_page == 'stock') _hppSync();
     setState(() {
@@ -1276,7 +1309,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   /// Gambar struk pesanan (kepala outlet aktif).
   Future<Uint8List> _receiptPngOf(Order o) {
     final out = _outletNow;
-    return receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir));
+    return receiptPng(ReceiptData.of(o, outlet: out?.name ?? 'GOYANA', address: out?.address ?? '', wa: out?.phone ?? '', phone: _phoneOf(o), kasir: _kasir, barcode: tplToggle(_settings!, 'barcode', 2)));
   }
 
   Future<void> _openStruk(Order o) async {
@@ -1395,6 +1428,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   static const cancelReasons = ['Pilih alasan…', 'Pelanggan membatalkan', 'Salah input pesanan', 'Pakaian tidak jadi dicuci', 'Lainnya'];
 
   void _openCancel(Order o) {
+    if (_deny(3, 'membatalkan pesanan')) return;
     _form
       ..clear()
       ..['reason'] = 0
@@ -1808,9 +1842,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       if (kind == 'input') _pin = '${value ?? ''}'.replaceAll(RegExp(r'\D'), '');
       if (kind == 'button') {
         final emp = (_settings!.raw['employees'] as List? ?? const []).whereType<Map>().where((e) => e['pin'] == _pin).firstOrNull;
-        if (emp == null) return toast('PIN salah');
+        // PIN Admin (Ralat → Ganti PIN Admin) = pemilik: akses penuh, izin kasir tidak membatasi.
+        final owner = emp == null && _pin == '${_settings!.raw['adminPin'] ?? '1234'}';
+        if (emp == null && !owner) return toast('PIN salah');
         setState(() {
-          _kasir = '${emp['name']}';
+          _kasir = owner ? 'Pemilik' : '${emp!['name']}';
+          _kasirSession = !owner;
           _locked = false;
           _pin = '';
         });
@@ -2712,6 +2749,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     toast(change > 0 ? 'Lunas · kembalian ${rp(change)}' : 'Pesanan tersimpan · kirim nota lewat tombol WA hijau');
     _pointsToast(o.name, pointsBefore);
     _showDetail(o.id, banner: true);
+    // Pengaturan → Barcode & Label: "Otomatis cetak struk setelah order".
+    if (tplToggle(_settings!, 'barcode', 0)) _print(o);
   }
 
   /// Bayar dari Rincian Pesanan: lembar Pembayaran yang sama dengan Tambah Transaksi (HTML v160 openPay115).
@@ -2779,7 +2818,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return NativeSheet(id: 'pin', screen: true, actions: this, items: [
         {'type': 'title', 't': 'GOYANA'},
         {'type': 'title', 't': 'Masukkan PIN', 's': ''},
-        {'type': 'hint', 't': 'PIN pegawai untuk membuka aplikasi.'},
+        {'type': 'hint', 't': 'PIN pegawai untuk membuka aplikasi. Pemilik: masukkan PIN Admin untuk akses penuh.'},
         {'type': 'input', 'v': _pin, 'ph': 'PIN', 'numeric': true, 'secret': true, 'i': 0},
         {'type': 'button', 't': 'Masuk', 'primary': true, 'i': 1},
       ]);
@@ -2804,7 +2843,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         final pp = _pages[_page];
         page = pp != null
             ? (pp.custom(context, this) ?? NativeForm(key: ValueKey(_page), model: FormModel(page: _page, title: pp.title, items: pp.items()), actions: this, navActive: pp.navActive))
-            : NativeHome(model: HomeModel.fromJson(homeJson(b, n)), actions: this);
+            : NativeHome(model: HomeModel.fromJson(homeJson(b, n)..addAll(kasirCan(0) ? const {} : const {'today': 'Rp •••'})), actions: this);
     }
     return PopScope(
       canPop: false,

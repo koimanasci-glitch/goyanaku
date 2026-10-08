@@ -65,6 +65,8 @@ abstract class PureHost {
   void customerSaved(String name, {bool forOrder = false});
   /// Majukan status pesanan; serah terima yang belum lunas menampilkan Pembayaran (dengan "Hutang Dulu") dulu.
   void advanceOrder(String id, {String? by});
+  /// Izin kasir ke-[k] (sakelar Pengaturan → Kasir). Selalu true untuk pemilik / tanpa kunci PIN.
+  bool kasirCan(int k);
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
@@ -109,96 +111,6 @@ abstract class PurePage {
 }
 
 Map<String, dynamic> card(String t, String s, String ic, int i) => {'type': 'card', 't': t, 's': s, 'ic': ic, 'i': i};
-
-class SettingsPage extends PurePage {
-  SettingsPage(super.host);
-  @override
-  String get title => 'Pengaturan';
-  @override
-  String get back => 'home';
-  static const _pages = ['receipt', 'printer', 'qris', 'bank', 'services', 'perfume', 'kas', 'customers', 'outlet', 'data', 'stock', 'couriers', 'discounts', 'employees', 'help',
-    'crm', 'whatsapp', 'outlets', 'notif', 'plan'];
-  @override
-  List<Map<String, dynamic>> items() {
-    final s = host.settings;
-    return [
-      {'type': 'entry', 't': 'GOYANA Mode Murni (beta)', 'lines': ['Tanpa WebView · lebih ringan & cepat'], 'avatar': '⚡'},
-      {'type': 'title', 't': 'Toko & Struk'},
-      card('Profil Outlet', host.business.outlets.isEmpty ? 'Belum diatur' : host.business.outlets.first.name, '🏪', 8),
-      card('Profil Struk', s.receipt.header, '🧾', 0),
-      card('Printer Bluetooth', s.printerName.isEmpty ? 'Belum terhubung' : s.printerName, '🖨', 1),
-      {'type': 'title', 't': 'Pembayaran'},
-      card('QRIS Outlet', s.qrisText.isEmpty ? 'Belum diatur' : (qrisValid(s.qrisText) ? 'Aktif · ${qrisMerchant(s.qrisText).name}' : 'QRIS tidak valid'), '▦', 2),
-      card('Rekening Transfer', s.bank.isEmpty ? 'Belum diatur' : '${s.bank} · ${s.account}', '⇄', 3),
-      {'type': 'title', 't': 'Operasional'},
-      card('Layanan & Harga', '${host.business.services.length} layanan', '🧺', 4),
-      card('Parfum', '${s.perfumes.length} parfum', '🌸', 5),
-      card('Kas & Tutup Kasir', 'Kas masuk, pengeluaran, tutup shift', '💰', 6),
-      card('Pelanggan', '${host.business.customers.length} pelanggan', '👥', 7),
-      card('Pusat Data', 'Ekspor Excel/CSV & cadangan data', '☁', 9),
-      card('Stok Bahan', 'Bahan, mutasi, opname', '📦', 10),
-      card('Kurir', 'Tugas antar-jemput & data kurir', '🛵', 11),
-      card('Diskon', 'Potongan yang bisa dipilih kasir', '🏷', 12),
-      card('Pegawai & PIN', 'Kunci aplikasi, nama kasir di riwayat', '👤', 13),
-      card('CRM Pelanggan', 'Pengingat cucian, poin member, voucher', '💌', 15),
-      card('WhatsApp', 'Template nota & pengingat', '💬', 16),
-      card('Cabang & Monitoring', '${host.business.outlets.length} outlet', '🏬', 17),
-      card('Notifikasi', 'Terlambat, siap diambil, piutang', '🔔', 18),
-      card('Paket GOYANA', 'Lihat & aktifkan paket', '⭐', 19),
-      card('Pusat Bantuan', 'Panduan & hubungi support', '❓', 14),
-      {'type': 'title', 't': 'Lainnya'},
-      card('Versi lama (HTML)', 'Cadangan sementara · data tetap sama', '↩', 99),
-    ];
-  }
-
-  @override
-  void button(int i) {
-    if (i == 99) return host.exitPure();
-    if (i >= 0 && i < _pages.length) host.go(_pages[i]);
-  }
-}
-
-class ReceiptPage extends PurePage {
-  ReceiptPage(super.host);
-  late Map<String, Object> f;
-  @override
-  String get title => 'Profil Struk';
-  @override
-  void opened() {
-    final r = host.settings.receipt;
-    f = {'header': r.header, 'address': r.address, 'phone': r.phone, 'footer': r.footer, 'width': r.width, 'showDue': r.showDue};
-  }
-
-  @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'label', 't': 'Nama di struk (header)'},
-        {'type': 'input', 'v': '${f['header']}', 'ph': 'Contoh: Goyana Laundry', 'i': 0},
-        {'type': 'label', 't': 'Alamat outlet'},
-        {'type': 'input', 'v': '${f['address']}', 'ph': 'Alamat', 'multiline': true, 'i': 1},
-        {'type': 'label', 't': 'No. WhatsApp outlet'},
-        {'type': 'input', 'v': '${f['phone']}', 'ph': '08…', 'numeric': true, 'i': 2},
-        {'type': 'label', 't': 'Catatan bawah struk'},
-        {'type': 'input', 'v': '${f['footer']}', 'ph': 'Terima kasih', 'i': 3},
-        {'type': 'hint', 't': 'Hindari emoji pada struk agar terbaca di printer thermal.'},
-        {'type': 'toggle', 't': 'Tampilkan estimasi selesai', 'on': f['showDue'] == true, 'i': 0},
-        {'type': 'choice', 't': 'Ukuran printer', 'options': [{'t': '58 mm', 'on': f['width'] == 32, 'i': 0}, {'t': '80 mm', 'on': f['width'] == 48, 'i': 1}]},
-        {'type': 'button', 't': 'SIMPAN', 'primary': true, 'i': 0},
-      ];
-  @override
-  void input(int i, Object value) => f[const ['header', 'address', 'phone', 'footer'][i.clamp(0, 3)]] = '$value';
-  @override
-  void toggle(int i) => f['showDue'] = f['showDue'] != true;
-  @override
-  void radio(int i) => f['width'] = i == 1 ? 48 : 32;
-  @override
-  void button(int i) {
-    host.settings.receipt = ReceiptSettings(header: '${f['header']}', address: '${f['address']}', phone: '${f['phone']}', footer: '${f['footer']}',
-        width: f['width'] as int, showDue: f['showDue'] == true);
-    host.saveAll();
-    host.toast('Profil struk tersimpan');
-    host.go('settings');
-  }
-}
 
 const _printerSvg = '<svg viewBox="0 0 24 24"><path d="M7 8V3h10v5M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M7 15h10v6H7z"></path></svg>';
 
@@ -534,32 +446,6 @@ class QrisPage extends PurePage {
   }
 }
 
-class BankPage extends PurePage {
-  BankPage(super.host);
-  late List<String> f;
-  @override
-  String get title => 'Rekening Transfer';
-  @override
-  void opened() => f = [host.settings.bank, host.settings.account, host.settings.holder];
-  @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'hint', 't': 'Ditampilkan saat kasir memilih Transfer.'},
-        {'type': 'input', 'v': f[0], 'ph': 'Nama bank, contoh BCA', 'i': 0},
-        {'type': 'input', 'v': f[1], 'ph': 'Nomor rekening', 'numeric': true, 'i': 1},
-        {'type': 'input', 'v': f[2], 'ph': 'Nama pemilik rekening', 'i': 2},
-        {'type': 'button', 't': 'Simpan', 'primary': true, 'i': 0},
-      ];
-  @override
-  void input(int i, Object value) => f[i.clamp(0, 2)] = '$value'.trim();
-  @override
-  void button(int i) {
-    host.settings.setBank(f[0], f[1], f[2]);
-    host.saveAll();
-    host.toast('Rekening tersimpan');
-    host.go('settings');
-  }
-}
-
 class ServicesPage extends PurePage {
   ServicesPage(super.host);
   final Map<int, String> _price = {};
@@ -737,247 +623,6 @@ class PerfumePage extends PurePage {
   }
 }
 
-class KasPage extends PurePage {
-  KasPage(super.host);
-  @override
-  String get title => 'Kas & Tutup Kasir';
-  @override
-  int get navActive => 2;
-  String mode = ''; // '', 'in', 'out', 'close'
-  String type = '', amount = '', note = '', physical = '';
-  static const inTypes = ['Modal awal', 'Setoran owner', 'Pemasukan lain'];
-  static const outTypes = ['Gaji', 'Bahan baku', 'Listrik', 'Air', 'Sewa', 'Lain-lain'];
-
-  @override
-  List<Map<String, dynamic>> items() {
-    final s = host.business.shift();
-    if (mode == 'in' || mode == 'out') {
-      final types = mode == 'in' ? inTypes : outTypes;
-      return [
-        {'type': 'title', 't': mode == 'in' ? 'Kas Masuk' : 'Pengeluaran'},
-        {'type': 'select', 'options': ['Pilih jenis…', ...types], 'index': type.isEmpty ? 0 : types.indexOf(type) + 1, 'i': 0},
-        {'type': 'input', 'label': 'Jumlah', 'pre': 'Rp', 'v': amount, 'numeric': true, 'i': 1},
-        {'type': 'input', 'v': note, 'ph': 'Keterangan', 'i': 2},
-        {'type': 'button', 't': 'SIMPAN', 'primary': true, 'i': 10},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 11},
-      ];
-    }
-    if (mode == 'close') {
-      final p = parseRupiah(physical);
-      return [
-        {'type': 'title', 't': 'Tutup Kasir'},
-        {'type': 'pair', 't': 'Kas tunai seharusnya', 'v': rpSpaced(s.cashExpected)},
-        {'type': 'input', 'label': 'Uang fisik di laci', 'pre': 'Rp', 'v': physical, 'numeric': true, 'i': 3},
-        {'type': 'pair', 't': 'Selisih', 'v': physical.isEmpty ? '—' : (p == s.cashExpected ? 'Pas' : (p > s.cashExpected ? 'Lebih ${rp(p - s.cashExpected)}' : 'Kurang ${rp(s.cashExpected - p)}')),
-          'tone': physical.isEmpty || p == s.cashExpected ? 'g' : 'r'},
-        {'type': 'input', 'v': note, 'ph': 'Catatan (wajib bila ada selisih)', 'i': 2},
-        {'type': 'button', 't': 'TUTUP KASIR', 'primary': true, 'i': 12},
-        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 11},
-      ];
-    }
-    final hist = (host.business.kas['hist'] as List? ?? const []).whereType<Map>().take(10).toList();
-    return [
-      {'type': 'hero', 't': 'Penjualan shift ini', 'v': rpSpaced(s.sales), 's': 'Kas tunai seharusnya ${rpSpaced(s.cashExpected)}'},
-      {'type': 'stats', 'cells': [
-        for (final m in s.byMethod.entries) {'v': rp(m.value), 't': m.key},
-      ]},
-      {'type': 'pair', 't': 'Modal awal', 'v': rpSpaced(s.start)},
-      {'type': 'pair', 't': 'Kas masuk', 'v': rpSpaced(s.ins), 'tone': 'g'},
-      {'type': 'pair', 't': 'Pengeluaran', 'v': rpSpaced(s.outs), 'tone': 'r'},
-      {'type': 'buttons', 'options': [{'t': '+ Kas Masuk', 'i': 1}, {'t': '− Pengeluaran', 'i': 2}]},
-      {'type': 'button', 't': 'Tutup Kasir', 'primary': true, 'i': 3},
-      if (hist.isNotEmpty) {'type': 'title', 't': 'Riwayat shift'},
-      for (final h in hist)
-        {'type': 'pair', 't': '${DateTime.tryParse('${h['at']}')?.toLocal().toString().substring(0, 16) ?? ''} · ${h['kasir']}', 'v': (h['diff'] as num? ?? 0) == 0 ? 'Pas' : 'Selisih ${rp(h['diff'] as num)}', 'tone': (h['diff'] as num? ?? 0) == 0 ? 'g' : 'r'},
-    ];
-  }
-
-  @override
-  void input(int i, Object value) {
-    switch (i) {
-      case 0:
-        final types = mode == 'in' ? inTypes : outTypes;
-        final k = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
-        type = k > 0 && k <= types.length ? types[k - 1] : '';
-      case 1:
-        amount = '$value';
-      case 2:
-        note = '$value';
-      case 3:
-        physical = '$value';
-        host.refresh();
-    }
-  }
-
-  void _reset(String m) {
-    mode = m;
-    type = '';
-    amount = '';
-    note = '';
-    physical = '';
-    host.refresh();
-  }
-
-  @override
-  void button(int i) async {
-    final b = host.business;
-    switch (i) {
-      case 1:
-        return _reset('in');
-      case 2:
-        return _reset('out');
-      case 3:
-        return _reset('close');
-      case 11:
-        return _reset('');
-      case 10:
-        if (type.isEmpty || parseRupiah(amount) <= 0) return host.toast('Pilih jenis dan isi jumlah');
-        b.kasEntry(income: mode == 'in', type: type, amount: parseRupiah(amount), note: note, now: host.now);
-        if (mode == 'in' && type == 'Modal awal') b.kas['start'] = parseRupiah(b.kas['start']) + parseRupiah(amount);
-        await host.saveAll();
-        host.toast(mode == 'in' ? 'Kas masuk tersimpan' : 'Pengeluaran tersimpan');
-        return _reset('');
-      case 12:
-        if (physical.isEmpty) return host.toast('Hitung uang fisik dulu');
-        final s = b.shift();
-        if (parseRupiah(physical) != s.cashExpected && note.trim().isEmpty) return host.toast('Isi catatan karena ada selisih');
-        b.closeShift(physical: parseRupiah(physical), note: note, now: host.now);
-        addAudit(host, '✓', 'Tutup kas', 'omset ${rp(s.sales)}');
-        await host.saveAll();
-        host.toast('Kas ditutup · shift baru dimulai');
-        return _reset('');
-    }
-  }
-}
-
-class ReportsPage extends PurePage {
-  ReportsPage(super.host);
-  int period = 2; // 0 hari ini, 1 7 hari, 2 30 hari, 3 bulan ini
-  static const periods = ['Hari ini', '7 hari', '30 hari', 'Bulan ini'];
-  @override
-  String get title => 'Laporan';
-  @override
-  String get back => 'home';
-  @override
-  int get navActive => 2;
-
-  DateTime get _from {
-    final n = host.now, d = DateTime(n.year, n.month, n.day);
-    return switch (period) { 0 => d, 1 => d.subtract(const Duration(days: 6)), 3 => DateTime(n.year, n.month), _ => d.subtract(const Duration(days: 29)) };
-  }
-
-  @override
-  List<Map<String, dynamic>> items() {
-    final b = host.business, from = _from;
-    bool inRange(DateTime? t) => t != null && !t.isBefore(from);
-    final orders = b.orders.where((o) => !o.isCancelled && inRange(o.created)).toList();
-    final omzet = orders.fold<int>(0, (a, o) => a + o.total);
-    final piutang = b.orders.where((o) => !o.isCancelled).fold<int>(0, (a, o) => a + o.remaining);
-    // Pemasukan dari pembayaran pesanan (semua shift, menurut tanggal bayar).
-    final byMethod = <String, int>{'Tunai': 0, 'QRIS': 0, 'Transfer': 0, 'Deposit': 0};
-    for (final o in b.orders) {
-      for (final p in o.payments) {
-        final at = DateTime.tryParse('${p['at']}')?.toLocal();
-        if (inRange(at)) byMethod['${p['m']}'] = (byMethod['${p['m']}'] ?? 0) + parseRupiah(p['a']);
-      }
-    }
-    final income = byMethod.values.fold<int>(0, (a, v) => a + v);
-    var expense = 0;
-    for (final e in (b.kas['outs'] as List? ?? const []).whereType<Map>()) {
-      if (inRange(DateTime.tryParse('${e['at']}')?.toLocal())) expense += parseRupiah(e['a']);
-    }
-    // Per layanan & per hari.
-    final perService = <String, List<num>>{};
-    for (final o in orders) {
-      for (final it in o.items) {
-        final r = perService.putIfAbsent(it.name, () => [0, 0]);
-        r[0] += it.qty;
-        r[1] += it.subtotal;
-      }
-    }
-    final days = period == 0 ? 1 : (host.now.difference(from).inDays + 1).clamp(1, 31);
-    final perDay = List<int>.filled(days, 0);
-    for (final o in orders) {
-      final i = o.created!.difference(from).inDays;
-      if (i >= 0 && i < days) perDay[i] += o.total;
-    }
-    final maxDay = perDay.fold<int>(1, (a, v) => v > a ? v : a);
-    final maxMethod = byMethod.values.fold<int>(1, (a, v) => v > a ? v : a);
-    return [
-      {'type': 'buttons', 'options': [for (var k = 0; k < periods.length; k++) {'t': periods[k], 'on': k == period, 'i': k}]},
-      {'type': 'stats', 'cells': [
-        {'v': rp(omzet), 't': 'Omset'}, {'v': rp(income), 't': 'Pemasukan', 'tone': 'g'}, {'v': rp(piutang), 't': 'Piutang', 'tone': 'r'},
-        {'v': rp(expense), 't': 'Pengeluaran', 'tone': 'r'}, {'v': rp(income - expense), 't': 'Laba (kas)', 'tone': income >= expense ? 'g' : 'r'}, {'v': '${orders.length}', 't': 'Pesanan'},
-      ]},
-      if (days > 1) ...[
-        {'type': 'title', 't': 'Omset per hari'},
-        {'type': 'bars', 'bars': [
-          for (var k = 0; k < days; k++)
-            {'v': perDay[k] == 0 ? '' : thousands(perDay[k] ~/ 1000), 't': days <= 7 || k % 5 == 0 ? '${from.add(Duration(days: k)).day}' : '', 'h': perDay[k] / maxDay},
-        ]},
-      ],
-      {'type': 'title', 't': 'Per metode bayar'},
-      {'type': 'hbars', 'bars': [for (final m in byMethod.entries) {'t': m.key, 'v': rp(m.value), 'w': m.value / maxMethod}]},
-      {'type': 'title', 't': 'Per layanan', 's': '${perService.length} layanan'},
-      if (perService.isEmpty) {'type': 'hint', 't': 'Belum ada transaksi di periode ini.'},
-      if (perService.isNotEmpty)
-        {'type': 'table', 'rows': [
-          [{'t': 'Layanan', 'h': true, 'b': true}, {'t': 'Jumlah', 'h': true, 'b': true, 'n': true}, {'t': 'Nilai', 'h': true, 'b': true, 'n': true}],
-          for (final e in (perService.entries.toList()..sort((a, b) => b.value[1].compareTo(a.value[1]))))
-            [{'t': e.key}, {'t': qtyText(e.value[0]), 'n': true}, {'t': rp(e.value[1]), 'n': true}],
-        ]},
-      {'type': 'title', 't': 'Pesanan terbaru'},
-      {'type': 'table', 'rows': [
-        [{'t': 'ID', 'h': true, 'b': true}, {'t': 'Pelanggan', 'h': true, 'b': true}, {'t': 'Total', 'h': true, 'b': true, 'n': true}],
-        for (final o in orders.take(30)) [{'t': o.id}, {'t': o.name}, {'t': rp(o.total), 'n': true}],
-      ]},
-      {'type': 'card', 't': 'Kas & Tutup Kasir', 's': 'Kas masuk, pengeluaran, tutup shift', 'ic': '💰', 'i': 20},
-    ];
-  }
-
-  @override
-  void button(int i) {
-    if (i == 20) return host.go('kas');
-    if (i >= 0 && i < periods.length) {
-      period = i;
-      host.refresh();
-    }
-  }
-}
-
-class OutletPage extends PurePage {
-  OutletPage(super.host);
-  late List<String> f;
-  @override
-  String get title => 'Profil Outlet';
-  @override
-  void opened() {
-    final o = host.business.outlets.isEmpty ? null : host.business.outlets.firstWhere((x) => x.id == host.business.activeOutlet, orElse: () => host.business.outlets.first);
-    f = [o?.name ?? '', o?.address ?? '', o?.phone ?? ''];
-  }
-
-  @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'label', 't': 'Nama Outlet'},
-        {'type': 'input', 'v': f[0], 'ph': 'Nama outlet', 'i': 0},
-        {'type': 'label', 't': 'Alamat'},
-        {'type': 'input', 'v': f[1], 'ph': 'Alamat outlet', 'multiline': true, 'i': 1},
-        {'type': 'label', 't': 'No. WhatsApp Outlet'},
-        {'type': 'input', 'v': f[2], 'ph': '08…', 'numeric': true, 'i': 2},
-        {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'i': 0},
-      ];
-  @override
-  void input(int i, Object value) => f[i.clamp(0, 2)] = '$value'.trim();
-  @override
-  void button(int i) async {
-    if (f[0].isEmpty) return host.toast('Nama outlet wajib diisi');
-    if (f[2].isNotEmpty && f[2].replaceAll(RegExp(r'[^0-9]'), '').length < 10) return host.toast('Nomor WA minimal 10 digit');
-    await host.business.saveOutlet(name: f[0], address: f[1], phone: f[2]);
-    host.toast('Outlet tersimpan');
-    host.go('settings');
-  }
-}
-
 
 class TodayPage extends PurePage {
   TodayPage(super.host);
@@ -1015,67 +660,6 @@ class TodayPage extends PurePage {
   @override
   void button(int i) {
     if (i >= 0 && i < ids.length) host.openOrder(ids[i]);
-  }
-}
-
-class DataPage extends PurePage {
-  DataPage(super.host);
-  @override
-  String get title => 'Pusat Data';
-  @override
-  List<Map<String, dynamic>> items() {
-    final b = host.business;
-    return [
-      {'type': 'stats', 'cells': [
-        {'v': '${b.customers.length}', 't': 'Pelanggan'}, {'v': '${b.orders.length}', 't': 'Transaksi'}, {'v': '${b.services.length}', 't': 'Layanan'},
-      ]},
-      {'type': 'title', 't': 'Ekspor'},
-      card('Export Pesanan', 'CSV · bisa dibuka di Excel / Google Sheets', '↓', 0),
-      card('Export Pelanggan', 'CSV · nama, telepon, alamat, saldo', '↓', 1),
-      {'type': 'title', 't': 'Cadangan'},
-      card('Backup Database', 'Simpan semua data ke folder Download/GOYANA', '☁', 2),
-      card('Bagikan Backup', 'Kirim file cadangan ke WA / Drive', '⇪', 3),
-      {'type': 'hint', 't': 'File cadangan berisi seluruh data usaha. Simpan di tempat aman.'},
-    ];
-  }
-
-  Future<void> _save(String name, String mime, String text) async {
-    try {
-      final r = await host.device.invokeMethod<dynamic>('Files.save', {'name': name, 'mime': mime, 'data': base64Encode(utf8.encode(text))});
-      host.toast('Tersimpan di ${r is Map ? r['path'] ?? 'Download/GOYANA' : 'Download/GOYANA'}');
-    } on PlatformException catch (e) {
-      host.toast(e.message ?? 'Gagal menyimpan file');
-    } catch (_) {
-      host.toast('Gagal menyimpan file');
-    }
-  }
-
-  String _backup() => jsonEncode({
-        'app': 'GOYANA', 'version': 1, 'at': host.now.toIso8601String(),
-        'business': host.business.raw, 'services': host.business.services.map((e) => e.raw).toList(),
-        'outlets': host.business.outlets.map((e) => e.raw).toList(), 'settings': host.settings.raw, 'perfumes': host.settings.perfumes,
-      });
-
-  @override
-  void button(int i) async {
-    final d = host.now.toIso8601String().substring(0, 10);
-    switch (i) {
-      case 0:
-        return _save('goyana-pesanan-$d.csv', 'text/csv', '\uFEFF${host.business.ordersCsv()}');
-      case 1:
-        return _save('goyana-pelanggan-$d.csv', 'text/csv', '\uFEFF${host.business.customersCsv()}');
-      case 2:
-        return _save('goyana-backup-$d.json', 'application/json', _backup());
-      case 3:
-        try {
-          await host.device.invokeMethod('Files.share', {
-            'title': 'Backup GOYANA',
-            'files': [{'name': 'goyana-backup-$d.json', 'mime': 'application/json', 'data': base64Encode(utf8.encode(_backup()))}],
-          });
-        } catch (_) {
-          host.toast('Gagal membagikan file');
-        }
-    }
   }
 }
 
@@ -2086,34 +1670,6 @@ class CrmPage extends PurePage {
   }
 }
 
-class WhatsAppPage extends PurePage {
-  WhatsAppPage(super.host);
-  @override
-  String get title => 'WhatsApp';
-  Map<String, dynamic> get raw => host.settings.raw;
-  @override
-  List<Map<String, dynamic>> items() => [
-        {'type': 'entry', 't': 'Kirim lewat WhatsApp HP', 'lines': ['Nota & pengingat dibuka di aplikasi WhatsApp, kasir tinggal tekan Kirim.'], 'avatar': '💬'},
-        {'type': 'toggle', 't': 'Tawarkan kirim nota setelah transaksi', 'on': raw['autoNota'] != false, 'i': 0},
-        {'type': 'label', 't': 'Template nota'},
-        {'type': 'input', 'v': '${raw['notaTpl'] ?? defaultNota}', 'multiline': true, 'i': 0},
-        {'type': 'hint', 't': 'Kata kunci: {nama} {kode} {total} {bayar} {estimasi} {outlet}'},
-        {'type': 'button', 't': 'Simpan', 'primary': true, 'i': 0},
-        {'type': 'title', 't': 'Otomatis tanpa kasir (chatbot, nota otomatis, blast)'},
-        {'type': 'hint', 't': 'Butuh nomor WhatsApp terhubung ke server GOYANA (CHATKU). Akan aktif setelah server online.'},
-      ];
-  @override
-  void input(int i, Object value) => raw['notaTpl'] = '$value';
-  @override
-  void toggle(int i) => raw['autoNota'] = raw['autoNota'] == false;
-  @override
-  void button(int i) async {
-    await host.saveAll();
-    host.toast('Pengaturan WhatsApp tersimpan');
-    host.go('settings');
-  }
-}
-
 /// Pengaturan → Outlet: daftar outlet (v180). Tombol: 1 tambah, lalu tiap outlet Monitoring 2+2k dan Edit 3+2k.
 class OutletsPage extends PurePage {
   OutletsPage(super.host);
@@ -2298,57 +1854,6 @@ class BranchesPage extends PurePage {
     }
     host.refresh();
   }
-}
-
-class NotifPage extends PurePage {
-  NotifPage(super.host);
-  List<String> ids = [];
-  @override
-  String get title => 'Notifikasi';
-  @override
-  String get back => 'home';
-  @override
-  int get navActive => 0;
-  @override
-  List<Map<String, dynamic>> items() {
-    final n = host.now;
-    final late = host.business.orders.where((o) => o.isLate(n)).toList();
-    final ready = host.business.orders.where((o) => o.status == 'siap').toList();
-    final unpaid = host.business.orders.where((o) => !o.isCancelled && o.status == 'diambil' && !o.isPaid).toList();
-    ids = [...late.map((o) => o.id), ...ready.map((o) => o.id), ...unpaid.map((o) => o.id)];
-    var k = 0;
-    return [
-      if (ids.isEmpty) {'type': 'hint', 't': 'Tidak ada notifikasi.'},
-      for (final o in late) {'type': 'card', 't': 'Pesanan terlambat', 's': '${o.id} · ${o.name}', 'ic': '!', 'badge': 'Terlambat', 'i': k++},
-      for (final o in ready) {'type': 'card', 't': 'Siap diambil', 's': '${o.id} · ${o.name}', 'ic': '✓', 'i': k++},
-      for (final o in unpaid) {'type': 'card', 't': 'Sudah diambil, belum lunas', 's': '${o.id} · ${o.name} · sisa ${rp(o.remaining)}', 'ic': 'Rp', 'badge': 'Piutang', 'i': k++},
-    ];
-  }
-
-  @override
-  void button(int i) {
-    if (i >= 0 && i < ids.length) host.openOrder(ids[i]);
-  }
-}
-
-class PlanPage extends PurePage {
-  PlanPage(super.host);
-  @override
-  String get title => 'Paket GOYANA';
-  static const plans = [
-    ['FREE', 'Gratis', '2 bulan', 'Trial seluruh fitur Basic selama 2 bulan'],
-    ['BASIC', 'Rp30.000', '/bulan', 'Kasir harian, kurir, peta pelanggan dan monitoring cabang'],
-    ['SILVER', 'Rp65.000', '/bulan', 'Operasional lengkap, stok, HPP dan Balasan Cepat & Trigger'],
-    ['GOLD', 'Rp100.000', '/bulan', 'Nota WhatsApp otomatis dan Chatbot AI dengan top-up terpisah'],
-    ['PLATINUM', 'Rp350.000', '/bulan', 'Seluruh fitur Goyana, termasuk WhatsApp Blast & Promo'],
-  ];
-  @override
-  List<Map<String, dynamic>> items() => [
-        for (var k = 0; k < plans.length; k++) {'type': 'plan', 't': plans[k][0], 'price': plans[k][1], 'per': plans[k][2], 's': plans[k][3], 'more': 'Pilih', 'i': k},
-        {'type': 'hint', 't': 'Pembayaran paket online menunggu server akun. Sementara aktivasi lewat admin GOYANA.'},
-      ];
-  @override
-  void button(int i) => openWa(host, '6281234567890', 'Halo GOYANA, saya ingin aktifkan paket ${plans[i.clamp(0, plans.length - 1)][0]}');
 }
 
 
@@ -2606,6 +2111,98 @@ class AutomationPage extends TemplatePage {
   }
 }
 
+/// Bawaan sakelar halaman berpola tetap yang berbeda dari tangkapan HTML (supaya hasil cetak lama tidak berubah).
+const _tplDefaults = {'barcode': {6: false, 7: false, 9: false}};
+
+/// Nilai sakelar [i] di halaman berpola tetap [page] (tersimpan di pengaturan; bawaan dari pola halaman).
+bool tplToggle(AppSettings s, String page, int i) {
+  final v = (((s.raw['tpl'] as Map?)?[page] as Map?)?['tg'] as Map?)?['$i'];
+  if (v is bool) return v;
+  final d = _tplDefaults[page]?[i];
+  if (d != null) return d;
+  for (final it in ((jsonDecode(pageTemplates[page] ?? '{}') as Map)['items'] as List? ?? const []).whereType<Map>()) {
+    if (it['type'] == 'toggle' && it['i'] == i) return it['on'] == true;
+  }
+  return false;
+}
+
+/// Barcode & Label: sakelar yang benar-benar dipakai (cetak otomatis, barcode di struk, isi label);
+/// angka ringkasan dari data asli; "Cetak Label Test" sungguh mencetak.
+class BarcodePage extends TemplatePage {
+  // ignore: use_super_parameters
+  BarcodePage(PureHost host) : super(host, 'barcode');
+
+  @override
+  bool toggleValue(int i) => tplToggle(host.settings, 'barcode', i);
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = super.items();
+    // Sakelar tanpa fungsi di aplikasi ini dibuang: tombol Cetak Struk (selalu ada), Order ID (wajib untuk scan), Customer ID (tidak ada).
+    out.removeWhere((e) => e['type'] == 'toggle' && const {1, 3, 4}.contains(e['i']));
+    final n = host.now;
+    var all = 0, today = 0;
+    for (final o in host.business.orders) {
+      final k = int.tryParse('${o.dataset['bags137'] ?? ''}') ?? 0;
+      all += k;
+      final c = o.created?.toLocal();
+      if (c != null && c.year == n.year && c.month == n.month && c.day == n.day) today += k;
+    }
+    final cells = out.first['cells'];
+    if (out.first['type'] == 'stats' && cells is List && cells.length >= 3) {
+      (cells[0] as Map)['v'] = '$all';
+      (cells[1] as Map)['v'] = '$today';
+      (cells[2] as Map)
+        ..['v'] = host.settings.printerAddress.isEmpty ? '–' : '✓'
+        ..['t'] = host.settings.printerAddress.isEmpty ? 'Printer belum dipilih' : 'Printer siap';
+    }
+    for (final it in out) {
+      if (it['type'] == 'hint' && '${it['t']}'.startsWith('Auto-print')) {
+        it['t'] = toggleValue(0) ? 'Auto-print ON. Struk langsung dicetak setiap pesanan tersimpan.' : 'Auto-print OFF. Setelah order tersimpan, kasir memilih Cetak Struk atau Tanpa Cetak.';
+      }
+    }
+    return out;
+  }
+
+  @override
+  void toggle(int i) {
+    final all = host.settings.raw.putIfAbsent('tpl', () => <String, dynamic>{}) as Map;
+    final tg = (all.putIfAbsent('barcode', () => <String, dynamic>{}) as Map).putIfAbsent('tg', () => <String, dynamic>{}) as Map;
+    tg['$i'] = !toggleValue(i);
+    host.saveAll();
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    if (i == 0) return host.go('printer');
+    final w = host.settings.receipt.width, rule = '=' * w;
+    String mid(String t) => t.length >= w ? t.substring(0, w) : '${' ' * ((w - t.length) ~/ 2)}$t';
+    host.printText([rule, mid('LABEL TEST'), mid('GOYANA'), mid('Kantong 1/1'), rule, '', ''].join('\n'), 'Label test', 'Label test dicetak');
+  }
+}
+
+/// Pengaturan Kasir: sakelar izin sungguh membatasi kasir (yang masuk dengan PIN pegawai).
+class CashierPage extends TemplatePage {
+  // ignore: use_super_parameters
+  CashierPage(PureHost host) : super(host, 'cashier', onButton: (p, i) => host.go('employees'));
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = super.items();
+    final locked = host.settings.raw['pinLock'] == true;
+    final k = out.indexWhere((e) => e['type'] == 'toggle');
+    out.insert(k < 0 ? out.length : k, {
+      'type': 'hint',
+      't': locked
+          ? 'Berlaku untuk siapa pun yang membuka aplikasi dengan PIN pegawai. Pemilik masuk dengan PIN Admin untuk akses penuh.'
+          : 'Izin ini baru berlaku setelah "Kunci aplikasi dengan PIN" dinyalakan di Pegawai & PIN. Tanpa kunci PIN, aplikasi dianggap dipakai pemilik.',
+    });
+    out.removeWhere((e) => e['type'] == 'toggle' && e['i'] == 2); // Menghapus Pelanggan: fitur hapus pelanggan belum ada
+    return out;
+  }
+}
+
 /// Halaman berpola tetap beserta aksi tombolnya (teks toast sama dengan HTML).
 Map<String, PurePage> templatePages(PureHost host) => {
       'profile': TemplatePage(host, 'profile', transient: const {2}, onButton: (p, i) {
@@ -2623,8 +2220,8 @@ Map<String, PurePage> templatePages(PureHost host) => {
       'helpcenter': HelpCenterPage(host),
       'datacenter': DataCenterPage(host),
       'aboutgoyana': TemplatePage(host, 'aboutgoyana'),
-      'cashier': TemplatePage(host, 'cashier', onButton: (p, i) => host.go('employees')),
-      'barcode': TemplatePage(host, 'barcode', onButton: (p, i) => i == 0 ? host.go('printer') : host.toast('Label test dikirim ke printer')),
+      'cashier': CashierPage(host),
+      'barcode': BarcodePage(host),
     };
 
 

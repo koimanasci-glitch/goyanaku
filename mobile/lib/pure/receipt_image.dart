@@ -37,11 +37,11 @@ class ReceiptData {
   const ReceiptData({
     required this.outlet, this.address = '', this.wa = '', required this.id, required this.customer, this.phone = '-', required this.masuk, required this.due,
     required this.dur, required this.items, required this.sub, required this.disc, required this.total, required this.status, required this.method,
-    this.perfume = 'Tanpa Parfum', this.handover = 'Datang Langsung', this.note = '', this.priority = false, this.kasir = '-',
+    this.perfume = 'Tanpa Parfum', this.handover = 'Datang Langsung', this.note = '', this.priority = false, this.kasir = '-', this.barcode = true,
   });
 
   /// Data struk dari pesanan (HTML collect()): ongkir tampil sebagai baris "Transportasi".
-  factory ReceiptData.of(Order o, {required String outlet, String address = '', String wa = '', String phone = '', String kasir = '-'}) {
+  factory ReceiptData.of(Order o, {required String outlet, String address = '', String wa = '', String phone = '', String kasir = '-', bool barcode = true}) {
     String two(int n) => n.toString().padLeft(2, '0');
     String dt(DateTime? d) => d == null ? '-' : '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
     final t = o.totals;
@@ -55,7 +55,7 @@ class ReceiptData {
       status: o.isPaid ? 'LUNAS' : (o.paid > 0 ? 'DP ${rpSpaced(o.paid)} · SISA ${rpSpaced(o.remaining)}' : 'BELUM LUNAS'),
       method: o.method, perfume: o.perfume.isEmpty ? 'Tanpa Parfum' : o.perfume, handover: o.antar ? 'Diantar kurir' : o.handover,
       note: o.note == '-' ? '' : o.note,
-      priority: (o.card['chips'] as List? ?? const []).whereType<Map>().any((c) => c['text'] == 'Prioritas' && c['hidden'] != true), kasir: kasir,
+      priority: (o.card['chips'] as List? ?? const []).whereType<Map>().any((c) => c['text'] == 'Prioritas' && c['hidden'] != true), kasir: kasir, barcode: barcode,
     );
   }
 
@@ -64,6 +64,8 @@ class ReceiptData {
   final List<List<Object>> items;
   final int sub, disc, total;
   final bool priority;
+  /// Cetak barcode Order ID (Pengaturan → Barcode & Label).
+  final bool barcode;
 }
 
 const _w = 576.0, _p = 28.0;
@@ -161,24 +163,26 @@ double paintReceipt(Canvas x, ReceiptData d) {
   row('Status', d.status, 22, FontWeight.w800);
   row('Metode', d.method, 20);
   dash();
-  // barcode
-  final pat = code128Pattern(d.id);
-  var mod = 0;
-  for (var i = 0; i < pat.length; i++) {
-    mod += int.parse(pat[i]);
+  if (d.barcode) {
+    // barcode
+    final pat = code128Pattern(d.id);
+    var mod = 0;
+    for (var i = 0; i < pat.length; i++) {
+      mod += int.parse(pat[i]);
+    }
+    final raw = ((_w - 2 * _p - 40) / mod).floorToDouble();
+    final bw = raw < 2 ? 2.0 : raw;
+    var cx = (_w - mod * bw) / 2;
+    final black = Paint()..color = Colors.black;
+    for (var j = 0; j < pat.length; j++) {
+      final w = int.parse(pat[j]) * bw;
+      if (j.isEven) x.drawRect(Rect.fromLTWH(cx, y, w, 90), black);
+      cx += w;
+    }
+    y += 98;
+    center(d.id, 20, FontWeight.w700, const Color(0xff111111), _mono);
+    y += 36;
   }
-  final raw = ((_w - 2 * _p - 40) / mod).floorToDouble();
-  final bw = raw < 2 ? 2.0 : raw;
-  var cx = (_w - mod * bw) / 2;
-  final black = Paint()..color = Colors.black;
-  for (var j = 0; j < pat.length; j++) {
-    final w = int.parse(pat[j]) * bw;
-    if (j.isEven) x.drawRect(Rect.fromLTWH(cx, y, w, 90), black);
-    cx += w;
-  }
-  y += 98;
-  center(d.id, 20, FontWeight.w700, const Color(0xff111111), _mono);
-  y += 36;
   // QR
   const qs = 232.0;
   x.save();
