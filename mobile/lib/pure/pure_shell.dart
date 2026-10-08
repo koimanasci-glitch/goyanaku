@@ -518,7 +518,41 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _srvOpenLogin();
   }
 
-  void _srvOpenLogin() {
+  /// HP outlet yang dipakai bergantian: daftar nama pegawai outlet dan nama yang sedang dipilih.
+  List<Map<String, dynamic>> _srvRoster = [];
+  int _srvPick = 0;
+
+  /// HP outlet: pegawai memilih nama lalu mengetik PIN. Daftar nama diambil dari server.
+  Future<void> _srvOpenRoster() async {
+    toast('Memuat daftar pegawai…');
+    try {
+      _srvRoster = await _srv.roster();
+    } on ServerFailure catch (e) {
+      if (!mounted) return;
+      toast(e.offline ? 'Butuh internet untuk masuk' : e.message);
+      _srvRoster = [];
+    }
+    if (!mounted) return;
+    if (_srvRoster.isEmpty) return _srvOpenLogin(form: true);
+    _srvPick = 0;
+    _srvPass = '';
+    _open(_Sheet('srvlogin', [
+      {'type': 'title', 't': 'Masuk · ${_srv.sharedOutletName}', 's': ''},
+      {'type': 'hint', 't': 'Pilih nama Anda, lalu ketik PIN dari pemilik.'},
+      {'type': 'select', 'options': [for (final m in _srvRoster) '${m['name']} · ${m['role_label'] ?? ''}'], 'index': 0, 'i': 0},
+      {'type': 'input', 'v': '', 'ph': 'PIN', 'numeric': true, 'secret': true, 'i': 1},
+      {'type': 'button', 't': 'Masuk', 'primary': true, 'i': 0},
+      {'type': 'button', 't': 'Masuk dengan akun lain', 'primary': false, 'i': 2},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1},
+    ]));
+  }
+
+  void _srvOpenLogin({bool form = false}) {
+    if (!form && _srv.sharedBound) {
+      _srvOpenRoster();
+      return;
+    }
+    _srvRoster = [];
     _srvUser = '';
     _srvPass = '';
     _open(_Sheet('srvlogin', [
@@ -532,6 +566,15 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   void _srvLoginEvent(String kind, int index, Object? value) {
+    if (kind == 'input' && index == 0 && _srvRoster.isNotEmpty) {
+      // Pilihan nama di HP outlet.
+      _srvPick = value is int ? value : int.tryParse('$value') ?? 0;
+      final sheet = _sheets.where((e) => e.id == 'srvlogin').firstOrNull;
+      for (final it in sheet?.items ?? const <Map<String, dynamic>>[]) {
+        if (it['type'] == 'select') it['index'] = _srvPick;
+      }
+      return;
+    }
     if (kind == 'input') {
       final text = '${value ?? ''}';
       if (index == 0) _srvUser = text;
@@ -548,6 +591,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return;
     }
     _close('srvlogin');
+    if (kind == 'button' && index == 2) _srvOpenLogin(form: true);
   }
 
   Future<void> _srvLogin() async {
@@ -555,7 +599,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _srvLogging = true;
     toast('Masuk ke server…');
     try {
-      await _srv.login(_srvUser, _srvPass);
+      if (_srvRoster.isNotEmpty) {
+        final who = _srvRoster[_srvPick < 0 || _srvPick >= _srvRoster.length ? 0 : _srvPick];
+        await _srv.loginShared(who['id'], _srvPass, '${who['name'] ?? ''}');
+      } else {
+        await _srv.login(_srvUser, _srvPass);
+      }
       if (mounted) {
         _srvPass = '';
         _close('srvlogin');

@@ -22,6 +22,8 @@ final class OrderGuard {
     private ?array $services = null;
     /** @var array<string, array<string, mixed>>|null kunci kurir => data kurir */
     private ?array $couriers = null;
+    /** @var array{percent: int, nominal: int}|null|false false = belum dibaca */
+    private array|null|false $discounts = false;
 
     public function __construct(private Business $business) {}
 
@@ -35,9 +37,9 @@ final class OrderGuard {
             return $mode === 'full' ? $this->ok($new, $new) : 'Data pesanan tidak lengkap.';
         }
         return match ($mode) {
-            'full' => $this->full($outletId, $oldOrder, $new),
+            'full' => $this->full($user, $outletId, $oldOrder, $new),
             'production' => $this->production($oldOrder, $new),
-            default => $this->courier($user, $oldOrder, $new),
+            default => $this->courier($user, $outletId, $oldOrder, $new),
         };
     }
 
@@ -54,7 +56,7 @@ final class OrderGuard {
 
     // ---------- kasir / admin outlet / owner ----------
 
-    private function full(int $outletId, ?array $old, array $new): array|string {
+    private function full(User $user, int $outletId, ?array $old, array $new): array|string {
         $data = $new; $message = null;
         // Menunjuk kurir: kurir harus aktif dan terikat tepat pada outlet pesanan ini.
         $courier = OrderData::courier($new);
@@ -68,6 +70,7 @@ final class OrderGuard {
             }
         }
         if ($debt = $this->debtProblem($old, $data)) return $old ? $this->revert($old, $new, $debt) : $debt;
+        if ($limit = $this->discountProblem($user, $old, $data)) return $old ? $this->revert($old, $new, $limit) : $limit;
         if ($old && config('goyana.orders.require_reason_for_backward') && $this->isBackward($data, OrderData::status($old), OrderData::status($data))
             && trim((string) ($data['detail']['backReason'] ?? '')) === '') {
             return $this->revert($old, $new, 'Isi alasan sebelum memundurkan tahap.');
@@ -107,10 +110,10 @@ final class OrderGuard {
 
     // ---------- kurir ----------
 
-    private function courier(User $user, ?array $old, array $new): array|string {
+    private function courier(User $user, int $outletId, ?array $old, array $new): array|string {
         $key = (string) $user->courier_key;
         if ($key === '') return 'Akun kurir belum terhubung ke data kurir. Hubungi owner.';
-        if (!$old) return $this->courierCreates($user, $key, $new);
+        if (!$old) return $this->courierCreates($user, $outletId, $key, $new);
         if (OrderData::courier($old) !== $key) return 'Tugas ini bukan milik Anda.';
 
         $from = OrderData::status($old); $to = OrderData::status($new);
@@ -150,13 +153,14 @@ final class OrderGuard {
     }
 
     /** Transaksi baru yang dibuat kurir saat menjemput. */
-    private function courierCreates(User $user, string $key, array $new): array|string {
+    private function courierCreates(User $user, int $outletId, string $key, array $new): array|string {
         if (!in_array(OrderData::status($new), ['jemput', 'antrian'], true)) return 'Transaksi kurir harus dimulai dari penjemputan.';
         if (OrderData::discKey($new) !== '0') return 'Kurir tidak bisa memberi diskon.';
         $items = OrderData::items($new);
         if (!$items) return 'Isi layanan dan berat atau jumlahnya.';
         if ($problem = $this->priceProblem($items, (string) ($new['detail']['dur'] ?? ''))) return $problem;
         if (OrderData::ongkir($new) < 0) return 'Ongkos kirim tidak valid.';
+        if ($problem = $this->feeProblem($outletId, OrderData::ongkir($new))) return $problem;
         if (isset($new['card']['total']) && OrderData::total($new) !== OrderData::computedTotal($new)) return 'Total tidak sesuai daftar harga.';
         if (OrderData::paid($new) < 0 || OrderData::paid($new) > OrderData::computedTotal($new)) return 'Pembayaran tidak sesuai tagihan pesanan.';
         $data = $new;
@@ -164,6 +168,71 @@ final class OrderGuard {
         // Ditimbang kurir di lokasi: kasir memastikan timbangannya di outlet (aplikasi menampilkan popup "Cek Timbangan").
         $data = $this->markWeighed($data, $user);
         return $this->ok($data, $new);
+    }
+
+    /**
+     * Diskon kasir terbatas (izin discounts.limited): paling banyak sebesar batas diskon manual yang diatur owner
+     * (Pengaturan → Diskon, "maksimal % kasir"), atau sebesar diskon/voucher terbesar yang dibuat owner.
+     * Owner dan admin outlet (discounts.any) bebas. Usaha yang belum menyinkronkan setelan diskonnya tidak dibatasi.
+     */
+    private function discountProblem(User $user, ?array $old, array $new): ?string {
+        if ($user->role === 'owner' || $user->hasPermission('discounts.any')) return null;
+        $sub = OrderData::subtotal(OrderData::items($new));
+        $disc = OrderData::discount($sub, OrderData::discKey($new));
+        if ($disc <= 0) return null;
+        if ($old && $disc <= OrderData::discount(OrderData::subtotal(OrderData::items($old)), OrderData::discKey($old))) return null;
+        $rules = $this->discountRules();
+        if ($rules === null) return null;
+        $limit = max((int) ceil($sub * $rules['percent'] / 100), min($sub, $rules['nominal']));
+        return $disc > $limit ? 'Diskon melebihi batas kasir (paling banyak Rp'.number_format($limit, 0, ',', '.').' untuk pesanan ini). Minta owner atau admin outlet.' : null;
+    }
+
+    /** @return ?array{percent: int, nominal: int} batas terbesar dari setelan diskon owner; null bila belum ada setelan */
+    private function discountRules(): ?array {
+        if ($this->discounts !== false) return $this->discounts;
+        $raw = DB::table('sync_records')->where('business_id', $this->business->id)->where('collection', 'settings')
+            ->where('record_key', 'goyana-pure-shared')->where('deleted', false)->value('data');
+        $shared = is_string($raw) ? json_decode($raw, true) : null;
+        if (is_string($shared)) $shared = json_decode($shared, true); // Mode Murni mengirimnya sebagai teks JSON
+        if (!is_array($shared)) return $this->discounts = null;
+        $cfg = (array) ($shared['discCfg'] ?? []);
+        $percent = ($cfg['manual'] ?? true) !== false ? max(0, min(100, (int) ($cfg['maxPct'] ?? 20))) : 0;
+        $nominal = 0;
+        $take = function (string $type, int $value) use (&$percent, &$nominal) {
+            if ($type === 'p') $percent = max($percent, min(100, $value)); else $nominal = max($nominal, $value);
+        };
+        foreach ((array) ($shared['discounts'] ?? []) as $d) {
+            if (is_array($d) && ($d['on'] ?? true) !== false) $take((string) ($d['type'] ?? 'n'), (int) ($d['val'] ?? 0));
+        }
+        foreach ((array) ($shared['vouchers'] ?? []) as $v) {
+            if (is_array($v) && preg_match('/^([pn])(\d+)$/', (string) ($v['key'] ?? ''), $m)) $take($m[1], (int) $m[2]);
+        }
+        foreach ($this->collection('crm') as $key => $v) {
+            if (str_starts_with((string) $key, 'voucher:')) $take((string) ($v['type'] ?? 'n'), (int) ($v['val'] ?? 0));
+        }
+        return $this->discounts = ['percent' => $percent, 'nominal' => $nominal];
+    }
+
+    /**
+     * Ongkos kirim pada transaksi kurir harus salah satu tarif yang diatur owner untuk outlet itu
+     * (Pengaturan → Antar Jemput → Tarif Transportasi). Usaha yang belum menyinkronkan tarifnya tidak diperiksa.
+     */
+    private function feeProblem(int $outletId, int $fee): ?string {
+        if ($fee === 0) return null;
+        $raw = DB::table('sync_records')->where('business_id', $this->business->id)->where('collection', 'settings')
+            ->where('record_key', 'goyana-transport183')->where('deleted', false)->value('data');
+        $all = is_string($raw) ? json_decode($raw, true) : null;
+        if (is_string($all)) $all = json_decode($all, true); // dikirim sebagai teks JSON
+        if (!is_array($all)) return null;
+        $cfg = $all['srv-'.$outletId] ?? ($all['default'] ?? null);
+        $n = fn (string $k) => is_array($cfg) ? max(0, (int) round((float) ($cfg[$k] ?? 0))) : 0;
+        $allowed = match (is_array($cfg) ? (string) ($cfg['mode'] ?? 'free') : 'free') {
+            'fixed' => [$n('fixed')],
+            'split' => [$n('pickup'), $n('delivery'), $n('pickup') + $n('delivery')],
+            'roundtrip' => [$n('pickup'), $n('delivery'), $n('roundtrip')],
+            default => [],
+        };
+        return in_array($fee, $allowed, true) ? null : 'Ongkos kirim tidak sesuai tarif antar jemput outlet ini.';
     }
 
     /** Tanda "ditimbang kurir": siapa yang menimbang dan angka timbangannya, untuk dicek kasir di outlet. */
@@ -341,5 +410,5 @@ final class OrderGuard {
     private function couriers(): array { return $this->couriers ??= $this->collection('couriers'); }
 
     /** Dipanggil setelah data kurir atau layanan berubah dalam permintaan yang sama. */
-    public function forget(): void { $this->services = null; $this->couriers = null; }
+    public function forget(): void { $this->services = null; $this->couriers = null; $this->discounts = false; }
 }

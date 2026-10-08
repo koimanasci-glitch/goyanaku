@@ -96,6 +96,10 @@ return [
             // status otomatis, voucher, templat nota). Setelan milik HP (printer, PIN) tidak pernah dikirim.
             'settings' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
             'outlet_profiles' => ['scope' => 'business', 'read' => ['*'], 'write' => ['owner']],
+            // CRM Mode Murni (goyana-crm203), dipecah per kunci supaya dua HP tidak saling menimpa:
+            // "rules" (aturan poin dan pengingat), "voucher:<kode>", "redeemed:<pelanggan>", "reminded:<nota>".
+            // Kasir hanya boleh menandai voucher terpakai, menambah poin yang ditukar, dan mencatat pengingat (App\Support\CrmGuard).
+            'crm' => ['scope' => 'business', 'read' => ['prices.edit', 'payments.receive'], 'write' => ['prices.edit', 'payments.receive']],
             'couriers' => ['scope' => 'business', 'read' => ['courier.assign', 'courier.tasks'], 'write' => ['courier.assign']],
             'stock_items' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage']],
             'stock_ledger' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage', 'stock.use']],

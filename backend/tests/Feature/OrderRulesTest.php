@@ -145,6 +145,26 @@ class OrderRulesTest extends TestCase {
         $this->assertSame('packing', $this->stored('GY-8')['card']['dataset']['st']);
     }
 
+    public function test_kasir_discount_is_limited_to_what_the_owner_allows(): void {
+        $kasir = $this->token($this->staff('kasir'));
+        $withDisc = fn (string $id, string $key) => $this->order($id, [$this->baju(10)], 'antrian', [], ['discKey' => $key]); // subtotal 70.000
+        // Usaha yang belum menyinkronkan setelan diskon tidak dibatasi.
+        $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-D0', 'outlet' => $this->outletKey(0), 'data' => $withDisc('GY-D0', 'p90')]])->assertJsonPath('results.0.status', 'applied');
+        // Owner: diskon manual kasir maksimal 20%, promo 30%, voucher Rp25.000.
+        $shared = json_encode(['discCfg' => ['manual' => true, 'maxPct' => 20], 'discounts' => [['id' => 5, 'name' => 'Promo', 'type' => 'p', 'val' => 30, 'on' => true],
+            ['id' => 6, 'name' => 'Mati', 'type' => 'p', 'val' => 80, 'on' => false]]]);
+        $this->push($this->token($this->owner), [['collection' => 'settings', 'key' => 'goyana-pure-shared', 'data' => $shared],
+            ['collection' => 'crm', 'key' => 'voucher:V25', 'data' => ['code' => 'V25', 'type' => 'n', 'val' => 25000, 'used' => false]]])->assertJsonPath('results.1.status', 'applied');
+        $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-D1', 'outlet' => $this->outletKey(0), 'data' => $withDisc('GY-D1', 'p50')]])
+            ->assertJsonPath('results.0.status', 'rejected')->assertJsonPath('results.0.message', 'Diskon melebihi batas kasir (paling banyak Rp25.000 untuk pesanan ini). Minta owner atau admin outlet.');
+        $rev = $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-D1', 'outlet' => $this->outletKey(0), 'data' => $withDisc('GY-D1', 'p30')]])->assertJsonPath('results.0.status', 'applied')->json('results.0.rev');
+        // Menaikkan diskon pesanan yang sudah ada juga dibatasi; pesanan dikembalikan ke versi server.
+        $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-D1', 'data' => $withDisc('GY-D1', 'n60000'), 'base_rev' => $rev]])->assertJsonPath('results.0.status', 'conflict');
+        $this->assertSame('p30', $this->stored('GY-D1')['detail']['discKey']);
+        // Admin outlet dan owner bebas.
+        $this->push($this->token($this->staff('manager')), [['collection' => 'orders', 'key' => 'GY-D1', 'data' => $withDisc('GY-D1', 'n60000'), 'base_rev' => $rev]])->assertJsonPath('results.0.status', 'applied');
+    }
+
     public function test_kasir_may_skip_and_skipped_stages_are_recorded(): void {
         $order = $this->order('GY-4', [$this->baju()], 'cuci'); $rev = $this->create('GY-4', $order);
         $kasir = $this->staff('kasir');
@@ -261,6 +281,22 @@ class OrderRulesTest extends TestCase {
         $weigh = json_decode(DB::table('order_events')->where('record_key', 'GY-G')->where('kind', 'timbang')->value('details'), true);
         $this->assertTrue($weigh['changed']); $this->assertSame($kurir->id, $weigh['courier_id']);
         $this->assertEquals(3, $weigh['before'][0]['qty']); $this->assertEquals(2.5, $weigh['after'][0]['qty']);
+    }
+
+    public function test_kurir_delivery_fee_must_match_the_outlet_tariff(): void {
+        $t = $this->token($this->staff('kurir', 0, 'kur-1'));
+        $make = fn (string $id, int $fee) => $this->order($id, [$this->baju(3)], 'jemput', [], ['ongkir' => $fee]) ;
+        $total = fn (array $o, int $fee) => array_replace_recursive($o, ['card' => ['total' => 21000 + $fee]]);
+        // Tarif belum disinkronkan: tidak diperiksa.
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-F0', 'data' => $total($make('GY-F0', 9999), 9999)]])->assertJsonPath('results.0.record.data.card.dataset.courier181', 'kur-1');
+        $tariff = json_encode([$this->outletKey(0) => ['mode' => 'split', 'pickup' => 5000, 'delivery' => 7000]]);
+        $this->push($this->token($this->owner), [['collection' => 'settings', 'key' => 'goyana-transport183', 'data' => $tariff]])->assertJsonPath('results.0.status', 'applied');
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-F1', 'data' => $total($make('GY-F1', 1000), 1000)]])
+            ->assertJsonPath('results.0.status', 'rejected')->assertJsonPath('results.0.message', 'Ongkos kirim tidak sesuai tarif antar jemput outlet ini.');
+        foreach ([0, 5000, 12000] as $i => $fee) {
+            $this->push($t, [['collection' => 'orders', 'key' => 'GY-F'.($i + 2), 'data' => $total($make('GY-F'.($i + 2), $fee), $fee)]])
+                ->assertJsonPath('results.0.record.data.card.dataset.courier181', 'kur-1');
+        }
     }
 
     public function test_courier_without_single_outlet_cannot_be_assigned(): void {

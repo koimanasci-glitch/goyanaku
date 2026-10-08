@@ -135,6 +135,37 @@ class MonitoringTest extends TestCase {
         $this->api($stranger->fresh(), 'GET', '/monitoring?outlet_id='.$this->outletId(0))->assertNotFound();
     }
 
+    public function test_web_monitoring_page_shows_the_same_report_and_follows_the_same_access(): void {
+        $this->workday();
+        $this->app['auth']->forgetGuards(); $this->flushHeaders();
+        $this->actingAs($this->owner)->get('/monitoring')->assertOk()->assertSee('Rp49.000')->assertSee('Cabang Bekasi')->assertSee('Kasir A')->assertSee('Andi')->assertSee('Budi')
+            ->assertSee('Tunai dipegang kurir');
+        $this->get('/dashboard')->assertOk()->assertSee('Monitoring lengkap')->assertSee('Ubah data cabang');
+        $this->get('/monitoring?outlet_id='.$this->outletId(1))->assertOk()->assertSee('Rp21.000')->assertDontSee('Rp49.000');
+        // Admin outlet hanya cabangnya; kasir tidak boleh.
+        $this->actingAs($this->manager)->get('/monitoring?outlet_id='.$this->outletId(0))->assertOk()->assertSee('Rp21.000')->assertDontSee('Kasir A');
+        $this->actingAs($this->kasirA)->get('/monitoring')->assertForbidden();
+    }
+
+    public function test_owner_edits_branches_and_settings_from_the_web_dashboard(): void {
+        $this->app['auth']->forgetGuards(); $this->flushHeaders();
+        $cabang = $this->owner->business->outlets()->orderBy('id')->get()[1]; $pusat = $this->outletId(0);
+        $this->actingAs($this->owner)->post('/outlets/'.$cabang->id, ['name' => 'Cabang Bekasi Timur', 'code' => 'bkt', 'address' => 'Jl. Baru 9', 'phone' => '0812-3456-7890', 'process_outlet_id' => $pusat])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $cabang->refresh();
+        $this->assertSame(['Cabang Bekasi Timur', 'BKT', 'Jl. Baru 9', '6281234567890', $pusat], [$cabang->name, $cabang->code, $cabang->address, $cabang->phone, $cabang->process_outlet_id]);
+        $this->post('/outlets/'.$cabang->id, ['name' => 'Cabang Bekasi Timur', 'process_outlet_id' => ''])->assertSessionHasNoErrors();
+        $this->assertNull($cabang->fresh()->process_outlet_id);
+        // Cabang yang masih punya pegawai aktif tidak bisa dinonaktifkan.
+        $this->post('/outlets/'.$cabang->id.'/deactivate')->assertSessionHasErrors('outlet');
+        $this->post('/business/settings', [])->assertRedirect();
+        $this->assertFalse((bool) $this->owner->business->fresh()->allow_debt);
+        $this->post('/business/settings', ['allow_debt' => '1']);
+        $this->assertTrue((bool) $this->owner->business->fresh()->allow_debt);
+        $this->actingAs($this->kasirA)->post('/outlets/'.$cabang->id, ['name' => 'Diganti'])->assertForbidden();
+        $this->post('/business/settings', [])->assertForbidden();
+    }
+
     public function test_staff_see_only_their_own_summary(): void {
         $this->workday();
         $this->api($this->kasirA, 'GET', '/me/summary')->assertOk()->assertJsonPath('orders_created', 2)->assertJsonPath('received_total', 14000)->assertJsonMissingPath('cash_held');

@@ -193,4 +193,30 @@ class SyncTest extends TestCase {
             ->assertJsonPath('results.0.status', 'rejected');
         $this->assertSame($shared, json_decode(\Illuminate\Support\Facades\DB::table('sync_records')->where('record_key', 'goyana-pure-shared')->value('data')));
     }
+
+    public function test_crm_data_syncs_and_kasir_only_marks_vouchers_used_and_adds_redeemed_points(): void {
+        $owner = $this->owner(); $o = $this->token($owner);
+        $voucher = ['code' => 'HEMAT10', 'name' => 'Hemat', 'type' => 'p', 'val' => 10, 'min' => 0, 'until' => '', 'who' => 'Semua', 'used' => false, 'batch' => ''];
+        $r = $this->push($o, [
+            ['collection' => 'crm', 'key' => 'rules', 'data' => ['rem' => ['on' => true], 'pt' => ['on' => true, 'per' => 10000]]],
+            ['collection' => 'crm', 'key' => 'voucher:HEMAT10', 'data' => $voucher],
+            ['collection' => 'crm', 'key' => 'redeemed:Siti', 'data' => ['v' => 20]],
+        ])->assertJsonPath('results.2.status', 'applied');
+        [$ruleRev, $voucherRev, $pointRev] = [$r->json('results.0.rev'), $r->json('results.1.rev'), $r->json('results.2.rev')];
+        $k = $this->token($this->staff($owner, 'kasir'));
+        $this->assertCount(3, collect($this->pull($k)->json('records'))->where('collection', 'crm'));
+        // Kasir: tidak mengubah aturan, tidak membuat atau mengubah isi voucher, tidak mengurangi poin tertukar.
+        $msg = fn (array $change) => $this->push($k, [$change])->assertJsonPath('results.0.status', 'rejected')->json('results.0.message');
+        $this->assertSame('Aturan poin dan pengingat diatur owner.', $msg(['collection' => 'crm', 'key' => 'rules', 'data' => ['pt' => ['per' => 1]], 'base_rev' => $ruleRev]));
+        $this->assertSame('Voucher dibuat oleh owner.', $msg(['collection' => 'crm', 'key' => 'voucher:GRATIS', 'data' => ['code' => 'GRATIS', 'val' => 100]]));
+        $this->assertSame('Kasir hanya bisa menandai voucher terpakai.', $msg(['collection' => 'crm', 'key' => 'voucher:HEMAT10', 'data' => ['val' => 90, 'used' => true] + $voucher, 'base_rev' => $voucherRev]));
+        $this->assertSame('Poin yang sudah ditukar tidak bisa dikurangi kasir.', $msg(['collection' => 'crm', 'key' => 'redeemed:Siti', 'data' => ['v' => 5], 'base_rev' => $pointRev]));
+        $this->push($k, [
+            ['collection' => 'crm', 'key' => 'voucher:HEMAT10', 'data' => ['used' => true] + $voucher, 'base_rev' => $voucherRev],
+            ['collection' => 'crm', 'key' => 'redeemed:Siti', 'data' => ['v' => 30], 'base_rev' => $pointRev],
+            ['collection' => 'crm', 'key' => 'reminded:GY-1', 'data' => ['d' => [3]]],
+        ])->assertJsonPath('results.0.status', 'applied')->assertJsonPath('results.1.status', 'applied')->assertJsonPath('results.2.status', 'applied');
+        // Kurir dan pegawai tidak menerima data CRM.
+        $this->assertCount(0, collect($this->pull($this->token($this->staff($owner, 'kurir')))->json('records'))->where('collection', 'crm'));
+    }
 }

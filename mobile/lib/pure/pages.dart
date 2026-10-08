@@ -1744,7 +1744,28 @@ class OutletEditPage extends PurePage {
       {'type': 'title', 't': 'Penggunaan Logo'},
       for (var k = 0; k < uses.length; k++) {'type': 'toggle', 't': uses[k], 's': '', 'on': _use['$k'] != false, 'i': k},
       {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'file': '', 'after': false, 'i': 2},
+      // Owner yang masuk ke server: HP ini bisa dijadikan HP outlet yang dipakai bergantian (pegawai memilih nama lalu PIN).
+      if (host.server.isOwner && ServerSync.outletNumber(editId ?? '') != null) ...[
+        {'type': 'title', 't': 'HP Outlet'},
+        {
+          'type': 'hint',
+          't': host.server.sharedBound
+              ? 'HP ini sudah menjadi HP outlet ${host.server.sharedOutletName}. Pegawai outlet itu masuk dengan memilih nama lalu PIN.'
+              : 'Jadikan HP ini HP outlet yang dipakai bergantian: pegawai outlet ini masuk dengan memilih nama lalu PIN, tanpa mengetik nomor HP.',
+        },
+        {'type': 'button', 't': host.server.sharedBound ? 'Lepas HP Outlet dari HP Ini' : 'Jadikan HP Ini HP Outlet', 'primary': false, 'file': '', 'after': false, 'i': 3},
+      ],
     ];
+  }
+
+  Future<void> _bindShared(String label) async {
+    try {
+      await host.server.bindShared(editId ?? '', label);
+      host.toast('HP ini menjadi HP outlet · keluar dari akun pemilik di Pengaturan, lalu pegawai masuk dengan nama dan PIN');
+    } on ServerFailure catch (e) {
+      host.toast(e.offline ? 'Butuh internet untuk mengikat HP outlet' : e.message);
+    }
+    host.refresh();
   }
 
   @override
@@ -1777,6 +1798,23 @@ class OutletEditPage extends PurePage {
       if (_logo.isEmpty) return host.toast('Belum ada logo untuk dihapus');
       _logo = '';
       return host.refresh();
+    }
+    if (i == 3) {
+      if (host.server.sharedBound) {
+        await host.server.unbindShared();
+        host.toast('HP ini bukan HP outlet lagi');
+        return host.refresh();
+      }
+      return host.openFormSheet(FormSheetDef(
+        'Jadikan HP Outlet',
+        [FormSheetField('Nama HP', value: 'HP Kasir ${_name.trim()}', required: true)],
+        'Ikat HP Ini',
+        (v) {
+          _bindShared(v[0]);
+          return true;
+        },
+        sub: 'Pegawai outlet ini akan masuk di HP ini dengan memilih nama lalu PIN. Owner bisa mencabutnya kapan saja.',
+      ));
     }
     final b = host.business;
     final name = _name.trim(), address = _address.trim(), phone = _phone.replaceAll(RegExp(r'[^0-9+]'), '');

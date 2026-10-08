@@ -62,9 +62,20 @@ class CourierHomePage extends PurePage {
     host.refresh();
   }
 
+  /// Database pelanggan tidak dikirim ke HP kurir; alamat dan lokasi tugasnya disertakan server di rincian pesanan.
   String _address(Order o) {
-    final a = host.business.customerByName(o.name)?.address ?? '';
+    final own = '${o.detail['address'] ?? ''}'.trim();
+    final a = own.isNotEmpty ? own : (host.business.customerByName(o.name)?.address ?? '');
     return a.isEmpty ? 'Alamat belum diisi' : a;
+  }
+
+  String _maps(Order o) {
+    final known = mapsLink(host.business.customerByName(o.name));
+    if (known.isNotEmpty) return known;
+    final m = '${o.detail['maps'] ?? ''}'.trim();
+    if (m.startsWith('http')) return m;
+    final q = m.isNotEmpty ? m : '${o.detail['address'] ?? ''}'.trim();
+    return q.isEmpty ? '' : 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(q)}';
   }
 
   Map<String, dynamic> _buttons(int k, Order o, String next, {bool pay = false, bool open = false}) => {
@@ -162,7 +173,7 @@ class CourierHomePage extends PurePage {
     final o = list[k];
     switch (act) {
       case 0:
-        final m = mapsLink(host.business.customerByName(o.name));
+        final m = _maps(o);
         if (m.isEmpty) return host.toast('Lokasi belum tersedia');
         host.device.invokeMethod('App.openUrl', {'url': m}).catchError((_) => null);
       case 1:

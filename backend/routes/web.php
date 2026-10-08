@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, AdminAssistController, SupportController, DashboardController, DeviceController, MfaController, OutletController, TeamController};
+use App\Http\Controllers\{AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, AdminAssistController, SupportController, DashboardController, DeviceController, MonitoringController, MfaController, OutletController, TeamController};
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +32,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::middleware('verified.required')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/monitoring', MonitoringController::class)->name('monitoring');
         Route::get('/support', [SupportController::class, 'index'])->name('support');
         Route::post('/support', [SupportController::class, 'store'])->middleware('throttle:20,60')->name('support.store');
         Route::get('/support/{ticket}', [SupportController::class, 'show'])->name('support.show');
@@ -40,6 +41,11 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/support/{ticket}', [SupportController::class, 'reply'])->middleware('throttle:60,60')->name('support.reply');
         Route::middleware('owner')->group(function () {
             Route::post('/outlets', [OutletController::class, 'store'])->name('outlets.store');
+            Route::post('/outlets/{outlet}', [OutletController::class, 'update'])->whereNumber('outlet')->name('outlets.update');
+            Route::post('/outlets/{outlet}/deactivate', [OutletController::class, 'deactivate'])->name('outlets.deactivate');
+            Route::post('/outlets/{outlet}/activate', [OutletController::class, 'activate'])->name('outlets.activate');
+            Route::post('/shared-devices/{device}/revoke', [OutletController::class, 'revokeShared'])->name('shared.revoke');
+            Route::post('/business/settings', [OutletController::class, 'settings'])->name('business.settings');
             Route::post('/outlets/{outlet}/devices', [DeviceController::class, 'store'])->name('devices.store');
             Route::post('/outlets/{outlet}/devices/{device}/revoke', [DeviceController::class, 'revoke'])->name('devices.revoke');
             Route::post('/team', [TeamController::class, 'store'])->name('team.store');

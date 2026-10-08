@@ -193,6 +193,11 @@ class SyncController {
         }
         if (!$existing && $deleted) return ['status' => 'applied', 'rev' => 0];
 
+        if ($change['collection'] === 'crm') {
+            $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+            if ($problem = \App\Support\CrmGuard::problem($user, (string) $change['key'], $before, $change['data'] ?? null, $deleted)) return $this->reject($problem);
+        }
+
         // Pesanan dan penjemputan: server menegakkan hak tiap peran, bukan menerima kiriman HP apa adanya.
         $guarded = in_array($change['collection'], ['orders', 'pickups'], true);
         $old = $guarded && $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
@@ -221,7 +226,7 @@ class SyncController {
             DB::table('sync_records')->insert($row + ['business_id' => $business->id, 'collection' => $change['collection'],
                 'record_key' => $change['key'], 'created_at' => now()]);
         }
-        if (in_array($change['collection'], ['services', 'couriers'], true)) ($this->guards[$business->id] ?? null)?->forget();
+        if (in_array($change['collection'], ['services', 'couriers', 'settings', 'crm'], true)) ($this->guards[$business->id] ?? null)?->forget();
         // Profil outlet yang diubah owner di aplikasi (nama, alamat, nomor) ikut memperbarui data cabang di server.
         if ($change['collection'] === 'outlet_profiles' && !$deleted) \App\Support\Outlets::fromProfile($business, (string) $change['key'], $change['data'] ?? null);
         if ($change['collection'] === 'orders') {

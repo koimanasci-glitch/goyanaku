@@ -92,6 +92,20 @@ class _Server {
       outlets.add(made);
       return ServerReply(201, jsonEncode({'outlet': made}));
     }
+    if (url.path == '/api/devices/shared') {
+      return ServerReply(201, jsonEncode({
+        'id': 1, 'device_secret': 'rahasia-hp',
+        'outlet': {'id': 5, 'name': 'Pusat'},
+      }));
+    }
+    if (url.path == '/api/devices/roster') {
+      return ServerReply(200, jsonEncode({
+        'outlet': {'id': 5, 'name': 'Pusat'},
+        'staff': [
+          {'id': 9, 'name': 'Siti', 'role': 'kasir', 'role_label': 'Kasir'},
+        ],
+      }));
+    }
     if (url.path == '/api/devices/claim') {
       return ServerReply(200, jsonEncode({'slot': 2, 'note': {'prefix': 'PUS', 'device': '2'}}));
     }
@@ -482,6 +496,78 @@ void main() {
     // Kasir atau owner yang menandai Siap Ambil.
     expect(b.advance(baju, now: at, by: 'Kasir'), 'siap');
     expect(b.nextStage(baju), isNull);
+  });
+
+  test('data CRM tersinkron per kunci; kasir hanya mengirim voucher terpakai, poin tertukar, dan pengingat', () async {
+    Map<String, dynamic> crm({bool used = false, int redeemed = 20, int per = 10000}) => {
+          'rem': {'on': true, 'days': [3, 7]},
+          'pt': {'on': true, 'per': per},
+          'redeemed': {'Siti': redeemed},
+          'vouchers': [
+            {'code': 'HEMAT10', 'name': 'Hemat', 'type': 'p', 'val': 10, 'used': used},
+          ],
+          'reminded': {
+            'GY-1': [3],
+          },
+        };
+    final kv = _phone()..data['goyana-crm203'] = jsonEncode(crm());
+    final local = await extractLocal(kv);
+    expect(local.keys.where((k) => k.startsWith('crm|')).toSet(), {'crm|rules', 'crm|voucher:HEMAT10', 'crm|redeemed:Siti', 'crm|reminded:GY-1'});
+    expect(local['crm|redeemed:Siti']!.data, {'v': 20});
+
+    // Dari server: aturan berubah, voucher terpakai, voucher baru, poin bertambah, pengingat dihapus.
+    await applyRemote(kv, [
+      {'collection': 'crm', 'key': 'rules', 'data': {'rem': {'on': false}, 'pt': {'on': true, 'per': 5000}}},
+      {'collection': 'crm', 'key': 'voucher:HEMAT10', 'data': {'code': 'HEMAT10', 'name': 'Hemat', 'type': 'p', 'val': 10, 'used': true}},
+      {'collection': 'crm', 'key': 'voucher:BARU', 'data': {'code': 'BARU', 'name': 'Baru', 'type': 'n', 'val': 5000, 'used': false}},
+      {'collection': 'crm', 'key': 'redeemed:Siti', 'data': {'v': 30}},
+      {'collection': 'crm', 'key': 'reminded:GY-1', 'deleted': true},
+    ]);
+    final merged = jsonDecode(kv.data['goyana-crm203']!) as Map;
+    expect((merged['pt'] as Map)['per'], 5000);
+    expect([for (final v in merged['vouchers'] as List) '${(v as Map)['code']}:${v['used']}'], ['HEMAT10:true', 'BARU:false']);
+    expect(merged['redeemed'], {'Siti': 30});
+    expect(merged['reminded'], isEmpty);
+
+    // HP kasir: aturan yang diubah di HP-nya tidak dikirim; voucher terpakai dan poin tertukar dikirim.
+    final kasirKv = _phone()..data['goyana-crm203'] = jsonEncode(crm());
+    final server = _Server()
+      ..role = 'kasir'
+      ..perms = ['orders.create', 'payments.receive'];
+    final sync = await _connected(kasirKv, server, account: '081234567890', secret: '482915');
+    await sync.cycle();
+    server.calls.clear();
+    kasirKv.data['goyana-crm203'] = jsonEncode(crm(used: true, redeemed: 30, per: 1));
+    await sync.cycle();
+    expect(server.pushed().map((c) => c['key']).toSet(), {'voucher:HEMAT10', 'redeemed:Siti'});
+  });
+
+  test('HP outlet dipakai bergantian: owner mengikat HP, pegawai memilih nama lalu PIN', () async {
+    final kv = _phone(), server = _Server();
+    final owner = await _connected(kv, server);
+    expect(owner.sharedBound, isFalse);
+    await owner.bindShared('srv-5', ' HP Kasir Pusat ');
+    expect(server.calls.last['body'], containsPair('label', 'HP Kasir Pusat'));
+    expect([owner.sharedBound, owner.sharedOutletName], [true, 'Pusat']);
+    await expectLater(owner.bindShared('outlet-lokal', 'x'), throwsA(isA<ServerFailure>()));
+    await owner.logout();
+
+    // Aplikasi dibuka lagi: ikatan tersimpan di HP ini; pegawai memilih nama, kunci rahasia HP ikut dikirim.
+    server.role = 'kasir';
+    final sync = ServerSync(kv, send: server.send);
+    await sync.load();
+    expect([sync.sharedBound, sync.loggedIn], [true, false]);
+    final names = await sync.roster();
+    expect(names.single['name'], 'Siti');
+    await sync.loginShared(names.single['id'], '482915', 'Siti');
+    final login = server.calls.lastWhere((c) => c['path'] == '/api/session/pin')['body'] as Map;
+    expect([login['user_id'], login['pin'], login['device_secret']], [9, '482915', 'rahasia-hp']);
+    expect(sync.role, 'kasir');
+    // Kasir tidak bisa mengikat HP; ikatan bisa dilepas dari HP ini.
+    await expectLater(sync.bindShared('srv-5', 'x'), throwsA(isA<ServerFailure>()));
+    await sync.unbindShared();
+    expect(sync.sharedBound, isFalse);
+    expect(await sync.roster(), isEmpty);
   });
 
   test('HP pegawai tidak mengirim data yang bukan haknya', () async {

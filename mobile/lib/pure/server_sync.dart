@@ -22,10 +22,14 @@ const serverStateKey = 'goyana-psync-state';
 const serverInboxKey = 'goyana-psync-inbox';
 const serverOutboxKey = 'goyana-psync-outbox';
 
+/// Ikatan HP outlet yang dipakai bergantian: {secret, outlet_id, outlet}. Kunci rahasianya hanya ada di HP ini.
+const serverSharedKey = 'goyana-psync-shared';
+
 const _stockKey = 'goyana-stock181';
 const _couriersKey = 'goyana-couriers181';
 const _pickupsKey = 'goyana-pickup202';
 const _transportKey = 'goyana-transport183';
+const _crmKey = 'goyana-crm203';
 
 /// Bagian stok di penyimpanan lokal untuk tiap koleksi server.
 const _stockParts = {
@@ -39,12 +43,12 @@ const _stockParts = {
 /// Setelan usaha yang dikirim sebagai teks apa adanya: tarif antar-jemput, QRIS, parfum, durasi layanan.
 const _settingKeys = [_transportKey, Keys.qrisText, Keys.qrisImage, Keys.qrisOptions, Keys.perfumes, 'goyana-durations199'];
 
-/// Bagian setelan Mode Murni yang berlaku untuk seluruh usaha (diskon, kategori pengeluaran, izin kasir dan
+/// Bagian setelan Mode Murni yang berlaku untuk seluruh usaha (diskon dan batas diskon kasir, kategori pengeluaran, izin kasir dan
 /// sakelar halaman, rekening, status otomatis, voucher, QRIS dinamis, templat nota). Sisanya milik HP itu saja
 /// (printer, kunci PIN, PIN admin, catatan audit) dan tidak pernah dikirim.
 const pureSettingsKey = 'goyana-pure-settings';
 const sharedSettingsRecord = 'goyana-pure-shared';
-const _sharedSettingParts = ['discounts', 'expenseCats', 'tpl', 'bank', 'account', 'holder', 'auto133', 'vouchers', 'qrisDynamic', 'notaTpl'];
+const _sharedSettingParts = ['discounts', 'discCfg', 'expenseCats', 'tpl', 'bank', 'account', 'holder', 'auto133', 'vouchers', 'qrisDynamic', 'notaTpl'];
 
 /// Hak tulis tiap koleksi, sama dengan sync.collections di backend/config/goyana.php.
 /// Data yang tidak boleh ditulis akun ini tidak dikirim, supaya HP pegawai tidak terus-menerus ditolak server.
@@ -57,6 +61,7 @@ const _writeRules = {
   'services': ['prices.edit'],
   'settings': ['prices.edit'],
   'outlet_profiles': <String>[],
+  'crm': ['prices.edit', 'payments.receive'],
   'couriers': ['courier.assign'],
   'stock_items': ['stock.manage'],
   'stock_ledger': ['stock.manage', 'stock.use'],
@@ -68,7 +73,7 @@ const _writeRules = {
 /// Kunci penyimpanan yang isinya ikut disinkronkan: perubahan padanya memicu sinkronisasi.
 const serverWatchedKeys = [
   Keys.business, Keys.services, _stockKey, _couriersKey, Keys.outlets, _pickupsKey, _transportKey, Keys.qrisText, Keys.qrisImage,
-  Keys.qrisOptions, Keys.perfumes, 'goyana-durations199', pureSettingsKey,
+  Keys.qrisOptions, Keys.perfumes, 'goyana-durations199', pureSettingsKey, _crmKey,
 ];
 
 class ServerFailure implements Exception {
@@ -247,6 +252,20 @@ Future<Map<String, LocalRecord>> extractLocal(KvStore kv) async {
   final pure = _asMap(_decode(await kv.get(pureSettingsKey)));
   final shared = <String, dynamic>{for (final k in _sharedSettingParts) if (pure.containsKey(k)) k: pure[k]};
   if (shared.isNotEmpty) put('settings', sharedSettingsRecord, null, canonJson(shared));
+  // CRM dipecah per kunci supaya dua HP tidak saling menimpa: aturan, tiap voucher, poin tertukar tiap pelanggan, pengingat tiap nota.
+  final crm = _decode(await kv.get(_crmKey));
+  if (crm is Map) {
+    put('crm', 'rules', null, {'rem': crm['rem'], 'pt': crm['pt']});
+    for (final v in _asList(crm['vouchers'])) {
+      if (v is Map && _text(v['code']).isNotEmpty) put('crm', 'voucher:${_text(v['code'])}', null, v);
+    }
+    for (final e in _asMap(crm['redeemed']).entries) {
+      put('crm', 'redeemed:${e.key}', null, {'v': e.value});
+    }
+    for (final e in _asMap(crm['reminded']).entries) {
+      put('crm', 'reminded:${e.key}', null, {'d': e.value});
+    }
+  }
   return out;
 }
 
@@ -281,7 +300,7 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
   final active = _text(_decode(await kv.get(Keys.activeOutlet)));
   var businessChanged = false;
   List<dynamic>? services, couriers, outlets, pickups;
-  Map<String, dynamic>? stock;
+  Map<String, dynamic>? stock, crm;
 
   for (final r in records) {
     final collection = _text(r['collection']), key = _text(r['key']);
@@ -348,6 +367,28 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
             await kv.set(key, data);
           }
         }
+      case 'crm':
+        crm ??= _asMap(_decode(await kv.get(_crmKey)));
+        if (key == 'rules') {
+          if (!deleted && data is Map) {
+            crm['rem'] = data['rem'];
+            crm['pt'] = data['pt'];
+          }
+        } else if (key.startsWith('voucher:')) {
+          final list = _asList(crm['vouchers']);
+          _upsert(list, key.substring(8), (x) => x is Map ? _text(x['code']) : '', data, deleted);
+          crm['vouchers'] = list;
+        } else if (key.startsWith('redeemed:') || key.startsWith('reminded:')) {
+          final part = key.startsWith('redeemed:') ? 'redeemed' : 'reminded';
+          final map = _asMap(crm[part]);
+          final value = data is Map ? data[part == 'redeemed' ? 'v' : 'd'] : null;
+          if (deleted || value == null) {
+            map.remove(key.substring(9));
+          } else {
+            map[key.substring(9)] = value;
+          }
+          crm[part] = map;
+        }
       default:
         final part = _stockParts[collection];
         if (part != null) {
@@ -372,6 +413,7 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
   if (outlets != null) await kv.set(Keys.outlets, jsonEncode(outlets));
   if (pickups != null) await kv.set(_pickupsKey, jsonEncode(pickups));
   if (stock != null) await kv.set(_stockKey, jsonEncode(stock));
+  if (crm != null) await kv.set(_crmKey, jsonEncode(crm));
   return records.length;
 }
 
@@ -467,6 +509,7 @@ class ServerSync {
   Map<String, dynamic>? _auth;
   Future<void>? _running;
   String _fallbackDevice = '';
+  Map<String, dynamic> _shared = {};
 
   /// Alamat server tanpa garis miring di akhir; kosong = belum diatur.
   String get url => _url;
@@ -484,10 +527,20 @@ class ServerSync {
     return list.contains('*') || list.contains(permission);
   }
 
-  bool _mayWrite(String collection) {
+  /// [ck] = "koleksi|kunci". Data CRM: kasir hanya mengirim voucher terpakai, poin tertukar, dan catatan pengingat
+  /// (aturan CRM dan penghapusan hanya dari akun yang boleh mengatur harga), sama dengan CrmGuard di server.
+  bool _mayWrite(String ck, {bool deleted = false}) {
     if (role == 'owner') return true;
+    final i = ck.indexOf('|');
+    final collection = i < 0 ? ck : ck.substring(0, i);
     final rule = _writeRules[collection];
-    return rule != null && rule.any(can);
+    if (rule == null || !rule.any(can)) return false;
+    if (collection == 'crm' && !can('prices.edit')) {
+      final key = ck.substring(i + 1);
+      if (key.startsWith('reminded:')) return !deleted;
+      return !deleted && (key.startsWith('voucher:') || key.startsWith('redeemed:'));
+    }
+    return true;
   }
 
   bool get isOwner => loggedIn && role == 'owner';
@@ -579,8 +632,59 @@ class ServerSync {
     final a = _asMap(_decode(await kv.get(serverAuthKey)));
     final expires = DateTime.tryParse(_text(a['expires_at']));
     _auth = _text(a['token']).isNotEmpty && (expires == null || expires.isAfter(_clock())) ? a : null;
+    _shared = _asMap(_decode(await kv.get(serverSharedKey)));
     if (loggedIn) await _prepareDevice();
     status.pending = loggedIn ? (await _pending()).length : 0;
+  }
+
+  // ---------- HP outlet yang dipakai bergantian ----------
+
+  /// HP ini sudah diikat owner ke satu outlet: pegawai masuk dengan memilih nama lalu PIN.
+  bool get sharedBound => _text(_shared['secret']).isNotEmpty;
+  String get sharedOutletName => _text(_shared['outlet']);
+
+  /// Owner mengikat HP ini ke outlet [outletKey]. Kunci rahasia dari server disimpan di HP ini saja.
+  Future<void> bindShared(String outletKey, String label) async {
+    final n = outletNumber(outletKey);
+    if (!isOwner || n == null) throw const ServerFailure('Hanya pemilik yang bisa mengikat HP outlet, untuk outlet yang sudah ada di server.');
+    final j = await _request('POST', '/devices/shared', {'device_id': await deviceId(), 'outlet_id': n, 'label': label.trim().isEmpty ? 'HP Outlet' : label.trim()});
+    final secret = _text(j['device_secret']);
+    if (secret.isEmpty) throw const ServerFailure('Server tidak memberikan kunci HP outlet.');
+    _shared = {'secret': secret, 'outlet_id': n, 'outlet': _text(_asMap(j['outlet'])['name'])};
+    await kv.set(serverSharedKey, jsonEncode(_shared));
+    onChanged?.call();
+  }
+
+  /// Lepas ikatan di HP ini (owner mencabutnya di server lewat dashboard).
+  Future<void> unbindShared() async {
+    _shared = {};
+    await kv.remove(serverSharedKey);
+    onChanged?.call();
+  }
+
+  /// Nama pegawai outlet ini yang bisa masuk di HP outlet: [{id, name, role, role_label}].
+  Future<List<Map<String, dynamic>>> roster() async {
+    if (!sharedBound) return [];
+    final j = await _request('POST', '/devices/roster', {'device_id': await deviceId(), 'device_secret': _text(_shared['secret'])});
+    return [for (final m in _asList(j['staff'])) if (m is Map) Map<String, dynamic>.from(m)];
+  }
+
+  /// Masuk di HP outlet: pilih nama + PIN. Mengembalikan true bila data outlet di HP berubah.
+  Future<bool> loginShared(Object? userId, String pin, String name) async {
+    if (!sharedBound) throw const ServerFailure('HP ini belum diikat ke outlet.');
+    if (!RegExp(r'^\d+$').hasMatch(pin)) throw const ServerFailure('PIN berupa angka');
+    final device = await deviceId();
+    await _prepareDevice();
+    final session = await _request('POST', '/session/pin', {'user_id': userId, 'pin': pin, 'device_id': device, 'device_secret': _text(_shared['secret'])});
+    return _startSession(session, name);
+  }
+
+  Future<bool> _startSession(Map<String, dynamic> session, String account) async {
+    final token = _text(session['token']);
+    if (token.isEmpty) throw const ServerFailure('Server tidak memberikan sesi yang valid.');
+    _auth = {'token': token, 'expires_at': _text(session['expires_at']), 'account': account};
+    await kv.set(serverAuthKey, jsonEncode(_auth));
+    return refreshProfile();
   }
 
   /// Simpan alamat server. Mengembalikan pesan salah, atau null bila diterima.
@@ -651,11 +755,7 @@ class ServerSync {
       if (!RegExp(r'^\d+$').hasMatch(secret)) throw const ServerFailure('PIN berupa angka');
       session = await _request('POST', '/session/pin', {'phone': phone, 'pin': secret, 'device_id': device});
     }
-    final token = _text(session['token']);
-    if (token.isEmpty) throw const ServerFailure('Server tidak memberikan sesi yang valid.');
-    _auth = {'token': token, 'expires_at': _text(session['expires_at']), 'account': id};
-    await kv.set(serverAuthKey, jsonEncode(_auth));
-    return refreshProfile();
+    return _startSession(session, id);
   }
 
   /// Ambil profil, paket, dan outlet akun ini, lalu petakan outlet ke id server.
@@ -723,7 +823,7 @@ class ServerSync {
       final h = fingerprintOf(e.value), known = recs[e.key];
       if (staged.contains(e.key) || (known is Map && known['h'] == h)) continue;
       final i = e.key.indexOf('|');
-      if (!_mayWrite(e.key.substring(0, i))) continue;
+      if (!_mayWrite(e.key)) continue;
       list.add({
         'ck': e.key, 'h': h, 'collection': e.key.substring(0, i), 'key': e.key.substring(i + 1), 'outlet': e.value.outlet,
         'data': e.value.data, 'deleted': false, 'base_rev': known is Map ? (known['rev'] ?? 0) : 0,
@@ -733,7 +833,7 @@ class ServerSync {
       final known = e.value;
       if (known is! Map || known['h'] == null || staged.contains(e.key) || now.containsKey(e.key)) continue;
       final i = e.key.indexOf('|');
-      if (!_mayWrite(e.key.substring(0, i))) continue;
+      if (!_mayWrite(e.key, deleted: true)) continue;
       list.add({
         'ck': e.key, 'h': null, 'collection': e.key.substring(0, i), 'key': e.key.substring(i + 1), 'outlet': null,
         'data': null, 'deleted': true, 'base_rev': known['rev'] ?? 0,

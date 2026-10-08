@@ -15,7 +15,8 @@ class DashboardController {
             'team' => $business->users()->where('role', '!=', 'owner')->with('outlet')->orderBy('name')->get(),
             'roles' => collect(config('goyana.roles'))->except('owner'),
             'summary' => $this->summary($business),
-            'alerts' => (new \App\Support\Monitoring($business))->alerts()]);
+            'alerts' => (new \App\Support\Monitoring($business))->alerts(),
+            'shared' => \App\Models\SharedDevice::where('business_id', $business->id)->whereNull('revoked_at')->orderBy('outlet_id')->get()->groupBy('outlet_id')]);
     }
 
     /** Omzet & order counts from orders synced by the phones (Asia/Jakarta days). */
