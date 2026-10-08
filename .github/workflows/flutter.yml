@@ -1,4 +1,4 @@
-name: Flutter Android (hybrid)
+name: Flutter Android (Mode Murni)
 on:
   push:
     branches: [main, "flutter/**", "backend/**"]
@@ -28,20 +28,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Pasang npm & Playwright
-        run: |
-          npm install --prefix tests --ignore-scripts --no-audit --no-fund
-          cd tests
-          npx playwright install --with-deps chromium
-      - name: Uji jembatan Flutter di browser
-        run: |
-          cd tests
-          set +e
-          node flutter-bridge.cjs > test-output.txt 2>&1; code=$?
-          cat test-output.txt
-          # Failure details as annotations (readable from the API without log access).
-          if [ $code -ne 0 ]; then grep -E 'Error|assert|expected|actual|\.cjs:[0-9]+' test-output.txt | head -25 | sed 's/^/::warning::/'; fi
-          exit $code
+      # APK Hibrida dan uji jembatannya tidak dibangun lagi (keputusan Paduka 9 Oktober 2026: HP = Mode Murni saja).
+      # Kode Hibrida tetap di repo; aset HTML masih disiapkan karena analisis dan tes Dart membacanya.
+      - name: Pasang npm
+        run: npm install --prefix tests --ignore-scripts --no-audit --no-fund
 
       - name: Siapkan tampilan GOYANA (HTML final) untuk APK
         env:
@@ -94,12 +84,6 @@ jobs:
           git init -q && git checkout -q -b ci-screens
           git add . && git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Screenshots $GITHUB_SHA"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-screens
-      - name: Build APK (release, cepat)
-        # Nomor build naik tiap run supaya HP selalu menerima APK baru sebagai pembaruan.
-        run: flutter build apk --release --target-platform android-arm,android-arm64 --build-number=$((100 + ${{ github.run_number }}))
-        working-directory: mobile
-      - name: Siapkan APK
-        run: cp mobile/build/app/outputs/flutter-apk/app-release.apk GOYANA-Flutter-Uji.apk
       - name: Build APK Mode Murni (tanpa WebView)
         run: |
           # Mode Murni tidak memakai HTML: folder assets/web (HTML + gambar Hybrid) tidak diikutkan ke APK ini.
@@ -111,11 +95,6 @@ jobs:
         with:
           name: GOYANA-Murni-Uji
           path: GOYANA-Murni-Uji.apk
-          retention-days: 14
-      - uses: actions/upload-artifact@v4
-        with:
-          name: GOYANA-Flutter-Uji
-          path: GOYANA-Flutter-Uji.apk
           retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
@@ -136,18 +115,17 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -f "$TAG" "$GITHUB_SHA"
           git push origin "refs/tags/$TAG" --force
-          NOTES="APK uji GOYANA versi Flutter (hybrid). Branch: ${GITHUB_REF_NAME}. Commit: ${GITHUB_SHA}. Bisa dipasang berdampingan dengan APK lama."
+          NOTES="APK uji GOYANA Mode Murni. Branch: ${GITHUB_REF_NAME}. Commit: ${GITHUB_SHA}. Bisa dipasang berdampingan dengan APK lama."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "GOYANA Flutter (uji)" --notes "$NOTES" --prerelease --latest=false
           else
             gh release create "$TAG" --title "GOYANA Flutter (uji)" --notes "$NOTES" --prerelease --latest=false
           fi
           # Unggah dulu dengan nama sementara, baru tukar: link unduhan tidak pernah kosong/terpotong saat diunduh.
-          cp GOYANA-Flutter-Uji.apk GOYANA-Flutter-Uji-baru.apk
-          gh release upload "$TAG" GOYANA-Flutter-Uji-baru.apk --clobber
-          gh release upload "$TAG" GOYANA-Murni-Uji.apk --clobber
+          cp GOYANA-Murni-Uji.apk GOYANA-Murni-Uji-baru.apk
+          gh release upload "$TAG" GOYANA-Murni-Uji-baru.apk --clobber
           REL=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" --jq .id)
-          OLD=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji.apk") | .id')
-          NEW=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Flutter-Uji-baru.apk") | .id')
+          OLD=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Murni-Uji.apk") | .id')
+          NEW=$(gh api "repos/${{ github.repository }}/releases/$REL/assets" --jq '.[] | select(.name=="GOYANA-Murni-Uji-baru.apk") | .id')
           if [ -n "$OLD" ]; then gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$OLD"; fi
-          gh api -X PATCH "repos/${{ github.repository }}/releases/assets/$NEW" -f name=GOYANA-Flutter-Uji.apk >/dev/null
+          gh api -X PATCH "repos/${{ github.repository }}/releases/assets/$NEW" -f name=GOYANA-Murni-Uji.apk >/dev/null

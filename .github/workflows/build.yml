@@ -1,6 +1,6 @@
 name: Build APK GOYANA
+# APK versi HTML asli tidak dibangun otomatis lagi (keputusan Paduka 9 Oktober 2026). Bisa dijalankan manual bila perlu.
 on:
-  push:
   workflow_dispatch:
 
 permissions:

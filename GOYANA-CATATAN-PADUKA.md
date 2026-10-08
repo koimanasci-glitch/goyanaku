@@ -124,3 +124,4 @@ Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian
 - Belum dijawab: sumber calon client selain isi manual dan impor file.
 
 - 8 Oktober 2026 — Balas Status WhatsApp otomatis: mulai paket Silver (Silver, Gold, Platinum). Basic tidak dapat.
+- 9 Oktober 2026 — CI hanya membangun APK Mode Murni. APK Hibrida dan APK HTML asli tidak dibangun otomatis lagi ("Pantesan kamu lama mulu"); kodenya tetap di repo. Backend Laravel tetap diuji tiap kiriman.

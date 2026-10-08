@@ -42,7 +42,7 @@ flutter build apk --release --target-platform android-arm,android-arm64
 
 `assets/web/` dibuat ulang setiap build (tidak disimpan di git), jadi setiap perubahan index.html/goyana-v*.js otomatis ikut ke APK Flutter.
 
-Workflow **Flutter Android (hybrid)** menguji jembatan di browser (`tests/flutter-bridge.cjs`), menjalankan analyze/test Flutter, lalu menerbitkan **GOYANA-Flutter-Uji.apk** di GitHub Release `flutter-uji` (prerelease, tidak menggantikan `android-latest`).
+Workflow **Flutter Android (Mode Murni)** menjalankan analyze/test Flutter, lalu menerbitkan **GOYANA-Murni-Uji.apk** di GitHub Release `flutter-uji`. Sejak 9 Oktober 2026 APK Hibrida (`GOYANA-Flutter-Uji.apk`) dan uji jembatannya tidak dibangun lagi; kodenya tetap di repo. Dulu workflow ini bernama Flutter Android (hybrid) dan menerbitkan APK Hibrida di rilis yang sama (prerelease, tidak menggantikan `android-latest`).
 
 ## Catatan
 
