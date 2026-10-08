@@ -1606,7 +1606,7 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **File berubah**: `SyncController`, `ApiSessionController`, `TeamController`, `OutletController`, `DeviceController`, `DashboardController`, model `User/Outlet/Business`, `config/goyana.php`, `routes/api.php`, `routes/web.php`, `routes/console.php`, `dashboard.blade.php`, `SyncTest` (satu tes kurir disesuaikan: dulu memastikan kurir boleh mengirim pesanan apa saja, yaitu celah yang ditutup).
 - **Tidak disentuh**: aplikasi Flutter, HTML/Hibrida, workflow CI.
 - **Hasil uji lokal** (PHP 8.3.6, SQLite): PHPUnit 106 tes / 863 asersi lulus (sebelumnya 63); `php -l` bersih; `route:list` 91 rute; `view:cache` lulus; `tests/sync-e2e.cjs` 6/6 PASS dengan klien HTML sungguhan (2 HP owner + HP kasir).
-- **CI**: belum dijalankan saat catatan ini ditulis; satu kali push di akhir memicu `backend.yml`.
+- **CI**: `Backend foundation` run 37737247268 pada commit ba87e39 — SUCCESS (composer audit, lint, route:list, view:cache, PHPUnit, uji sinkron 2 HP). Satu CI dipakai untuk bagian ini. `Build APK GOYANA` ikut terpicu oleh push (workflow itu jalan di setiap push); tidak ada rilis yang diterbitkan dari branch ini.
 - **Temuan / pertanyaan untuk Koko**:
   - Mode Murni belum tersambung ke server, jadi fitur ini belum terlihat di aplikasi Flutter murni. Itu pekerjaan berikutnya (A11/F4).
   - Pengecualian HTML yang disetujui (kunci Pegawai ke Basic, tulisan Silver, label Premium tahapan) dan pembukaan kunci Pegawai di Mode Murni belum dikerjakan: mengubah fixture/tampilan dan memakai jatah CI Flutter. Menunggu izin CI.
