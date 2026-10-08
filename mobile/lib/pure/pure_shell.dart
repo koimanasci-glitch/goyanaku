@@ -48,6 +48,7 @@ import '../native/reports_page.dart';
 import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import '../logic/reports_catalog.dart';
+import 'courier_home.dart';
 import 'pages.dart';
 import 'pickup_pages.dart';
 import 'ralat.dart';
@@ -93,7 +94,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
     'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 
-    'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'testmode192': TestModePage(this), 
+    'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
   @override
@@ -127,7 +128,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   @override
   void openOrder(String id) {
-    nav('orders');
+    if (!_courierMode) nav('orders');
     _showDetail(id);
   }
 
@@ -444,12 +445,17 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       if (name.isNotEmpty) _kasir = name;
       _kasirSession = _srv.role != 'owner';
     });
+    if (_courierMode && _b != null && const {'home', 'orders', 'customers', 'reports'}.contains(_page)) nav('kurirhome');
   }
 
   /// Menu yang dibatasi peran saat akun pegawai masuk ke server (server juga menolak tindakannya).
   /// Mengembalikan pesan penolakan, atau null bila boleh dibuka.
   String? _srvDenied(String pageId) {
     if (!_srv.loggedIn || _srv.role == 'owner') return null;
+    if (_srv.role == 'kurir' &&
+        !const {'kurirhome', 'addorder', 'settings', 'jemput202', 'customeradd', 'ralat139', 'printer', 'printerconnect', 'printlabel', 'helpcenter'}.contains(pageId)) {
+      return 'Menu ini tidak tersedia untuk akun kurir';
+    }
     if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
       return 'Hanya pemilik yang bisa membuka menu ini';
     }
@@ -574,6 +580,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       _kasir = 'Kasir';
       _kasirSession = false;
     });
+    if (_page == 'kurirhome') nav('home');
     toast('Keluar dari akun server · data di HP ini tetap ada');
   }
 
@@ -986,6 +993,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   // ---------------- navigasi ----------------
   @override
   void nav(String pageId) {
+    // Akun kurir hanya punya Jemput, Antar, Setoran (plus Tambah Transaksi di lokasi dan Pengaturan untuk keluar akun).
+    if (_courierMode && const {'home', 'orders', 'customers', 'reports', 'rp'}.contains(pageId)) pageId = 'kurirhome';
     final gate = pageGates[pageId];
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
     final denied = _srvDenied(pageId);
@@ -1308,6 +1317,30 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (_srv.loggedIn) _stageCards(b, m);
     return m;
   }
+  /// Akun kurir di server: tampilannya hanya Jemput, Antar, Setoran.
+  bool get _courierMode => _srv.loggedIn && _srv.role == 'kurir';
+
+  /// Cucian yang ditimbang kurir di lokasi: kasir memastikan timbangannya di outlet sebelum memproses.
+  /// Mengembalikan true bila popup "Cek Timbangan" ditampilkan (tombol tahap menunggu jawabannya).
+  bool _weighCheck(Order o) {
+    if ('${o.dataset['timbang'] ?? ''}' != 'cek' || o.status == 'jemput' || _courierMode || _stageMode) return false;
+    final by = '${o.dataset['timbangBy'] ?? ''}';
+    final lines = [for (final it in o.items) '${it.name} ${qtyText(it.qty)} ${it.unit}'].join(', ');
+    openFormSheet(FormSheetDef(
+      'Cek Timbangan',
+      const [],
+      'Timbangan Sesuai',
+      (_) {
+        o.dataset['timbang'] = 'ok';
+        addAudit(this, '⚖', 'Timbangan dicek', '$_kasir · ${o.id} · kurir ${by.isEmpty ? '-' : by}');
+        _next(o);
+        return true;
+      },
+      sub: 'Ditimbang kurir${by.isEmpty ? '' : ' $by'} di lokasi: $lines. Timbang ulang di outlet. Bila berbeda, tutup popup ini lalu perbaiki lewat Edit di rincian pesanan.',
+    ));
+    return true;
+  }
+
   /// Akun pegawai (peran Pegawai di server): hanya memajukan tahap cucian, satu per satu, sampai Selesai Proses.
   bool get _stageMode => _srv.loggedIn && _srv.role == 'produksi';
 
@@ -1407,6 +1440,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final o = _b!.orderById(id);
     if (o == null) return;
     if (_stageNext(o)) return refresh();
+    if (_weighCheck(o)) return;
     if (_askHandoverPay(o, by ?? _kasir)) return;
     _b!.advance(o, now: now, by: by ?? _kasir);
     saveAll();
@@ -1415,6 +1449,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   void _next(Order o) {
     if (_stageNext(o)) return;
+    if (_weighCheck(o)) return;
     if (_askHandoverPay(o, _kasir)) return;
     final n = _b!.advance(o, now: now, by: _kasir);
     if (n == null) return;
@@ -3029,7 +3064,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final pointsBefore = _points(_aoCustomer);
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
-      discKey: _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),
+      discKey: _courierMode ? '0' : _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
       payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );
@@ -3161,7 +3196,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         if (_pageSheets.isNotEmpty) return closePageSheet(_pageSheets.last);
         if (_aoSheet != null) return aoSheetClose();
         if (_page == 'addorder' && _aoStage == 'services') return aoBack();
-        if (_page != 'home') return nav('home');
+        if (_page != 'home' && !(_courierMode && _page == 'kurirhome')) return nav('home');
         SystemNavigator.pop();
       },
       child: Stack(children: [

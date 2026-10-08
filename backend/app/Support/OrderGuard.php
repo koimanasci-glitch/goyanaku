@@ -110,7 +110,7 @@ final class OrderGuard {
     private function courier(User $user, ?array $old, array $new): array|string {
         $key = (string) $user->courier_key;
         if ($key === '') return 'Akun kurir belum terhubung ke data kurir. Hubungi owner.';
-        if (!$old) return $this->courierCreates($key, $new);
+        if (!$old) return $this->courierCreates($user, $key, $new);
         if (OrderData::courier($old) !== $key) return 'Tugas ini bukan milik Anda.';
 
         $from = OrderData::status($old); $to = OrderData::status($new);
@@ -132,6 +132,7 @@ final class OrderGuard {
             $merged['detail']['items'] = $items;
             $merged['card']['dataset']['items'] = json_encode($items, JSON_UNESCAPED_UNICODE);
             $merged['card']['total'] = OrderData::computedTotal($merged);
+            $merged = $this->markWeighed($merged, $user);
         }
 
         // Pembayaran di lokasi: hanya boleh bertambah, tidak melebihi total, riwayat lama tidak diubah.
@@ -149,7 +150,7 @@ final class OrderGuard {
     }
 
     /** Transaksi baru yang dibuat kurir saat menjemput. */
-    private function courierCreates(string $key, array $new): array|string {
+    private function courierCreates(User $user, string $key, array $new): array|string {
         if (!in_array(OrderData::status($new), ['jemput', 'antrian'], true)) return 'Transaksi kurir harus dimulai dari penjemputan.';
         if (OrderData::discKey($new) !== '0') return 'Kurir tidak bisa memberi diskon.';
         $items = OrderData::items($new);
@@ -160,7 +161,18 @@ final class OrderGuard {
         if (OrderData::paid($new) < 0 || OrderData::paid($new) > OrderData::computedTotal($new)) return 'Pembayaran tidak sesuai tagihan pesanan.';
         $data = $new;
         $data['card']['dataset']['courier181'] = $key; // transaksi jemput selalu tercatat atas nama kurir pembuatnya
+        // Ditimbang kurir di lokasi: kasir memastikan timbangannya di outlet (aplikasi menampilkan popup "Cek Timbangan").
+        $data = $this->markWeighed($data, $user);
         return $this->ok($data, $new);
+    }
+
+    /** Tanda "ditimbang kurir": siapa yang menimbang dan angka timbangannya, untuk dicek kasir di outlet. */
+    private function markWeighed(array $order, User $courier): array {
+        $order['card']['dataset']['timbang'] = 'cek';
+        $order['card']['dataset']['timbangBy'] = $courier->name;
+        $order['card']['dataset']['timbangAwal'] = json_encode(array_map(
+            fn ($i) => ['n' => (string) ($i['n'] ?? $i['name'] ?? ''), 'qty' => (float) ($i['qty'] ?? 0)], OrderData::items($order)), JSON_UNESCAPED_UNICODE);
+        return $order;
     }
 
     // ---------- pemeriksaan bersama ----------

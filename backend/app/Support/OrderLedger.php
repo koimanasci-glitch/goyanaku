@@ -58,9 +58,14 @@ final class OrderLedger {
         if ($oldOrder && $mode === 'courier' && $from === 'jemput' && $this->quantities($oldOrder) !== $this->quantities($new)) {
             $row['weigh_status'] = 'pending'; $row['weigh_by'] = $user->id;
         }
-        if ($index->weigh_status === 'pending' && $mode === 'full' && $status !== 'jemput') {
+        // Aplikasi baru menandai 'timbang' = 'cek' sampai kasir menekan "Timbangan Sesuai"; aplikasi lama tidak mengirim tanda itu.
+        if ($index->weigh_status === 'pending' && $mode === 'full' && $status !== 'jemput' && ($new['card']['dataset']['timbang'] ?? 'ok') !== 'cek') {
             $row['weigh_status'] = 'confirmed';
-            $before = $oldOrder ? $this->quantities($oldOrder) : []; $after = $this->quantities($new);
+            // Angka pembanding: timbangan kurir yang dicatat server; tanpa catatan itu (aplikasi lama) dipakai isi sebelum kiriman ini.
+            $noted = json_decode((string) ($new['card']['dataset']['timbangAwal'] ?? ''), true);
+            $before = is_array($noted) ? array_map(fn ($i) => ['n' => (string) ($i['n'] ?? ''), 'qty' => (float) ($i['qty'] ?? 0)], $noted)
+                : ($oldOrder ? $this->quantities($oldOrder) : []);
+            $after = $this->quantities($new);
             $event('timbang', ['details' => json_encode(['before' => $before, 'after' => $after, 'changed' => $before !== $after,
                 'courier_id' => $index->weigh_by ?? $index->created_by], JSON_UNESCAPED_UNICODE)]);
         }

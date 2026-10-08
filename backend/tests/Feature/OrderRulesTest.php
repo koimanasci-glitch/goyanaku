@@ -249,8 +249,13 @@ class OrderRulesTest extends TestCase {
 
         $kasir = $this->staff('kasir');
         $fixed = $this->stored('GY-G'); $fixed['detail']['items'][0]['qty'] = 2.5; $fixed['card']['total'] = 17500;
+        $this->assertSame(['cek', 'Kurir'], [$fixed['card']['dataset']['timbang'], $fixed['card']['dataset']['timbangBy']]);
         $fixed = $this->withStatus($fixed, 'antrian', 'Kasir');
         $rev = (int) DB::table('sync_records')->where('record_key', 'GY-G')->value('rev');
+        // Kasir mengoreksi berat tetapi belum menekan "Timbangan Sesuai": masih menunggu.
+        $rev = $this->push($this->token($kasir), [['collection' => 'orders', 'key' => 'GY-G', 'data' => $fixed, 'base_rev' => $rev]])->assertJsonPath('results.0.status', 'applied')->json('results.0.rev');
+        $this->assertSame('pending', DB::table('order_index')->where('record_key', 'GY-G')->value('weigh_status'));
+        $fixed['card']['dataset']['timbang'] = 'ok';
         $this->push($this->token($kasir), [['collection' => 'orders', 'key' => 'GY-G', 'data' => $fixed, 'base_rev' => $rev]])->assertJsonPath('results.0.status', 'applied');
         $this->assertSame('confirmed', DB::table('order_index')->where('record_key', 'GY-G')->value('weigh_status'));
         $weigh = json_decode(DB::table('order_events')->where('record_key', 'GY-G')->where('kind', 'timbang')->value('details'), true);

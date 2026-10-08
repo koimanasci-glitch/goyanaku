@@ -978,12 +978,75 @@ class CourierPage extends PurePage {
   String? _editId;
   String _name = '', _phone = '', _email = '';
   final Set<String> _outs = {};
+  // Setoran tunai kurir (akun kasir, admin outlet, atau owner yang masuk ke server).
+  bool deposit = false;
+  List<Map<String, dynamic>> held = [];
+  String _heldNote = '';
   @override
   String get title => 'KURIR';
+
+  bool get _canDeposit => host.server.loggedIn && host.server.can('cash.manage');
+
+  Future<void> _loadHeld() async {
+    _heldNote = held.isEmpty ? 'Memuat catatan tunai kurir…' : '';
+    host.refresh();
+    try {
+      final j = await host.server.api('GET', '/courier-cash');
+      held = [for (final m in (j['couriers'] as List? ?? const []).whereType<Map>()) Map<String, dynamic>.from(m)];
+      _heldNote = held.isEmpty ? 'Tidak ada kurir yang sedang memegang tunai.' : '';
+    } on ServerFailure catch (e) {
+      _heldNote = e.offline ? 'Butuh internet untuk melihat tunai yang dipegang kurir.' : e.message;
+    }
+    host.refresh();
+  }
+
+  void _receive(Map<String, dynamic> c) {
+    final amount = _num(c['held']);
+    host.openFormSheet(FormSheetDef(
+      'Terima Setoran ${c['courier'] ?? ''}',
+      [
+        FormSheetField('Jumlah diterima', value: '$amount', numeric: true, required: true),
+        const FormSheetField('Keterangan selisih', placeholder: 'Wajib diisi bila jumlahnya berbeda'),
+      ],
+      'Terima Setoran',
+      (vals) {
+        final got = int.tryParse(vals[0].replaceAll(RegExp(r'[^0-9]'), '')) ?? -1;
+        final note = vals.length > 1 ? vals[1].trim() : '';
+        if (got < 0) {
+          host.toast('Isi jumlah yang diterima');
+          return false;
+        }
+        if (got != amount && note.isEmpty) {
+          host.toast('Jumlah berbeda dari catatan ${rp(amount)}. Isi keterangan selisihnya.');
+          return false;
+        }
+        _sendDeposit(c, got, note);
+        return true;
+      },
+      sub: 'Catatan server: ${rp(amount)} dari ${_num(c['notes'])} nota. Hitung uangnya, lalu terima.',
+    ));
+  }
+
+  Future<void> _sendDeposit(Map<String, dynamic> c, int got, String note) async {
+    try {
+      await host.server.api('POST', '/courier-cash/${c['courier_id']}/deposit', {'amount': got, if (note.isNotEmpty) 'note': note});
+      // Uangnya masuk laci kasir ini.
+      if (got > 0) {
+        host.business.kasEntry(income: true, type: 'Setoran kurir', amount: got, note: '${c['courier'] ?? ''}${note.isEmpty ? '' : ' · $note'}', now: host.now);
+      }
+      addAudit(host, '💵', 'Setoran kurir diterima', '${c['courier'] ?? ''} · ${rp(got)}');
+      await host.saveAll();
+      host.toast('Setoran ${rp(got)} diterima · masuk kas');
+      await _loadHeld();
+    } on ServerFailure catch (e) {
+      host.toast(e.offline ? 'Butuh internet untuk menerima setoran' : e.message);
+    }
+  }
 
   @override
   void opened() {
     manage = false;
+    deposit = false;
     Couriers.load(host.kv).then((v) {
       c = v;
       host.refresh();
@@ -1000,10 +1063,24 @@ class CourierPage extends PurePage {
     final tabs = {
       'type': 'buttons',
       'options': [
-        {'t': 'Tugas', 'svg': '', 'file': '', 'after': false, 'on': !manage, 'i': 0},
-        {'t': 'Management Kurir', 'svg': '', 'file': '', 'after': false, 'on': manage, 'i': 1},
+        {'t': 'Tugas', 'svg': '', 'file': '', 'after': false, 'on': !manage && !deposit, 'i': 0},
+        {'t': 'Management Kurir', 'svg': '', 'file': '', 'after': false, 'on': manage && !deposit, 'i': 1},
+        if (_canDeposit) {'t': 'Setoran', 'svg': '', 'file': '', 'after': false, 'on': deposit, 'i': 9000},
       ],
     };
+    if (deposit) {
+      return [
+        tabs,
+        {'type': 'hint', 't': 'Tunai yang diterima kurir dari pelanggan tercatat atas nama kurir sampai disetor ke kasir outletnya.'},
+        if (_heldNote.isNotEmpty) {'type': 'hint', 't': _heldNote},
+        for (var k = 0; k < held.length; k++)
+          {
+            'type': 'entry', 't': '${held[k]['courier'] ?? 'Kurir'}', 'lines': ['${_num(held[k]['notes'])} nota · belum disetor'],
+            'badge': '', 'avatar': '💵', 'svg': '', 'color': '', 'amount': rp(_num(held[k]['held'])),
+            'btns': [{'t': 'Terima Setoran', 'on': true, 'i': 9100 + k}],
+          },
+      ];
+    }
     if (!manage) {
       final tasks = _tasks;
       return [
@@ -1164,8 +1241,18 @@ class CourierPage extends PurePage {
   @override
   void button(int i) async {
     final v = c;
+    if (i == 9000) {
+      deposit = true;
+      await _loadHeld();
+      return;
+    }
+    if (i >= 9100) {
+      if (deposit && i - 9100 < held.length) _receive(held[i - 9100]);
+      return;
+    }
     if (i == 0 || i == 1) {
       manage = i == 1;
+      deposit = false;
       return host.refresh();
     }
     if (v == null) return;
