@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/hpp.dart';
+import 'package:goyana_flutter/core/money.dart';
 import 'package:goyana_flutter/core/settings.dart';
 import 'package:goyana_flutter/core/stock.dart';
 import 'package:goyana_flutter/core/store.dart';
