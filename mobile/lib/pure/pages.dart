@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/business.dart';
-import '../core/models.dart' show Order, durationOverrides;
+import '../core/models.dart' show Order, Outlet, durationOverrides;
 import '../core/money.dart';
 import '../core/qris.dart';
 import '../core/receipt.dart';
@@ -31,6 +31,7 @@ import 'page_templates.dart';
 import 'plan_page.dart';
 import 'qr_decode.dart';
 import 'reminders.dart';
+import 'server_sync.dart' show ServerFailure, ServerSync;
 import 'views.dart' show mapsLink;
 
 /// Yang dibutuhkan halaman dari shell.
@@ -72,6 +73,8 @@ abstract class PureHost {
   bool kasirCan(int k);
   /// Jadwalkan ulang notifikasi Reminder Pekerjaan dari data sekarang.
   void syncReminders();
+  /// Mesin sinkronisasi server: kelola pegawai, monitoring, dan setoran kurir memakai aturan server.
+  ServerSync get server;
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
@@ -1700,6 +1703,8 @@ class OutletEditPage extends PurePage {
     editId = id;
     host.toast('Outlet tersimpan');
     host.go('outlets');
+    // Akun owner yang sudah masuk ke server: cabang baru didaftarkan ke server pada sinkronisasi berikutnya.
+    if (host.server.isOwner) await host.saveAll();
   }
 }
 
@@ -2765,22 +2770,146 @@ class EmployeesPage extends PurePage {
     ['revenue', 'Menampilkan Nilai Omset'], ['transactions_report', 'Akses Laporan Transaksi'], ['finance_report', 'Akses Laporan Keuangan'],
     ['performance_report', 'Akses Laporan Kinerja'], ['customers_report', 'Akses Laporan Pelanggan'],
   ];
+  /// Tugas pegawai di server (kunci peran, nama yang tampil).
+  static const roles = [['kasir', 'Kasir'], ['produksi', 'Pegawai'], ['kurir', 'Kurir'], ['manager', 'Admin Outlet']];
   List<Map<String, dynamic>> list = [];
   int _editing = -1;
   String _name = '', _phone = '', _email = '', _pass = '';
   final Set<String> _on = {};
+  // Akun owner yang masuk ke server: pegawai dikelola di server (nomor HP + PIN, tugas, outlet).
+  List<Map<String, dynamic>> team = [];
+  int? _memberId;
+  int _role = 0, _outlet = 0;
+  String _pin = '', _teamNote = '';
+  bool _memberActive = true, _sending = false;
   @override
   String get title => 'PENGATURAN PEGAWAI';
+
+  bool get _online => host.server.isOwner;
+  List<Outlet> get _serverOutlets => [for (final o in host.business.outlets) if (ServerSync.outletNumber(o.id) != null) o];
 
   void _reset() {
     _editing = -1;
     _name = _phone = _email = _pass = '';
     _on.clear();
+    _memberId = null;
+    _role = _outlet = 0;
+    _pin = '';
+    _memberActive = true;
+  }
+
+  Future<void> _loadTeam() async {
+    _teamNote = team.isEmpty ? 'Memuat daftar pegawai…' : '';
+    host.refresh();
+    try {
+      final j = await host.server.api('GET', '/team');
+      team = [for (final m in (j['team'] as List? ?? const []).whereType<Map>()) Map<String, dynamic>.from(m)];
+      _teamNote = team.isEmpty ? 'Belum ada pegawai. Isi formulir di atas untuk menambah.' : '';
+    } on ServerFailure catch (e) {
+      _teamNote = e.offline ? 'Butuh internet untuk memuat daftar pegawai.' : e.message;
+    }
+    host.refresh();
+  }
+
+  String _roleName(Object? key) => roles.where((r) => r[0] == '$key').firstOrNull?[1] ?? '$key';
+  String _outletName(Object? id) => host.business.outlets.where((o) => o.id == 'srv-$id').firstOrNull?.name ?? 'Outlet belum dipilih';
+
+  List<Map<String, dynamic>> _teamItems() {
+    Map<String, dynamic> inp(String v, String ph, int i, {bool numeric = false, bool secret = false}) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': secret, 'email': false, 'i': i};
+    final outs = _serverOutlets;
+    return [
+      {'type': 'label', 't': 'Nama Pegawai'},
+      inp(_name, 'Masukkan Nama Pegawai', 0),
+      {'type': 'label', 't': 'No Handphone'},
+      inp(_phone, 'Masukkan No Handphone', 1, numeric: true),
+      {'type': 'label', 't': 'Tugas'},
+      {'type': 'select', 'options': [for (final r in roles) r[1]], 'index': _role, 'i': 4},
+      {'type': 'label', 't': 'Outlet'},
+      if (outs.isEmpty) {'type': 'hint', 't': 'Belum ada outlet di server. Sinkronkan dulu di Pengaturan.'},
+      if (outs.isNotEmpty) {'type': 'select', 'options': [for (final o in outs) o.name], 'index': _within(_outlet, outs.length), 'i': 5},
+      {'type': 'label', 't': 'PIN 6 angka'},
+      inp(_pin, _memberId == null ? 'PIN untuk pegawai masuk' : 'Kosongkan jika tidak diganti', 6, numeric: true, secret: true),
+      {'type': 'hint', 't': 'Pegawai masuk di HP-nya dengan nomor HP dan PIN ini. Kasir membuat transaksi, Pegawai memajukan tahap cucian, Kurir hanya antar jemput, Admin Outlet melihat laporan outletnya.'},
+      {'type': 'button', 't': _memberId == null ? 'SIMPAN DATA PEGAWAI' : 'SIMPAN PERUBAHAN PEGAWAI', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      if (_memberId != null)
+        {
+          'type': 'buttons',
+          'options': [
+            {'t': _memberActive ? 'Nonaktifkan' : 'Aktifkan lagi', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 800},
+            {'t': 'Batal', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 801},
+          ],
+        },
+      {'type': 'title', 't': 'Pegawai terdaftar'},
+      if (_teamNote.isNotEmpty) {'type': 'hint', 't': _teamNote},
+      for (var k = 0; k < team.length && k < 700; k++)
+        {
+          'type': 'row',
+          't': '${team[k]['name']} · ${_roleName(team[k]['role'])} · ${_outletName(team[k]['outlet_id'])}'
+              '${team[k]['active'] == false ? ' · nonaktif' : ''}${team[k]['pin_locked'] == true ? ' · PIN terkunci' : ''}',
+          'btn': 'Edit', 'i': 1 + k,
+        },
+    ];
+  }
+
+  Future<void> _teamButton(int i) async {
+    if (_sending) return;
+    if (i == 801) {
+      _reset();
+      return host.refresh();
+    }
+    if (i >= 1 && i < 800) {
+      if (i - 1 >= team.length) return;
+      final m = team[i - 1];
+      final outs = _serverOutlets;
+      _reset();
+      _memberId = int.tryParse('${m['id']}');
+      _name = '${m['name'] ?? ''}';
+      _phone = '${m['phone'] ?? ''}';
+      _role = _within(roles.indexWhere((r) => r[0] == '${m['role']}'), roles.length);
+      _outlet = _within(outs.indexWhere((o) => o.id == 'srv-${m['outlet_id']}'), outs.length);
+      _memberActive = m['active'] != false;
+      return host.refresh();
+    }
+    final id = _memberId;
+    _sending = true;
+    try {
+      if (i == 800) {
+        if (id == null) return;
+        await host.server.api('POST', '/team/$id/${_memberActive ? 'deactivate' : 'activate'}');
+        host.toast(_memberActive ? 'Pegawai dinonaktifkan' : 'Pegawai aktif lagi');
+      } else {
+        final outs = _serverOutlets;
+        final name = _name.trim(), phone = _phone.replaceAll(RegExp(r'[^0-9+]'), '');
+        if (name.isEmpty) return host.toast('Isi nama pegawai');
+        if (!RegExp(r'^\+?\d{9,15}$').hasMatch(phone)) return host.toast('Periksa nomor handphone');
+        if (outs.isEmpty) return host.toast('Belum ada outlet di server. Sinkronkan dulu.');
+        if ((id == null || _pin.isNotEmpty) && !RegExp(r'^\d{6}$').hasMatch(_pin)) return host.toast('PIN harus 6 angka');
+        final body = <String, dynamic>{
+          'name': name, 'phone': phone, 'role': roles[_within(_role, roles.length)][0],
+          'outlet_id': ServerSync.outletNumber(outs[_within(_outlet, outs.length)].id),
+        };
+        if (id == null) {
+          await host.server.api('POST', '/team', {...body, 'pin': _pin});
+        } else {
+          await host.server.api('PATCH', '/team/$id', body);
+          if (_pin.isNotEmpty) await host.server.api('POST', '/team/$id/pin', {'pin': _pin});
+        }
+        host.toast('Data pegawai tersimpan');
+      }
+      _reset();
+      await _loadTeam();
+    } on ServerFailure catch (e) {
+      host.toast(e.offline ? 'Butuh internet untuk mengubah data pegawai' : e.message);
+    } finally {
+      _sending = false;
+    }
   }
 
   @override
   void opened() {
     _reset();
+    if (_online) _loadTeam();
     host.kv.get(key).then((raw) {
       try {
         final v = jsonDecode(raw ?? '[]');
@@ -2797,6 +2926,7 @@ class EmployeesPage extends PurePage {
     Map<String, dynamic> inp(String v, String ph, int i, {bool numeric = false, bool secret = false, bool email = false}) =>
         {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': secret, 'email': email, 'i': i};
     final legacyPin = host.settings.raw['pinLock'] == true || ((host.settings.raw['employees'] as List?)?.isNotEmpty ?? false);
+    if (_online) return _teamItems();
     return [
       {'type': 'label', 't': 'Nama Pegawai'},
       inp(_name, 'Masukkan Nama Pegawai', 0),
@@ -2822,11 +2952,14 @@ class EmployeesPage extends PurePage {
     if (i == 1) _phone = v;
     if (i == 2) _email = v;
     if (i == 3) _pass = v;
+    if (i == 4 && value is int) _role = value;
+    if (i == 5 && value is int) _outlet = value;
+    if (i == 6) _pin = v;
   }
 
   @override
   void toggle(int i) {
-    if (i < 0 || i >= perms.length) return;
+    if (_online || i < 0 || i >= perms.length) return;
     final p = perms[i][0];
     _on.contains(p) ? _on.remove(p) : _on.add(p);
     host.refresh();
@@ -2835,6 +2968,10 @@ class EmployeesPage extends PurePage {
   @override
   void button(int i) async {
     if (i == 900) return host.go('pinlock');
+    if (_online) {
+      await _teamButton(i);
+      return;
+    }
     if (i >= 1) {
       final k = i - 1;
       if (k >= list.length) return;
@@ -2982,17 +3119,141 @@ List<Order> _outletOrders(PureHost host, String outletId) {
   return host.business.orders.where((o) => !o.isCancelled && (o.outlet == outletId || (o.outlet.isEmpty && outletId == first))).toList();
 }
 
+/// Indeks [v] dijepit ke 0..[n]-1.
+int _within(int v, int n) => v < 0 || n <= 0 ? 0 : (v >= n ? n - 1 : v);
+int _num(Object? v) => v is num ? v.round() : int.tryParse('$v') ?? 0;
+
+/// Nama tahap di catatan server.
+const _stageNames = {
+  'jemput': 'Jemput', 'antrian': 'Antrian', 'proses': 'Proses', 'cuci': 'Cuci', 'kering': 'Kering', 'setrika': 'Setrika', 'packing': 'Packing',
+  'selesaiproses': 'Selesai Proses', 'siap': 'Siap Ambil', 'telat': 'Siap Ambil (lewat waktu)', 'diantar': 'Diantar',
+};
+
+String _stageLine(Object? stages) {
+  if (stages is! Map || stages.isEmpty) return '';
+  return [for (final e in _stageNames.entries) if (_num(stages[e.key]) > 0) '${e.value} ${_num(stages[e.key])}'].join(' · ');
+}
+
+/// Laporan monitoring dari server; null bila akun ini belum masuk ke server atau tidak berhak melihat laporan.
+Future<Map<String, dynamic>?> _fetchMonitoring(PureHost host, String? outletId) async {
+  final srv = host.server;
+  if (!srv.loggedIn || !srv.can('reports.view')) return null;
+  final n = outletId == null ? null : ServerSync.outletNumber(outletId);
+  if (outletId != null && n == null) return null;
+  try {
+    return await srv.api('GET', n == null ? '/monitoring' : '/monitoring?outlet_id=$n');
+  } on ServerFailure catch (_) {
+    return null;
+  }
+}
+
+/// Butir tambahan Monitoring dari server: peringatan, tahap cucian, kerja kasir/pegawai/kurir, tunai di kurir, HP kasir.
+List<Map<String, dynamic>> _monitoringExtras(Map<String, dynamic> r, {bool people = true}) {
+  Map<String, dynamic> entry(String t, List<String> lines, {String avatar = '', String amount = ''}) =>
+      {'type': 'entry', 't': t, 'lines': lines, 'badge': '', 'avatar': avatar, 'svg': '', 'color': '', 'amount': amount, 'btns': <dynamic>[]};
+  List<Map> rows(Object? v) => [...(v as List? ?? const []).whereType<Map>()];
+  final out = <Map<String, dynamic>>[];
+  final alerts = rows(r['alerts']);
+  if (alerts.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Peringatan', 's': ''});
+    for (final a in alerts) {
+      out.add(entry('${a['text'] ?? ''}', ['${a['outlet'] ?? 'Semua cabang'}'], avatar: '⚠'));
+    }
+  }
+  final outlets = rows(r['outlets']);
+  if (outlets.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Tahap Cucian', 's': ''});
+    for (final o in outlets) {
+      final line = _stageLine(o['stages']);
+      out.add(entry('${o['name'] ?? ''}', [
+        line.isEmpty ? 'Tidak ada cucian yang sedang dikerjakan' : line,
+        'Belum lunas ${_num(o['unpaid'])} nota · ${rp(_num(o['debt']))}${_num(o['pending_weigh']) > 0 ? ' · ${_num(o['pending_weigh'])} menunggu cek timbangan' : ''}',
+      ], amount: rp(_num(o['revenue']))));
+    }
+  }
+  if (!people) return out;
+  final cashiers = rows(r['cashiers']);
+  if (cashiers.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Kasir Hari Ini', 's': ''});
+    for (final c in cashiers) {
+      out.add(entry('${c['name'] ?? ''}', [
+        'Nota dibuat ${_num(c['created'])} · Siap ambil ${_num(c['marked_ready'])}',
+        'Batal ${_num(c['cancelled'])} · Lompat tahap ${_num(c['skipped'])} · Mundur ${_num(c['moved_back'])}',
+      ], amount: rp(_num(c['received']))));
+    }
+  }
+  final production = rows(r['production']);
+  if (production.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Pegawai Hari Ini', 's': ''});
+    for (final p in production) {
+      final line = _stageLine(p['stages']);
+      out.add(entry('${p['name'] ?? ''}', [line.isEmpty ? 'Belum ada tahap yang dikerjakan' : line], amount: '${_num(p['total'])} tahap'));
+    }
+  }
+  final couriers = rows(r['couriers']);
+  if (couriers.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Kurir Hari Ini', 's': ''});
+    for (final c in couriers) {
+      out.add(entry('${c['name'] ?? ''}', [
+        'Jemput ${_num(c['pickups'])} · Antar ${_num(c['deliveries'])} · Nota dibuat ${_num(c['created'])}',
+        if (_num(c['weigh_corrected']) > 0) 'Timbangan dikoreksi kasir ${_num(c['weigh_corrected'])} kali',
+      ], amount: rp(_num(c['cash_collected']))));
+    }
+  }
+  final money = r['money'] is Map ? r['money'] as Map : const {};
+  final held = rows(money['courier_cash']);
+  if (held.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Tunai Dipegang Kurir', 's': ''});
+    for (final c in held) {
+      out.add(entry('${c['courier'] ?? ''}', ['${_num(c['notes'])} nota · belum disetor ke kasir'], amount: rp(_num(c['held']))));
+    }
+  }
+  final deposits = rows(money['deposits']);
+  if (deposits.isNotEmpty) {
+    out.add({'type': 'title', 't': 'Setoran Kurir Hari Ini', 's': ''});
+    for (final d in deposits) {
+      final diff = _num(d['difference']);
+      out.add(entry('${d['courier'] ?? ''}', [
+        'Diterima ${d['confirmed_by'] ?? ''}${diff == 0 ? '' : ' · selisih ${diff < 0 ? '-' : '+'}${rp(diff.abs())}'}',
+        if ('${d['note'] ?? ''}'.isNotEmpty) '${d['note']}',
+      ], amount: rp(_num(d['received']))));
+    }
+  }
+  final devices = rows(r['devices']);
+  if (devices.isNotEmpty) {
+    out.add({'type': 'title', 't': 'HP Kasir', 's': ''});
+    for (final d in devices) {
+      final at = DateTime.tryParse('${d['last_sync_at'] ?? ''}')?.toLocal();
+      String two(int v) => v.toString().padLeft(2, '0');
+      out.add(entry('${d['label'] ?? 'HP'} · HP ${d['slot'] ?? '-'}', [at == null ? 'Belum pernah sinkron' : 'Terakhir sinkron ${two(at.day)}/${two(at.month)} ${two(at.hour)}.${two(at.minute)}']));
+    }
+  }
+  return out;
+}
+
 String _monSt(Order o, DateTime now) => o.isLate(now) ? 'telat' : o.status;
 bool _sameDay(DateTime? a, DateTime b) => a != null && a.year == b.year && a.month == b.month && a.day == b.day;
 
 /// Manajemen Cabang (superbilling/v180): ringkasan semua outlet + tombol Monitor per cabang.
 class ManageBranchesPage extends PurePage {
   ManageBranchesPage(super.host);
+  Map<String, dynamic>? _report;
   @override
   String get title => 'MANAJEMEN CABANG';
   @override
+  void opened() {
+    _report = null;
+    _fetchMonitoring(host, null).then((r) {
+      if (r == null) return;
+      _report = r;
+      host.refresh();
+    });
+  }
+
+  @override
   List<Map<String, dynamic>> items() {
     final b = host.business, n = host.now, outs = b.outlets;
+    final totals = _report?['totals'] is Map ? _report!['totals'] as Map : null;
     final cur = outs.where((o) => o.id == b.activeOutlet).firstOrNull ?? outs.firstOrNull;
     final all = [for (final o in outs) ..._outletOrders(host, o.id)];
     final omzet = all.where((o) => _sameDay(o.created, n)).fold<int>(0, (a, o) => a + o.total);
@@ -3002,15 +3263,17 @@ class ManageBranchesPage extends PurePage {
       {'type': 'hero', 't': 'Outlet tersimpan', 'v': '${outs.length}', 's': 'Tambahkan dan kelola outlet usaha'},
       {'type': 'button', 't': '＋ Tambah Cabang', 'primary': false, 'file': '', 'after': false, 'i': 0},
       {'type': 'stats', 'cells': [
-        {'v': rp(omzet), 't': 'Total Omzet Hari Ini', 'n': '', 'tone': ''},
-        {'v': '${all.where((o) => !const ['selesai', 'diambil'].contains(_monSt(o, n))).length}', 't': 'Order Aktif', 'n': '', 'tone': ''},
-        {'v': '${all.where((o) => o.isLate(n)).length}', 't': 'Terlambat', 'n': '', 'tone': ''},
+        {'v': rp(totals == null ? omzet : _num(totals['revenue'])), 't': 'Total Omzet Hari Ini', 'n': '', 'tone': ''},
+        {'v': '${totals == null ? all.where((o) => !const ['selesai', 'diambil'].contains(_monSt(o, n))).length : _num(totals['in_process']) + _num(totals['ready_uncollected'])}', 't': 'Order Aktif', 'n': '', 'tone': ''},
+        {'v': '${totals == null ? all.where((o) => o.isLate(n)).length : _num(totals['late'])}', 't': 'Terlambat', 'n': '', 'tone': ''},
       ]},
       {'type': 'title', 't': 'Monitoring Cabang'},
       {'type': 'hint', 't': 'Pilih cabang untuk melihat kondisi operasionalnya'},
       if (outs.isEmpty) {'type': 'hint', 't': 'Tambahkan outlet untuk mulai monitoring.'},
       if (outs.length == 1) {'type': 'button', 't': 'Monitor ${outs[0].name}', 'primary': true, 'file': '', 'after': false, 'i': 1},
       if (outs.length > 1) {'type': 'buttons', 'options': [for (var k = 0; k < outs.length; k++) mon(k)]},
+      if (_report != null) ..._monitoringExtras(_report!, people: false),
+      if (_report != null) {'type': 'hint', 't': 'Angka dari server GOYANA: gabungan semua HP di semua cabang.'},
     ];
   }
 
@@ -3031,15 +3294,53 @@ class ManageBranchesPage extends PurePage {
 class BranchMonitorPage extends PurePage {
   BranchMonitorPage(super.host);
   static String outletId = '';
+  Map<String, dynamic>? _report;
   @override
   String get title => 'MONITOR CABANG';
   @override
   String get back => 'superbilling';
   @override
+  void opened() {
+    _report = null;
+    final o = host.business.outlets.where((x) => x.id == outletId).firstOrNull ?? host.business.outlets.firstOrNull;
+    if (o == null) return;
+    _fetchMonitoring(host, o.id).then((r) {
+      if (r == null) return;
+      _report = r;
+      host.refresh();
+    });
+  }
+
+  List<Map<String, dynamic>> _serverItems(Map<String, dynamic> r, Outlet? o, List<Order> list, DateTime n) {
+    final rows = [...(r['outlets'] as List? ?? const []).whereType<Map>()];
+    final s = rows.isEmpty ? const {} : rows.first;
+    Map<String, dynamic> cell(String v, String t) => {'v': v, 't': t, 'n': '', 'tone': ''};
+    return [
+      {'type': 'entry', 't': 'Mode Monitoring', 'lines': ['Anda sedang melihat data cabang. Transaksi outlet aktif tidak berpindah.'], 'badge': '', 'avatar': '👁', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'hero', 't': 'Omzet Hari Ini', 'v': rp(_num(s['revenue'])), 's': o?.name ?? ''},
+      {'type': 'stats', 'cells': [
+        cell('${_num(s['in_process'])}', 'Diproses'),
+        cell('${_num(s['ready_uncollected'])}', 'Siap Diambil'),
+        cell('${_num(s['late'])}', 'Terlambat'),
+        cell(rp(_num(s['cash_in'])), 'Pembayaran diterima'),
+        cell('${_num(s['unpaid'])}', 'Belum Lunas'),
+      ]},
+      ..._monitoringExtras(r),
+      {'type': 'title', 't': 'Pesanan Cabang', 's': ''},
+      if (list.isEmpty) {'type': 'hint', 't': 'Belum ada pesanan cabang ini yang tersimpan di HP ini.'},
+      for (var k = 0; k < list.length; k++)
+        {'type': 'entry', 't': list[k].name, 'lines': ['${list[k].id} · ${_monSt(list[k], n)}'], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      {'type': 'hint', 't': 'Angka dari server GOYANA: gabungan semua HP di cabang ini.'},
+    ];
+  }
+
+  @override
   List<Map<String, dynamic>> items() {
     final n = host.now;
     final o = host.business.outlets.where((x) => x.id == outletId).firstOrNull ?? host.business.outlets.firstOrNull;
     final list = o == null ? <Order>[] : _outletOrders(host, o.id);
+    final report = _report;
+    if (report != null) return _serverItems(report, o, list, n);
     final omzet = list.where((x) => _sameDay(x.created, n)).fold<int>(0, (a, x) => a + x.total);
     final paid = list.fold<int>(0, (a, x) => a + x.paid);
     Map<String, dynamic> cell(String v, String t) => {'v': v, 't': t, 'n': '', 'tone': ''};

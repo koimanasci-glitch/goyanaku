@@ -7,7 +7,7 @@ import '../core/money.dart';
 
 Map<String, String> _c(String t, String bg, String c) => {'t': t, 'bg': bg, 'c': c};
 
-const _proc = ['cuci', 'kering', 'setrika', 'packing'];
+const _proc = ['cuci', 'kering', 'setrika', 'packing', doneStage];
 
 /// Tab Pesanan (urutan & kunci sama dengan HTML tabs108).
 const orderTabs = [

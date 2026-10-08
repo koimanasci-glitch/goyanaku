@@ -384,6 +384,19 @@ Object? _replaceDeep(Object? v, String from, String to) {
   return v;
 }
 
+/// Mengganti id outlet [old] menjadi [id] di semua data tersimpan (pesanan, kas, stok, kurir, penjemputan, outlet aktif).
+Future<void> _renameOutlet(KvStore kv, String old, String id) async {
+  for (final k in [...serverWatchedKeys, Keys.activeOutlet]) {
+    // Teks QRIS disimpan apa adanya (bukan JSON) dan tidak memuat id outlet; setelan Mode Murni juga tidak.
+    if (k == Keys.qrisText || k == Keys.qrisImage || k == pureSettingsKey) continue;
+    final raw = await kv.get(k);
+    final v = _decode(raw);
+    if (v == null) continue;
+    final next = jsonEncode(_replaceDeep(v, old, id));
+    if (next != raw) await kv.set(k, next);
+  }
+}
+
 /// Outlet lokal memakai id server ("srv-" + nomor). Outlet lama di HP ini dipetakan ke outlet server pertama yang belum ada.
 /// Mengembalikan true bila penyimpanan berubah.
 Future<bool> mapServerOutlets(KvStore kv, List<dynamic> serverOutlets, String role) async {
@@ -397,16 +410,7 @@ Future<bool> mapServerOutlets(KvStore kv, List<dynamic> serverOutlets, String ro
     if (local.any((o) => o is Map && _text(o['id']) == id)) continue;
     final legacy = local.where((o) => o is Map && !RegExp(r'^srv-\d+$').hasMatch(_text(o['id']))).firstOrNull;
     if (legacy is Map) {
-      final old = _text(legacy['id']);
-      for (final k in [...serverWatchedKeys, Keys.activeOutlet]) {
-        // Teks QRIS disimpan apa adanya (bukan JSON) dan tidak memuat id outlet; setelan Mode Murni juga tidak.
-        if (k == Keys.qrisText || k == Keys.qrisImage || k == pureSettingsKey) continue;
-        final raw = await kv.get(k);
-        final v = _decode(raw);
-        if (v == null) continue;
-        final next = jsonEncode(_replaceDeep(v, old, id));
-        if (next != raw) await kv.set(k, next);
-      }
+      await _renameOutlet(kv, _text(legacy['id']), id);
       local = _asList(_decode(await kv.get(Keys.outlets)));
       for (final o in local) {
         if (o is Map && _text(o['id']) == id && _text(o['name']).isEmpty) o['name'] = _text(s['name']);
@@ -440,6 +444,9 @@ class ServerStatus {
   DateTime? last;
   String error = '';
   String rejected = '';
+
+  /// Cabang di HP owner yang belum bisa didaftarkan ke server (mis. batas cabang paket), beserta alasannya.
+  String outletNote = '';
   bool readOnly = false;
 }
 
@@ -481,6 +488,56 @@ class ServerSync {
     if (role == 'owner') return true;
     final rule = _writeRules[collection];
     return rule != null && rule.any(can);
+  }
+
+  bool get isOwner => loggedIn && role == 'owner';
+
+  /// Nomor outlet di server untuk id outlet lokal ("srv-7" → 7); null bila outlet belum ada di server.
+  static int? outletNumber(String outletKey) {
+    final m = RegExp(r'^srv-(\d+)$').firstMatch(outletKey);
+    return m == null ? null : int.parse(m.group(1)!);
+  }
+
+  /// Panggilan API di luar sinkronisasi data: kelola pegawai, monitoring, setoran kurir. Melempar [ServerFailure].
+  Future<Map<String, dynamic>> api(String method, String path, [Map<String, dynamic>? body]) => _request(method, path, body);
+
+  /// Cabang yang dibuat di HP owner didaftarkan ke server, lalu id-nya diganti id server supaya pesanannya masuk cabang yang benar.
+  /// Mengembalikan true bila penyimpanan berubah (data perlu dimuat ulang). Batas cabang paket ditegakkan server.
+  Future<bool> uploadLocalOutlets() async {
+    if (!isOwner || _url.isEmpty) return false;
+    var changed = false;
+    var note = '';
+    for (final o in _asList(_decode(await kv.get(Keys.outlets)))) {
+      if (o is! Map) continue;
+      final old = _text(o['id']);
+      if (old.isEmpty || outletNumber(old) != null) continue;
+      final name = _text(o['name']).trim(), address = _text(o['address']).trim(), phone = _text(o['phone']).trim();
+      try {
+        final made = _asMap((await _request('POST', '/outlets', {
+          'name': name.isEmpty ? 'Outlet' : (name.length > 120 ? name.substring(0, 120) : name),
+          if (address.isNotEmpty) 'address': address.length > 300 ? address.substring(0, 300) : address,
+          if (phone.isNotEmpty && phone.length <= 20) 'phone': phone,
+        }))['outlet']);
+        final number = _text(made['id']);
+        if (number.isEmpty) break;
+        await _renameOutlet(kv, old, 'srv-$number');
+        changed = true;
+      } on ServerFailure catch (e) {
+        // Tanpa internet: dicoba lagi pada putaran berikutnya, catatan lama dibiarkan.
+        note = e.offline ? status.outletNote : '${name.isEmpty ? 'Cabang baru' : name} belum terdaftar di server: ${e.message}';
+        break;
+      }
+    }
+    if (changed) {
+      try {
+        await refreshProfile();
+      } on ServerFailure catch (_) {}
+    }
+    if (note != status.outletNote || changed) {
+      status.outletNote = note;
+      onChanged?.call();
+    }
+    return changed;
   }
 
   /// [kode cabang, kode HP] untuk nomor nota di outlet lokal ini, atau null bila belum masuk / outlet tidak dikenal server.
@@ -640,7 +697,8 @@ class ServerSync {
       ..phase = 'idle'
       ..pending = 0
       ..error = ''
-      ..rejected = '';
+      ..rejected = ''
+      ..outletNote = '';
     onChanged?.call();
   }
 
@@ -849,6 +907,9 @@ class ServerSync {
       dot = 'rgb(30, 123, 224)';
     } else if (status.pending > 0) {
       line = '${status.pending} data menunggu sinkronisasi${status.rejected.isEmpty ? '' : ' · ${status.rejected}'}';
+      dot = 'rgb(232, 162, 58)';
+    } else if (status.outletNote.isNotEmpty) {
+      line = status.outletNote;
       dot = 'rgb(232, 162, 58)';
     } else {
       final t = status.last;

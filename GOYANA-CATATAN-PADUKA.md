@@ -102,3 +102,7 @@ Diskusi panjang lalu "Gas semuanya". Tiga belas keputusan tercatat lengkap di `G
 ## 8 Oktober 2026, 15:06 WIB — arah akhir HP dan web
 
 "Ok setuju deh": HP memakai Mode Murni saja; web owner dan administrator memakai Laravel (memantau dan mengatur, bukan transaksi); HTML dan APK Hibrida tidak dikembangkan lagi dan dipensiunkan setelah Mode Murni teruji di HP. Rincian: `GOYANA-SISTEM-PUSAT.md` §50.
+
+## 8 Oktober 2026, 17.06 WIB — jatah CI dibebaskan
+
+Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian dan penghitung jatah tidak berlaku lagi. Hasil setiap run tetap dicatat di GOYANA-PROGRESS.md.

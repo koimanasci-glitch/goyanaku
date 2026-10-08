@@ -11,7 +11,7 @@ import 'page_templates.dart';
 import 'service_icons.dart';
 import 'views.dart';
 
-const _proc = ['cuci', 'kering', 'setrika', 'packing'];
+const _proc = ['cuci', 'kering', 'setrika', 'packing', doneStage];
 
 String _two(int n) => n.toString().padLeft(2, '0');
 String fmtDateTime(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year} · ${_two(d.hour)}:${_two(d.minute)}';
@@ -65,9 +65,24 @@ String handoverText(Order o) {
 
 /// Model `od` untuk NativeOrderDetail. [banner] = baru saja disimpan (kotak "Pesanan tersimpan").
 /// Indeks tombol (`b`) sama dengan HTML: tanpa banner semua indeks ≥ 3 turun satu.
-Map<String, dynamic> orderDetailOd(Business b, Order o, {bool banner = false}) {
+/// [detailed] = akun masuk ke server: pil status menyebut tahapnya (Cuci, Kering, …, Selesai Proses).
+/// [staff] = akun pegawai: tombol utama memajukan satu tahap menurut alur layanan, sampai Selesai Proses.
+Map<String, dynamic> orderDetailOd(Business b, Order o, {bool banner = false, bool detailed = false, bool staff = false}) {
   final st = o.status, antar = o.antar;
-  final view = orderStatusView(st, antar);
+  final base = orderStatusView(st, antar);
+  final stage = detailed ? stageName[st] : null;
+  final next = staff ? b.nextStage(o) : null;
+  final view = [
+    stage == null ? base[0] : (st == doneStage ? stage : 'Proses · $stage'),
+    base[1],
+    !staff
+        ? base[2]
+        : next == null
+            ? (st == doneStage ? 'MENUNGGU KASIR' : base[2])
+            : next == doneStage
+                ? 'SELESAI PROSES'
+                : '${st == 'antrian' ? 'MULAI' : 'LANJUT'} ${stageName[next]!.toUpperCase()}',
+  ];
   final shift = banner ? 0 : -1;
   final cust = b.customerByName(o.name);
   final phone = o.phone.isNotEmpty ? o.phone : (cust?.phone ?? '');
@@ -156,7 +171,9 @@ void _text(Object? node, String t) {
   n.remove('h');
 }
 
-String historyLabel(String st) => _proc.contains(st)
+String historyLabel(String st) => st == doneStage
+    ? 'Selesai Proses'
+    : _proc.contains(st)
     ? 'Proses'
     : const {'jemput': 'Penjemputan', 'antrian': 'Antrian', 'siap': 'Siap Ambil', 'telat': 'Telat Ambil', 'diantar': 'Diantar', 'diambil': 'Diambil', 'batal': 'Batal'}[st] ?? st;
 

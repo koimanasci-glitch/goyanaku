@@ -133,6 +133,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   // PureHost
   @override
+  ServerSync get server => _srv;
+  @override
   Business get business => _b!;
   @override
   AppSettings get settings => _settings!;
@@ -469,6 +471,16 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   Future<void> _srvCycle() async {
     if (!mounted || !_srv.loggedIn) return;
+    // Cabang yang ditambah owner di HP ini didaftarkan ke server lebih dulu, supaya pesanannya masuk cabang yang benar.
+    if (_srv.isOwner && !_srvBusy && (_srvIdle || (_sheets.isEmpty && _pageSheets.isEmpty && const {'outlets', 'superbilling'}.contains(_page)))) {
+      _srvBusy = true;
+      try {
+        if (await _srv.uploadLocalOutlets() && mounted) await reloadAll();
+      } finally {
+        _srvBusy = false;
+      }
+    }
+    if (!mounted) return;
     await _srv.claimSlot(_b?.activeOutlet ?? '');
     await _srv.cycle();
     await _srvApply();
@@ -1293,8 +1305,52 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final m = ordersJson(b, tab: _tab, search: _search, now: n, auto: _auto);
     final tabs = m['tabs'] as List;
     m['tabs'] = [for (final k in shown) tabs[k]];
+    if (_srv.loggedIn) _stageCards(b, m);
     return m;
   }
+  /// Akun pegawai (peran Pegawai di server): hanya memajukan tahap cucian, satu per satu, sampai Selesai Proses.
+  bool get _stageMode => _srv.loggedIn && _srv.role == 'produksi';
+
+  /// Akun yang masuk ke server: kartu Pesanan menyebut tahapnya; untuk pegawai tombolnya memajukan satu tahap.
+  void _stageCards(Business b, Map<String, dynamic> m) {
+    final staff = _stageMode;
+    for (final c in (m['cards'] as List? ?? const []).whereType<Map>()) {
+      final st = '${c['st']}';
+      final name = stageName[st];
+      if (name != null && c['status'] is Map) c['status'] = Map<String, String>.from(c['status'] as Map)..['t'] = name;
+      if (!staff || c['action'] is! Map) continue;
+      final o = b.orderById('${c['id']}');
+      final next = o == null ? null : b.nextStage(o);
+      final String text;
+      if (next != null) {
+        text = next == doneStage ? 'Selesai Proses ›' : '${stageName[next]} ›';
+      } else {
+        text = st == doneStage ? 'Menunggu kasir' : const {'jemput': 'Dijemput kurir', 'diambil': 'Selesai ✓', 'batal': 'Dibatalkan'}[st] ?? 'Tugas kasir';
+      }
+      final action = Map<String, String>.from(c['action'] as Map)..['t'] = text;
+      if (next == null) {
+        action['bg'] = 'rgb(241, 242, 245)';
+        action['c'] = 'rgb(154, 160, 172)';
+      }
+      c['action'] = action;
+    }
+  }
+
+  /// Pegawai memajukan satu tahap. Mengembalikan true bila tombol sudah ditangani di sini.
+  bool _stageNext(Order o) {
+    if (!_stageMode) return false;
+    final before = o.status;
+    final n = _b!.advanceStage(o, now: now, by: _kasir);
+    if (n == null) {
+      toast(before == doneStage ? 'Sudah Selesai Proses · menunggu kasir menandai Siap Ambil' : 'Tahap ini dikerjakan kasir');
+      return true;
+    }
+    _save();
+    toast(n == doneStage ? 'Selesai Proses ✓ · kasir akan menandai Siap Ambil' : 'Masuk tahap ${stageName[n]}');
+    _refreshDetail();
+    return true;
+  }
+
   @override
   void openCard(int index) {
     final list = _b!.orders;
@@ -1350,6 +1406,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void advanceOrder(String id, {String? by}) {
     final o = _b!.orderById(id);
     if (o == null) return;
+    if (_stageNext(o)) return refresh();
     if (_askHandoverPay(o, by ?? _kasir)) return;
     _b!.advance(o, now: now, by: by ?? _kasir);
     saveAll();
@@ -1357,6 +1414,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   void _next(Order o) {
+    if (_stageNext(o)) return;
     if (_askHandoverPay(o, _kasir)) return;
     final n = _b!.advance(o, now: now, by: _kasir);
     if (n == null) return;
@@ -1413,7 +1471,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @visibleForTesting
   Map<String, dynamic>? debugDetail() {
     final o = _detailId == null ? null : _b!.orderById(_detailId!);
-    return o == null ? null : orderDetailOd(_b!, o, banner: _odBanner);
+    return o == null ? null : orderDetailOd(_b!, o, banner: _odBanner, detailed: _srv.loggedIn, staff: _stageMode);
   }
 
   @override
@@ -3111,7 +3169,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         if (_detailId != null && b.orderById(_detailId!) != null)
           Positioned.fill(
             child: _liftDetail(context, NativeOrderDetail(
-              model: orderDetailOd(b, b.orderById(_detailId!)!, banner: _odBanner), actions: this,
+              model: orderDetailOd(b, b.orderById(_detailId!)!, banner: _odBanner, detailed: _srv.loggedIn, staff: _stageMode), actions: this,
               onQrStatus: () => showModalBottomSheet<void>(
                 context: context, isScrollControlled: true, backgroundColor: Colors.white,
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),

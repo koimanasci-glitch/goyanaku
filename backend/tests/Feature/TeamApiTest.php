@@ -228,6 +228,25 @@ class TeamApiTest extends TestCase {
         $this->api('PATCH', '/outlets/'.$cabang['id'], ['process_outlet_id' => null])->assertOk()->assertJsonPath('outlet.process_outlet_id', null);
     }
 
+    public function test_outlet_profile_edited_in_the_app_updates_the_branch_on_the_server(): void {
+        $pusat = $this->pusat();
+        $this->assertSame('PUS', $this->api('GET', '/outlets')->json('outlets.0.code')); // kode nota tidak ikut berubah saat nama diganti
+        $push = function (string $token, string $device, array $data) use ($pusat) {
+            $this->app['auth']->forgetGuards(); $this->flushHeaders();
+            return $this->withToken($token)->postJson('/api/sync/push', ['device_id' => $device, 'changes' => [
+                ['op_id' => (string) Str::uuid(), 'collection' => 'outlet_profiles', 'key' => 'srv-'.$pusat, 'data' => $data]]]);
+        };
+        $push($this->ownerToken, 'hp-owner-0001', ['id' => 'srv-'.$pusat, 'name' => 'Laundry Bekasi Timur', 'address' => 'Jl. Baru 9', 'phone' => '0812-3456-7890', 'logo' => ''])
+            ->assertJsonPath('results.0.status', 'applied');
+        $outlet = $this->api('GET', '/outlets')->json('outlets.0');
+        $this->assertSame(['Laundry Bekasi Timur', 'Jl. Baru 9', '6281234567890', 'PUS'], [$outlet['name'], $outlet['address'], $outlet['phone'], $outlet['code']]);
+        // Kasir tidak bisa mengganti profil cabang.
+        $this->member(['role' => 'kasir', 'phone' => '081277776666', 'pin' => '482915']);
+        $kasir = $this->api('POST', '/session/pin', ['phone' => '081277776666', 'pin' => '482915', 'device_id' => 'hp-kasir-0001'], '')->json('token');
+        $push($kasir, 'hp-kasir-0001', ['id' => 'srv-'.$pusat, 'name' => 'Diganti Kasir'])->assertJsonPath('results.0.status', 'rejected');
+        $this->assertSame('Laundry Bekasi Timur', $this->api('GET', '/outlets')->json('outlets.0.name'));
+    }
+
     public function test_deactivated_branch_takes_no_new_data_and_frees_the_limit(): void {
         $cabang = $this->api('POST', '/outlets', ['name' => 'Cabang Bekasi'])->json('outlet');
         $member = $this->member(['outlet_id' => $cabang['id']]);

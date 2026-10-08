@@ -83,14 +83,21 @@ final class OrderGuard {
         $merged = $old;
         if ($this->sameReadyState($from, $to)) $merged = $this->acceptReadyState($merged, $new);
         if ($to !== $from && !$this->sameReadyState($from, $to)) {
-            $seq = array_merge(['antrian'], $this->stagesFor($old), [config('goyana.orders.done_status')]);
-            $i = array_search($from, $seq, true); $j = array_search($to, $seq, true);
-            if ($i === false) return $this->revert($old, $new, 'Pesanan ini tidak sedang diproses.');
-            if ($j === false) {
+            // Urutan umum semua tahap; tahap berikut = tahap pertama dalam alur layanan pesanan ini sesudah tahap sekarang.
+            // Jadi pesanan yang sedang di tahap di luar alur layanannya (mis. "cuci" untuk layanan setrika saja) tetap bisa dimajukan.
+            $done = config('goyana.orders.done_status');
+            $order = array_merge(['antrian'], config('goyana.orders.stages'), [$done]);
+            $at = array_search($from, $order, true);
+            if ($at === false) return $this->revert($old, $new, 'Pesanan ini tidak sedang diproses.');
+            if (!in_array($to, $order, true)) {
                 return $this->revert($old, $new, in_array($to, ['siap', 'telat', 'diantar', 'diambil'], true)
                     ? 'Hanya kasir atau owner yang menandai Siap Ambil.' : 'Pegawai hanya bisa memajukan tahap proses.');
             }
-            if ($j !== $i + 1) return $this->revert($old, $new, 'Pegawai hanya bisa memajukan satu tahap.');
+            $next = null;
+            foreach (array_merge($this->stagesFor($old), [$done]) as $stage) {
+                if (array_search($stage, $order, true) > $at) { $next = $stage; break; }
+            }
+            if ($to !== $next) return $this->revert($old, $new, 'Pegawai hanya bisa memajukan satu tahap.');
             $merged['card']['dataset']['st'] = $to;
             $this->copy($merged, $new, ['card.dataset.ts133', 'detail.hist']);
         }

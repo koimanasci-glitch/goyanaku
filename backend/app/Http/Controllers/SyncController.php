@@ -222,6 +222,8 @@ class SyncController {
                 'record_key' => $change['key'], 'created_at' => now()]);
         }
         if (in_array($change['collection'], ['services', 'couriers'], true)) ($this->guards[$business->id] ?? null)?->forget();
+        // Profil outlet yang diubah owner di aplikasi (nama, alamat, nomor) ikut memperbarui data cabang di server.
+        if ($change['collection'] === 'outlet_profiles' && !$deleted) \App\Support\Outlets::fromProfile($business, (string) $change['key'], $change['data'] ?? null);
         if ($change['collection'] === 'orders') {
             $ledger = new OrderLedger($business, $this->guards[$business->id] ??= new OrderGuard($business));
             $deleted ? $ledger->deleted($change['key']) : $ledger->record($user, (int) $row['outlet_id'], $change['key'], $old, $verdict['data'], $device);

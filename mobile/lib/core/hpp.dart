@@ -6,8 +6,8 @@ import 'business.dart';
 import 'models.dart';
 import 'stock.dart';
 
-const _prod = {'cuci', 'kering', 'setrika', 'packing', 'siap', 'telat', 'diantar', 'diambil'};
-const _prodHist = {'cuci', 'kering', 'setrika', 'packing', 'siap', 'diantar', 'diambil'};
+const _prod = {'cuci', 'kering', 'setrika', 'packing', 'selesaiproses', 'siap', 'telat', 'diantar', 'diambil'};
+const _prodHist = {'cuci', 'kering', 'setrika', 'packing', 'selesaiproses', 'siap', 'diantar', 'diambil'};
 
 List<Map> _ledger(StockBook s) => (s.raw['ledger'] as List).whereType<Map>().toList();
 List<Map> hppRecipes(StockBook s) => ((s.raw['recipes'] ??= <dynamic>[]) as List).whereType<Map>().toList();

@@ -27,6 +27,7 @@ Target akhir (keputusan Koko):
    - Yang bisa dikerjakan program biasa dikerjakan program; AI hanya bila program tidak bisa (hemat biaya AI).
    - Engine WhatsApp TIDAK dipasang di VPS GOYANA. Semua WA lewat CHATKU di server terpisah.
 6. **Tes besar, bukan bolak-balik.** Tulis satu bagian utuh, push + CI **sekali** di akhir. Gagal → perbaiki semua sekaligus → CI sekali lagi. **Maksimal 2 CI per bagian.** Masih gagal → laporkan mentok di mana, lalu lanjut ke bagian lain yang tidak bergantung.
+   - **Jatah CI dibebaskan, izin Paduka 8 Okt 2026 17:06 WIB:** "Mulai sekarang CI aku kasih bebas jatah." Batas 2 CI per bagian dan penghitung jatah di bawah tidak berlaku lagi. Tetap: jangan boros (periksa dulu sebelum push), catat run id dan hasilnya.
    - **Pengecualian A7/branding/APK, izin Paduka 6 Okt 2026 08:36 WIB:** 3 jatah CI Flutter tambahan baru, mulai **0/3 terpakai, 3 tersisa**, terpisah dari 4 CI A7 sebelumnya. Setiap run/rerun mengurangi satu jatah, tidak direset antar sesi; tidak perlu izin ulang selama jatah masih ada. Hasil/sisa wajib dicatat, berhenti bila habis. Lihat GOYANA-CATATAN-PADUKA.md. **Counter terbaru sesudah CI5 lulus: 1/3 terpakai, 2 tersisa.**
 7. **Branch:**
    - Aplikasi Flutter: `flutter/native`. Selalu `git pull --rebase` sebelum mulai dan sebelum push.

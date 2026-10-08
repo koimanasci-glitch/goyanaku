@@ -134,6 +134,17 @@ class OrderRulesTest extends TestCase {
         $this->assertNotNull(DB::table('order_index')->where('record_key', 'GY-3')->value('ready_at'));
     }
 
+    public function test_pegawai_can_continue_an_order_sitting_on_a_stage_outside_its_service_flow(): void {
+        // Aplikasi kasir selalu memulai proses di "cuci". Karpet di tahap "setrika" (di luar alurnya) tetap bisa dilanjutkan ke Packing.
+        $order = $this->order('GY-8', [$this->karpet()], 'setrika'); $rev = $this->create('GY-8', $order);
+        $t = $this->token($this->staff('produksi'));
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-8', 'data' => $this->withStatus($order, 'selesaiproses'), 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'conflict')->assertJsonPath('results.0.message', 'Pegawai hanya bisa memajukan satu tahap.');
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-8', 'data' => $this->withStatus($order, 'packing'), 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'applied');
+        $this->assertSame('packing', $this->stored('GY-8')['card']['dataset']['st']);
+    }
+
     public function test_kasir_may_skip_and_skipped_stages_are_recorded(): void {
         $order = $this->order('GY-4', [$this->baju()], 'cuci'); $rev = $this->create('GY-4', $order);
         $kasir = $this->staff('kasir');

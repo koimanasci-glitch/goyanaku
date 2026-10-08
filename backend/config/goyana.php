@@ -37,7 +37,7 @@ return [
             'orders.create', 'orders.update', 'orders.status', 'payments.receive',
             'discounts.limited', 'customers.manage', 'courier.assign', 'cash.manage',
         ]],
-        'produksi' => ['label' => 'Produksi', 'permissions' => ['orders.status', 'stock.use']],
+        'produksi' => ['label' => 'Pegawai', 'permissions' => ['orders.status', 'stock.use']],
         'kurir' => ['label' => 'Kurir', 'permissions' => ['courier.tasks']],
         'manager' => ['label' => 'Admin Outlet', 'permissions' => [
             'orders.create', 'orders.update', 'orders.status', 'orders.cancel',

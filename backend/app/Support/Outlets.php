@@ -108,6 +108,24 @@ final class Outlets {
         }
     }
 
+    /**
+     * Profil outlet dari aplikasi (kunci "srv-<id>") → nama, alamat, dan nomor cabang di server.
+     * Hanya owner yang boleh menulis profil outlet (config sync), jadi tidak ada pemeriksaan peran di sini.
+     */
+    public static function fromProfile(Business $business, string $key, mixed $data): void {
+        if (!is_array($data) || !preg_match('/^srv-(\d+)$/', $key, $m)) return;
+        $outlet = $business->outlets()->whereKey((int) $m[1])->first();
+        if (!$outlet) return;
+        $name = trim((string) ($data['name'] ?? ''));
+        if ($name !== '') $outlet->name = mb_substr($name, 0, 120);
+        if (array_key_exists('address', $data)) $outlet->address = mb_substr(trim((string) $data['address']), 0, 300) ?: null;
+        if (array_key_exists('phone', $data)) {
+            $phone = User::normalizePhone((string) $data['phone']);
+            $outlet->phone = $phone !== '' && strlen($phone) <= 20 ? $phone : $outlet->phone;
+        }
+        if ($outlet->isDirty()) $outlet->save();
+    }
+
     /** Cabang lama belum punya kode: dibuat dari namanya, unik dalam satu usaha. Owner bisa menggantinya. */
     public static function ensureCode(Outlet $outlet): string {
         if ($outlet->code) return $outlet->code;

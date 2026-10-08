@@ -9,7 +9,7 @@ import '../core/receipt.dart';
 import 'pages.dart';
 import 'receipt_image.dart';
 
-const _proc = ['cuci', 'kering', 'setrika', 'packing'];
+const _proc = ['cuci', 'kering', 'setrika', 'packing', 'selesaiproses'];
 const labelSizes = ['50×30 mm', '40×30 mm', 'Struk 58 mm'];
 
 /// Barcode Code128 sebagai SVG (lebar modul 1, tepi kosong 10).

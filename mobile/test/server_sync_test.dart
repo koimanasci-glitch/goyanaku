@@ -57,6 +57,10 @@ class _Server {
   String role = 'owner';
   List<String>? perms;
   String noteDevice = '1';
+  int outletLimit = 3;
+  List<Map<String, dynamic>> outlets = [
+    {'id': 5, 'key': 'srv-5', 'name': 'Pusat', 'code': 'PUS', 'address': 'Jl. Server', 'phone': '6281'},
+  ];
 
   Future<ServerReply> send(String method, Uri url, Map<String, String> headers, String? body) async {
     final data = body == null ? <String, dynamic>{} : Map<String, dynamic>.from(jsonDecode(body) as Map);
@@ -70,11 +74,23 @@ class _Server {
         'user': {'id': 7, 'name': 'Rina', 'role': role, 'role_label': role == 'owner' ? 'Owner' : 'Kasir', 'permissions': perms ?? (role == 'owner' ? ['*'] : ['orders.create'])},
         'business': {'id': 1, 'name': 'Laundry Bekasi', 'allow_debt': true},
         'access': {'package': 'Silver', 'read_only': false, 'outlet_limit': 3, 'cashier_device_limit': 3},
-        'outlets': [
-          {'id': 5, 'key': 'srv-5', 'name': 'Pusat', 'code': 'PUS', 'address': 'Jl. Server', 'phone': '6281'},
-        ],
+        'outlets': outlets,
         'note': {'prefix': 'PUS', 'device': noteDevice},
       }));
+    }
+    if (url.path == '/api/outlets' && method == 'POST') {
+      if (outlets.length >= outletLimit) {
+        return ServerReply(422, jsonEncode({
+          'message': 'Data tidak valid',
+          'errors': {
+            'name': ['Paket Silver maksimal 1 pusat + 2 cabang. Upgrade paket untuk menambah cabang.'],
+          },
+        }));
+      }
+      final id = 5 + outlets.length;
+      final made = <String, dynamic>{'id': id, 'key': 'srv-$id', 'name': data['name'], 'code': 'CB$id', 'address': data['address'], 'phone': data['phone']};
+      outlets.add(made);
+      return ServerReply(201, jsonEncode({'outlet': made}));
     }
     if (url.path == '/api/devices/claim') {
       return ServerReply(200, jsonEncode({'slot': 2, 'note': {'prefix': 'PUS', 'device': '2'}}));
@@ -380,6 +396,92 @@ void main() {
     expect((((now['tpl'] as Map)['cashier'] as Map)['tg'] as Map)['3'], false);
     expect(((now['discounts'] as List).single as Map)['name'], 'Diskon 10%');
     expect(other.data[Keys.perfumes], kv.data[Keys.perfumes]);
+  });
+
+  test('cabang yang ditambah owner di HP didaftarkan ke server; pesanannya ikut memakai id server', () async {
+    final kv = _phone(), server = _Server()..outletLimit = 2;
+    final sync = await _connected(kv, server);
+    void addBranch(String id, String name) {
+      final outs = jsonDecode(kv.data[Keys.outlets]!) as List;
+      outs.add({'id': id, 'name': name, 'address': 'Jl. B', 'phone': '0822', 'logo': ''});
+      kv.data[Keys.outlets] = jsonEncode(outs);
+    }
+
+    List<Object?> ids() => [for (final o in jsonDecode(kv.data[Keys.outlets]!) as List) (o as Map)['id']];
+    int posts() => server.calls.where((c) => c['path'] == '/api/outlets').length;
+    addBranch('outlet180-9', 'Cabang Bekasi');
+    final b = jsonDecode(kv.data[Keys.business]!) as Map;
+    (b['orders'] as List).add(_card('GY-2', 'antrian', outlet: 'outlet180-9'));
+    (b['details'] as Map)['GY-2'] = {'id': 'GY-2', 'name': 'Siti', 'paid': 0};
+    kv.data[Keys.business] = jsonEncode(b);
+
+    expect(await sync.uploadLocalOutlets(), isTrue);
+    expect(server.calls.where((c) => c['path'] == '/api/outlets').single['body'], {'name': 'Cabang Bekasi', 'address': 'Jl. B', 'phone': '0822'});
+    expect(ids(), ['srv-5', 'srv-6']);
+    expect((await extractLocal(kv))['orders|GY-2']!.outlet, 'srv-6');
+    expect(sync.noteCode('srv-6')![0], 'CB6');
+    // Sudah terdaftar: tidak dikirim dua kali.
+    expect(await sync.uploadLocalOutlets(), isFalse);
+    expect(posts(), 1);
+    // Batas cabang paket ditegakkan server: cabang tetap ada di HP dan alasannya tampil.
+    addBranch('outlet180-10', 'Cabang Ketiga');
+    expect(await sync.uploadLocalOutlets(), isFalse);
+    expect(ids(), ['srv-5', 'srv-6', 'outlet180-10']);
+    expect(sync.status.outletNote, startsWith('Cabang Ketiga belum terdaftar di server: Paket Silver maksimal'));
+    expect(sync.card()!['line'], sync.status.outletNote);
+    // Akun selain owner tidak pernah mendaftarkan cabang.
+    final kasirKv = _phone(), kasirServer = _Server()..role = 'kasir';
+    final kasir = await _connected(kasirKv, kasirServer, account: '081234567890', secret: '482915');
+    final outs = jsonDecode(kasirKv.data[Keys.outlets]!) as List;
+    outs.add({'id': 'outlet180-9', 'name': 'Cabang Liar'});
+    kasirKv.data[Keys.outlets] = jsonEncode(outs);
+    expect(await kasir.uploadLocalOutlets(), isFalse);
+    expect(kasirServer.calls.where((c) => c['path'] == '/api/outlets'), isEmpty);
+  });
+
+  test('akun pegawai memajukan satu tahap menurut alur layanan, berakhir di Selesai Proses', () async {
+    final kv = MemoryKvStore({
+      Keys.business: jsonEncode({
+        'orders': [_card('GY-1', 'antrian'), _card('GY-2', 'setrika')],
+        'details': {
+          'GY-1': {
+            'id': 'GY-1', 'name': 'Siti', 'paid': 0,
+            'items': [
+              {'n': 'Cuci Setrika', 'unit': 'kg', 'price': 7000, 'qty': 2},
+            ],
+          },
+          'GY-2': {
+            'id': 'GY-2', 'name': 'Siti', 'paid': 0,
+            'items': [
+              {'n': 'Karpet', 'unit': 'm', 'price': 15000, 'qty': 3},
+            ],
+          },
+        },
+        'customers': <dynamic>[],
+        'deposits178': <String, dynamic>{},
+        'kas': {'start': 0, 'sales': <dynamic>[], 'ins': <dynamic>[], 'outs': <dynamic>[], 'kasir': 'Rina'},
+      }),
+      Keys.services: jsonEncode([
+        {'key': 'cuci setrika', 'name': 'Cuci Setrika', 'prices': {'Reguler': 7000}},
+        {'key': 'karpet', 'name': 'Karpet', 'prices': {'Reguler': 15000}, 'proc': ['Cuci', 'Kering', 'Packing']},
+      ]),
+    });
+    final b = await Business.load(kv);
+    final at = DateTime(2026, 10, 8, 9);
+    final baju = b.orderById('GY-1')!, karpet = b.orderById('GY-2')!;
+    expect(b.stagesFor(baju), ['cuci', 'kering', 'setrika', 'packing']);
+    expect(b.stagesFor(karpet), ['cuci', 'kering', 'packing']);
+    final seen = <String?>[];
+    for (var k = 0; k < 6; k++) {
+      seen.add(b.advanceStage(baju, now: at, by: 'Pegawai'));
+    }
+    expect(seen, ['cuci', 'kering', 'setrika', 'packing', 'selesaiproses', null]);
+    expect(baju.history.last, containsPair('by', 'Pegawai'));
+    // Karpet yang berada di tahap di luar alurnya (kasir selalu memulai dari Cuci) tetap bisa dilanjutkan.
+    expect(b.advanceStage(karpet, now: at, by: 'Pegawai'), 'packing');
+    // Kasir atau owner yang menandai Siap Ambil.
+    expect(b.advance(baju, now: at, by: 'Kasir'), 'siap');
+    expect(b.nextStage(baju), isNull);
   });
 
   test('HP pegawai tidak mengirim data yang bukan haknya', () async {

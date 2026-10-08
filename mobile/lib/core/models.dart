@@ -16,13 +16,22 @@ String _iso(DateTime d) => d.toUtc().toIso8601String().replaceFirstMapped(RegExp
 /// Urutan status pesanan (sama dengan FLOW di HTML).
 const orderFlow = ['jemput', 'antrian', 'cuci', 'kering', 'setrika', 'packing', 'siap', 'diantar', 'diambil'];
 const procStages = ['cuci', 'kering', 'setrika', 'packing'];
+
+/// Tahap "Selesai Proses": pegawai selesai mengerjakan, menunggu kasir atau owner menandai Siap Ambil (sama dengan server).
+const doneStage = 'selesaiproses';
+
+/// Sedang dikerjakan: salah satu tahap proses atau Selesai Proses.
+bool isProcessing(String st) => procStages.contains(st) || st == doneStage;
+
+/// Nama tahap proses yang tampil di tombol dan pil status.
+const stageName = {'cuci': 'Cuci', 'kering': 'Kering', 'setrika': 'Setrika', 'packing': 'Packing', doneStage: 'Selesai Proses'};
 const statusLabel = {
   'jemput': 'Penjemputan', 'antrian': 'Antrian', 'cuci': 'Proses · Cuci', 'kering': 'Proses · Kering', 'setrika': 'Proses · Setrika',
-  'packing': 'Proses · Packing', 'siap': 'Siap Ambil', 'telat': 'Terlambat', 'diantar': 'Diantar', 'diambil': 'Diambil', 'batal': 'Batal',
+  'packing': 'Proses · Packing', doneStage: 'Selesai Proses', 'siap': 'Siap Ambil', 'telat': 'Terlambat', 'diantar': 'Diantar', 'diambil': 'Diambil', 'batal': 'Batal',
 };
 const nextLabel = {
   'jemput': 'Sudah Dijemput ›', 'antrian': 'Mulai Cuci ›', 'cuci': 'Lanjut Kering ›', 'kering': 'Lanjut Setrika ›', 'setrika': 'Packing ›',
-  'packing': 'Tandai Siap ›', 'siap': 'Serahkan ›', 'diantar': 'Diterima ›', 'diambil': 'Selesai ✓', 'batal': 'Dibatalkan',
+  'packing': 'Tandai Siap ›', doneStage: 'Tandai Siap ›', 'siap': 'Serahkan ›', 'diantar': 'Diterima ›', 'diambil': 'Selesai ✓', 'batal': 'Dibatalkan',
 };
 
 /// Durasi bawaan & lamanya (jam), sama dengan HTML: Kilat 6, Express 24, lainnya 72.

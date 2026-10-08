@@ -231,7 +231,7 @@ class AiPage extends TemplatePage {
       final p = _phone(sender);
       if (p.isEmpty) return 'Nomor WhatsApp pelanggan diperlukan untuk memeriksa pesanan.';
       const statuses = {
-        'antrian': 'Antrian', 'cuci': 'Sedang dicuci', 'kering': 'Sedang dikeringkan', 'setrika': 'Sedang disetrika', 'packing': 'Dalam proses', 'siap': 'Siap diambil',
+        'antrian': 'Antrian', 'cuci': 'Sedang dicuci', 'kering': 'Sedang dikeringkan', 'setrika': 'Sedang disetrika', 'packing': 'Dalam proses', 'selesaiproses': 'Dalam proses', 'siap': 'Siap diambil',
         'telat': 'Siap diambil', 'diantar': 'Sedang diantar', 'diambil': 'Sudah diambil', 'batal': 'Dibatalkan', 'jemput': 'Menunggu penjemputan',
       };
       final b = host.business;

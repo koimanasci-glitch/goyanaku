@@ -1088,7 +1088,7 @@ Map<String, Object?> reportStateFromBusiness(Map<String, dynamic> business, {req
       'sub': total + disc, 'disc': disc, 'ong': o.ongkir, 'rd': 0, 'total': total, 'paid': paid,
       'm': st == 'batal' ? 'Batal' : (paid > 0 ? o.method : 'Belum'),
       'payments178': o.payments,
-      'st': const {'cuci', 'kering', 'setrika', 'packing'}.contains(st) ? 'proses' : st,
+      'st': const {'cuci', 'kering', 'setrika', 'packing', 'selesaiproses'}.contains(st) ? 'proses' : st,
       'staff': '', 'antar': o.antar, 'dur': dur,
       'due': due.millisecondsSinceEpoch,
       'done': (o.due ?? created).millisecondsSinceEpoch,

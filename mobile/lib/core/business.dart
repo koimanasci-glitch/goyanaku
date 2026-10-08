@@ -381,12 +381,46 @@ class Business {
       n = o.antar ? 'diantar' : 'diambil';
     } else if (st == 'diantar') {
       n = 'diambil';
-    } else if (procStages.contains(st)) {
+    } else if (isProcessing(st)) {
       n = 'siap';
     } else {
       final i = orderFlow.indexOf(st);
       n = i >= 0 && i + 1 < orderFlow.length ? orderFlow[i + 1] : 'diambil';
     }
+    _setStatus(o, n, now, by);
+    return n;
+  }
+
+  /// Tahap proses yang berlaku untuk pesanan ini: gabungan "Alur proses" semua layanannya (aturan sama dengan server).
+  List<String> stagesFor(Order o) {
+    final found = <String>{};
+    for (final it in o.items) {
+      final name = it.name.trim().toLowerCase();
+      final service = services.where((s) => s.name.trim().toLowerCase() == name).firstOrNull;
+      for (final p in service?.proc ?? const <String>[]) {
+        final key = p.trim().toLowerCase();
+        if (procStages.contains(key)) found.add(key);
+      }
+    }
+    return found.isEmpty ? procStages : [for (final s in procStages) if (found.contains(s)) s];
+  }
+
+  /// Tahap berikut untuk akun pegawai: satu langkah menurut alur layanan, berakhir di Selesai Proses.
+  /// null = bukan giliran pegawai (belum diterima outlet, sudah Selesai Proses, atau sudah siap/diambil/batal).
+  String? nextStage(Order o) {
+    const order = ['antrian', ...procStages, doneStage];
+    final at = order.indexOf(o.status);
+    if (at < 0) return null;
+    for (final s in [...stagesFor(o), doneStage]) {
+      if (order.indexOf(s) > at) return s;
+    }
+    return null;
+  }
+
+  /// Akun pegawai memajukan satu tahap. Mengembalikan tahap barunya, atau null bila tidak ada yang bisa dimajukan.
+  String? advanceStage(Order o, {required DateTime now, required String by}) {
+    final n = nextStage(o);
+    if (n == null) return null;
     _setStatus(o, n, now, by);
     return n;
   }
@@ -548,7 +582,7 @@ class Business {
       if (o.isCancelled) continue;
       if (same(o.created)) inCount++;
       if (o.status == 'siap') ready++;
-      if (procStages.contains(o.status) || o.status == 'antrian') process++;
+      if (isProcessing(o.status) || o.status == 'antrian') process++;
       if (o.isLate(now)) late++;
     }
     return DaySummary(income: income, inCount: inCount, ready: ready, process: process, late: late);
