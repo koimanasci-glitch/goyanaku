@@ -17,18 +17,21 @@ Claude menangani akun, login, peran, dan penugasan pegawai/cabang. GPT menangani
 9. AI pusat mengelompokkan pertanyaan tidak terjawab yang telah disamarkan, mengusulkan template universal sebagai draf. Admin meninjau sebelum aktif. Tidak memberikan akses bebas seluruh database atau mencampur data laundry.
 10. Chatbot layanan mengambil layanan aktif dan harga terbaru setelah sinkronisasi. Layanan tak tercatat tidak berarti tidak tersedia; harga kosong tidak boleh ditebak. Alihkan ke admin tanpa menjanjikan tindak lanjut yang belum dibuat.
 
+## Pembaruan implementasi
+Modul persiapan dan tes telah ditulis secara terisolasi. Hasil aktual, kontrak integrasi, referensi Claude terbaru, dan penghambat tercatat di [GOYANA-WHATSAPP-IMPLEMENTASI.md](GOYANA-WHATSAPP-IMPLEMENTASI.md). Lima belas tes logika Dart lulus. Tes Laravel, widget Flutter, dan Chatku nyata belum dijalankan.
+
 ## Tahapan kerja
 - [x] Salinan terisolasi dan batas pekerjaan dibuat.
 - [x] Pemeriksaan awal backend: QuickReply, Assist, routes API.
 - [ ] Sinkronkan basis terbaru dengan pekerjaan Claude.
-- [ ] Modul draf/perangkat dan popup Flutter, memakai tema yang ada.
-- [ ] Model/validasi/otorisasi perangkat Laravel dan kuota.
-- [ ] Kontrak adapter Chatku, webhook terverifikasi, antrean/idempotensi.
-- [ ] Balas Status WhatsApp dengan pembatasan usaha/outlet/pelanggan.
-- [ ] CRUD/pratinjau/revisi template administrator.
+- [x] Kode persiapan: Modul draf/perangkat dan popup Flutter, memakai tema yang ada.
+- [x] Kode persiapan: Model/validasi/otorisasi perangkat Laravel dan kuota.
+- [x] Kode persiapan: Kontrak adapter Chatku, webhook terverifikasi, antrean/idempotensi.
+- [x] Kode persiapan: Balas Status WhatsApp dengan pembatasan usaha/outlet/pelanggan.
+- [x] Kode persiapan: CRUD/pratinjau/revisi template administrator.
 - [ ] AI pengusul template dan chatbot berbasis data.
 - [ ] Tes isolasi data, kuota bersamaan, duplikasi webhook, kegagalan gateway, draf offline, dan UI.
-- [ ] Laporan hasil aktual, lalu tunggu aba-aba pemasangan.
+- [x] Laporan hasil aktual dibuat; pemasangan tetap menunggu aba-aba.
 
 ## Temuan awal dan penghambat
 - Salinan lokal bukan jaminan kode GitHub terbaru. Git langsung gagal autentikasi; perlu jalur konektor GitHub atau akses repo yang tersedia untuk memastikan basis.
