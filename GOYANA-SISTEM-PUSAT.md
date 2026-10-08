@@ -922,15 +922,25 @@ Pesanan dan rincian, pembayaran, pelanggan, deposit, kas per kasir, layanan dan 
 - **HP pegawai hanya mengirim data yang menjadi haknya** (sama dengan `sync.collections` di server), sehingga tidak terus-menerus ditolak.
 - Paket, peran, dan outlet diperbarui dari server setiap aplikasi dibuka.
 
-**Belum berpasangan**
-| Hal | Sisi yang tertinggal | Akibat sekarang |
+**Dibereskan 8 Oktober malam (permintaan: "yang masih belum berpasangan kenapa ga kamu kerjakan sekalian")**
+| Hal | Backend | Mode Murni |
 |---|---|---|
-| Cabang ditambah dari aplikasi | Aplikasi belum memanggil `POST /api/outlets` | Pesanan cabang itu tercatat di server sebagai outlet Pusat |
-| Halaman Pegawai di aplikasi | Aplikasi belum memanggil `/api/team` | Pegawai hanya tersimpan di HP; akun dibuat lewat dashboard web |
-| Monitor Cabang | Aplikasi belum memanggil `/api/monitoring` | Hanya menghitung data di HP itu |
-| Status Selesai Proses, tahap per barang | Server siap; aplikasi belum punya tombol/tampilan | Tidak berdampak sampai tombolnya dibuat |
-| Konfirmasi timbangan, setoran kurir, tampilan tiga menu kurir | Server siap; aplikasi belum | Fitur belum bisa dipakai dari HP |
-| Aturan CRM/poin (`goyana-crm203`) | Belum dirancang di dua sisi | Poin pelanggan per HP |
-| Pengikatan HP outlet (pilih nama + PIN) | Server siap; aplikasi belum | Pegawai masuk dengan nomor HP + PIN |
-| Alasan mundur tahap, "diskon terbatas" kasir, ongkir transaksi kurir | Belum ditegakkan/dikirim | Lihat §49 |
-| Dashboard web owner (monitoring, kelola cabang/pegawai) | Web baru menampilkan ringkasan dan peringatan | Kelola lengkap baru lewat API |
+| Cabang dari aplikasi | Profil outlet yang diubah owner di aplikasi memperbarui nama, alamat, nomor cabang (`Outlets::fromProfile`) | Cabang yang ditambah owner didaftarkan lewat `POST /api/outlets`, id-nya diganti id server di semua data. Batas cabang paket ditolak server dan alasannya tampil di kartu sinkron |
+| Pegawai | `/api/team` (sudah ada); label peran `produksi` menjadi "Pegawai" | Halaman Pegawai (owner masuk server): nama, nomor HP, tugas, outlet, PIN 6 angka, nonaktifkan/aktifkan. Tanpa server, halaman lama tidak berubah |
+| Monitoring | `/api/monitoring` (sudah ada) | Manajemen Cabang dan Monitor Cabang memakai angka server: peringatan, tahap cucian, kerja kasir/pegawai/kurir, tunai di kurir, setoran, HP kasir |
+| Selesai Proses | Pegawai bisa melanjutkan pesanan yang berada di tahap di luar alur layanannya | Status `selesaiproses`; akun pegawai memajukan satu tahap menurut "Alur proses" layanan; kasir/owner tetap "Tandai Siap" |
+| Cek timbangan | Cucian yang ditimbang kurir ditandai `timbang=cek`, `timbangBy`, `timbangAwal`; dikonfirmasi saat kasir mengirim `timbang=ok` | Popup "Cek Timbangan" di HP kasir sebelum memproses |
+| Setoran kurir | `/api/courier-cash` (sudah ada) | Kasir: tab Setoran di halaman Kurir, uangnya masuk kas. Kurir: tab Setoran (tunai dipegang + riwayat) |
+| Tampilan kurir | Hak kurir (sudah ada) | Akun kurir hanya Jemput, Antar, Setoran, Tambah Transaksi di lokasi (tanpa diskon), dan Pengaturan |
+| CRM | Koleksi `crm` per kunci + `CrmGuard` (kasir hanya menandai voucher terpakai, menambah poin tertukar, mencatat pengingat) | `goyana-crm203` dipecah per kunci saat sinkron |
+| HP outlet bergantian | `/api/devices/shared`, `/api/devices/roster` (sudah ada); web: daftar dan cabut | Owner: Edit Outlet → "Jadikan HP Ini HP Outlet". Pegawai: pilih nama lalu PIN |
+| Diskon kasir | Kasir tidak bisa melebihi batas diskon manual owner atau diskon/voucher terbesar buatan owner | Batas diskon kasir (`discCfg`) ikut tersinkron |
+| Ongkir transaksi kurir | Harus salah satu tarif antar-jemput outlet itu | Ongkir sudah dihitung dari tarif yang sama |
+| Dashboard web | Halaman `/monitoring` lengkap (owner semua cabang, admin outlet cabangnya), ubah data cabang, nonaktifkan cabang, cabut HP outlet, setelan hutang | — |
+
+**Masih belum berpasangan**
+| Hal | Keadaan |
+|---|---|
+| Tahap per barang | Server menyimpan; tampilan di aplikasi ditunda (keputusan Paduka: belakangan) |
+| Alasan mundur tahap | Aplikasi tidak punya tombol mundur tahap, jadi tidak ada yang dikirim; aturan server tetap mati |
+| HP outlet dipakai kurir/pegawai bergantian dengan kasir | Data kasir yang sudah ada di HP itu tidak disembunyikan saat akun lain masuk; HP outlet sebaiknya untuk kasir dan pegawai |

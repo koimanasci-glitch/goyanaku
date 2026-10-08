@@ -91,4 +91,10 @@ Sinkronisasi (`/api/sync/push`):
 - Hasil `conflict` kini bisa membawa `message`: kiriman tidak diterima sesuai hak peran dan HP harus memakai `record` dari server. Klien lama mengabaikan `message` dan tetap benar.
 - Koleksi baru `pickups` (tugas penjemputan, per outlet). `customers` tidak lagi dikirim ke kurir dan pegawai.
 - Pesanan boleh membawa tahap per barang di `detail.items[i].st` dan status baru `selesaiproses`.
+- Koleksi `crm` (aturan poin dan pengingat, voucher, poin tertukar, pengingat terkirim) dengan kunci `rules`, `voucher:<kode>`, `redeemed:<pelanggan>`, `reminded:<nota>`. Kasir hanya boleh menandai voucher terpakai, menambah poin tertukar, dan mencatat pengingat (`App\Support\CrmGuard`).
+- Profil outlet (`outlet_profiles`, kunci `srv-<id>`) yang dikirim owner ikut memperbarui nama, alamat, dan nomor cabang.
+- Cucian yang ditimbang kurir membawa `card.dataset.timbang = "cek"`, `timbangBy`, `timbangAwal`; kasir mengirim `timbang = "ok"` setelah mengecek.
+- Diskon kasir dibatasi setelan diskon owner (`goyana-pure-shared` → `discCfg`, `discounts`, `vouchers`, dan voucher CRM). Ongkir transaksi kurir harus salah satu tarif outlet (`goyana-transport183`).
 - Aturan ada di `config/goyana.php` (`orders`, `pin`, `alerts`, `packages.*.cashier_devices`).
+
+Dashboard web owner (`routes/web.php`): `GET /monitoring` (laporan lengkap; admin outlet hanya cabangnya), `POST /outlets/{id}` (nama, kode nota, alamat, nomor, tempat pengerjaan), `POST /outlets/{id}/deactivate|activate`, `POST /shared-devices/{id}/revoke`, `POST /business/settings` (`allow_debt`).

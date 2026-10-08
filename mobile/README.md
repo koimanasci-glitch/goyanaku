@@ -87,3 +87,12 @@ Halaman dipindah satu per satu ke `lib/native/`. Selama transisi:
 - Masuk: Pengaturan → "Sinkronisasi server" → alamat server → "Simpan & masuk". Email + password (pemilik) atau nomor HP + PIN (kasir, pegawai, kurir).
 - Uji tanpa jaringan: `test/server_sync_test.dart` memakai server tiruan (pemetaan data, masuk, kirim sekali tanpa bolak-balik, bentrok, ditolak, offline, sesi dicabut).
 - Belum diuji dengan server sungguhan dari HP. Butuh server yang sudah online (HTTPS) untuk uji itu.
+
+### Halaman yang memakai aturan server (8 Oktober 2026 malam)
+Semua berlaku hanya saat akun sudah masuk ke server; tanpa server tampilan dan alurnya tidak berubah.
+- **Pemilik**: Outlet (cabang baru didaftarkan ke server; Edit Outlet → "Jadikan HP Ini HP Outlet"), Pegawai (`/api/team`: tugas, outlet, nomor HP, PIN), Manajemen Cabang dan Monitor Cabang (`/api/monitoring`).
+- **Kasir / admin outlet**: popup "Cek Timbangan" untuk cucian yang ditimbang kurir; Kurir → tab Setoran (terima tunai kurir, masuk kas).
+- **Pegawai**: tombol tahap memajukan satu tahap menurut "Alur proses" layanan sampai Selesai Proses (`Business.nextStage`).
+- **Kurir**: `lib/pure/courier_home.dart` (Jemput, Antar, Setoran); menu lain ditutup.
+- **HP outlet bergantian**: lembar masuk menampilkan pilihan nama + PIN (`ServerSync.roster`, `loginShared`).
+- CRM (`goyana-crm203`) dan batas diskon kasir (`discCfg`) ikut tersinkron.
