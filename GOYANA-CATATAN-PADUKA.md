@@ -106,3 +106,10 @@ Diskusi panjang lalu "Gas semuanya". Tiga belas keputusan tercatat lengkap di `G
 ## 8 Oktober 2026, 17.06 WIB — jatah CI dibebaskan
 
 Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian dan penghitung jatah tidak berlaku lagi. Hasil setiap run tetap dicatat di GOYANA-PROGRESS.md.
+
+## 8 Oktober 2026, 18.08–18.18 WIB — masuk aplikasi, pembuka, administrator
+
+- **Masuk wajib, cukup sekali.** Setelah masuk, aplikasi langsung ke Beranda setiap dibuka sampai orangnya menekan Keluar. Berlaku setelah server online; APK uji sebelum itu tetap bisa dibuka tanpa masuk.
+- **Animasi pembuka dan panduan 5 slide** dari Hibrida dipasang di Mode Murni. Warna pembuka, panduan, dan layar masuk memakai warna A (sama dengan kepala Beranda, #ff6b48 ke #f0472f) karena yang lama "terlalu merah". Lima gambar panduan: merahnya digeser sedikit ke oranye (disetujui).
+- **Masuk dengan Google** untuk pemilik. Email Paduka untuk akun dengan semua menu terbuka: koimanasci@gmail.com, sebagai owner berpaket tertinggi (bukan administrator pusat). Daftarnya di setelan server, bukan di APK. Password tidak pernah disimpan di repo, APK, atau catatan.
+- **Aplikasi administrator** (pusat, `/admin`): nanti tampilannya disamakan dengan aplikasi Android, temanya sama.
