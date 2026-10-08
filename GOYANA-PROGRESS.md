@@ -1627,3 +1627,4 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **Aplikasi**: `core/business.dart` (nomor nota `KODE-YYMMDD-HP-NNNN` saat masuk ke server), `pure/server_sync.dart` (kode nota, slot HP kasir, setelan usaha bersama, parfum/durasi/pilihan QRIS, kirim sesuai hak peran, profil diperbarui tiap buka), `pure/pure_shell.dart` (pemindai menerima nomor baru), `test/server_sync_test.dart` (+3 tes).
 - **Backend**: `config/goyana.php` (catatan kunci setelan), `SyncTest` (+1: setelan pemilik sampai ke HP kasir, kasir tidak bisa mengubahnya). PHPUnit 107 tes lulus di lokal.
 - **Belum berpasangan**: tabel di SISTEM-PUSAT §51.
+- **CI**: `Backend foundation` 37748601968 SUCCESS; `Flutter foundation` 37748601996 completed success (analyze bersih, tes unit lulus termasuk 3 tes baru). 1 CI Flutter dipakai untuk bagian ini.
