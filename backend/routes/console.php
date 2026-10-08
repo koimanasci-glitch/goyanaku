@@ -98,6 +98,8 @@ Artisan::command('goyana:blast', function () {
     return 0;
 })->purpose('WA blast marketing: tiap nomor pengirim mengirim paling banyak satu pesan bila gilirannya tiba');
 \Illuminate\Support\Facades\Schedule::command('goyana:blast')->everyMinute()->withoutOverlapping();
+// Balasan WA client yang belum terkirim dicoba lagi (antrean modul App\WhatsApp). Diam bila modul dimatikan.
+if (config('whatsapp.enabled')) \Illuminate\Support\Facades\Schedule::command('goyana:wa-retry')->everyMinute()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::command('goyana:prune')->dailyAt('02:30')->timezone('Asia/Jakarta');
 \Illuminate\Support\Facades\Schedule::command('goyana:weekly-report')->weeklyOn(1, '07:00')->timezone('Asia/Jakarta');
 

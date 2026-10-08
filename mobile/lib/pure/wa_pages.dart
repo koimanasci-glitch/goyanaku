@@ -5,6 +5,8 @@ import 'dart:convert';
 import '../core/money.dart';
 import 'access.dart';
 import 'pages.dart';
+import 'wa_devices_page.dart';
+import 'wa_link.dart';
 
 String _chatKey(PureHost host) => 'goyana-chat191:${host.business.activeOutlet}';
 
@@ -267,7 +269,10 @@ class AiPage extends TemplatePage {
 }
 
 /// Halaman WhatsApp lain yang susunannya tetap (dari tangkapan HTML).
-Map<String, PurePage> whatsappPages(PureHost host) => {
+Map<String, PurePage> whatsappPages(PureHost host) {
+  // Satu sumber data perangkat WhatsApp untuk halaman perangkat dan sakelar Balas Status di Otomasi.
+  final wa = WaLink(host);
+  return {
       'whatsappbot': TemplatePage(host, 'whatsappbot', onButton: (p, i) {
         const go = ['triggers191', 'ai191', 'blast191', 'wadevices195', 'quickreply'];
         const need = ['quick', 'ai', 'blast', '', 'quick'];
@@ -285,9 +290,7 @@ Map<String, PurePage> whatsappPages(PureHost host) => {
       'quickreply': TemplatePage(host, 'quickreply', backTo: 'whatsappbot', onButton: (p, i) {
         if (_gate(host, 'quick')) host.go('triggers191');
       }),
-      'automation': AutomationPage(host),
-      'wadevices195': TemplatePage(host, 'wadevices195', onButton: (p, i) {
-        if (host.business.outlets.isEmpty) return host.toast('Tambahkan pusat atau cabang di Pengaturan Outlet terlebih dahulu.');
-        host.toast('Menautkan WhatsApp memerlukan layanan WhatsApp GOYANA (server belum aktif).');
-      }),
+      'automation': AutomationPage(host, wa: wa),
+      'wadevices195': WaDevicesPage(host, wa),
     };
+}

@@ -1656,3 +1656,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **Daftar client pindah** dari `/admin` ke `/admin/clients`; `/admin` sekarang Beranda.
 - **Uji lokal**: PHPUnit 132 tes / 1179 asersi lulus (11 tes baru di `AdminAppTest`), `php -l` bersih, `view:cache` lulus. Tampilan dicek di browser lebar HP (412 px) dengan data contoh.
 - **Belum diuji**: gateway WhatsApp sungguhan (belum ada), server sungguhan, MySQL.
+
+### [Claude] Modul WhatsApp GPT diperiksa dan dipasang (8 Okt, 23.20 "Ok gas")
+- **Branch**: `backend/integrasi-whatsapp` (di atas `backend/tim-outlet-kurir`). Patch asli GPT ada di `codex/whatsapp-preparation`.
+- **Keputusan Koko**: Balas Status WhatsApp mulai paket Silver. Acuan teknis: GOYANA-SISTEM-PUSAT.md §53.
+- **Backend**: provider terdaftar; saklar `GOYANA_WHATSAPP_ENABLED` (bawaan mati); template WA masuk menu administrator (area `support`, tema administrator); WA blast memakai kontrak `ChatkuGateway` yang sama (driver `http` tebakan dan `/api/marketing/inbound` dihapus; migrasi `2026_10_08_000015` menambah `marketing_senders.remote_id`); `goyana:wa-retry` terjadwal; nomor nota format baru dikenali balasan status.
+- **Mode Murni**: `pure/wa_link.dart`, `pure/wa_devices_page.dart` (menu Hubungkan WhatsApp), sakelar Balas Status WhatsApp per nomor di Otomasi; `ServerFailure.status`.
+- **Belum**: adapter Chatku (kontrak API belum ada), pemasangan nomor marketing, pembayaran slot tambahan, penyedia AI template, uji HP/server/MySQL sungguhan.

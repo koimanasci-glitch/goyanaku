@@ -1,26 +1,30 @@
 <?php
 namespace App\Support;
 
-use Illuminate\Support\Facades\Http;
+use App\WhatsApp\Contracts\ChatkuGateway;
+use App\WhatsApp\UnavailableGateway;
 
 /**
- * Gateway WhatsApp untuk blast marketing. Sengaja tipis: mesin antrean (App\Support\Blast) yang mengatur giliran dan batas.
- * Driver "none" = belum tersambung. Driver "http" mengirim JSON {from, to, text}; bentuk ini disesuaikan saat CHATKU tersambung.
+ * Pintu kirim WA blast marketing. Sejak 8 Oktober 2026 hanya ada satu jalur ke Chatku: kontrak ChatkuGateway milik
+ * modul App\WhatsApp, yang juga dipakai balasan status client. Mesin antrean (App\Support\Blast) mengatur giliran dan batas.
+ * Selama adapter Chatku resmi belum dipasang, gateway bawaan menolak semua kiriman dan blast tetap diam.
  */
 final class WhatsApp {
     public static function connected(): bool {
-        return config('goyana.whatsapp.driver') === 'http' && config('goyana.whatsapp.url') !== '';
+        return !(app(ChatkuGateway::class) instanceof UnavailableGateway);
     }
 
-    /** Melempar \RuntimeException bila pesan tidak terkirim. */
-    public static function send(string $from, string $to, string $text): void {
+    /**
+     * Kirim dari nomor pengirim marketing yang sudah dipasangkan di Chatku ($sender->remote_id).
+     * $key tetap per pesan supaya pengulangan setelah timeout tidak mengirim ganda. Melempar \RuntimeException bila gagal.
+     */
+    public static function send(object $sender, string $to, string $text, string $key): void {
         if (!self::connected()) throw new \RuntimeException('Gateway WhatsApp belum tersambung.');
+        if (($sender->remote_id ?? '') === '') throw new \RuntimeException('Nomor pengirim belum dipasangkan di Chatku.');
         try {
-            $reply = Http::timeout(20)->withToken((string) config('goyana.whatsapp.token'))->acceptJson()
-                ->post((string) config('goyana.whatsapp.url'), ['from' => $from, 'to' => $to, 'text' => $text]);
+            app(ChatkuGateway::class)->send($sender->remote_id, $to, $text, $key);
         } catch (\Throwable $e) {
-            throw new \RuntimeException('Gateway tidak terjangkau: '.class_basename($e));
+            throw new \RuntimeException('Gateway menolak: '.class_basename($e));
         }
-        if (!$reply->successful()) throw new \RuntimeException('Gateway menolak ('.$reply->status().')');
     }
 }

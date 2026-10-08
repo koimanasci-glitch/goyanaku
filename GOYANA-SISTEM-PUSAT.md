@@ -968,6 +968,20 @@ Keputusan Paduka (20.35–20.42 WIB): tampilan administrator disamakan dengan ap
 - Aturan bawaan (bisa diubah di aplikasi): 20 pesan/hari per nomor di minggu pertama, +10 tiap minggu, paling banyak 80; jeda acak 2–6 menit; 09.00–17.00 WIB, Minggu libur; tindak lanjut 5 hari; tidak dikirimi kampanye lain dalam 30 hari; nomor pengirim dihentikan setelah 5 gagal berturut-turut; jatah dipotong separuh bila 3 hari mengirim ≥30 pesan tanpa satu pun balasan.
 - Balasan "STOP", "berhenti", "jangan kirim/hubungi" dan sejenisnya: nomor itu tidak pernah dikirimi lagi, juga bila dimasukkan ulang.
 - Nomor CS pusat ditolak sebagai nomor pengirim blast.
-- Gateway: `GOYANA_WA_DRIVER=none` (bawaan) berarti tidak ada kiriman otomatis; tiap pesan bisa dikirim manual lewat wa.me lalu ditandai. `http` mengirim JSON `{from, to, text}`; bentuknya disesuaikan saat CHATKU tersambung. Balasan masuk lewat `POST /api/marketing/inbound` dengan token `GOYANA_WA_WEBHOOK_TOKEN`.
+- Gateway: satu jalur ke Chatku lewat kontrak `App\WhatsApp\Contracts\ChatkuGateway` (§53), sama dengan perangkat WA client. Selama adapter Chatku resmi belum dipasang tidak ada kiriman otomatis; tiap pesan bisa dikirim manual lewat wa.me lalu ditandai. Nomor pengirim baru ikut giliran setelah punya `remote_id` (sesi nomor itu di Chatku). Balasan masuk (STOP, balasan calon) lewat webhook yang sama: `POST /api/whatsapp/chatku/events`. Driver `http` tebakan dan `POST /api/marketing/inbound` sudah dihapus.
 
 **Belum**: AI pusat membalas calon client (menunggu gateway dan AI pusat tersambung); grafik lebih rinci; pembagian hak di halaman rincian client masih lewat penolakan server (tombol yang bukan haknya masih tampil).
+
+## 53. Modul WhatsApp client (dipasang 8 Oktober 2026)
+
+Asal: modul persiapan GPT (`codex/whatsapp-preparation`), diperiksa lalu dipasang atas aba-aba Paduka. Rincian rancangan: `GOYANA-WHATSAPP-IMPLEMENTASI.md`.
+
+- **Backend** `backend/app/WhatsApp/`, terdaftar di `bootstrap/providers.php`. Migrasi modul ikut `php artisan migrate`.
+- **Saklar** `GOYANA_WHATSAPP_ENABLED` (bawaan `false`): API perangkat `/api/whatsapp/*` dan webhook `/api/whatsapp/chatku/events` hanya terbuka bila `true`. Halaman template administrator selalu ada.
+- **Chatku belum tersambung.** Belum ada adapter resmi; gateway bawaan menjawab 503. Tidak ada QR, kode, status terhubung, atau kiriman palsu. Adapter dipasang dengan mengikat `ChatkuGateway` setelah kontrak API Chatku tersedia; jangan menebak bentuknya.
+- **Hak paket** (`app/WhatsApp/config.php`): nomor WA dan Balas Status mulai Silver (keputusan Paduka 8 Oktober 2026), balas layanan/harga Gold dan Platinum, satu slot nomor dasar, tambah cabang tidak menambah slot. Slot tambahan hanya dari `wa_slot_grants` (belum tersambung ke pembayaran).
+- **Mode Murni**: `mobile/lib/pure/wa_link.dart` (penghubung ke sesi `ServerSync`), `wa_devices_page.dart` (menu Hubungkan WhatsApp, `wadevices195`), dan sakelar "Balas Status WhatsApp" per nomor di Otomasi. Sakelar lama "Chatbot status pesanan" yang hanya tersimpan di HP dihapus supaya sumbernya satu: server. Hanya pemilik yang mengatur; draf tersimpan di HP sampai dihubungkan.
+- **Administrator**: Template WhatsApp di `/admin/whatsapp/templates`, area `support` (CS/Bantuan dan pemilik), tema administrator.
+- **Blast marketing** memakai gateway yang sama (§52). Penjadwal: `goyana:wa-retry` tiap menit bila modul menyala.
+- **Belum ada**: adapter Chatku, pemasangan nomor pengirim marketing, pembayaran slot tambahan, penyedia AI pengusul template, uji di HP/server/MySQL sungguhan. `App\Support\QuickReply` (alat uji lama di administrator) belum dipensiunkan; ia tidak mengirim apa pun.
+

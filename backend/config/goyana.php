@@ -31,15 +31,6 @@ return [
         'teknis' => ['label' => 'Teknis', 'areas' => ['clients', 'system', 'settings', 'audit']],
     ],
 
-    // Gateway WhatsApp untuk blast marketing. "none" = belum tersambung (pesan menunggu di antrean; kirim manual tetap bisa).
-    // "http" = POST JSON {from, to, text} ke GOYANA_WA_URL dengan Bearer GOYANA_WA_TOKEN (disesuaikan saat CHATKU tersambung).
-    'whatsapp' => [
-        'driver' => env('GOYANA_WA_DRIVER', 'none'),
-        'url' => env('GOYANA_WA_URL', ''),
-        'token' => env('GOYANA_WA_TOKEN', ''),
-        'webhook_token' => env('GOYANA_WA_WEBHOOK_TOKEN', ''),
-    ],
-
     // Masuk dengan Google (pemilik): Client ID OAuth yang diterima server, dipisah koma di GOYANA_GOOGLE_CLIENT_IDS.
     // Kosong = masuk Google dimatikan. Client ID bukan rahasia, tetapi tetap diatur di .env server, bukan di repo.
     'google' => ['client_ids' => array_values(array_filter(array_map('trim', explode(',', (string) env('GOYANA_GOOGLE_CLIENT_IDS', '')))))],

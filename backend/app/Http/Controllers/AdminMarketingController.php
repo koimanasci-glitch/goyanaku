@@ -196,14 +196,6 @@ class AdminMarketingController {
         return back()->with('status', 'Aturan blast disimpan.');
     }
 
-    /** Balasan masuk dari gateway WhatsApp (CHATKU). Dijaga token rahasia di .env server. */
-    public function inbound(Request $request) {
-        $token = (string) config('goyana.whatsapp.webhook_token');
-        abort_unless($token !== '' && hash_equals($token, (string) $request->bearerToken()), 403);
-        $data = $request->validate(['from' => 'required|string|max:30', 'text' => 'nullable|string|max:4000']);
-        return response()->json(['result' => Blast::inbound($data['from'], (string) ($data['text'] ?? ''))]);
-    }
-
     private function log(Request $request, string $action, array $details): void {
         DB::table('platform_audit')->insert(['actor_id' => $request->user()->id, 'action' => $action, 'details' => json_encode($details), 'created_at' => now()]);
     }

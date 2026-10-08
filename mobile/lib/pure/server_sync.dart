@@ -77,8 +77,11 @@ const serverWatchedKeys = [
 ];
 
 class ServerFailure implements Exception {
-  const ServerFailure(this.message, {this.offline = false});
+  const ServerFailure(this.message, {this.offline = false, this.status = 0});
   final String message;
+
+  /// Kode HTTP bila server yang menolak (0 = bukan jawaban server).
+  final int status;
 
   /// Server tidak terjangkau (tanpa internet), bukan ditolak.
   final bool offline;
@@ -733,7 +736,7 @@ class ServerSync {
       final errors = _asMap(json['errors']);
       final first = errors.isEmpty ? null : errors.values.first;
       final detail = first is List && first.isNotEmpty ? _text(first.first) : _text(json['message']);
-      throw ServerFailure(detail.isNotEmpty ? detail : 'Server menolak (${reply.status})');
+      throw ServerFailure(detail.isNotEmpty ? detail : 'Server menolak (${reply.status})', status: reply.status);
     }
     return json;
   }

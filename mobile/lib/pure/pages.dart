@@ -33,6 +33,7 @@ import 'qr_decode.dart';
 import 'reminders.dart';
 import 'server_sync.dart' show ServerFailure, ServerSync;
 import 'views.dart' show mapsLink;
+import 'wa_link.dart';
 
 /// Yang dibutuhkan halaman dari shell.
 abstract class PureHost {
@@ -2045,7 +2046,15 @@ class TemplatePage extends PurePage {
 /// Pilihan tersimpan di perangkat; pengiriman otomatis baru berjalan setelah WhatsApp terhubung ke server.
 class AutomationPage extends TemplatePage {
   // ignore: use_super_parameters
-  AutomationPage(PureHost host) : super(host, 'automation');
+  AutomationPage(PureHost host, {this.wa}) : super(host, 'automation');
+
+  /// Perangkat WhatsApp usaha (server): sumber tunggal sakelar "Balas Status WhatsApp".
+  final WaLink? wa;
+
+  @override
+  void opened() {
+    wa?.sync();
+  }
 
   static const dayOptions = [1, 2, 3, 5, 7];
 
@@ -2074,9 +2083,40 @@ class AutomationPage extends TemplatePage {
         {'type': 'label', 't': 'Ingatkan setelah berapa hari'},
         {'type': 'select', 'options': [for (final d in dayOptions) '$d hari'], 'index': dayOptions.indexOf(days), 'i': 0},
       ],
-      tg(3, 'Chatbot status pesanan', 'Chatbot menjawab status, tagihan dan jam outlet'),
-      {'type': 'hint', 't': 'Chatbot dapat membaca status order, total tagihan, jam outlet dan informasi layanan tanpa mengubah data transaksi.'},
+      ..._replyStatus(),
     ];
+  }
+
+  /// Balas Status WhatsApp berlaku per nomor yang sudah terdaftar di server; hak paket diperiksa server.
+  List<Map<String, dynamic>> _replyStatus() {
+    const t = 'Balas Status WhatsApp', s = 'Otomatis menjawab pertanyaan status pesanan.';
+    final list = wa?.registered ?? const [];
+    return [
+      if (list.isEmpty) {'type': 'toggle', 't': t, 's': s, 'on': false, 'i': 3},
+      for (var k = 0; k < list.length; k++)
+        {'type': 'toggle', 't': t, 's': '$s ${list[k].name} · +${list[k].phone}', 'on': list[k].replyStatus, 'i': 100 + k},
+      {
+        'type': 'hint',
+        't': list.isEmpty
+            ? 'Hubungkan nomor WhatsApp outlet dulu di menu Hubungkan WhatsApp. Tersedia mulai paket Silver.'
+            : 'Jawaban diambil dari data pesanan yang sudah tersinkron. Pelanggan hanya menerima status pesanan miliknya sendiri, tanpa mengubah data transaksi.',
+      },
+    ];
+  }
+
+  @override
+  void toggle(int i) {
+    final link = wa;
+    if (i == 3) return host.toast(link != null && link.staffOnly ? 'Hanya pemilik usaha yang dapat mengatur ini.' : 'Hubungkan nomor WhatsApp dulu di menu Hubungkan WhatsApp.');
+    if (i >= 100) {
+      final list = link?.registered ?? const [];
+      if (link == null || i - 100 >= list.length) return;
+      final d = list[i - 100];
+      link.run(() => link.store.automation(d.id, status: !d.replyStatus, services: d.replyServices),
+          ok: d.replyStatus ? 'Balas Status WhatsApp dimatikan' : 'Balas Status WhatsApp aktif');
+      return;
+    }
+    super.toggle(i);
   }
 
   @override

@@ -2,7 +2,7 @@
 
 Tanggal: 8 Oktober 2026. Branch lokal: `codex/whatsapp-preparation`.
 
-**Status: modul persiapan terisolasi. Belum dipasang, digabung, di-push, atau diuji dengan Chatku nyata. Pemasangan menunggu aba-aba Paduka.**
+**Status 8 Oktober 2026 (pembaruan Claude): sudah dipasang atas aba-aba Paduka di branch `backend/integrasi-whatsapp`. Provider terdaftar, menu HP dan administrator tersambung, tes Laravel dan Flutter dijalankan di CI. Belum diuji dengan Chatku nyata; saklar `GOYANA_WHATSAPP_ENABLED` bawaan mati. Ringkasan pemasangan: `GOYANA-SISTEM-PUSAT.md` §53. Isi di bawah adalah catatan asli GPT sebelum pemasangan.**
 
 ## Yang sudah dibuat
 

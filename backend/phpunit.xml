@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".phpunit.cache">
-<testsuites><testsuite name="Feature"><directory>tests/Feature</directory></testsuite></testsuites>
+<testsuites><testsuite name="Feature"><directory>tests/Feature</directory><directory>tests/WhatsApp</directory></testsuite></testsuites>
 <php>
 <env name="APP_ENV" value="testing"/><env name="APP_KEY" value="base64:K1i89YMXMYPPDvbxqrWSBW4ZacbFxZLP98xjd+jUDM0="/>
 <env name="BCRYPT_ROUNDS" value="4"/><env name="CACHE_STORE" value="array"/>
 <env name="DB_CONNECTION" value="sqlite"/><env name="DB_DATABASE" value=":memory:"/>
 <env name="SESSION_DRIVER" value="array"/><env name="MAIL_MAILER" value="array"/><env name="QUEUE_CONNECTION" value="sync"/>
+<env name="GOYANA_WHATSAPP_ENABLED" value="true"/>
 </php></phpunit>

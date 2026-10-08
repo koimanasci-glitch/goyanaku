@@ -117,13 +117,14 @@ final class Blast {
         if (!WhatsApp::connected()) return ['idle' => 'Gateway WhatsApp belum tersambung'] + $out;
         if (!self::open($now)) return ['idle' => 'Di luar jam kirim'] + $out;
         $s = Settings::all();
-        foreach (DB::table('marketing_senders')->where('active', true)->whereNull('paused_at')->orderBy('id')->get() as $sender) {
+        // Hanya nomor yang sudah dipasangkan di Chatku yang mendapat giliran.
+        foreach (DB::table('marketing_senders')->where('active', true)->whereNull('paused_at')->whereNotNull('remote_id')->orderBy('id')->get() as $sender) {
             if ($sender->next_at && CarbonImmutable::parse($sender->next_at)->gt($now)) continue;
             if (self::sentToday($sender->id, $now) >= self::quota($sender, $now)) continue;
             $message = self::next($now, $out);
             if (!$message) break;
             try {
-                WhatsApp::send($sender->phone, $message->phone, $message->body);
+                WhatsApp::send($sender, $message->phone, $message->body, 'goyana-blast:'.$message->id);
             } catch (\RuntimeException $e) {
                 DB::table('campaign_messages')->where('id', $message->id)->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 300), 'sender_id' => $sender->id]);
                 $streak = (int) $sender->fail_streak + 1; $stop = $streak >= (int) $s['blast_fail_stop'];

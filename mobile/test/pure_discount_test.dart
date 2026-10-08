@@ -1590,7 +1590,7 @@ void templateTests() {
     s.nav('automation');
     await _settle(tester);
     List<Map> tg() => s.debugItems().where((e) => e['type'] == 'toggle').toList();
-    expect([for (final t in tg()) t['t']], ['Pesanan diterima', 'Pesanan siap diambil', 'Belum diambil 2 hari', 'Chatbot status pesanan']);
+    expect([for (final t in tg()) t['t']], ['Pesanan diterima', 'Pesanan siap diambil', 'Belum diambil 2 hari', 'Balas Status WhatsApp']);
     expect([for (final t in tg()) t['on']], [true, true, true, false]);
     s.fmToggle(0);
     s.fmInput(0, 3);

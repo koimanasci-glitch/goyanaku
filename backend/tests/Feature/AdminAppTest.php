@@ -7,7 +7,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use App\WhatsApp\Contracts\ChatkuGateway;
+use Tests\Support\FakeGateway;
 use Tests\TestCase;
 
 /** Aplikasi administrator: Beranda, divisi, monitor VPS, CRM marketing, dan WA blast yang digilir (keputusan pengguna 8 Oktober 2026). */
@@ -31,16 +32,17 @@ class AdminAppTest extends TestCase {
         return DB::table('prospects')->insertGetId($extra + ['name' => $name, 'phone' => $phone, 'source' => 'manual', 'status' => 'baru', 'created_at' => now(), 'updated_at' => now()]);
     }
 
-    private function gateway(int $status = 200): void {
-        config(['goyana.whatsapp.driver' => 'http', 'goyana.whatsapp.url' => 'https://wa.example/send', 'goyana.whatsapp.token' => 'rahasia']);
-        Http::fake(['wa.example/*' => Http::response(['ok' => true], $status)]);
+    /** Gateway tiruan: blast memakai kontrak Chatku yang sama dengan perangkat WA client. */
+    private function gateway(bool $fail = false): FakeGateway {
+        $this->app->instance(ChatkuGateway::class, $gateway = new FakeGateway($fail));
+        return $gateway;
     }
 
     /** Senin 12 Oktober 2026, 10.00 WIB. */
     private function workTime(): CarbonImmutable { return CarbonImmutable::parse('2026-10-12 10:00', 'Asia/Jakarta'); }
 
     private function sender(string $phone = '6281100000001', ?CarbonImmutable $started = null): int {
-        return DB::table('marketing_senders')->insertGetId(['label' => 'Marketing 1', 'phone' => $phone, 'active' => true, 'started_at' => ($started ?? $this->workTime())->utc(), 'created_at' => now(), 'updated_at' => now()]);
+        return DB::table('marketing_senders')->insertGetId(['label' => 'Marketing 1', 'phone' => $phone, 'remote_id' => 'sesi-'.$phone, 'active' => true, 'started_at' => ($started ?? $this->workTime())->utc(), 'created_at' => now(), 'updated_at' => now()]);
     }
 
     private function campaign(array $data = []): int {
@@ -64,9 +66,9 @@ class AdminAppTest extends TestCase {
     public function test_each_division_opens_only_its_own_areas(): void {
         $b = $this->client('Laundry Uji');
         $open = ['marketing' => ['/admin', '/admin/features', '/admin/marketing', '/admin/marketing/clients', '/admin/marketing/campaigns', '/admin/reports'],
-            'cs' => ['/admin', '/admin/clients', '/admin/businesses/'.$b->id, '/admin/tickets', '/admin/faqs'],
+            'cs' => ['/admin', '/admin/clients', '/admin/businesses/'.$b->id, '/admin/tickets', '/admin/faqs', '/admin/whatsapp/templates'],
             'teknis' => ['/admin', '/admin/clients', '/admin/system', '/admin/settings', '/admin/audit']];
-        $closed = ['marketing' => ['/admin/clients', '/admin/businesses/'.$b->id, '/admin/system', '/admin/settings', '/admin/audit', '/admin/admins', '/admin/tickets', '/admin/clients/new'],
+        $closed = ['marketing' => ['/admin/clients', '/admin/businesses/'.$b->id, '/admin/system', '/admin/settings', '/admin/audit', '/admin/admins', '/admin/tickets', '/admin/clients/new', '/admin/whatsapp/templates'],
             'cs' => ['/admin/marketing', '/admin/system', '/admin/settings', '/admin/admins', '/admin/reports', '/admin/clients/new'],
             'teknis' => ['/admin/marketing', '/admin/tickets', '/admin/admins', '/admin/reports', '/admin/clients/new']];
         foreach ($open as $division => $urls) {
@@ -174,7 +176,7 @@ class AdminAppTest extends TestCase {
     }
 
     public function test_blast_sends_one_at_a_time_within_quota_hours_and_random_gap(): void {
-        $this->gateway();
+        $gateway = $this->gateway();
         foreach (range(1, 30) as $i) $this->prospect('Laundry '.$i, '62812000001'.str_pad((string) $i, 2, '0', STR_PAD_LEFT));
         $this->actingAsAdmin($this->admin('marketing'));
         $id = $this->campaign(); $sender = $this->sender(); $now = $this->workTime();
@@ -182,7 +184,8 @@ class AdminAppTest extends TestCase {
         $this->assertSame(0, Blast::tick($now)['sent']);
         $this->post('/admin/marketing/campaigns/'.$id.'/status', ['status' => 'running'])->assertRedirect();
         $this->assertSame(1, Blast::tick($now)['sent']);
-        Http::assertSent(fn ($r) => $r['from'] === '6281100000001' && $r['to'] === '6281200000101' && $r->hasHeader('Authorization', 'Bearer rahasia'));
+        $first = DB::table('campaign_messages')->where('status', 'sent')->value('id');
+        $this->assertSame([['remote' => 'sesi-6281100000001', 'to' => '6281200000101', 'key' => 'goyana-blast:'.$first]], array_map(fn ($m) => ['remote' => $m['remote'], 'to' => $m['to'], 'key' => $m['key']], $gateway->sent));
         // Jeda acak 2–6 menit: semenit kemudian belum boleh, tujuh menit kemudian boleh.
         $next = CarbonImmutable::parse(DB::table('marketing_senders')->where('id', $sender)->value('next_at'));
         $this->assertTrue($next->gte($now->addMinutes(2)) && $next->lte($now->addMinutes(6)));
@@ -202,7 +205,7 @@ class AdminAppTest extends TestCase {
     }
 
     public function test_stop_reply_ends_all_contact_and_a_reply_cancels_the_follow_up(): void {
-        $this->gateway(); config(['goyana.whatsapp.webhook_token' => 'token-webhook']);
+        $this->gateway();
         $a = $this->prospect('Laundry A', '6281200000001'); $b = $this->prospect('Laundry B', '6281200000002'); $c = $this->prospect('Laundry C', '6281200000003');
         $this->actingAsAdmin($this->admin('marketing'));
         $id = $this->campaign(['followups' => ['Halo lagi {nama}, masih berminat?']]);
@@ -214,9 +217,11 @@ class AdminAppTest extends TestCase {
         $this->assertSame(0, Blast::tick($now->addDays(2))['sent']);
         // A membalas STOP, B membalas biasa, C diam.
         $this->flushHeaders();
-        $this->postJson('/api/marketing/inbound', ['from' => '081200000001', 'text' => 'Stop ya, jangan kirim lagi'])->assertForbidden();
-        $this->withToken('token-webhook')->postJson('/api/marketing/inbound', ['from' => '081200000001', 'text' => 'Stop ya, jangan kirim lagi'])->assertJsonPath('result', 'stopped');
-        $this->withToken('token-webhook')->postJson('/api/marketing/inbound', ['from' => '6281200000002', 'text' => 'Boleh, berapa harganya?'])->assertJsonPath('result', 'recorded');
+        // Balasan masuk lewat webhook Chatku yang sama dengan perangkat WA client; tanpa tanda sah ditolak.
+        $event = fn (string $from, string $text) => ['id' => 'evt-'.$from, 'device' => 'sesi-6281100000001', 'from' => $from, 'text' => $text, 'occurred_at' => now()->toIso8601String(), 'from_me' => false, 'group' => false];
+        $this->postJson('/api/whatsapp/chatku/events', $event('081200000001', 'Stop ya, jangan kirim lagi'))->assertUnauthorized();
+        $this->withHeader('X-Test-Signature', 'sah')->postJson('/api/whatsapp/chatku/events', $event('081200000001', 'Stop ya, jangan kirim lagi'))->assertOk();
+        $this->withHeader('X-Test-Signature', 'sah')->postJson('/api/whatsapp/chatku/events', $event('6281200000002', 'Boleh, berapa harganya?'))->assertOk();
         $this->assertSame([1, 'menolak'], [(int) DB::table('prospects')->where('id', $a)->value('do_not_contact'), DB::table('prospects')->where('id', $a)->value('status')]);
         $this->assertSame(['membalas', 1], [DB::table('prospects')->where('id', $b)->value('status'), (int) DB::table('prospects')->where('id', $b)->value('replies')]);
         $this->assertDatabaseHas('marketing_optouts', ['phone' => '6281200000001']);
@@ -233,7 +238,7 @@ class AdminAppTest extends TestCase {
     }
 
     public function test_repeated_failures_pause_the_sender_and_manual_sending_still_respects_opt_outs(): void {
-        $this->gateway(500);
+        $this->gateway(true);
         foreach (range(1, 8) as $i) $this->prospect('Laundry '.$i, '628120000000'.$i);
         $this->actingAsAdmin($this->admin('marketing'));
         $id = $this->campaign(); $this->post('/admin/marketing/campaigns/'.$id.'/status', ['status' => 'running']);
@@ -260,11 +265,31 @@ class AdminAppTest extends TestCase {
             'blast_hour_start' => 9, 'blast_hour_end' => 16, 'blast_followup_days' => 7, 'blast_recontact_days' => 45, 'blast_fail_stop' => 4])->assertSessionHasErrors('blast_max_per_day');
     }
 
+    public function test_whatsapp_templates_live_in_the_administrator_app_and_reject_foreign_variables(): void {
+        $this->actingAsAdmin($this->admin('cs'));
+        $this->get('/admin/features')->assertOk()->assertSee('Template WhatsApp');
+        $this->get('/admin/whatsapp/templates')->assertOk()->assertSee('Template WhatsApp')->assertSee('{{kode_pesanan}}')->assertSee('Poppins')->assertSee('Belum ada template tersimpan');
+        $form = ['purpose' => 'status', 'name' => 'Status pesanan', 'body' => 'Pesanan {{kode_pesanan}} sekarang {{status}}.', 'version' => 0, 'active' => 1];
+        $this->post('/admin/whatsapp/templates', $form)->assertSessionHas('status', 'Template disimpan.');
+        $this->assertDatabaseHas('wa_templates', ['purpose' => 'status', 'active' => 1, 'version' => 1]);
+        $this->get('/admin/whatsapp/templates')->assertOk()->assertSee('Status pesanan')->assertSee('Aktif')->assertSee('revisi 1');
+        // Variabel layanan tidak tersedia untuk balasan status, dan versi lama tidak boleh menimpa perubahan orang lain.
+        $this->post('/admin/whatsapp/templates', ['body' => 'Harga: {{daftar_layanan}}', 'version' => 1] + $form)->assertSessionHasErrors('body');
+        $this->post('/admin/whatsapp/templates', ['body' => 'Pesanan {{kode_pesanan}}.'] + $form)->assertStatus(409);
+        $this->assertSame(1, DB::table('wa_template_revisions')->count());
+        // Belum ada penyedia AI: usulan ditolak terang-terangan, bukan dikarang.
+        $this->post('/admin/whatsapp/templates/propose')->assertStatus(503);
+    }
+
     public function test_without_a_gateway_nothing_is_sent_automatically(): void {
         $this->prospect('Laundry A', '6281200000001');
         $this->actingAsAdmin($this->admin('marketing'));
-        $id = $this->campaign(); $this->post('/admin/marketing/campaigns/'.$id.'/status', ['status' => 'running']); $this->sender();
+        $id = $this->campaign(); $this->post('/admin/marketing/campaigns/'.$id.'/status', ['status' => 'running']); $sender = $this->sender();
         $this->assertSame('Gateway WhatsApp belum tersambung', Blast::tick($this->workTime())['idle']);
+        // Gateway ada tetapi nomor pengirim belum dipasangkan di Chatku: tetap tidak ada yang terkirim.
+        $gateway = $this->gateway(); DB::table('marketing_senders')->where('id', $sender)->update(['remote_id' => null]);
+        $this->assertSame(0, Blast::tick($this->workTime())['sent']); $this->assertSame([], $gateway->sent);
+        $this->app->instance(ChatkuGateway::class, new \App\WhatsApp\UnavailableGateway);
         $this->artisan('goyana:blast')->expectsOutput('Gateway WhatsApp belum tersambung')->assertExitCode(0);
         $this->assertSame(1, DB::table('campaign_messages')->where('status', 'queued')->count());
     }

@@ -23,6 +23,7 @@ class AdminHomeController {
         ['admin.campaigns', 'Promosi & Notifikasi', 'megaphone', 'red', 'marketing'],
         ['admin.tickets', 'Tiket Bantuan', 'bell', 'blue', 'support'],
         ['admin.faqs', 'FAQ', 'help', 'green', 'support'],
+        ['admin.wa.templates', 'Template WhatsApp', 'chat', 'orange', 'support'],
         ['admin.settings', 'Pengaturan Sistem', 'gear', 'gray', 'settings'],
         ['admin.audit', 'Audit', 'shield', 'violet', 'audit'],
     ];

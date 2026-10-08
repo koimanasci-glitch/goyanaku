@@ -6,6 +6,7 @@
 @unless($connected)<div class="notice">Gateway WhatsApp belum tersambung, jadi pengiriman otomatis belum berjalan. Kampanye tetap bisa disusun, dan tiap pesan bisa dikirim manual lewat WhatsApp dari halaman kampanyenya.</div>@endunless
 <section class="card"><div class="row"><h2>Nomor pengirim</h2><span @class(['pill', 'good' => $open && $connected])>{{ !$connected ? 'Gateway belum tersambung' : ($open ? 'Jam kirim' : 'Di luar jam kirim') }}</span></div>
 <ul class="plain">@forelse($senders as $s)<li class="row"><span><b>{{ $s['label'] }}</b> · +{{ $s['phone'] }}<br>
+@if(empty($s['remote_id']))<small class="muted">Belum dipasangkan di Chatku, jadi belum ikut giliran kirim otomatis.</small><br>@endif
 <small class="muted">@if($s['paused_at'])Dihentikan otomatis: {{ $s['pause_reason'] }}@elseif(!$s['active'])Dimatikan@else Hari ini {{ $s['today'] }} dari jatah {{ $s['quota'] }} pesan · mulai {{ \Carbon\Carbon::parse($s['started_at'])->timezone('Asia/Jakarta')->format('d M Y') }}@endif</small>
 <span class="meter {{ $s['paused_at'] ? 'fail' : '' }}" style="display:block;max-width:260px"><i style="width:{{ $s['quota'] ? min(100, round($s['today'] / $s['quota'] * 100)) : 0 }}%"></i></span></span>
 <form method="post" action="{{ route('admin.senders.toggle', $s['id']) }}">@csrf<button class="secondary">{{ $s['paused_at'] ? 'Jalankan lagi' : ($s['active'] ? 'Matikan' : 'Nyalakan') }}</button></form></li>

@@ -7,7 +7,8 @@ import '../native/common.dart';
 import 'device_store.dart';
 import 'automation_tile.dart';
 
-/// Not registered in PureShell yet: mounting awaits Paduka's instruction.
+/// Halaman mandiri dari modul persiapan. Mode Murni memakai `pure/wa_devices_page.dart` (susunan halaman aplikasi)
+/// di atas WaDeviceStore yang sama; widget ini tidak dipasang di PureShell.
 class WhatsAppDevicesPage extends StatefulWidget {
   const WhatsAppDevicesPage({super.key, required this.store, this.onBuySlots});
   final WaDeviceStore store;
