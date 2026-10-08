@@ -18,7 +18,8 @@ import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/import_csv.dart';
 import 'package:goyana_flutter/pure/label_page.dart';
-import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, restoreBackup;
+import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, HelpCenterPage, restoreBackup;
+import 'package:goyana_flutter/pure/reminders.dart';
 import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
 import 'package:goyana_flutter/pure/pure_shell.dart';
@@ -172,7 +173,7 @@ void servicesTests() {
 }
 
 // ---- Halaman berpola tetap (butir = tangkapan HTML) ----
-const _redesigned = {'automation', 'datacenter', 'cashier', 'barcode'};
+const _redesigned = {'automation', 'datacenter', 'cashier', 'barcode', 'reminder'};
 void templateTests() {
   testWidgets('Halaman pola tetap: butir sama persis dengan HTML dan bisa digambar', (tester) async {
     planAccess.testPlan = 'PLATINUM';
@@ -1466,6 +1467,61 @@ void templateTests() {
     final plain = await tester.runAsync(() => receiptPng(d));
     final withBar = await tester.runAsync(() => receiptPng(ReceiptData.of(o, outlet: 'Uji')));
     expect(plain!.length, lessThan(withBar!.length));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Reminder Pekerjaan: aturan → pengingat (deadline 2 jam, terlambat, stok menipis, belum bayar) dan selisih jadwal', (tester) async {
+    final kv = _store();
+    final b = await Business.load(kv);
+    final o = b.orders.first;
+    final due = o.due!.toLocal();
+    kv.data[StockBook.key] = jsonEncode({
+      'items': [{'id': 'b1', 'name': 'Deterjen', 'unit': 'liter', 'min': 5, 'cost': 1000}],
+      'ledger': [{'id': 'm0', 'itemId': 'b1', 'outletId': o.outlet, 'type': 'Stok Awal', 'qty': 3, 'at': '2026-10-01T00:00:00.000Z'}],
+    });
+    final stock = await StockBook.load(kv);
+    List<Reminder> at(DateTime now, {Set<int> off = const {}}) => buildReminders(b: b, stock: stock, on: (i) => !off.contains(i), now: now);
+
+    // Jauh sebelum deadline: dijadwalkan 2 jam sebelum & tepat saat deadline; stok menipis langsung; belum bayar pukul 09.00.
+    final early = at(due.subtract(const Duration(hours: 10)));
+    final d0 = early.firstWhere((r) => r.kind == 'due');
+    expect(d0.at, due.subtract(const Duration(hours: 2)));
+    expect(d0.immediate, isFalse);
+    expect(early.firstWhere((r) => r.kind == 'late').at, due);
+    expect(early.firstWhere((r) => r.kind == 'stock').body, 'Deterjen (sisa 3 liter)');
+    final unpaid = early.firstWhere((r) => r.kind == 'unpaid');
+    expect(unpaid.at.hour, 9);
+    expect(unpaid.body, startsWith('1 pesanan · total Rp'));
+    // Satu jam sebelum deadline: pengingat deadline langsung tampil.
+    expect(at(due.subtract(const Duration(hours: 1))).firstWhere((r) => r.kind == 'due').immediate, isTrue);
+    // Lewat deadline: hanya "terlambat" (langsung).
+    final late = at(due.add(const Duration(hours: 1)));
+    expect(late.where((r) => r.kind == 'due'), isEmpty);
+    expect(late.firstWhere((r) => r.kind == 'late').immediate, isTrue);
+    // Sakelar mati = aturan tidak menghasilkan pengingat.
+    expect(at(due.add(const Duration(hours: 1)), off: {1, 2, 3}), isEmpty);
+
+    // Selisih jadwal: yang sama tidak dijadwalkan ulang; yang hilang dibatalkan.
+    final (c1, a1, m1) = diffReminders(const {}, early);
+    expect(c1, isEmpty);
+    expect(a1.length, early.length);
+    final (c2, a2, _) = diffReminders(m1, early);
+    expect([c2, a2], [isEmpty, isEmpty]);
+    final (c3, a3, _) = diffReminders(m1, at(due.subtract(const Duration(hours: 10)), off: {2}));
+    expect(c3, [3000001]);
+    expect(a3, isEmpty);
+
+    // Halaman Reminder menampilkan pengingat yang sedang berlaku dan membukanya.
+    final s = await _pump(tester, kv);
+    s.nav('reminder');
+    await _settle(tester);
+    expect(s.debugItems().where((e) => e['type'] == 'toggle').length, 4);
+    final cards = s.debugItems().where((e) => e['type'] == 'card').toList();
+    expect(cards.map((e) => e['t']), containsAll(['Stok bahan menipis', 'Pesanan belum dibayar']));
+    s.fmToggle(2);
+    await _settle(tester);
+    expect(s.debugItems().where((e) => e['type'] == 'card').map((e) => e['t']), isNot(contains('Stok bahan menipis')));
+    expect(HelpCenterPage.supportWa, '6285280218627');
     expect(tester.takeException(), isNull);
   });
 

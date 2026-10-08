@@ -30,6 +30,7 @@ import 'mirror_pages.dart';
 import 'page_templates.dart';
 import 'plan_page.dart';
 import 'qr_decode.dart';
+import 'reminders.dart';
 import 'views.dart' show mapsLink;
 
 /// Yang dibutuhkan halaman dari shell.
@@ -67,6 +68,8 @@ abstract class PureHost {
   void advanceOrder(String id, {String? by});
   /// Izin kasir ke-[k] (sakelar Pengaturan → Kasir). Selalu true untuk pemilik / tanpa kunci PIN.
   bool kasirCan(int k);
+  /// Jadwalkan ulang notifikasi Reminder Pekerjaan dari data sekarang.
+  void syncReminders();
 }
 
 /// Isian popup serbaguna (formSheet107 di HTML): judul, keterangan, isian teks/angka atau pilihan warna.
@@ -2026,6 +2029,94 @@ class BarcodePage extends TemplatePage {
   }
 }
 
+/// Reminder Pekerjaan: sakelar aturan + izin notifikasi + daftar pengingat yang sedang berlaku.
+class ReminderPage extends TemplatePage {
+  // ignore: use_super_parameters
+  ReminderPage(PureHost host) : super(host, 'reminder');
+  StockBook? _stock;
+  String _perm = '';
+  List<Reminder> _shown = const [];
+
+  @override
+  void opened() {
+    StockBook.load(host.kv).then((v) {
+      _stock = v;
+      host.refresh();
+    });
+    _checkPerm();
+  }
+
+  Future<void> _checkPerm() async {
+    try {
+      final r = await host.device.invokeMapMethod<String, dynamic>('LocalNotifications.checkPermissions');
+      _perm = '${r?['display'] ?? ''}';
+    } catch (_) {
+      _perm = '';
+    }
+    host.refresh();
+  }
+
+  /// Pengingat yang sudah waktunya (terlambat, deadline ≤ 2 jam, stok menipis) + ringkasan belum bayar.
+  List<Reminder> current() => [
+        for (final r in buildReminders(b: host.business, stock: _stock, on: toggleValue, now: host.now))
+          if (r.immediate || r.kind == 'unpaid') r,
+      ];
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = super.items();
+    _shown = current();
+    const icon = {'due': '⏳', 'late': '⏰', 'stock': '📦', 'unpaid': '💰'};
+    return [
+      ...out,
+      if (_perm.isNotEmpty && _perm != 'granted') ...[
+        {'type': 'hint', 't': 'Notifikasi HP belum diizinkan. Pengingat tetap tampil di halaman ini, tetapi tidak muncul di layar HP.'},
+        {'type': 'button', 't': 'Izinkan Notifikasi', 'primary': true, 'file': '', 'after': false, 'i': 900},
+      ],
+      {'type': 'title', 't': 'Pengingat Saat Ini', 's': _shown.isEmpty ? '' : '${_shown.length}'},
+      if (_shown.isEmpty) {'type': 'hint', 't': 'Tidak ada yang perlu diingatkan sekarang.'},
+      for (var k = 0; k < _shown.length; k++)
+        {'type': 'card', 't': _shown[k].title, 's': _shown[k].body, 'svg': '', 'ic': icon[_shown[k].kind] ?? '🔔', 'badge': '', 'meta': '', 'on': false, 'i': 1000 + k},
+      {'type': 'hint', 't': 'Notifikasi muncul di HP ini walau aplikasi ditutup: 2 jam sebelum deadline, saat pesanan terlambat, saat stok menipis, dan ringkasan belum bayar tiap pukul 09.00.'},
+      {'type': 'button', 't': 'Tes Notifikasi', 'primary': false, 'file': '', 'after': false, 'i': 901},
+    ];
+  }
+
+  @override
+  void toggle(int i) {
+    super.toggle(i);
+    host.syncReminders();
+  }
+
+  @override
+  void button(int i) async {
+    if (i >= 1000) {
+      if (i - 1000 >= _shown.length) return;
+      final r = _shown[i - 1000];
+      if (r.orderId != null) return host.openOrder(r.orderId!);
+      return host.go(r.kind == 'stock' ? 'stock' : 'orders');
+    }
+    try {
+      if (i == 900) {
+        await host.device.invokeMethod<dynamic>('LocalNotifications.requestPermissions');
+        await _checkPerm();
+        if (_perm == 'granted') {
+          // Jadwalkan ulang semuanya: yang dijadwalkan saat izin belum ada tidak pernah tampil.
+          await host.kv.set('goyana-reminders203', '{}');
+          host.syncReminders();
+        }
+        return host.toast(_perm == 'granted' ? 'Notifikasi diizinkan' : 'Belum diizinkan · buka Pengaturan HP → Aplikasi → GOYANA → Notifikasi');
+      }
+      await host.device.invokeMethod<dynamic>('LocalNotifications.schedule', {
+        'notifications': [{'id': 3999999, 'title': 'Tes Reminder GOYANA', 'body': 'Notifikasi pengingat berfungsi.', 'schedule': {'at': host.now.millisecondsSinceEpoch}}],
+      });
+      host.toast('Notifikasi tes dikirim · cek bilah notifikasi HP');
+    } catch (_) {
+      host.toast('Notifikasi tidak tersedia di perangkat ini');
+    }
+  }
+}
+
 /// Pengaturan Kasir: sakelar izin sungguh membatasi kasir (yang masuk dengan PIN pegawai).
 class CashierPage extends TemplatePage {
   // ignore: use_super_parameters
@@ -2059,7 +2150,7 @@ Map<String, PurePage> templatePages(PureHost host) => {
         host.toast('Profil tersimpan');
         host.refresh();
       }),
-      'reminder': TemplatePage(host, 'reminder'),
+      'reminder': ReminderPage(host),
       'upgrade': UpgradePage(host),
       'helpcenter': HelpCenterPage(host),
       'datacenter': DataCenterPage(host),
@@ -2073,7 +2164,7 @@ Map<String, PurePage> templatePages(PureHost host) => {
 class HelpCenterPage extends TemplatePage {
   // ignore: use_super_parameters
   HelpCenterPage(PureHost host) : super(host, 'helpcenter');
-  static const supportWa = '6280000000000'; // sama dengan CS_WA100 di HTML (masih nomor contoh)
+  static const supportWa = '6285280218627'; // WA Support GOYANA (dari Koiman, 8 Okt)
   late final List<dynamic> _guides = jsonDecode(guideSheets) as List;
   int _guide = 0;
   String _q = '';

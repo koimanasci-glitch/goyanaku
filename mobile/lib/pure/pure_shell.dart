@@ -52,6 +52,7 @@ import 'pages.dart';
 import 'pickup_pages.dart';
 import 'ralat.dart';
 import 'rank_page.dart';
+import 'reminders.dart';
 import 'reports_dart.dart';
 import 'scan_page.dart';
 import 'service_icons.dart';
@@ -340,6 +341,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         if (seeded.$2) _settings!.save();
         _applyAuto();
         _hppSync();
+        syncReminders();
       }
     });
     gBrandWord = 'GOYANA';
@@ -371,6 +373,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _odTimer?.cancel();
     _autoTimer?.cancel();
     _pointTimer?.cancel();
+    _remTimer?.cancel();
     super.dispose();
   }
 
@@ -387,6 +390,49 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final ok = await _b!.save();
     if (!ok) toast('Penyimpanan perangkat penuh. Data belum tersimpan permanen.');
     await _hppSync();
+    syncReminders();
+  }
+
+  // ---------- Reminder Pekerjaan: notifikasi HP dijadwalkan dari data pesanan & stok ----------
+  static const remindersKey = 'goyana-reminders203';
+  Timer? _remTimer;
+
+  /// Jadwalkan ulang pengingat (ditunda sebentar supaya beberapa perubahan beruntun cukup sekali).
+  @override
+  void syncReminders() {
+    _remTimer?.cancel();
+    _remTimer = Timer(const Duration(seconds: 2), _doSyncReminders);
+  }
+
+  Future<void> _doSyncReminders() async {
+    final b = _b, st = _settings;
+    if (!mounted || b == null || st == null) return;
+    try {
+      final stock = _stock ?? await StockBook.load(widget.store);
+      final list = buildReminders(b: b, stock: stock, on: (i) => tplToggle(st, 'reminder', i), now: now);
+      Map prev = const {};
+      try {
+        final v = jsonDecode(await widget.store.get(remindersKey) ?? '{}');
+        if (v is Map) prev = v;
+      } catch (_) {}
+      final (cancel, add, next) = diffReminders(prev, list);
+      if (cancel.isEmpty && add.isEmpty) return;
+      if (add.isNotEmpty && st.raw['notifAsked203'] != true) {
+        // Android 13+: izin notifikasi diminta sekali, saat pertama kali ada pengingat.
+        st.raw['notifAsked203'] = true;
+        await st.save();
+        await _device.invokeMethod<dynamic>('LocalNotifications.requestPermissions');
+      }
+      if (cancel.isNotEmpty) await _device.invokeMethod<dynamic>('LocalNotifications.cancel', {'notifications': [for (final id in cancel) {'id': id}]});
+      if (add.isNotEmpty) {
+        await _device.invokeMethod<dynamic>('LocalNotifications.schedule', {
+          'notifications': [for (final r in add) {'id': r.id, 'title': r.title, 'body': r.body, 'schedule': {'at': r.at.millisecondsSinceEpoch}}],
+        });
+      }
+      await widget.store.set(remindersKey, jsonEncode(next));
+    } catch (_) {
+      // Tanpa perangkat (tes) atau izin ditolak: pengingat tetap tampil di halaman Reminder.
+    }
   }
 
   // ---------- HPP bahan v182: pemakaian otomatis saat produksi, pembelian lunas → kas, laporan ----------
