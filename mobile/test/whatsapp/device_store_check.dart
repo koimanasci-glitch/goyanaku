@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 // Standalone Dart checks: no Flutter engine or network required.
 import 'dart:convert';
 
