@@ -295,8 +295,8 @@ class _BigButton extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar(this.svg);
-  final String svg;
+  const _Avatar(this.svg, this.name);
+  final String svg, name;
   @override
   Widget build(BuildContext context) => Container(
         width: 56, height: 56, padding: const EdgeInsets.all(1),
@@ -306,7 +306,7 @@ class _Avatar extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: svg.isEmpty ? const Icon(Icons.person_rounded, color: Color(0xff5c97f8), size: 30) : gSvg(svg, 54),
+          child: svg.isEmpty ? const Icon(Icons.person_rounded, color: Color(0xff5c97f8), size: 30) : gAvatar(svg, name, 54),
         ),
       );
 }
@@ -324,7 +324,7 @@ class _PersonRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xfff0f2f5)))),
           child: Row(children: [
-            _Avatar(person.avatar),
+            _Avatar(person.avatar, person.name),
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -355,7 +355,7 @@ class _CustomerBar extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(color: const Color(0xfff7f8fa), borderRadius: BorderRadius.circular(12)),
         child: Row(children: [
-          _Avatar(avatar),
+          _Avatar(avatar, name),
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -1314,8 +1314,13 @@ void templateTests() {
     expect(s.debugHanding, isTrue, reason: 'Pembayaran muncul dulu');
     expect(find.text('HUTANG DULU'), findsOneWidget);
     expect((await Business.load(kv)).orders.first.status, 'siap', reason: 'status belum berubah');
-    s.aoSheetClose();
+    // Tombol Tutup terlihat: popup ditutup, status tetap (belum diambil).
+    expect(find.text('TUTUP'), findsOneWidget);
+    await tester.ensureVisible(find.text('TUTUP'));
+    await tester.tap(find.text('TUTUP'));
     await _settle(tester);
+    expect(s.debugHanding, isFalse);
+    expect(find.text('HUTANG DULU'), findsNothing);
     expect((await Business.load(kv)).orders.first.status, 'siap', reason: 'menutup popup = batal serah terima');
     s.fmScoped('detail', 'button', 1);
     await _settle(tester);

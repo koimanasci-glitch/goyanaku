@@ -256,7 +256,7 @@ class NativeForm extends StatelessWidget {
                 Container(width: 44, height: 44, alignment: Alignment.center,
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13)),
                     child: _s(it['svg']).isNotEmpty
-                        ? gSvg(_s(it['svg']), 26)
+                        ? gAvatar(_s(it['svg']), _s(it['t']), 36)
                         : (_s(it['ic']).isNotEmpty
                             ? Text(_s(it['ic']), style: gText(19, c: gBrand))
                             : Icon(_s(it['t']).contains('rinter') ? Icons.print_rounded : Icons.apps_rounded, color: gBrand))),
@@ -425,7 +425,7 @@ class NativeForm extends StatelessWidget {
           child: Row(children: [
             if (_s(it['svg']).isNotEmpty) ...[
               Container(width: 40, height: 40, alignment: Alignment.center,
-                  decoration: BoxDecoration(color: const Color(0xfff6f7f9), borderRadius: BorderRadius.circular(12)), child: gSvg(_s(it['svg']), 28)),
+                  decoration: BoxDecoration(color: const Color(0xfff6f7f9), borderRadius: BorderRadius.circular(12)), child: gAvatar(_s(it['svg']), _s(it['t']), 34)),
               const SizedBox(width: 12),
             ],
             Expanded(

@@ -24,7 +24,7 @@ class AoSheet extends StatelessWidget {
     return Material(
       color: const Color(0x80141b26),
       child: Column(children: [
-        Expanded(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: payment ? null : actions.aoSheetClose)),
+        Expanded(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: payment && _s(sheet['close']).isEmpty ? null : actions.aoSheetClose)),
         AnimatedPadding(
           duration: const Duration(milliseconds: 120),
           padding: EdgeInsets.only(bottom: bottom),
@@ -56,6 +56,7 @@ class _Payment extends StatelessWidget {
   Widget build(BuildContext context) {
     final methods = _list(sheet['methods']);
     final cancel = _s(sheet['cancel']);
+    final close = _s(sheet['close']);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Container(
         padding: const EdgeInsets.all(16),
@@ -103,6 +104,16 @@ class _Payment extends StatelessWidget {
           child: Container(height: 50, alignment: Alignment.center,
               decoration: BoxDecoration(color: gBrand, borderRadius: BorderRadius.circular(12)),
               child: Text(cancel.toUpperCase(), style: gText(14, w: FontWeight.w600, c: Colors.white, ls: .3))),
+        ),
+      ],
+      // Tutup tanpa memutuskan apa pun (serah terima: status pesanan tidak berubah).
+      if (close.isNotEmpty) ...[
+        const SizedBox(height: 10),
+        GestureDetector(
+          onTap: actions.aoSheetClose,
+          child: Container(height: 48, alignment: Alignment.center,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xffdfe2ea))),
+              child: Text(close.toUpperCase(), style: gText(14, w: FontWeight.w600, c: _ink, ls: .3))),
         ),
       ],
     ]);

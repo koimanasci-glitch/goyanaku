@@ -24,6 +24,7 @@ flutter:
     - assets/web/branding/
     - assets/branding/
     - assets/guide/
+    - assets/avatars/
   fonts:
     - family: Poppins
       fonts:

@@ -458,7 +458,7 @@ class _OrderCard extends StatelessWidget {
                 border: Border.all(color: c.female ? const Color(0xfff6dbe6) : const Color(0xffdde5ee)),
                 boxShadow: [gShadow(const Color(0x141f3145), 6, 16)],
               ),
-              child: gSvg(c.female ? _svgFemale : _svgMale, 40),
+              child: gAvatar(c.female ? _svgFemale : _svgMale, c.name, 40),
             ),
             const SizedBox(width: 10),
             Expanded(

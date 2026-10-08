@@ -139,7 +139,7 @@ class NativeOrderDetail extends StatelessWidget {
         Container(
           width: 50, height: 50, alignment: Alignment.center,
           decoration: BoxDecoration(color: const Color(0xfff3f8fc), borderRadius: BorderRadius.circular(15)),
-          child: _s(c['svg']).isEmpty ? const SizedBox() : gSvg(_s(c['svg']), 34),
+          child: _s(c['svg']).isEmpty ? const SizedBox() : gAvatar(_s(c['svg']), _s(c['name']), 44),
         ),
         const SizedBox(width: 12),
         Expanded(

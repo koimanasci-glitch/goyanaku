@@ -392,6 +392,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       }
     });
     gBrandWord = 'GOYANA';
+    gPhotoAvatars = true;
     _loadCrmRule();
     reportExtra = _reportExtra;
     // HTML v133: mesin status otomatis memeriksa tiap 20 detik.
@@ -2875,7 +2876,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     return m;
   }
 
-  Map<String, dynamic> _paySheetJson(String total, String id, String name, String cancel) {
+  Map<String, dynamic> _paySheetJson(String total, String id, String name, String cancel, {String close = ''}) {
     final b = _b!;
     return {
         'kind': 'payment', 'title': 'Pembayaran', 'label': 'Total Tagihan', 'total': total, 'id': id,
@@ -2888,6 +2889,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
             },
         ],
         'cancel': cancel,
+        if (close.isNotEmpty) 'close': close,
       };
   }
 
@@ -3026,7 +3028,15 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void aoSheetMain() => setState(() => _aoSheet = 'payment');
   @override
-  void aoSheetClose() => setState(() => _payOrderId != null ? _payOrderId = null : _aoSheet = null);
+  void aoSheetClose() => setState(() {
+        if (_payOrderId != null) {
+          // Serah terima dibatalkan: lembar ditutup, status pesanan tetap (belum diambil / belum diterima).
+          _payOrderId = null;
+          _handoverId = null;
+        } else {
+          _aoSheet = null;
+        }
+      });
   @override
   void aoPayCancel() {
     final o = _payOrder;
@@ -3369,7 +3379,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
             )),
           ),
         if (_payOrder case final po?)
-          Positioned.fill(child: AoSheet(sheet: _paySheetJson(rpSpaced(po.remaining), po.id, po.name, _handing ? 'HUTANG DULU' : 'BATAL'), actions: this)),
+          Positioned.fill(child: AoSheet(sheet: _paySheetJson(rpSpaced(po.remaining), po.id, po.name, _handing ? 'HUTANG DULU' : 'BATAL', close: _handing ? 'Tutup' : ''), actions: this)),
         for (final s in _sheets)
           Positioned.fill(
             child: s.mirror != null

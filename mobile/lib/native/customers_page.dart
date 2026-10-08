@@ -361,7 +361,7 @@ class _Row extends StatelessWidget {
               decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: const Color(0xffedf0f4)), boxShadow: [gShadow(const Color(0x0f142038), 6, 16)]),
               child: ClipRRect(borderRadius: BorderRadius.circular(13),
-                  child: row.avatar.isEmpty ? const Icon(Icons.person_rounded, color: Color(0xff5c97f8)) : gSvg(row.avatar, 42)),
+                  child: row.avatar.isEmpty ? const Icon(Icons.person_rounded, color: Color(0xff5c97f8)) : gAvatar(row.avatar, row.name, 42)),
             ),
             const SizedBox(width: 11),
             Expanded(

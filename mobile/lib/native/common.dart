@@ -21,6 +21,28 @@ BoxShadow gShadow(Color c, double y, double blur) => BoxShadow(color: c, offset:
 
 Widget gSvg(String s, double size, {double? h}) => SvgPicture.string(s, width: size, height: h ?? size);
 
+/// Foto avatar pelanggan (assets/avatars, 10 pria + 10 wanita, dari Paduka 9 Oktober 2026). Dipilih acak tetapi tetap:
+/// nama yang sama selalu mendapat foto yang sama. null bila [svg] bukan gambar avatar pria/wanita bawaan.
+/// Hanya Mode Murni yang memakai foto; Hybrid tetap gambar avatar lama (sama dengan HTML).
+bool gPhotoAvatars = false;
+
+String? gAvatarAsset(String svg, String name) {
+  if (!gPhotoAvatars || !svg.contains('M17 54c1.2-8.4')) return null;
+  final female = svg.toUpperCase().contains('#E56A8C');
+  var h = 7;
+  for (final u in name.trim().toLowerCase().codeUnits) {
+    h = (h * 31 + u) & 0x7fffffff;
+  }
+  return 'assets/avatars/${female ? 'wanita' : 'pria'}_${(h % 10 + 1).toString().padLeft(2, '0')}.webp';
+}
+
+/// Avatar pelanggan: foto bundar bila [svg] avatar bawaan, selain itu gambar SVG seperti biasa.
+Widget gAvatar(String svg, String name, double size) {
+  final asset = gAvatarAsset(svg, name);
+  if (asset == null) return gSvg(svg, size);
+  return ClipOval(child: Image.asset(asset, width: size, height: size, fit: BoxFit.cover, errorBuilder: (_, _, _) => gSvg(svg, size)));
+}
+
 /// Parses CSS colors from the web app ("rgb(1, 2, 3)", "rgba(1, 2, 3, .5)", "#rrggbb").
 Color cssColor(String? css, [Color fallback = Colors.transparent]) {
   if (css == null) return fallback;
