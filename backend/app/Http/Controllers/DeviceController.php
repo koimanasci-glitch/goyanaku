@@ -17,8 +17,9 @@ class DeviceController {
             $locked = Outlet::whereKey($outlet->id)->lockForUpdate()->firstOrFail();
             abort_if($locked->business->currentAccess()['read_only'], 403);
             $used = $locked->devices()->whereNull('revoked_at')->pluck('slot')->all();
-            $slot = collect(range(1, (int) config('goyana.cashier_devices_per_outlet')))->first(fn ($slot) => !in_array($slot, $used, true));
-            if (!$slot) throw ValidationException::withMessages(['label' => 'Maksimal 2 perangkat kasir per outlet. Cabut perangkat lama terlebih dahulu.']);
+            $limit = (int) $locked->business->currentAccess()['cashier_device_limit'];
+            $slot = collect(range(1, $limit))->first(fn ($slot) => !in_array($slot, $used, true));
+            if (!$slot) throw ValidationException::withMessages(['label' => 'Maksimal '.$limit.' perangkat kasir per outlet. Cabut perangkat lama terlebih dahulu.']);
             $device = $locked->devices()->create(['label' => $data['label'], 'slot' => $slot]);
             DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'business_id' => $outlet->business_id, 'action' => 'device.registered',
                 'details' => json_encode(['device_id' => $device->id, 'outlet_id' => $outlet->id]), 'created_at' => now()]);

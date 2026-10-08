@@ -12,14 +12,24 @@ return [
 
     // branches = cabang di luar 1 outlet pusat. Basic: 1 pusat + 1 cabang (ditegaskan pengguna 2 Oktober 2026).
     'packages' => [
-        'Basic' => ['price' => 30000, 'branches' => 1, 'rank' => 1],
-        'Silver' => ['price' => 65000, 'branches' => 2, 'rank' => 2],
-        'Gold' => ['price' => 100000, 'branches' => 3, 'rank' => 3],
-        'Platinum' => ['price' => 350000, 'branches' => 5, 'rank' => 4],
+        'Basic' => ['price' => 30000, 'branches' => 1, 'rank' => 1, 'cashier_devices' => 2],
+        'Silver' => ['price' => 65000, 'branches' => 2, 'rank' => 2, 'cashier_devices' => 3],
+        'Gold' => ['price' => 100000, 'branches' => 3, 'rank' => 3, 'cashier_devices' => 4],
+        'Platinum' => ['price' => 350000, 'branches' => 5, 'rank' => 4, 'cashier_devices' => 5],
     ],
 
-    // Maksimal perangkat kasir per outlet (termasuk pusat).
+    // Perangkat kasir per outlet (termasuk pusat) mengikuti paket (keputusan pengguna 8 Oktober 2026:
+    // Trial/Basic 2, Silver 3, Gold 4, Platinum 5). Angka di bawah dipakai bila paket tidak menyebutnya.
     'cashier_devices_per_outlet' => 2,
+
+    // Login pegawai (kasir, produksi, kurir) memakai nomor HP + PIN (keputusan pengguna 8 Oktober 2026).
+    // Owner dan admin pusat tetap email + password.
+    'pin' => [
+        'length' => 6,
+        'max_attempts' => 5,     // salah berturut-turut sebelum akun dikunci sementara
+        'lock_minutes' => 15,
+        'session_days' => 30,    // HP pegawai tetap masuk; pencabutan akses tetap berlaku seketika
+    ],
 
     'roles' => [
         'owner' => ['label' => 'Owner', 'permissions' => ['*']],
@@ -76,7 +86,10 @@ return [
                 'write' => ['orders.create', 'orders.update', 'orders.status', 'payments.receive', 'courier.tasks']],
             'kas' => ['scope' => 'outlet', 'transactional' => true, 'read' => ['cash.manage'], 'write' => ['cash.manage']],
             'deposits' => ['scope' => 'business', 'transactional' => true, 'read' => ['payments.receive'], 'write' => ['payments.receive']],
-            'customers' => ['scope' => 'business', 'read' => ['*'], 'write' => ['customers.manage', 'orders.create']],
+            // Kurir dan produksi tidak menerima database pelanggan; data pelanggan yang mereka perlukan ada di tugasnya.
+            'customers' => ['scope' => 'business', 'read' => ['customers.manage', 'orders.create'], 'write' => ['customers.manage', 'orders.create']],
+            // Tugas penjemputan sebelum transaksi dibuat (dari kasir, owner, atau chatbot).
+            'pickups' => ['scope' => 'outlet', 'read' => ['courier.assign', 'courier.tasks'], 'write' => ['courier.assign', 'courier.tasks']],
             'services' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
             'settings' => ['scope' => 'business', 'read' => ['*'], 'write' => ['prices.edit']],
             'outlet_profiles' => ['scope' => 'business', 'read' => ['*'], 'write' => ['owner']],
@@ -87,5 +100,28 @@ return [
             'stock_purchases' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],
             'stock_recipes' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage']],
         ],
+    ],
+
+    /*
+     | Aturan pesanan yang ditegakkan server saat sinkronisasi (App\Support\OrderGuard).
+     | Keputusan pengguna 8 Oktober 2026: pegawai memajukan satu tahap sampai Selesai Proses,
+     | hanya kasir/admin outlet/owner yang menandai Siap Ambil, kurir hanya tugasnya sendiri
+     | dan tidak bisa mengubah harga, diskon, atau isi pesanan yang sudah tersimpan.
+     */
+    'orders' => [
+        'stages' => ['cuci', 'kering', 'setrika', 'packing'],
+        // Nama tahap pada layanan (kolom "proc") => kunci status.
+        'stage_names' => ['Cuci' => 'cuci', 'Kering' => 'kering', 'Setrika' => 'setrika', 'Packing' => 'packing'],
+        'done_status' => 'selesaiproses',
+        'statuses' => ['jemput', 'antrian', 'cuci', 'kering', 'setrika', 'packing', 'selesaiproses', 'siap', 'telat', 'diantar', 'diambil', 'batal'],
+        // Aplikasi lama belum mengirim alasan saat mundur tahap; nyalakan setelah aplikasi mengirimnya.
+        'require_reason_for_backward' => false,
+    ],
+
+    // Ambang peringatan otomatis untuk owner (App\Support\Monitoring).
+    'alerts' => [
+        'courier_cash_hours' => 24,   // tunai terlalu lama dipegang kurir
+        'device_stale_hours' => 24,   // HP kasir belum sinkron
+        'uncollected_days' => 7,      // siap ambil tidak diambil
     ],
 ];

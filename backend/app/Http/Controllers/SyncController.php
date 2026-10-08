@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Business, CashierDevice, Outlet, User};
+use App\Support\{OrderData, OrderGuard, OrderLedger};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\DB;
  * Pull returns everything changed after the phone's cursor, filtered by role and outlet.
  */
 class SyncController {
+    /** @var array<int, OrderGuard> */
+    private array $guards = [];
+
     private function rules(): array { return config('goyana.sync.collections'); }
 
     private function allowed(User $user, array $permissions): bool {
@@ -55,9 +59,52 @@ class SyncController {
             if (!in_array($r->collection, $readable, true)) return false;
             return $user->role === 'owner' || $r->outlet_id === null || (int) $r->outlet_id === $user->outlet_id;
         })->map(fn ($r) => $this->present($r))->values();
+        $visible = $this->forRole($user, $visible);
         $access = $user->business->currentAccess();
         return response()->json(['records' => $visible, 'cursor' => $next, 'more' => $more,
             'read_only' => $access['read_only'], 'server_time' => now()->toIso8601String()]);
+    }
+
+    /**
+     * Isi yang dikirim ke HP mengikuti peran (keputusan pengguna 8 Oktober 2026):
+     * - Kurir hanya menerima pesanan dan penjemputan yang ditunjuk kepadanya, dilengkapi alamat pelanggan.
+     *   Yang bukan tugasnya dikirim sebagai tanda hapus, supaya tugas yang dialihkan hilang dari HP-nya.
+     * - Pegawai menerima pesanan tanpa harga, pembayaran, dan nomor HP pelanggan.
+     */
+    private function forRole(User $user, $records) {
+        $mode = $user->orderMode();
+        if ($mode === 'full') return $records;
+        $gone = fn (array $r) => ['data' => null, 'deleted' => true] + $r;
+        if ($mode === 'courier') {
+            $key = (string) $user->courier_key;
+            $records = $records->map(function (array $r) use ($key, $gone) {
+                if ($r['deleted']) return $r;
+                if ($r['collection'] === 'orders') return $key !== '' && OrderData::isOrder($r['data']) && OrderData::courier($r['data']) === $key ? $r : $gone($r);
+                if ($r['collection'] === 'pickups') return $key !== '' && is_array($r['data']) && (string) ($r['data']['courierId'] ?? '') === $key ? $r : $gone($r);
+                return $r;
+            });
+            $keys = $records->filter(fn ($r) => $r['collection'] === 'orders' && !$r['deleted'])->map(fn ($r) => OrderData::customerKey($r['data']))->filter()->unique()->values();
+            if ($keys->isEmpty()) return $records->values();
+            $customers = DB::table('sync_records')->where('business_id', $user->business_id)->where('collection', 'customers')
+                ->where('deleted', false)->whereIn('record_key', $keys->all())->pluck('data', 'record_key')->map(fn ($d) => json_decode((string) $d, true));
+            return $records->map(function (array $r) use ($customers) {
+                if ($r['collection'] !== 'orders' || $r['deleted']) return $r;
+                $c = $customers[OrderData::customerKey($r['data'])] ?? null;
+                if (is_array($c)) { $r['data']['detail']['address'] = (string) ($c['address'] ?? ''); $r['data']['detail']['maps'] = (string) ($c['maps'] ?? ''); }
+                return $r;
+            })->values();
+        }
+        return $records->map(function (array $r) {
+            if ($r['collection'] !== 'orders' || $r['deleted'] || !OrderData::isOrder($r['data'])) return $r;
+            $d = $r['data'];
+            unset($d['card']['total'], $d['card']['paid'], $d['card']['payment'], $d['detail']['paid'], $d['detail']['phone'], $d['detail']['discKey'], $d['detail']['ongkir']);
+            foreach (['paid177', 'payments178', 'method177', 'disc', 'transport183', 'items'] as $k) unset($d['card']['dataset'][$k]);
+            if (is_array($d['detail']['items'] ?? null)) {
+                $d['detail']['items'] = array_map(function ($i) { if (is_array($i)) unset($i['price']); return $i; }, $d['detail']['items']);
+            }
+            $r['data'] = $d;
+            return $r;
+        })->values();
     }
 
     public function push(Request $request) {
@@ -75,6 +122,7 @@ class SyncController {
             'changes.*.base_rev' => 'nullable|integer|min:0',
         ]);
         $device = $data['device_id'];
+        $this->guards = []; // aturan dibaca ulang setiap permintaan
 
         $results = DB::transaction(function () use ($user, $data, $device) {
             $business = Business::whereKey($user->business_id)->lockForUpdate()->firstOrFail();
@@ -139,6 +187,25 @@ class SyncController {
         }
         if (!$existing && $deleted) return ['status' => 'applied', 'rev' => 0];
 
+        // Pesanan dan penjemputan: server menegakkan hak tiap peran, bukan menerima kiriman HP apa adanya.
+        $guarded = in_array($change['collection'], ['orders', 'pickups'], true);
+        $old = $guarded && $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+        $verdict = null;
+        if ($guarded && $deleted && $user->orderMode() !== 'full') return $this->reject('Hanya kasir atau owner yang bisa menghapus data ini.');
+        if ($guarded && !$deleted) {
+            $guard = $this->guards[$business->id] ??= new OrderGuard($business);
+            $verdict = $change['collection'] === 'orders'
+                ? $guard->check($user, (int) $outletId, $old, $change['data'] ?? null)
+                : $guard->checkPickup($user, $old, $change['data'] ?? null);
+            if (is_string($verdict)) return $this->reject($verdict);
+            $json = json_encode($verdict['data'], JSON_UNESCAPED_UNICODE);
+            if ($existing && !$existing->deleted && OrderGuard::canon($verdict['data']) === OrderGuard::canon($old)) {
+                // Tidak ada yang berubah di server. HP yang kirimannya tidak diterima diminta mengambil versi server.
+                if (!$verdict['altered'] || $verdict['quiet']) return ['status' => 'applied', 'rev' => (int) $existing->rev];
+                return ['status' => 'conflict', 'record' => $this->present($existing), 'message' => $verdict['message']];
+            }
+        }
+
         $rev++;
         $row = ['outlet_id' => $outletId ?? ($existing->outlet_id ?? null), 'data' => $json, 'deleted' => $deleted, 'rev' => $rev,
             'updated_by' => $user->id, 'device_uuid' => $device, 'updated_at' => now()];
@@ -147,6 +214,15 @@ class SyncController {
         } else {
             DB::table('sync_records')->insert($row + ['business_id' => $business->id, 'collection' => $change['collection'],
                 'record_key' => $change['key'], 'created_at' => now()]);
+        }
+        if (in_array($change['collection'], ['services', 'couriers'], true)) ($this->guards[$business->id] ?? null)?->forget();
+        if ($change['collection'] === 'orders') {
+            $ledger = new OrderLedger($business, $this->guards[$business->id] ??= new OrderGuard($business));
+            $deleted ? $ledger->deleted($change['key']) : $ledger->record($user, (int) $row['outlet_id'], $change['key'], $old, $verdict['data'], $device);
+        }
+        if ($verdict && $verdict['altered']) {
+            $stored = DB::table('sync_records')->where('business_id', $business->id)->where('collection', $change['collection'])->where('record_key', $change['key'])->first();
+            return ['status' => 'conflict', 'record' => $this->present($stored), 'message' => $verdict['message']];
         }
         return ['status' => 'applied', 'rev' => $rev];
     }
@@ -172,7 +248,7 @@ class SyncController {
             $mine->last_seen_at = now(); $mine->user_id = $user->id; $mine->save();
             return true;
         }
-        $limit = (int) config('goyana.cashier_devices_per_outlet');
+        $limit = (int) $business->currentAccess()['cashier_device_limit'];
         // A slot the owner created on the dashboard (no phone yet) is taken by the first phone.
         $free = CashierDevice::where('outlet_id', $outletId)->whereNull('revoked_at')->whereNull('device_uuid')->orderBy('slot')->first();
         if (!$free) {
@@ -181,7 +257,7 @@ class SyncController {
             if (!$slot) {
                 DB::table('audit_events')->insert(['actor_id' => $user->id, 'business_id' => $business->id, 'action' => 'device.rejected',
                     'details' => json_encode(['outlet_id' => $outletId, 'device' => substr($uuid, 0, 12)]), 'created_at' => now()]);
-                return 'Maksimal 2 perangkat kasir per outlet.';
+                return 'Maksimal '.$limit.' perangkat kasir per outlet.';
             }
             $free = $outlet->devices()->create(['label' => $user->name.' · Android', 'slot' => $slot]);
         }

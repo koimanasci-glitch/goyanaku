@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Business extends Model {
     protected $fillable = ['name', 'trial_ends_at'];
-    protected function casts(): array { return ['trial_ends_at' => 'immutable_datetime', 'ai_balance' => 'integer']; }
+    protected function casts(): array { return ['trial_ends_at' => 'immutable_datetime', 'ai_balance' => 'integer', 'allow_debt' => 'boolean']; }
     public function outlets() { return $this->hasMany(Outlet::class); }
     public function grants() { return $this->hasMany(PackageGrant::class); }
     public function subscriptions() { return $this->hasMany(Subscription::class); }
@@ -61,6 +61,8 @@ class Business extends Model {
             'branches' => $branches,
             // 1 outlet pusat + cabang paket. Read-only keeps existing outlets visible but allows no new ones.
             'outlet_limit' => $readOnly ? $this->outlets()->count() : 1 + $branches,
+            // HP kasir per outlet mengikuti paket (keputusan pengguna 8 Oktober 2026).
+            'cashier_device_limit' => (int) ($package ? config("goyana.packages.$package.cashier_devices") : null) ?: (int) config('goyana.cashier_devices_per_outlet'),
         ];
     }
 }

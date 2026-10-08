@@ -102,10 +102,17 @@ class SyncTest extends TestCase {
 
     public function test_kurir_cannot_read_cash_or_take_cashier_slot(): void {
         $owner = $this->owner(); $kurir = $this->staff($owner, 'kurir');
-        $this->push($this->token($owner), [['collection' => 'kas', 'key' => 'k', 'outlet' => $this->outletKey($owner, 0), 'data' => ['start' => 1]]]);
+        $kurir->courier_key = 'kur-1'; $kurir->save();
+        $order = ['card' => ['total' => 10000, 'dataset' => ['st' => 'diantar', 'antar' => '1', 'courier181' => 'kur-1']], 'detail' => ['paid' => 10000]];
+        $rev = $this->push($this->token($owner), [
+            ['collection' => 'kas', 'key' => 'k', 'outlet' => $this->outletKey($owner, 0), 'data' => ['start' => 1]],
+            ['collection' => 'orders', 'key' => 'O', 'outlet' => $this->outletKey($owner, 0), 'data' => $order],
+        ])->json('results.1.rev');
         $t = $this->token($kurir);
         $this->assertFalse(collect($this->pull($t)->json('records'))->pluck('collection')->contains('kas'));
-        $this->push($t, [['collection' => 'orders', 'key' => 'O', 'data' => ['st' => 'diantar']]], 'kurir-device-1')->assertJsonPath('results.0.status', 'applied');
+        // Kurir menyelesaikan pengantaran tugasnya dari HP sendiri: tersimpan, dan HP itu tidak memakai slot kasir.
+        $order['card']['dataset']['st'] = 'diambil';
+        $this->push($t, [['collection' => 'orders', 'key' => 'O', 'data' => $order, 'base_rev' => $rev]], 'kurir-device-1')->assertJsonPath('results.0.status', 'applied');
         $this->assertDatabaseMissing('cashier_devices', ['device_uuid' => 'kurir-device-1']);
     }
 
