@@ -203,6 +203,8 @@ void main() {
     await shot('pengeluaran');
     s.nav('automation');
     await shot('otomasi');
+    s.nav('kurirsetting');
+    await shot('pengaturan_kurir_terkunci');
     // Hubungkan WhatsApp: formulir Tambah Device, daftar dengan satu draf, lalu popup Scan QR / Kode WhatsApp.
     s.nav('wadevices195');
     await shot('wa_perangkat_kosong');

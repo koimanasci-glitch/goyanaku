@@ -354,7 +354,7 @@ void templateTests() {
     final s = await _pump(tester, kv);
     final b = await Business.load(kv);
     final outlet = b.outlets.isEmpty ? 'Outlet Aktif' : (b.outlets.where((o) => o.id == b.activeOutlet).firstOrNull ?? b.outlets.first).name;
-    final fx = (jsonDecode(File('test/fixtures/pure/delivery.json').readAsStringSync().replaceAll('untuk Outlet Aktif.', 'untuk $outlet.')) as List).cast<Map>();
+    final fx = (jsonDecode(File('test/fixtures/pure/delivery.json').readAsStringSync().replaceAll('untuk Outlet Aktif.', 'untuk $outlet.').replaceAll('+ Tambah Kurir', 'Pengaturan Kurir')) as List).cast<Map>();
     s.nav('delivery');
     await _settle(tester);
     expect(jsonEncode(s.debugItems()), jsonEncode(fx[0]['items']), reason: 'gratis');
@@ -520,33 +520,28 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kurir: Management Kurir (tambah, edit, nonaktifkan) sama dengan HTML', (tester) async {
-    final fx = jsonDecode(File('test/fixtures/pure/couriers.json').readAsStringSync().replaceAll('Outlet Aktif', 'Uji')) as Map;
+  testWidgets('Kurir: tab Tugas sama dengan HTML; Pengaturan Kurir terkunci sampai pemilik masuk ke akun GOYANA', (tester) async {
+    final fx = jsonDecode(File('test/fixtures/pure/couriers.json').readAsStringSync().replaceAll('Outlet Aktif', 'Uji').replaceAll('Management Kurir', 'Pengaturan Kurir')) as Map;
     final kv = _store();
     final s = await _pump(tester, kv);
     s.nav('couriers');
     await _settle(tester);
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['tasks']));
+    // Daftar kurir lama (email + centang outlet) sudah diganti menu Pengaturan Kurir: tiap kurir = akun di server.
     s.fmButton(1);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['manage']));
-    s.fmButton(2);
     await _settle(tester);
-    expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx['form']));
-    s.fmScoped('g181-modal', 'input', 0, 'Budi');
-    s.fmScoped('g181-modal', 'input', 1, '0812');
-    s.fmScoped('g181-modal', 'button', 0);
-    expect(s.debugToast, 'Lengkapi nama dan WhatsApp');
-    s.fmScoped('g181-modal', 'input', 1, '081233334444');
-    s.fmScoped('g181-modal', 'button', 0);
+    expect(s.debugState().split('|').first, 'kurirsetting');
+    final items = s.debugItems();
+    expect(items.first['t'], 'Masuk ke akun GOYANA dulu');
+    expect(items.where((e) => e['type'] == 'button').map((e) => e['t']), ['Masuk ke Akun GOYANA']);
+    expect(items.any((e) => e['t'] == 'Cara masuk kurir'), isTrue);
+    expect(items.any((e) => '${e['t']}'.contains('Tambah Kurir')), isFalse, reason: 'tanpa akun server tidak ada kurir setengah jadi');
+    s.fmButton(0);
+    expect(s.debugSheetIds(), isEmpty);
+    // Menu Antar-Jemput menunjuk ke tempat yang sama.
+    s.nav('delivery');
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
-    s.fmButton(3);
-    await _settle(tester);
-    expect(jsonEncode(s.debugSheet('g181-modal')), jsonEncode(fx['edit']));
-    s.fmScoped('g181-modal', 'button', 1);
-    s.fmButton(4);
-    await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['off']));
+    expect(s.debugItems().any((e) => e['type'] == 'button' && e['t'] == 'Pengaturan Kurir'), isTrue);
     expect(tester.takeException(), isNull);
   });
 
@@ -1183,7 +1178,7 @@ void templateTests() {
   });
 
   testWidgets('Kurir · Tugas: kartu tugas sama dengan HTML (pilih kurir, Navigasi, WhatsApp, tahap berikut)', (tester) async {
-    final fx = jsonDecode(File('test/fixtures/pure/courier_task.json').readAsStringSync()) as Map;
+    final fx = jsonDecode(File('test/fixtures/pure/courier_task.json').readAsStringSync().replaceAll('Management Kurir', 'Pengaturan Kurir')) as Map;
     final kv = _store();
     final raw = jsonDecode(kv.data[Keys.business]!) as Map;
     (((raw['orders'] as List).first as Map)['dataset'] as Map)

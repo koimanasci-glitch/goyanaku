@@ -51,6 +51,7 @@ import '../native/services_page.dart';
 import '../native/settings_page.dart';
 import '../logic/reports_catalog.dart';
 import 'courier_home.dart';
+import 'courier_settings_page.dart';
 import 'google_login.dart';
 import 'pages.dart';
 import 'pickup_pages.dart';
@@ -135,7 +136,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -502,7 +503,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         !const {'kurirhome', 'addorder', 'settings', 'jemput202', 'customeradd', 'ralat139', 'printer', 'printerconnect', 'printlabel', 'helpcenter'}.contains(pageId)) {
       return 'Menu ini tidak tersedia untuk akun kurir';
     }
-    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
+    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
       return 'Hanya pemilik yang bisa membuka menu ini';
     }
     if (const {'reports', 'rp', 'branchmonitor58'}.contains(pageId) && !_srv.can('reports.view')) return 'Laporan hanya untuk pemilik';
@@ -1250,6 +1251,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
     for (final g in groups.whereType<Map>()) {
       if (g['i'] == 4) (g['items'] as List).removeWhere((it) => it is Map && (it['j'] as num) >= 2);
+      // Menu tersendiri untuk kurir dan akun masuknya (permintaan Koiman 9 Okt).
+      if (g['i'] == 3) (g['items'] as List).add({'j': 4, 'icon': '🛵', 't': 'Pengaturan Kurir', 'badge': '', 's': 'Akun kurir, PIN dan outlet tugas'});
       // "Stock Opname & Supplier" membuka halaman yang sama dengan "Stok & Bahan" → cukup satu menu.
       if (g['i'] == 9) (g['items'] as List).removeWhere((it) => it is Map && it['j'] == 7);
     }
@@ -1278,7 +1281,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   static const Map<String, String> _stRoutes = {
     '0/0': 'profile', '1/0': 'outlets', '1/1': 'superbilling',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
-    '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers',
+    '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers', '3/4': 'kurirsetting',
     '4/0': 'customers', '4/1': 'crm',
     '5/0': 'wadevices195', '5/1': 'triggers191', '5/2': 'ai191', '5/3': 'blast191', '5/4': 'automation',
     '9/0': 'qris', '9/1': 'finance', '9/2': 'ralat139', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',

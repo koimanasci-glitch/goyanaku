@@ -975,10 +975,6 @@ class StockPage extends PurePage {
 class CourierPage extends PurePage {
   CourierPage(super.host);
   Couriers? c;
-  bool manage = false;
-  String? _editId;
-  String _name = '', _phone = '', _email = '';
-  final Set<String> _outs = {};
   // Setoran tunai kurir (akun kasir, admin outlet, atau owner yang masuk ke server).
   bool deposit = false;
   List<Map<String, dynamic>> held = [];
@@ -1046,7 +1042,6 @@ class CourierPage extends PurePage {
 
   @override
   void opened() {
-    manage = false;
     deposit = false;
     Couriers.load(host.kv).then((v) {
       c = v;
@@ -1056,16 +1051,15 @@ class CourierPage extends PurePage {
 
   List<Map<String, dynamic>> get _live => [for (final k in c?.list ?? const <Map<String, dynamic>>[]) if (k['deleted'] != true) k];
   List<Order> get _tasks => host.business.orders.where((o) => o.status == 'jemput' || o.status == 'diantar' || (o.status == 'siap' && o.antar)).toList();
-  /// Outlet pilihan hak akses; tanpa outlet tersimpan HTML memakai satu "Outlet Aktif".
-  List<List<String>> get _outlets => host.business.outlets.isEmpty ? [['default', 'Outlet Aktif']] : [for (final o in host.business.outlets) [o.id, o.name]];
 
   @override
   List<Map<String, dynamic>> items() {
     final tabs = {
       'type': 'buttons',
       'options': [
-        {'t': 'Tugas', 'svg': '', 'file': '', 'after': false, 'on': !manage && !deposit, 'i': 0},
-        {'t': 'Management Kurir', 'svg': '', 'file': '', 'after': false, 'on': manage && !deposit, 'i': 1},
+        {'t': 'Tugas', 'svg': '', 'file': '', 'after': false, 'on': !deposit, 'i': 0},
+        // Daftar dan akun kurir pindah ke menu Pengaturan Kurir (keputusan Paduka 9 Oktober 2026).
+        {'t': 'Pengaturan Kurir', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1},
         if (_canDeposit) {'t': 'Setoran', 'svg': '', 'file': '', 'after': false, 'on': deposit, 'i': 9000},
       ],
     };
@@ -1082,49 +1076,25 @@ class CourierPage extends PurePage {
           },
       ];
     }
-    if (!manage) {
-      final tasks = _tasks;
-      return [
-        tabs,
-        if (tasks.isEmpty) {'type': 'hint', 't': 'Tidak ada tugas kurir. Pesanan antar-jemput akan muncul otomatis.'},
-        // Kartu tugas (HTML v181 renderCourier): pilih kurir, Navigasi, WhatsApp, Bayar (bila belum lunas), tahap berikut.
-        for (var k = 0; k < tasks.length; k++) ...[
-          {'type': 'title', 't': '${tasks[k].status == 'jemput' ? '📍 Penjemputan' : (tasks[k].status == 'siap' ? '📦 Siap Diantar' : '🚚 Pengantaran')} · ${tasks[k].name}'},
-          {'type': 'hint', 't': '${tasks[k].id} · ${_map(tasks[k]).isNotEmpty ? 'Lokasi Maps tersedia' : 'Lokasi belum diisi'}'},
-          {
-            'type': 'select', 'options': ['Pilih kurir', for (final x in _for(tasks[k])) '${x['name']}'],
-            'index': _for(tasks[k]).indexWhere((x) => '${x['id']}' == '${tasks[k].dataset['courier181'] ?? ''}') + 1, 'i': k,
-          },
-          {'type': 'buttons', 'options': [
-            {'t': 'Navigasi', 'on': false, 'i': 1000 + 10 * k},
-            {'t': 'WhatsApp', 'on': false, 'i': 1001 + 10 * k},
-            if (tasks[k].status != 'jemput' && !tasks[k].isPaid) {'t': 'Bayar', 'on': false, 'i': 1002 + 10 * k},
-            {'t': tasks[k].status == 'jemput' ? 'Sudah Dijemput' : (tasks[k].status == 'siap' ? 'Mulai Antar' : 'Sudah Diterima'), 'on': true, 'i': 1003 + 10 * k},
-          ]},
-        ],
-      ];
-    }
-    final live = _live, outs = _outlets;
+    final tasks = _tasks;
     return [
       tabs,
-      {'type': 'button', 't': '+ Tambah Kurir', 'primary': true, 'file': '', 'after': false, 'i': 2},
-      for (var k = 0; k < live.length; k++)
+      if (tasks.isEmpty) {'type': 'hint', 't': 'Tidak ada tugas kurir. Pesanan antar-jemput akan muncul otomatis.'},
+      // Kartu tugas (HTML v181 renderCourier): pilih kurir, Navigasi, WhatsApp, Bayar (bila belum lunas), tahap berikut.
+      for (var k = 0; k < tasks.length; k++) ...[
+        {'type': 'title', 't': '${tasks[k].status == 'jemput' ? '📍 Penjemputan' : (tasks[k].status == 'siap' ? '📦 Siap Diantar' : '🚚 Pengantaran')} · ${tasks[k].name}'},
+        {'type': 'hint', 't': '${tasks[k].id} · ${_map(tasks[k]).isNotEmpty ? 'Lokasi Maps tersedia' : 'Lokasi belum diisi'}'},
         {
-          'type': 'entry', 't': '${live[k]['name']}',
-          'lines': [
-            '${live[k]['phone']} · ${live[k]['active'] == false ? 'Nonaktif' : 'Aktif'}',
-            'Akses: ${() {
-              final ids = (live[k]['outlets'] as List? ?? const []).map((e) => '$e').toList();
-              return ids.isEmpty ? 'Semua Outlet' : ids.map((id) => outs.where((o) => o[0] == id).firstOrNull?[1] ?? 'Semua').join(', ');
-            }()}',
-          ],
-          'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '',
-          'btns': [
-            {'t': 'Edit', 'on': false, 'i': 3 + 3 * k},
-            {'t': live[k]['active'] == false ? 'Aktifkan' : 'Nonaktifkan', 'on': false, 'i': 4 + 3 * k},
-            {'t': 'Hapus', 'on': false, 'i': 5 + 3 * k},
-          ],
+          'type': 'select', 'options': ['Pilih kurir', for (final x in _for(tasks[k])) '${x['name']}'],
+          'index': _for(tasks[k]).indexWhere((x) => '${x['id']}' == '${tasks[k].dataset['courier181'] ?? ''}') + 1, 'i': k,
         },
+        {'type': 'buttons', 'options': [
+          {'t': 'Navigasi', 'on': false, 'i': 1000 + 10 * k},
+          {'t': 'WhatsApp', 'on': false, 'i': 1001 + 10 * k},
+          if (tasks[k].status != 'jemput' && !tasks[k].isPaid) {'t': 'Bayar', 'on': false, 'i': 1002 + 10 * k},
+          {'t': tasks[k].status == 'jemput' ? 'Sudah Dijemput' : (tasks[k].status == 'siap' ? 'Mulai Antar' : 'Sudah Diterima'), 'on': true, 'i': 1003 + 10 * k},
+        ]},
+      ],
     ];
   }
 
@@ -1141,7 +1111,7 @@ class CourierPage extends PurePage {
   @override
   void input(int i, Object value) {
     final tasks = _tasks;
-    if (manage || i < 0 || i >= tasks.length) return;
+    if (i < 0 || i >= tasks.length) return;
     final opts = _for(tasks[i]);
     final n = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
     tasks[i].dataset['courier181'] = n >= 1 && n <= opts.length ? '${opts[n - 1]['id']}' : '';
@@ -1174,74 +1144,8 @@ class CourierPage extends PurePage {
     }
   }
 
-  void _form(Map<String, dynamic>? k) {
-    _editId = k == null ? null : '${k['id']}';
-    _name = '${k?['name'] ?? ''}';
-    _phone = '${k?['phone'] ?? ''}';
-    _email = '${k?['email'] ?? ''}';
-    final have = (k?['outlets'] as List? ?? const []).map((e) => '$e').toSet();
-    _outs
-      ..clear()
-      ..addAll([for (final o in _outlets) if (k == null || have.isEmpty || have.contains(o[0])) o[0]]);
-    host.openPageSheet('g181-modal');
-  }
-
-  @override
-  Widget? sheetWidget(String id, BuildContext context) => g181Sheet(this, id);
-
-  @override
-  List<Map<String, dynamic>>? sheetItems(String id) {
-    if (id != 'g181-modal') return null;
-    Map<String, dynamic> inp(String v, String ph, int i, {bool email = false}) =>
-        {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': email, 'i': i};
-    final outs = _outlets;
-    return [
-      {'type': 'title', 't': _editId == null ? 'Tambah Kurir' : 'Edit Kurir', 's': ''},
-      inp(_name, 'Nama kurir', 0),
-      inp(_phone, 'WhatsApp', 1),
-      inp(_email, 'Email login (server nanti)', 2, email: true),
-      {'type': 'title', 't': 'Hak akses outlet'},
-      for (var k = 0; k < outs.length; k++) {'type': 'toggle', 't': outs[k][1], 's': '', 'on': _outs.contains(outs[k][0]), 'i': k},
-      {'type': 'button', 't': 'Simpan', 'primary': true, 'file': '', 'after': false, 'i': 0},
-      {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
-    ];
-  }
-
-  @override
-  void sheetEvent(String id, String kind, int index, Object? value) {
-    final v = c;
-    if (v == null) return;
-    if (kind == 'input') {
-      if (index == 0) _name = '$value';
-      if (index == 1) _phone = '$value';
-      if (index == 2) _email = '$value';
-      return;
-    }
-    if (kind == 'toggle') {
-      final o = _outlets;
-      if (index < 0 || index >= o.length) return;
-      _outs.contains(o[index][0]) ? _outs.remove(o[index][0]) : _outs.add(o[index][0]);
-      return host.refresh();
-    }
-    if (kind != 'button') return;
-    if (index == 1) return host.closePageSheet('g181-modal');
-    final n = _name.trim(), p = _phone.trim();
-    if (n.isEmpty || p.replaceAll(RegExp(r'\D'), '').length < 9) return host.toast('Lengkapi nama dan WhatsApp');
-    final outs = [for (final o in _outlets) if (_outs.contains(o[0])) o[0]];
-    final cur = v.list.where((k) => '${k['id']}' == _editId).firstOrNull;
-    if (cur != null) {
-      cur.addAll({'name': n, 'phone': p, 'email': _email.trim(), 'outlets': outs});
-    } else {
-      v.list.add({'id': 'kurir-${host.now.microsecondsSinceEpoch}', 'name': n, 'phone': p, 'email': _email.trim(), 'outlets': outs, 'active': true});
-    }
-    v.save();
-    host.closePageSheet('g181-modal');
-    host.refresh();
-  }
-
   @override
   void button(int i) async {
-    final v = c;
     if (i == 9000) {
       deposit = true;
       await _loadHeld();
@@ -1251,44 +1155,15 @@ class CourierPage extends PurePage {
       if (deposit && i - 9100 < held.length) _receive(held[i - 9100]);
       return;
     }
-    if (i == 0 || i == 1) {
-      manage = i == 1;
+    if (i == 1) return host.go('kurirsetting');
+    if (i == 0) {
       deposit = false;
       return host.refresh();
     }
-    if (v == null) return;
+    if (c == null) return;
     if (i >= 1000) {
       final tasks = _tasks, k = (i - 1000) ~/ 10;
-      if (!manage && k < tasks.length) _task(tasks[k], (i - 1000) % 10);
-      return;
-    }
-    if (i == 2) return _form(null);
-    final live = _live, k = (i - 3) ~/ 3;
-    if (k < 0 || k >= live.length) return;
-    final row = live[k];
-    switch ((i - 3) % 3) {
-      case 0:
-        return _form(row);
-      case 1:
-        row['active'] = row['active'] == false;
-        await v.save();
-        return host.refresh();
-      default:
-        host.openFormSheet(FormSheetDef(
-          'Hapus kurir ${row['name']}?',
-          const [],
-          'Ya, Hapus',
-          (_) {
-            row['deleted'] = true;
-            row['active'] = false;
-            v.save();
-            host.toast('Kurir dihapus');
-            host.refresh();
-            return null;
-          },
-          sub: 'Riwayat tugasnya tetap tercatat.',
-          danger: true,
-        ));
+      if (k < tasks.length) _task(tasks[k], (i - 1000) % 10);
     }
   }
 }
@@ -2784,7 +2659,7 @@ class DeliveryPage extends PurePage {
       {'type': 'title', 't': 'Kurir'},
       for (final c in couriers)
         {'type': 'entry', 't': '${c['n']}', 'lines': ['${c['p']} · motor'], 'badge': 'Aktif', 'avatar': '${c['n']}'.isEmpty ? '' : '${c['n']}'[0].toUpperCase(), 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
-      {'type': 'button', 't': '+ Tambah Kurir', 'primary': false, 'file': '', 'after': false, 'i': 1},
+      {'type': 'button', 't': 'Pengaturan Kurir', 'primary': false, 'file': '', 'after': false, 'i': 1},
       {'type': 'button', 't': 'Simpan Pengaturan', 'primary': true, 'file': '', 'after': false, 'i': 2},
     ];
   }
@@ -2833,20 +2708,8 @@ class DeliveryPage extends PurePage {
       host.toast(n['mode'] == 'free' ? 'Transportasi GRATIS tersimpan' : 'Tarif transportasi tersimpan');
       return host.refresh();
     }
-    if (i == 1) {
-      return host.openFormSheet(FormSheetDef(
-        'Tambah Kurir',
-        const [FormSheetField('Nama kurir', required: true), FormSheetField('No WhatsApp', numeric: true, required: true)],
-        'Tambah',
-        (v) {
-          (_d['couriers'] as List).add({'n': v[0], 'p': v[1]});
-          host.saveAll();
-          host.toast('Kurir ${v[0]} ditambahkan');
-          host.refresh();
-          return null;
-        },
-      ));
-    }
+    // Kurir dan akun masuknya dikelola di satu tempat.
+    if (i == 1) return host.go('kurirsetting');
     await host.saveAll();
     host.toast('Pengaturan antar-jemput tersimpan');
     host.go('settings');
@@ -3014,6 +2877,11 @@ class EmployeesPage extends PurePage {
               '${team[k]['active'] == false ? ' · nonaktif' : ''}${team[k]['pin_locked'] == true ? ' · PIN terkunci' : ''}',
           'btn': 'Edit', 'i': 1 + k,
         },
+      {'type': 'title', 't': 'Cara masuk pegawai'},
+      {'type': 'hint', 't': '1. Pasang aplikasi GOYANA di HP pegawai.'},
+      {'type': 'hint', 't': '2. Di layar masuk, isi nomor HP yang didaftarkan di sini, lalu PIN 6 angkanya.'},
+      {'type': 'hint', 't': '3. Menu yang tampil mengikuti tugasnya: Kasir, Pegawai, Kurir, atau Admin Outlet.'},
+      {'type': 'hint', 't': 'Kurir juga bisa ditambah dari menu Pengaturan Kurir.'},
     ];
   }
 
