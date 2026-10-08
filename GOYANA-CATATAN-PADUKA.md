@@ -113,3 +113,11 @@ Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian
 - **Animasi pembuka dan panduan 5 slide** dari Hibrida dipasang di Mode Murni. Warna pembuka, panduan, dan layar masuk memakai warna A (sama dengan kepala Beranda, #ff6b48 ke #f0472f) karena yang lama "terlalu merah". Lima gambar panduan: merahnya digeser sedikit ke oranye (disetujui).
 - **Masuk dengan Google** untuk pemilik. Email Paduka untuk akun dengan semua menu terbuka: koimanasci@gmail.com, sebagai owner berpaket tertinggi (bukan administrator pusat). Daftarnya di setelan server, bukan di APK. Password tidak pernah disimpan di repo, APK, atau catatan.
 - **Aplikasi administrator** (pusat, `/admin`): nanti tampilannya disamakan dengan aplikasi Android, temanya sama.
+
+## 8 Oktober 2026, 20.35–20.42 WIB — aplikasi administrator dan divisi marketing
+
+- Gambar acuan tampilan administrator dikirim Paduka; ditambah permintaan monitor VPS (RAM dll.).
+- "Administrator itu untuk kontrol client misal tambahkan paket."
+- Marketing: mengumpulkan nomor pemilik laundry, disimpan di database, WA blast diatur sistem dan AI pusat. Sasaran: pemilik laundry (client dan calon), bukan pelanggan milik laundry.
+- "Kamu bisa kan atur wa blast biar aman misal di gilir sehari jangan banyak-banyak" → angka awal disetujui ("Ok"), lalu "Gas buat". Rincian di GOYANA-SISTEM-PUSAT.md §52.
+- Belum dijawab Paduka: nama paket (dipakai Basic/Silver/Gold/Platinum), sumber calon client (dibuat: manual dan impor file), nomor WhatsApp khusus marketing (sistem menolak nomor CS pusat untuk blast).

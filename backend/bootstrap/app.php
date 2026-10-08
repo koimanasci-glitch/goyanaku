@@ -8,6 +8,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'platform.admin' => PlatformAdmin::class,
+            'admin.area' => \App\Http\Middleware\AdminArea::class,
             'owner' => OwnerOnly::class,
             'active' => EnsureActive::class,
             'verified.required' => VerifiedWhenRequired::class,

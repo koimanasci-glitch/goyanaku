@@ -84,7 +84,8 @@ class AdminController {
     }
 
     public function system() {
-        return view('admin-system', ['checks' => \App\Support\Health::checks(), 'info' => \App\Support\Health::info()]);
+        return view('admin-system', ['checks' => \App\Support\Health::checks(), 'info' => \App\Support\Health::info(),
+            'server' => \App\Support\ServerStats::now(), 'history' => \App\Support\ServerStats::history()]);
     }
     public function grant(Request $request, Business $business) {
         $data = $request->validate([

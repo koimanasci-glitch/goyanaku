@@ -28,13 +28,13 @@ class AdminPanelTest extends TestCase {
         $paid = $this->business('Laundry Bayar', true);
         $paid->subscriptions()->create(['package' => 'Silver', 'starts_at' => now()->subDay(), 'ends_at' => now()->addDays(5), 'source' => 'manual', 'reference' => 'T1', 'amount' => 65000]);
         $admin = $this->admin();
-        $this->actingAsAdmin($admin)->get('/admin')->assertOk()
+        $this->actingAsAdmin($admin)->get('/admin/clients')->assertOk()
             ->assertSeeInOrder(['Total usaha', '3', 'Berbayar', '1', 'Beta', '0', 'Trial', '1', 'Baca saja', '1'])
             ->assertSee('Rp65.000')->assertSee('Berakhir dalam 7 hari');
-        $this->get('/admin?status=expired')->assertSee('Laundry Lama')->assertDontSee('Laundry Trial')->assertDontSee('Laundry Bayar');
-        $this->get('/admin?status=paid')->assertSee('Laundry Bayar')->assertDontSee('Laundry Lama');
-        $this->get('/admin?q=trial@cuci')->assertSee('Laundry Trial')->assertDontSee('Laundry Lama');
-        $this->get('/admin?q='.$expired->id)->assertSee('Laundry Lama');
+        $this->get('/admin/clients?status=expired')->assertSee('Laundry Lama')->assertDontSee('Laundry Trial')->assertDontSee('Laundry Bayar');
+        $this->get('/admin/clients?status=paid')->assertSee('Laundry Bayar')->assertDontSee('Laundry Lama');
+        $this->get('/admin/clients?q=trial@cuci')->assertSee('Laundry Trial')->assertDontSee('Laundry Lama');
+        $this->get('/admin/clients?q='.$expired->id)->assertSee('Laundry Lama');
     }
 
     public function test_business_detail_and_admin_revokes_lost_phone(): void {

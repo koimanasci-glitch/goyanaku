@@ -22,6 +22,24 @@ return [
     // Trial/Basic 2, Silver 3, Gold 4, Platinum 5). Angka di bawah dipakai bila paket tidak menyebutnya.
     'cashier_devices_per_outlet' => 2,
 
+    // Divisi akun administrator pusat. Area: clients (lihat client), grants (paket sementara), billing (langganan,
+    // saldo AI, tambah client), assist, support (tiket, FAQ), marketing, reports, system, settings, audit, admins.
+    'admin_divisions' => [
+        'owner' => ['label' => 'Pemilik', 'areas' => ['*']],
+        'marketing' => ['label' => 'Marketing', 'areas' => ['marketing', 'reports']],
+        'cs' => ['label' => 'CS / Bantuan', 'areas' => ['clients', 'grants', 'assist', 'support']],
+        'teknis' => ['label' => 'Teknis', 'areas' => ['clients', 'system', 'settings', 'audit']],
+    ],
+
+    // Gateway WhatsApp untuk blast marketing. "none" = belum tersambung (pesan menunggu di antrean; kirim manual tetap bisa).
+    // "http" = POST JSON {from, to, text} ke GOYANA_WA_URL dengan Bearer GOYANA_WA_TOKEN (disesuaikan saat CHATKU tersambung).
+    'whatsapp' => [
+        'driver' => env('GOYANA_WA_DRIVER', 'none'),
+        'url' => env('GOYANA_WA_URL', ''),
+        'token' => env('GOYANA_WA_TOKEN', ''),
+        'webhook_token' => env('GOYANA_WA_WEBHOOK_TOKEN', ''),
+    ],
+
     // Masuk dengan Google (pemilik): Client ID OAuth yang diterima server, dipisah koma di GOYANA_GOOGLE_CLIENT_IDS.
     // Kosong = masuk Google dimatikan. Client ID bukan rahasia, tetapi tetap diatur di .env server, bukan di repo.
     'google' => ['client_ids' => array_values(array_filter(array_map('trim', explode(',', (string) env('GOYANA_GOOGLE_CLIENT_IDS', '')))))],
@@ -74,6 +92,19 @@ return [
         'msg_expired' => true,
         'msg_payment' => true,
         'cs_whatsapp' => '',              // nomor WA CS pusat, contoh 62812xxxx
+        // WA blast divisi marketing (keputusan pengguna 8 Oktober 2026: "digilir, sehari jangan banyak-banyak").
+        // Titik awal yang hati-hati; WhatsApp tidak mengumumkan batasnya, jadi disesuaikan dari hasil nyata.
+        'blast_start_per_day' => 20,      // jatah per nomor pengirim pada minggu pertama
+        'blast_step_per_week' => 10,      // kenaikan jatah harian tiap minggu
+        'blast_max_per_day' => 80,        // batas atas jatah harian per nomor
+        'blast_gap_min' => 2,             // jeda acak antar pesan (menit)
+        'blast_gap_max' => 6,
+        'blast_hour_start' => 9,          // jam kirim WIB
+        'blast_hour_end' => 17,
+        'blast_sunday' => false,          // Minggu libur
+        'blast_followup_days' => 5,       // jarak pesan tindak lanjut dari pesan pembuka
+        'blast_recontact_days' => 30,     // satu nomor tidak dikirimi kampanye baru lebih cepat dari ini
+        'blast_fail_stop' => 5,           // gagal berturut-turut sebelum nomor pengirim dihentikan
     ],
 
     // Sumber kurs & harga model harian (§44). Bisa diganti tanpa ubah kode.

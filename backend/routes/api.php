@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/session', [ApiSessionController::class, 'login'])->middleware('throttle:login');
 Route::post('/session/pin', [ApiSessionController::class, 'loginPin'])->middleware('throttle:pin');
+// Balasan WhatsApp untuk blast marketing (gateway mengirim ke sini dengan token rahasia).
+Route::post('/marketing/inbound', [\App\Http\Controllers\AdminMarketingController::class, 'inbound'])->middleware('throttle:120,1');
 Route::post('/session/google', [ApiSessionController::class, 'google'])->middleware('throttle:login');
 // Yang perlu diketahui layar masuk aplikasi sebelum ada sesi: apakah masuk Google aktif dan Client ID-nya.
 Route::get('/session/options', fn () => response()->json(['google' => ['client_ids' => (array) config('goyana.google.client_ids')], 'pin_length' => (int) config('goyana.pin.length')]));

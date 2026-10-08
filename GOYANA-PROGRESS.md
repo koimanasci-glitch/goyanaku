@@ -1649,3 +1649,10 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **CI** commit 3d324f1: `Backend foundation` 37769700653 SUCCESS; `Flutter` 37769700784 SUCCESS penuh (analyze, tes unit termasuk tes Google/sesi baru, screenshot, APK hibrida + APK Mode Murni dengan `google_sign_in`); `Build APK GOYANA` 37769700564.
 - **Belum bisa diuji**: tombol Google di HP. Butuh Client ID dari Google Cloud milik Koko (nama paket `id.goyana.preview.goyana_flutter`, SHA-1 kunci uji `95:8C:A9:12:63:53:CB:7F:6D:54:41:D5:ED:F1:64:DE:53:84:1E:E4`) dan server yang online. Layar masuk baru muncul bila aplikasi punya alamat server; APK uji tanpa alamat server tetap terbuka tanpa akun.
 - **Catatan keamanan**: password Google yang sempat ditulis Koko di percakapan tidak dipakai dan tidak disimpan di repo, APK, atau catatan. Kunci tanda tangan APK sekarang masih kunci uji yang terbuka di repo; untuk Play Store nanti perlu kunci produksi dan SHA-1 barunya didaftarkan lagi di Google.
+
+### [Claude] Aplikasi administrator: tema, divisi, monitor VPS, CRM marketing dan WA blast (8 Okt malam)
+- **Izin**: "Gas buat" (8 Okt 20.42). Acuan: GOYANA-SISTEM-PUSAT.md §52.
+- **Backend saja** (aplikasi Android tidak disentuh): migrasi `2026_10_08_000014`, `AdminHomeController`, `AdminMarketingController`, middleware `AdminArea`, `Support/{ServerStats,WhatsApp,Blast}`, 12 view baru, `layout.blade.php` (tema), rute admin per divisi, `goyana:blast` tiap menit, `goyana:health` mencatat beban server, huruf Poppins dan tanda GOYANA di `public/`.
+- **Daftar client pindah** dari `/admin` ke `/admin/clients`; `/admin` sekarang Beranda.
+- **Uji lokal**: PHPUnit 132 tes / 1179 asersi lulus (11 tes baru di `AdminAppTest`), `php -l` bersih, `view:cache` lulus. Tampilan dicek di browser lebar HP (412 px) dengan data contoh.
+- **Belum diuji**: gateway WhatsApp sungguhan (belum ada), server sungguhan, MySQL.

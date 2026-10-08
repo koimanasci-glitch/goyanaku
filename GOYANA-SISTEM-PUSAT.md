@@ -944,3 +944,30 @@ Pesanan dan rincian, pembayaran, pelanggan, deposit, kas per kasir, layanan dan 
 | Tahap per barang | Server menyimpan; tampilan di aplikasi ditunda (keputusan Paduka: belakangan) |
 | Alasan mundur tahap | Aplikasi tidak punya tombol mundur tahap, jadi tidak ada yang dikirim; aturan server tetap mati |
 | HP outlet dipakai kurir/pegawai bergantian dengan kasir | Data kasir yang sudah ada di HP itu tidak disembunyikan saat akun lain masuk; HP outlet sebaiknya untuk kasir dan pegawai |
+
+## 52. Aplikasi Administrator: Tema, Divisi, Monitor VPS, CRM Marketing — 8 Oktober 2026 malam
+
+Keputusan Paduka (20.35–20.42 WIB): tampilan administrator disamakan dengan aplikasi Android mengikuti gambar acuan; ada monitor VPS (RAM dll.); administrator untuk mengendalikan client (mis. menambah paket); divisi marketing mengumpulkan nomor pemilik laundry, menyimpannya di database, dan WA blast diatur sistem "digilir, sehari jangan banyak-banyak"; angka awal blast disetujui.
+
+**Tampilan** (`/admin`, bisa dipasang di HP): kepala berwarna GOYANA (#ff6b48 ke #f0472f), huruf Poppins, empat kartu angka, delapan menu, Client Terbaru, menu bawah Beranda · Fitur · Laporan · Administrator (kelola client) · Seting. Nama paket tetap Basic, Silver, Gold, Platinum.
+
+**Divisi akun administrator** (`config goyana.admin_divisions`, kolom `users.admin_division`; administrator lama = Pemilik):
+| Divisi | Area |
+|---|---|
+| Pemilik | semua, termasuk akun divisi lain, langganan, saldo AI, tambah client |
+| Marketing | CRM client dan calon client, kampanye, laporan |
+| CS / Bantuan | data client, paket sementara, Mode Bantuan, tiket, FAQ |
+| Teknis | data client, Monitor VPS, pengaturan sistem, audit |
+
+**Monitor VPS** (`App\Support\ServerStats`): RAM, beban CPU dibanding jumlah inti, disk, swap, lama menyala, ukuran database; kuning mulai 80%, merah mulai 92%; riwayat 24 jam dicatat `goyana:health` tiap 5 menit (disimpan 8 hari).
+
+**CRM marketing** (`App\Support\Blast`, `AdminMarketingController`):
+- Sasaran hanya pemilik laundry: client terdaftar dan calon client. Pelanggan milik laundry client tidak pernah masuk (lihat §264 dan tabel `prospects` yang terpisah dari data sinkron).
+- Sumber calon: isi manual dan impor CSV. Nomor kembar, nomor client, dan nomor yang pernah minta berhenti dilewati. Scraping Google Maps tidak dibuat (melanggar ketentuan Google); pencarian resmi lewat Places API bisa menyusul.
+- Kampanye: beberapa variasi kalimat dipakai bergiliran, satu pembuka dan paling banyak satu tindak lanjut per orang, mulai sebagai draf.
+- Aturan bawaan (bisa diubah di aplikasi): 20 pesan/hari per nomor di minggu pertama, +10 tiap minggu, paling banyak 80; jeda acak 2–6 menit; 09.00–17.00 WIB, Minggu libur; tindak lanjut 5 hari; tidak dikirimi kampanye lain dalam 30 hari; nomor pengirim dihentikan setelah 5 gagal berturut-turut; jatah dipotong separuh bila 3 hari mengirim ≥30 pesan tanpa satu pun balasan.
+- Balasan "STOP", "berhenti", "jangan kirim/hubungi" dan sejenisnya: nomor itu tidak pernah dikirimi lagi, juga bila dimasukkan ulang.
+- Nomor CS pusat ditolak sebagai nomor pengirim blast.
+- Gateway: `GOYANA_WA_DRIVER=none` (bawaan) berarti tidak ada kiriman otomatis; tiap pesan bisa dikirim manual lewat wa.me lalu ditandai. `http` mengirim JSON `{from, to, text}`; bentuknya disesuaikan saat CHATKU tersambung. Balasan masuk lewat `POST /api/marketing/inbound` dengan token `GOYANA_WA_WEBHOOK_TOKEN`.
+
+**Belum**: AI pusat membalas calon client (menunggu gateway dan AI pusat tersambung); grafik lebih rinci; pembagian hak di halaman rincian client masih lewat penolakan server (tombol yang bukan haknya masih tampil).

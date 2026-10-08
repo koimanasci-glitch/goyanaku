@@ -1,10 +1,10 @@
 @extends('layout')
 @section('content')
 @include('admin-nav')
-<h1>Administrator pusat</h1><p class="muted">Ringkasan seluruh usaha laundry GOYANA</p>
+<h1>Kelola Client</h1><p class="muted">Semua usaha laundry di GOYANA: paket, status, dan sinkronisasi</p>
 <div class="kpis">
 @foreach([['Total usaha', $stats['total'], null], ['Berbayar', $stats['paid'], 'paid'], ['Beta', $stats['beta'], 'beta'], ['Trial', $stats['trial'], 'trial'], ['Baca saja', $stats['expired'], 'expired']] as [$label, $n, $key])
-<a class="kpi @if($status === $key && $key) on @endif" href="{{ route('admin.index', $key ? ['status' => $key] : []) }}"><small>{{ $label }}</small><b>{{ number_format($n, 0, ',', '.') }}</b></a>
+<a class="kpi @if($status === $key && $key) on @endif" href="{{ route('admin.clients', $key ? ['status' => $key] : []) }}"><small>{{ $label }}</small><b>{{ number_format($n, 0, ',', '.') }}</b></a>
 @endforeach
 <div class="kpi"><small>Daftar 7 hari</small><b>{{ $stats['new7'] }}</b></div>
 <div class="kpi"><small>Pemasukan bulan ini</small><b>Rp{{ number_format($stats['revenue'], 0, ',', '.') }}</b></div>
@@ -18,11 +18,11 @@
 </ul></section>
 @endif
 <section class="card">
-<form class="filters" method="get" action="{{ route('admin.index') }}" role="search">
+<form class="filters" method="get" action="{{ route('admin.clients') }}" role="search">
 <input name="q" value="{{ $term }}" placeholder="Cari nama usaha, email, atau ID" aria-label="Cari usaha">
 <select name="status" aria-label="Status"><option value="">Semua status</option>
 @foreach(['paid' => 'Berbayar', 'beta' => 'Beta', 'trial' => 'Trial', 'expired' => 'Baca saja'] as $k => $v)<option value="{{ $k }}" @selected($status === $k)>{{ $v }}</option>@endforeach
-</select><button>Cari</button>@if($term !== '' || $status)<a class="button secondary" href="{{ route('admin.index') }}">Reset</a>@endif
+</select><button>Cari</button>@if($term !== '' || $status)<a class="button secondary" href="{{ route('admin.clients') }}">Reset</a>@endif
 </form>
 <div class="table list"><table><thead><tr><th>Usaha</th><th>Paket</th><th>Status</th><th>Sinkron terakhir</th><th></th></tr></thead><tbody>
 @forelse($businesses as $business)

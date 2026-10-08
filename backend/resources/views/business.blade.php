@@ -1,7 +1,7 @@
 @extends('layout')
 @section('content')
 @include('admin-nav')
-<p><a href="{{ route('admin.index') }}">← Daftar usaha</a></p><h1>{{ $business->name }}</h1>
+<p><a href="{{ route('admin.clients') }}">← Kelola Client</a></p><h1>{{ $business->name }}</h1>
 <p class="muted">Usaha #{{ $business->id }} · daftar {{ $business->created_at?->timezone('Asia/Jakarta')->format('d M Y') }}</p>
 <div class="kpis">
 <div class="kpi"><small>Paket</small><b>{{ $access['package'] ?? '—' }}</b></div>

@@ -25,6 +25,20 @@ class User extends Authenticatable implements MustVerifyEmail {
     public function business() { return $this->belongsTo(Business::class); }
     public function outlet() { return $this->belongsTo(Outlet::class); }
 
+    /** Divisi administrator pusat; administrator lama tanpa divisi adalah pemilik platform. */
+    public function adminDivision(): ?string {
+        if (!$this->is_platform_admin) return null;
+        return array_key_exists((string) $this->admin_division, config('goyana.admin_divisions')) ? $this->admin_division : 'owner';
+    }
+
+    /** Boleh membuka area aplikasi administrator ini? (config goyana.admin_divisions) */
+    public function adminCan(string $area): bool {
+        $division = $this->adminDivision();
+        if ($division === null) return false;
+        $areas = (array) config("goyana.admin_divisions.$division.areas");
+        return in_array('*', $areas, true) || in_array($area, $areas, true);
+    }
+
     public function isOwner(): bool { return !$this->is_platform_admin && $this->business_id && $this->role === 'owner'; }
     public function isActive(): bool { return $this->deactivated_at === null; }
 

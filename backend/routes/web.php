@@ -1,5 +1,5 @@
 <?php
-use App\Http\Controllers\{AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, AdminAssistController, SupportController, DashboardController, DeviceController, MonitoringController, MfaController, OutletController, TeamController};
+use App\Http\Controllers\{AdminHomeController, AdminMarketingController, AuthController, PasswordResetController, AdminController, AdminSupportController, AdminFaqController, AdminAssistController, SupportController, DashboardController, DeviceController, MonitoringController, MfaController, OutletController, TeamController};
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -65,31 +65,72 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/mfa', [MfaController::class, 'verify'])->middleware('throttle:login');
         });
         Route::middleware('platform.admin')->group(function () {
-            Route::get('/', [AdminController::class, 'index'])->name('admin.index');
-            Route::get('/businesses/{business}', [AdminController::class, 'show'])->name('admin.business');
-            Route::post('/businesses/{business}/grants', [AdminController::class, 'grant'])->name('admin.grant');
-            Route::post('/businesses/{business}/grants/{grant}/revoke', [AdminController::class, 'revoke'])->name('admin.revoke');
-            Route::post('/businesses/{business}/subscriptions', [AdminController::class, 'subscribe'])->name('admin.subscribe');
-            Route::post('/businesses/{business}/subscriptions/{subscription}/cancel', [AdminController::class, 'cancelSubscription'])->name('admin.subscription.cancel');
-            Route::post('/businesses/{business}/devices/{device}/revoke', [AdminController::class, 'revokeDevice'])->name('admin.device.revoke');
-            Route::post('/businesses/{business}/ai-topup', [AdminController::class, 'aiTopUp'])->name('admin.ai.topup');
-            Route::post('/businesses/{business}/quick-reply-test', [AdminController::class, 'quickReplyTest'])->name('admin.qr.test');
-            Route::get('/businesses/{business}/assist', [AdminAssistController::class, 'show'])->name('admin.assist');
-            Route::post('/businesses/{business}/assist/service', [AdminAssistController::class, 'saveService'])->name('admin.assist.service');
-            Route::post('/businesses/{business}/assist/outlet', [AdminAssistController::class, 'saveOutlet'])->name('admin.assist.outlet');
-            Route::post('/businesses/{business}/assist/revert/{event}', [AdminAssistController::class, 'revert'])->whereNumber('event')->name('admin.assist.revert');
-            Route::get('/audit', [AdminController::class, 'audit'])->name('admin.audit');
-            Route::get('/system', [AdminController::class, 'system'])->name('admin.system');
-            Route::get('/tickets', [AdminSupportController::class, 'index'])->name('admin.tickets');
-            Route::get('/tickets/{ticket}', [AdminSupportController::class, 'show'])->name('admin.ticket');
-            Route::post('/tickets/{ticket}/reply', [AdminSupportController::class, 'reply'])->name('admin.ticket.reply');
-            Route::post('/tickets/{ticket}', [AdminSupportController::class, 'update'])->name('admin.ticket.update');
-            Route::get('/faqs', [AdminFaqController::class, 'index'])->name('admin.faqs');
-            Route::post('/faqs', [AdminFaqController::class, 'store'])->name('admin.faqs.store');
-            Route::post('/faqs/{faq}', [AdminFaqController::class, 'update'])->whereNumber('faq')->name('admin.faqs.update');
-            Route::post('/faqs/{faq}/delete', [AdminFaqController::class, 'destroy'])->whereNumber('faq')->name('admin.faqs.delete');
-            Route::get('/settings', [AdminSupportController::class, 'settings'])->name('admin.settings');
-            Route::post('/settings', [AdminSupportController::class, 'saveSettings'])->name('admin.settings.save');
+            // Area per divisi: config goyana.admin_divisions (pemilik membuka semuanya).
+            Route::get('/', [AdminHomeController::class, 'home'])->name('admin.index');
+            Route::get('/features', [AdminHomeController::class, 'features'])->name('admin.features');
+            Route::middleware('admin.area:clients')->group(function () {
+                Route::get('/clients', [AdminController::class, 'index'])->name('admin.clients');
+                Route::get('/packages', [AdminHomeController::class, 'packages'])->name('admin.packages');
+                Route::get('/businesses/{business}', [AdminController::class, 'show'])->name('admin.business');
+                Route::post('/businesses/{business}/devices/{device}/revoke', [AdminController::class, 'revokeDevice'])->name('admin.device.revoke');
+                Route::post('/businesses/{business}/quick-reply-test', [AdminController::class, 'quickReplyTest'])->name('admin.qr.test');
+            });
+            Route::middleware('admin.area:grants')->group(function () {
+                Route::post('/businesses/{business}/grants', [AdminController::class, 'grant'])->name('admin.grant');
+                Route::post('/businesses/{business}/grants/{grant}/revoke', [AdminController::class, 'revoke'])->name('admin.revoke');
+            });
+            Route::middleware('admin.area:billing')->group(function () {
+                Route::get('/clients/new', [AdminHomeController::class, 'newClient'])->name('admin.client.new');
+                Route::post('/clients', [AdminHomeController::class, 'storeClient'])->name('admin.client.store');
+                Route::post('/businesses/{business}/subscriptions', [AdminController::class, 'subscribe'])->name('admin.subscribe');
+                Route::post('/businesses/{business}/subscriptions/{subscription}/cancel', [AdminController::class, 'cancelSubscription'])->name('admin.subscription.cancel');
+                Route::post('/businesses/{business}/ai-topup', [AdminController::class, 'aiTopUp'])->name('admin.ai.topup');
+            });
+            Route::middleware('admin.area:assist')->group(function () {
+                Route::get('/businesses/{business}/assist', [AdminAssistController::class, 'show'])->name('admin.assist');
+                Route::post('/businesses/{business}/assist/service', [AdminAssistController::class, 'saveService'])->name('admin.assist.service');
+                Route::post('/businesses/{business}/assist/outlet', [AdminAssistController::class, 'saveOutlet'])->name('admin.assist.outlet');
+                Route::post('/businesses/{business}/assist/revert/{event}', [AdminAssistController::class, 'revert'])->whereNumber('event')->name('admin.assist.revert');
+            });
+            Route::get('/audit', [AdminController::class, 'audit'])->middleware('admin.area:audit')->name('admin.audit');
+            Route::get('/system', [AdminController::class, 'system'])->middleware('admin.area:system')->name('admin.system');
+            Route::middleware('admin.area:support')->group(function () {
+                Route::get('/tickets', [AdminSupportController::class, 'index'])->name('admin.tickets');
+                Route::get('/tickets/{ticket}', [AdminSupportController::class, 'show'])->name('admin.ticket');
+                Route::post('/tickets/{ticket}/reply', [AdminSupportController::class, 'reply'])->name('admin.ticket.reply');
+                Route::post('/tickets/{ticket}', [AdminSupportController::class, 'update'])->name('admin.ticket.update');
+                Route::get('/faqs', [AdminFaqController::class, 'index'])->name('admin.faqs');
+                Route::post('/faqs', [AdminFaqController::class, 'store'])->name('admin.faqs.store');
+                Route::post('/faqs/{faq}', [AdminFaqController::class, 'update'])->whereNumber('faq')->name('admin.faqs.update');
+                Route::post('/faqs/{faq}/delete', [AdminFaqController::class, 'destroy'])->whereNumber('faq')->name('admin.faqs.delete');
+            });
+            Route::middleware('admin.area:settings')->group(function () {
+                Route::get('/settings', [AdminSupportController::class, 'settings'])->name('admin.settings');
+                Route::post('/settings', [AdminSupportController::class, 'saveSettings'])->name('admin.settings.save');
+            });
+            Route::get('/reports', [AdminHomeController::class, 'reports'])->middleware('admin.area:reports')->name('admin.reports');
+            Route::middleware('admin.area:admins')->group(function () {
+                Route::get('/admins', [AdminHomeController::class, 'admins'])->name('admin.admins');
+                Route::post('/admins', [AdminHomeController::class, 'storeAdmin'])->name('admin.admins.store');
+                Route::post('/admins/{admin}', [AdminHomeController::class, 'updateAdmin'])->whereNumber('admin')->name('admin.admins.update');
+                Route::post('/admins/{admin}/toggle', [AdminHomeController::class, 'toggleAdmin'])->whereNumber('admin')->name('admin.admins.toggle');
+            });
+            Route::middleware('admin.area:marketing')->prefix('marketing')->group(function () {
+                Route::get('/', [AdminMarketingController::class, 'index'])->name('admin.marketing');
+                Route::get('/clients', [AdminMarketingController::class, 'clients'])->name('admin.marketing.clients');
+                Route::post('/prospects', [AdminMarketingController::class, 'store'])->name('admin.prospects.store');
+                Route::post('/prospects/import', [AdminMarketingController::class, 'import'])->name('admin.prospects.import');
+                Route::get('/prospects/{prospect}', [AdminMarketingController::class, 'show'])->whereNumber('prospect')->name('admin.prospect');
+                Route::post('/prospects/{prospect}', [AdminMarketingController::class, 'update'])->whereNumber('prospect')->name('admin.prospect.update');
+                Route::get('/campaigns', [AdminMarketingController::class, 'campaigns'])->name('admin.campaigns');
+                Route::post('/campaigns', [AdminMarketingController::class, 'storeCampaign'])->name('admin.campaigns.store');
+                Route::get('/campaigns/{campaign}', [AdminMarketingController::class, 'campaign'])->whereNumber('campaign')->name('admin.campaign');
+                Route::post('/campaigns/{campaign}/status', [AdminMarketingController::class, 'campaignStatus'])->whereNumber('campaign')->name('admin.campaign.status');
+                Route::post('/messages/{message}/sent', [AdminMarketingController::class, 'markSent'])->whereNumber('message')->name('admin.message.sent');
+                Route::post('/senders', [AdminMarketingController::class, 'storeSender'])->name('admin.senders.store');
+                Route::post('/senders/{sender}/toggle', [AdminMarketingController::class, 'toggleSender'])->whereNumber('sender')->name('admin.senders.toggle');
+                Route::post('/rules', [AdminMarketingController::class, 'saveRules'])->name('admin.blast.rules');
+            });
         });
     });
 });

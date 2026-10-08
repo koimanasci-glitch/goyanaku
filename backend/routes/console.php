@@ -37,6 +37,7 @@ Artisan::command('goyana:reindex-orders', function () {
 
 Artisan::command('goyana:health', function () {
     cache()->forever('goyana.health.beat', now()->toIso8601String());
+    \App\Support\ServerStats::record(); // riwayat RAM, CPU, disk untuk Monitor VPS
     $checks = \App\Support\Health::checks();
     $failing = collect($checks)->where('state', 'fail')->pluck('detail', 'name')->all();
     $before = cache('goyana.health.failing', []);
@@ -90,6 +91,13 @@ Artisan::command('goyana:weekly-report {--print : Tampilkan saja, tanpa email}',
 })->purpose('Ringkasan mingguan untuk pemilik platform (klien, pemasukan, pemakaian, CS, sistem)');
 
 \Illuminate\Support\Facades\Schedule::command('goyana:health')->everyFiveMinutes()->withoutOverlapping();
+Artisan::command('goyana:blast', function () {
+    \App\Support\Blast::markRegistered();
+    $r = \App\Support\Blast::tick();
+    $this->info($r['idle'] ?? ('Terkirim '.$r['sent'].', gagal '.$r['failed'].', dilewati '.$r['skipped']));
+    return 0;
+})->purpose('WA blast marketing: tiap nomor pengirim mengirim paling banyak satu pesan bila gilirannya tiba');
+\Illuminate\Support\Facades\Schedule::command('goyana:blast')->everyMinute()->withoutOverlapping();
 \Illuminate\Support\Facades\Schedule::command('goyana:prune')->dailyAt('02:30')->timezone('Asia/Jakarta');
 \Illuminate\Support\Facades\Schedule::command('goyana:weekly-report')->weeklyOn(1, '07:00')->timezone('Asia/Jakarta');
 
