@@ -47,6 +47,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/team/{member}/deactivate', [TeamController::class, 'deactivate'])->name('team.deactivate');
             Route::post('/team/{member}/activate', [TeamController::class, 'activate'])->name('team.activate');
             Route::post('/team/{member}/password', [TeamController::class, 'resetPassword'])->name('team.password');
+            Route::post('/team/{member}/pin', [TeamController::class, 'resetPin'])->name('team.pin');
         });
     });
 
