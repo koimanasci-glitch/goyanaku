@@ -42,3 +42,15 @@ String qtyText(num q) {
   }
   return s.replaceAll('.', ',');
 }
+
+/// Nomor WhatsApp internasional tanpa tanda: "0812…" / "812…" / "+62 812…" → "62812…". Kosong bila tidak ada angka.
+/// Satu-satunya tempat aturan ini (dulu disalin di banyak halaman dan nomor tanpa 0 di depan salah tujuan).
+String waNumber(Object? phone) {
+  var d = '${phone ?? ''}'.replaceAll(RegExp(r'[^0-9]'), '');
+  if (d.startsWith('0')) {
+    d = '62${d.substring(1)}';
+  } else if (d.startsWith('8')) {
+    d = '62$d';
+  }
+  return d;
+}

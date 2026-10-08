@@ -220,11 +220,7 @@ class AiPage extends TemplatePage {
   }
 
   String _answer = '';
-  static String _phone(Object? p) {
-    var d = '${p ?? ''}'.replaceAll(RegExp(r'\D'), '');
-    if (d.startsWith('0')) d = '62${d.substring(1)}';
-    return d;
-  }
+  static String _phone(Object? p) => waNumber(p);
 
   /// Jawaban uji dari data aplikasi (HTML v191 answer()): status pesanan per nomor, atau daftar harga.
   String answer(String message, String sender) {

@@ -181,6 +181,19 @@ class Business {
   }
 
   /// Nama & no HP wajib (sama dengan HTML). Mengembalikan pesan salah, atau null bila tersimpan.
+  /// Hapus pelanggan dari daftar. Ditolak bila masih punya saldo deposit atau tagihan belum lunas.
+  /// Riwayat pesanannya tetap tersimpan (laporan tidak berubah).
+  String? deleteCustomer(String name) {
+    final key = name.trim().toLowerCase();
+    if (depositOf(name) > 0) return 'Masih ada saldo deposit ${rp(depositOf(name))} · habiskan atau kembalikan dulu';
+    final owed = orders.where((o) => o.name.trim().toLowerCase() == key && !o.isCancelled && o.remaining > 0).length;
+    if (owed > 0) return 'Masih ada $owed pesanan belum lunas';
+    final list = raw['customers'] as List;
+    final before = list.length;
+    list.removeWhere((e) => e is Map && '${e['name']}'.trim().toLowerCase() == key);
+    return list.length < before ? null : 'Pelanggan tidak ditemukan';
+  }
+
   String? saveCustomer(Customer c, {String? originalName}) {
     if (c.name.trim().isEmpty || c.phone.trim().isEmpty) return 'Nama dan no handphone wajib diisi';
     final list = raw['customers'] as List;

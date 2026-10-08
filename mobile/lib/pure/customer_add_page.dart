@@ -36,14 +36,17 @@ class CustomerAddPage extends PurePage {
   CustomerAddPage(super.host);
   String? editing;
   bool forOrder = false;
+  /// Halaman asal (mis. Penjemputan Baru) yang menunggu pelanggan baru ini.
+  String? returnTo;
   String name = '', phone = '', address = '', maps = '', gender = 'male';
   List<Map<String, String>> contacts = [];
   String contactQuery = '';
 
   /// Siapkan halaman: [c] null = pelanggan baru (popup jenis kelamin muncul dulu).
-  void start(Customer? c, {bool forOrder = false}) {
+  void start(Customer? c, {bool forOrder = false, String? returnTo}) {
     editing = c?.name;
     this.forOrder = forOrder;
+    this.returnTo = returnTo;
     name = c?.name ?? '';
     phone = c?.phone ?? '';
     address = c?.address ?? '';
@@ -54,7 +57,7 @@ class CustomerAddPage extends PurePage {
   @override
   String get title => editing == null ? 'TAMBAH PELANGGAN' : 'EDIT PELANGGAN';
   @override
-  String get back => forOrder ? 'addorder' : 'customers';
+  String get back => returnTo ?? (forOrder ? 'addorder' : 'customers');
   @override
   int get navActive => 0;
 
@@ -83,6 +86,7 @@ class CustomerAddPage extends PurePage {
         ]},
         if (parseMapsInput(maps)?.isNotEmpty == true) {'type': 'button', 't': 'Cek di Peta', 'primary': false, 'i': 8},
         {'type': 'button', 't': editing == null ? 'Tambahkan' : 'Simpan', 'primary': true, 'i': 7},
+        if (editing != null) {'type': 'button', 't': 'Hapus Pelanggan', 'primary': false, 'i': 9},
         {'type': 'hint', 't': _mapsHint},
         {'type': 'hint', 't': 'Nama dan no handphone wajib diisi. Alamat dan Maps boleh dikosongkan.'},
       ];
@@ -154,6 +158,29 @@ class CustomerAddPage extends PurePage {
         final link = parseMapsInput(maps);
         if (link != null && link.isNotEmpty) _openUrl(link);
         return;
+      case 9:
+        final target = editing;
+        if (target == null) return;
+        if (!host.kasirCan(2)) return host.toast('Kasir tidak diizinkan menghapus pelanggan · hubungi pemilik');
+        return host.openFormSheet(FormSheetDef(
+          'Hapus "$target"?',
+          const [],
+          'Ya, Hapus',
+          (_) {
+            final err = host.business.deleteCustomer(target);
+            if (err != null) {
+              host.toast(err);
+              return null;
+            }
+            host.saveAll();
+            addAudit(host, '🗑', 'Hapus pelanggan', target);
+            host.toast('Pelanggan $target dihapus');
+            host.go('customers');
+            return null;
+          },
+          sub: 'Pelanggan hilang dari daftar. Riwayat pesanannya tetap tersimpan di laporan.',
+          danger: true,
+        ));
       case 7:
         final loc = parseMapsInput(maps);
         if (loc != null && loc.isEmpty) return host.toast('Link Maps tidak dikenali · kosongkan atau perbaiki dulu');
@@ -162,7 +189,7 @@ class CustomerAddPage extends PurePage {
         if (err != null) return host.toast(err);
         await host.saveAll();
         host.toast(editing == null ? 'Pelanggan ${c.name} ditambahkan' : 'Data pelanggan disimpan');
-        host.customerSaved(c.name, forOrder: forOrder);
+        host.customerSaved(c.name, forOrder: forOrder, returnTo: returnTo);
     }
   }
 

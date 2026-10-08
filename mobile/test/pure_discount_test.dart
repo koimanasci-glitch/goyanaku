@@ -942,11 +942,32 @@ void templateTests() {
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
     s.fmButton(0);
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['new']));
+    // Revisi Koiman: pelanggan dipilih dari daftar (tidak diketik ulang) + Atur Jam Jemput.
+    expect([for (final it in s.debugItems()) if (it['type'] == 'title' || it['type'] == 'button') it['t']],
+        ['Pelanggan', 'Pilih dari Daftar Pelanggan', '+ Tambah Pelanggan Baru', 'Atur Jam Jemput', 'Lainnya (opsional)', 'Buat Penjemputan']);
+    s.fmButton(0);
+    expect(s.debugToast, 'Pilih pelanggan dulu');
+    // Tambah pelanggan baru dari sini → kembali ke Penjemputan Baru dengan pelanggan itu terpilih.
+    s.fmButton(21); // Besok (harus tetap terpilih sesudah kembali)
+    s.fmButton(11);
+    await _settle(tester);
+    s.fmScoped('gp128', 'button', 1);
     s.fmInput(0, 'Sari');
     s.fmInput(1, '081277776666');
+    s.fmButton(7);
+    await _settle(tester);
+    expect(s.debugItems().firstWhere((e) => e['type'] == 'row')['t'], 'Sari');
+    expect(s.debugItems().any((e) => e['type'] == 'select'), isTrue, reason: 'pilihan jam muncul karena hari = Besok');
+    s.fmButton(20); // Secepatnya
     s.fmButton(0);
-    expect(s.debugToast, 'Isi alamat atau link Maps');
+    expect(s.debugToast, 'Isi alamat penjemputan');
+    // Ganti lewat daftar pelanggan lalu kembali ke Sari.
+    s.fmButton(10);
+    await _settle(tester);
+    expect(s.debugSheet('pickcust')!.where((e) => e['type'] == 'card').map((e) => e['t']), containsAll(['Budi Native', 'Sari']));
+    s.fmScoped('pickcust', 'input', 0, 'sari');
+    s.fmScoped('pickcust', 'button', 0);
+    await _settle(tester);
     s.fmInput(2, 'Jl. Mawar 1');
     s.fmInput(6, 'Cuci kering');
     s.fmButton(0);
@@ -1437,7 +1458,7 @@ void templateTests() {
     expect(s.kasirCan(3), isTrue);
     s.nav('cashier');
     await _settle(tester);
-    expect(s.debugItems().where((e) => e['type'] == 'toggle').length, 8, reason: '"Menghapus Pelanggan" disembunyikan (fiturnya belum ada)');
+    expect(s.debugItems().where((e) => e['type'] == 'toggle').length, 9);
     expect(tester.takeException(), isNull);
   });
 
@@ -1522,6 +1543,40 @@ void templateTests() {
     await _settle(tester);
     expect(s.debugItems().where((e) => e['type'] == 'card').map((e) => e['t']), isNot(contains('Stok bahan menipis')));
     expect(HelpCenterPage.supportWa, '6285280218627');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Hapus pelanggan: ditolak bila masih ada tagihan, berhasil setelah lunas; riwayat pesanan tetap; waNumber', (tester) async {
+    expect([waNumber('0812-3456 789'), waNumber('+62 812 3456789'), waNumber('8123456789'), waNumber('')], ['628123456789', '628123456789', '628123456789', '']);
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    var b = await Business.load(kv);
+    final name = b.customers.first.name, orders = b.orders.length;
+    s.nav('customers');
+    s.cuEdit(0);
+    await _settle(tester);
+    expect(s.debugItems().any((e) => e['t'] == 'Hapus Pelanggan'), isTrue);
+    s.fmButton(9);
+    await _settle(tester);
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Masih ada 1 pesanan belum lunas');
+    expect((await Business.load(kv)).customerByName(name), isNotNull);
+    b = await Business.load(kv);
+    b.pay(b.orders.first, method: 'Tunai', amount: b.orders.first.remaining, now: DateTime(2026, 10, 3, 10));
+    await b.save();
+    final s2 = await _pump(tester, kv);
+    s2.nav('customers');
+    s2.cuEdit(0);
+    await _settle(tester);
+    s2.fmButton(9);
+    await _settle(tester);
+    s2.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s2.debugToast, 'Pelanggan $name dihapus');
+    b = await Business.load(kv);
+    expect(b.customerByName(name), isNull);
+    expect(b.orders.length, orders, reason: 'riwayat pesanan tetap');
     expect(tester.takeException(), isNull);
   });
 

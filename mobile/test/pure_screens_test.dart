@@ -154,6 +154,13 @@ void main() {
     }
     await shot('hutang');
     s.aoSheetClose();
+    s.nav('jemputnew202');
+    await shot('jemput_baru');
+    s.fmButton(10);
+    await shot('jemput_pilih');
+    s.fmScoped('pickcust', 'button', 0);
+    s.fmButton(21);
+    await shot('jemput_terisi');
     s.nav('stock');
     await shot('stok_kosong');
     s.fmButton(0);

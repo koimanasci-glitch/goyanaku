@@ -63,7 +63,9 @@ abstract class PureHost {
   /// Buka Rincian Pesanan lalu lembar Pembayaran untuk sisa tagihannya.
   void payOrder(String id);
   /// Pelanggan tersimpan dari halaman Tambah/Edit Pelanggan: lanjut ke Tambah Transaksi bila [forOrder], selain itu kembali ke Pelanggan.
-  void customerSaved(String name, {bool forOrder = false});
+  void customerSaved(String name, {bool forOrder = false, String? returnTo});
+  /// Buka Tambah Pelanggan; setelah tersimpan kembali ke halaman [page] dengan pelanggan itu terpilih.
+  void addCustomerFor(String page);
   /// Majukan status pesanan; serah terima yang belum lunas menampilkan Pembayaran (dengan "Hutang Dulu") dulu.
   void advanceOrder(String id, {String? by});
   /// Izin kasir ke-[k] (sakelar Pengaturan → Kasir). Selalu true untuk pemilik / tanpa kunci PIN.
@@ -1073,8 +1075,7 @@ class CourierPage extends PurePage {
         if (m.isEmpty) return host.toast('Lokasi belum tersedia');
         host.device.invokeMethod('App.openUrl', {'url': m}).catchError((_) => null);
       case 1:
-        var p = (o.phone.isNotEmpty ? o.phone : (host.business.customerByName(o.name)?.phone ?? '')).replaceAll(RegExp(r'\D'), '');
-        if (p.startsWith('0')) p = '62${p.substring(1)}';
+        final p = waNumber(o.phone.isNotEmpty ? o.phone : (host.business.customerByName(o.name)?.phone ?? ''));
         if (p.isEmpty) return host.toast('Nomor WA belum ada');
         host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/$p'}).catchError((_) => null);
       case 2:
@@ -1428,8 +1429,7 @@ class PinLockPage extends PurePage {
 
 /// Kirim pesan WA lewat aplikasi WhatsApp HP (tanpa server).
 void openWa(PureHost host, String phone, String text) {
-  var p = phone.replaceAll(RegExp(r'\D'), '');
-  if (p.startsWith('0')) p = '62${p.substring(1)}';
+  final p = waNumber(phone);
   host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/$p?text=${Uri.encodeComponent(text)}'}).catchError((_) => null);
 }
 
@@ -2133,7 +2133,6 @@ class CashierPage extends TemplatePage {
           ? 'Berlaku untuk siapa pun yang membuka aplikasi dengan PIN pegawai. Pemilik masuk dengan PIN Admin untuk akses penuh.'
           : 'Izin ini baru berlaku setelah "Kunci aplikasi dengan PIN" dinyalakan di Pegawai & PIN. Tanpa kunci PIN, aplikasi dianggap dipakai pemilik.',
     });
-    out.removeWhere((e) => e['type'] == 'toggle' && e['i'] == 2); // Menghapus Pelanggan: fitur hapus pelanggan belum ada
     return out;
   }
 }

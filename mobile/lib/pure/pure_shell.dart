@@ -1434,8 +1434,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (o == null || (kind != 'button' && kind != 'card' && kind != 'tap')) return;
     if (index == 1) return _openNota(o);
     if (index != 0) return;
-    var phone = _phoneOf(o).replaceAll(RegExp(r'[^0-9]'), '');
-    if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
+    final phone = waNumber(_phoneOf(o));
     try {
       final png = await _receiptPngOf(o);
       await _device.invokeMethod('Files.share', {
@@ -1757,8 +1756,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   String _phoneOf(Order o) => o.phone.isNotEmpty ? o.phone : (_b!.customerByName(o.name)?.phone ?? '');
 
   void _sendWa(Order o) {
-    var phone = _phoneOf(o).replaceAll(RegExp(r'[^0-9]'), '');
-    if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
+    final phone = waNumber(_phoneOf(o));
     final tpl = _settings!.raw['notaTpl'];
     if (tpl is String && tpl.trim().isNotEmpty) {
       final d = o.due;
@@ -1857,9 +1855,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (scope == 'wa131') {
       final wo = _detailId == null ? null : b.orderById(_detailId!);
       if (kind == 'button' && wo != null && index == 1) {
-        var phone = _phoneOf(wo).replaceAll(RegExp(r'[^0-9]'), '');
+        final phone = waNumber(_phoneOf(wo));
         if (phone.isEmpty) return toast('Nomor WA pelanggan belum ada');
-        if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
         _close(scope);
         openMaps('https://wa.me/$phone?text=${Uri.encodeComponent(_notaWa(wo))}');
         return toast('Membuka WhatsApp pelanggan dengan teks nota…');
@@ -2142,7 +2139,22 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   @override
-  void customerSaved(String name, {bool forOrder = false}) {
+  void addCustomerFor(String page) {
+    final p = _pages[page];
+    if (p is PickupNewPage) p.keep = true; // isian yang sudah ada jangan hilang
+    (_pages['customeradd'] as CustomerAddPage).start(null, returnTo: page);
+    nav('customeradd');
+  }
+
+  @override
+  void customerSaved(String name, {bool forOrder = false, String? returnTo}) {
+    final p = returnTo == null ? null : _pages[returnTo];
+    if (p is PickupNewPage) {
+      p
+        ..pick(name)
+        ..keep = true;
+      return nav(returnTo!);
+    }
     if (!forOrder) return nav('customers');
     setState(() {
       _pageSheets.clear();

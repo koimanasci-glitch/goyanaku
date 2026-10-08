@@ -3,8 +3,10 @@
 import 'dart:convert';
 
 import '../core/models.dart' show Customer;
+import '../core/money.dart';
 import '../core/stock.dart' show Couriers;
 import 'pages.dart';
+import 'views.dart';
 
 const pickupKey = 'goyana-pickup202';
 const pickupActiveKey = 'goyana-pickup202-active';
@@ -19,11 +21,7 @@ Future<List<Map<String, dynamic>>> loadPickups(PureHost host) async {
   return [];
 }
 
-String _wa(Object? p) {
-  var d = '${p ?? ''}'.replaceAll(RegExp(r'\D'), '');
-  if (d.startsWith('0')) d = '62${d.substring(1)}';
-  return d;
-}
+String _wa(Object? p) => waNumber(p);
 
 String _map(Map r) {
   final m = '${r['maps'] ?? ''}'.trim();
@@ -188,11 +186,17 @@ class PickupPage extends PurePage {
   }
 }
 
-/// Penjemputan Baru (jemputnew202).
+/// Penjemputan Baru (jemputnew202). Revisi Koiman: pelanggan dipilih dari daftar / Tambah Pelanggan (tidak diketik ulang)
+/// dan waktu jemput diatur lewat pilihan hari + jam.
 class PickupNewPage extends PurePage {
   PickupNewPage(super.host);
-  final List<String> f = List.filled(8, '');
-  int when = 0;
+  static const days = ['Secepatnya', 'Hari ini', 'Besok', 'Lusa'];
+  static final times = [for (var h = 7; h <= 21; h++) for (final m in const ['00', '30']) if (!(h == 21 && m == '30')) '${h.toString().padLeft(2, '0')}.$m'];
+  String customer = '', address = '', service = '', note = '', query = '';
+  int day = 0, time = 4; // 09.00
+
+  /// True sekali: kembali dari Tambah Pelanggan, isian jangan dikosongkan.
+  bool keep = false;
   @override
   String get title => 'PENJEMPUTAN BARU';
   @override
@@ -201,55 +205,124 @@ class PickupNewPage extends PurePage {
   int get navActive => 0;
   @override
   void opened() {
-    f.fillRange(0, f.length, '');
-    when = 0;
+    if (keep) {
+      keep = false;
+      return;
+    }
+    customer = address = service = note = query = '';
+    day = 0;
+    time = 4;
+  }
+
+  Customer? get _cust => customer.isEmpty ? null : host.business.customerByName(customer);
+
+  /// Pilih pelanggan: alamat penjemputan mengikuti alamat pelanggan (masih bisa diubah).
+  void pick(String name) {
+    final c = host.business.customerByName(name);
+    if (c == null) return;
+    customer = c.name;
+    address = c.address;
+  }
+
+  List<Customer> get _found {
+    final q = query.trim().toLowerCase();
+    return [for (final c in host.business.customers) if (q.isEmpty || '${c.name} ${c.phone}'.toLowerCase().contains(q)) c].take(50).toList();
   }
 
   @override
   List<Map<String, dynamic>> items() {
-    Map<String, dynamic> inp(int i, String ph, {bool numeric = false}) =>
-        {'type': 'input', 'v': f[i], 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    Map<String, dynamic> inp(int i, String v, String ph) =>
+        {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+    final c = _cust;
     return [
       {'type': 'hint', 't': 'Berat dan item tidak diisi di sini. Kurir menimbangnya di lokasi, lalu transaksi dibuat saat tombol Sampai Lokasi ditekan.'},
-      inp(0, 'Nama pelanggan'),
-      inp(1, 'No WhatsApp pelanggan', numeric: true),
-      inp(2, 'Alamat penjemputan'),
-      inp(3, 'Link Google Maps (opsional)'),
-      {'type': 'select', 'options': pickupWhen, 'index': when, 'i': 4},
-      inp(5, 'Jam tertentu, misalnya 15.30 (opsional)'),
-      inp(6, 'Layanan yang diinginkan (opsional)'),
-      inp(7, 'Catatan untuk kurir (opsional)'),
-      {'type': 'button', 't': 'Buat Penjemputan', 'primary': false, 'file': '', 'after': false, 'i': 0},
+      {'type': 'title', 't': 'Pelanggan'},
+      if (c == null) ...[
+        {'type': 'button', 't': 'Pilih dari Daftar Pelanggan', 'primary': true, 'file': '', 'after': false, 'i': 10},
+        {'type': 'button', 't': '+ Tambah Pelanggan Baru', 'primary': false, 'file': '', 'after': false, 'i': 11},
+      ] else ...[
+        {'type': 'row', 't': c.name, 's': c.phone, 'btn': 'Ganti', 'svg': c.gender == 'female' ? custAvatarFemale : custAvatarMale, 'i': 10},
+        {'type': 'label', 't': 'Alamat penjemputan'},
+        inp(2, address, 'Alamat penjemputan'),
+        {'type': 'hint', 't': mapsLink(c).isEmpty ? 'Titik lokasi belum ditandai · bisa ditambah lewat Edit Pelanggan.' : '📍 Titik lokasi pelanggan tersimpan · kurir bisa langsung Navigasi.'},
+      ],
+      {'type': 'title', 't': 'Atur Jam Jemput'},
+      {'type': 'buttons', 'cols': 4, 'options': [for (var k = 0; k < days.length; k++) {'t': days[k], 'on': day == k, 'i': 20 + k}]},
+      if (day > 0) ...[
+        {'type': 'label', 't': 'Jam jemput'},
+        {'type': 'select', 'options': times, 'index': time, 'i': 5},
+      ] else
+        {'type': 'hint', 't': 'Kurir menjemput secepatnya. Pilih hari untuk menentukan jam.'},
+      {'type': 'title', 't': 'Lainnya (opsional)'},
+      inp(6, service, 'Layanan yang diinginkan'),
+      inp(7, note, 'Catatan untuk kurir'),
+      {'type': 'button', 't': 'Buat Penjemputan', 'primary': true, 'file': '', 'after': false, 'i': 0},
     ];
   }
 
   @override
   void input(int i, Object value) {
-    if (i == 4) {
-      when = value is int ? value.clamp(0, pickupWhen.length - 1) : 0;
+    if (i == 5) {
+      time = value is int ? value.clamp(0, times.length - 1).toInt() : time;
       return host.refresh();
     }
-    if (i >= 0 && i < f.length) f[i] = '$value';
+    if (i == 2) address = '$value';
+    if (i == 6) service = '$value';
+    if (i == 7) note = '$value';
+  }
+
+  @override
+  List<Map<String, dynamic>>? sheetItems(String id) {
+    if (id != 'pickcust') return null;
+    final list = _found;
+    return [
+      {'type': 'title', 't': 'Pilih Pelanggan', 's': ''},
+      {'type': 'input', 'v': query, 'ph': 'Cari nama / no HP', 'i': 0},
+      if (list.isEmpty) {'type': 'hint', 't': host.business.customers.isEmpty ? 'Belum ada pelanggan. Tambahkan dulu.' : 'Pelanggan tidak ditemukan.'},
+      for (var k = 0; k < list.length; k++)
+        {'type': 'card', 't': list[k].name, 's': [list[k].phone, if (list[k].address.isNotEmpty) list[k].address].join(' · '), 'svg': list[k].gender == 'female' ? custAvatarFemale : custAvatarMale, 'ic': '', 'badge': '', 'meta': '', 'on': false, 'i': k},
+      {'type': 'button', 't': '+ Tambah Pelanggan Baru', 'primary': true, 'i': 1001},
+      {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1000},
+    ];
+  }
+
+  @override
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    if (id != 'pickcust') return;
+    if (kind == 'input') {
+      query = '${value ?? ''}';
+      return host.refresh();
+    }
+    if (kind != 'button') return;
+    final list = _found;
+    host.closePageSheet('pickcust');
+    if (index == 1001) return host.addCustomerFor('jemputnew202');
+    if (index >= 0 && index < list.length) pick(list[index].name);
+    host.refresh();
   }
 
   @override
   void button(int i) async {
-    final name = f[0].trim(), phone = f[1].trim(), addr = f[2].trim(), maps = f[3].trim();
-    if (name.isEmpty) return host.toast('Isi nama pelanggan');
-    if (addr.isEmpty && maps.isEmpty) return host.toast('Isi alamat atau link Maps');
+    if (i == 10) {
+      query = '';
+      return host.openPageSheet('pickcust');
+    }
+    if (i == 11) return host.addCustomerFor('jemputnew202');
+    if (i >= 20 && i < 20 + days.length) {
+      day = i - 20;
+      return host.refresh();
+    }
+    final c = _cust;
+    if (c == null) return host.toast('Pilih pelanggan dulu');
+    final addr = address.trim(), maps = c.maps.trim();
+    if (addr.isEmpty && maps.isEmpty) return host.toast('Isi alamat penjemputan');
     final ms = host.now.millisecondsSinceEpoch;
     final list = await loadPickups(host);
     list.add({
-      'id': 'jm${ms.toRadixString(36)}', 'name': name, 'phone': phone, 'address': addr, 'maps': maps, 'when': pickupWhen[when], 'whenNote': f[5].trim(),
-      'service': f[6].trim(), 'note': f[7].trim(), 'status': 'baru', 'createdAt': ms, 'outlet': host.business.activeOutlet,
+      'id': 'jm${ms.toRadixString(36)}', 'name': c.name, 'phone': c.phone, 'address': addr, 'maps': maps, 'when': days[day], 'whenNote': day > 0 ? 'jam ${times[time]}' : '',
+      'service': service.trim(), 'note': note.trim(), 'status': 'baru', 'createdAt': ms, 'outlet': host.business.activeOutlet,
     });
     await host.kv.set(pickupKey, jsonEncode(list));
-    // Pelanggan baru ikut masuk daftar pelanggan (butuh nama dan no HP).
-    final b = host.business;
-    if (b.customerByName(name) == null && phone.replaceAll(RegExp(r'\D'), '').length >= 9) {
-      b.saveCustomer(Customer(name: name, phone: phone, address: addr, maps: maps));
-      await host.saveAll();
-    }
     opened();
     host.go('jemput202');
     host.toast('Penjemputan dibuat');
