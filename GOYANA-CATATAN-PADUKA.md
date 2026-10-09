@@ -138,3 +138,9 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Avatar memakai foto avatar yang sudah ada. Header (pilih outlet) dan menu bawah (Scan) di mockup **diabaikan**.
 - Buat Pesanan bisa dipakai owner, kasir, dan kurir yang ditugaskan (asumsi disetujui).
 - Data uji penjemputan lama hanya di HP, tidak dipindahkan.
+
+## 9 Oktober 2026, 11.46 WIB — Buat Pesanan di Antar Jemput
+
+- Tombol **Buat Pesanan** pada kartu penjemputan membuka **Tambah Transaksi yang sama persis** (Pilih Durasi → layanan → Atur Pesanan → Pembayaran), dengan pelanggan sudah terpilih.
+- **Tanpa pilihan Penyerahan**: penjemputan selalu **Jemput & Antar** (ongkir mengikuti tarif antar jemput).
+- Hasilnya mengisi pesanan Penjemputan yang sama (nomor nota tetap), lalu masuk Antrian.
