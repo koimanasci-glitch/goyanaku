@@ -1671,3 +1671,8 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **Backend**: Monitoring web + API menambah `pickups` (Penjemputan berjalan).
 - **Uji**: PHPUnit 144 lulus lokal; CI Flutter (analyze, tes unit termasuk tes baru alur penjemputan, screenshot `pure_rev_jemput_daftar/menu`, APK Mode Murni) lulus di 4aa8e3d; CI backend lulus.
 - **Belum diuji di HP sungguhan**: kurir login menerima tugas lewat server.
+
+### [Claude] Hubungkan WhatsApp: tampilan baru sesuai mockup (9 Okt, "Ganti tampilan jadi gini")
+- Hanya tampilan (`pure/wa_devices_page.dart`, butir baru `wadevice`, `sheethead`, `methods`, `pcode`, `tip`, `success`, QR berbingkai di `native/form_page.dart`). Logika penautan tetap: QR/kode dari server, tombol Periksa Status tetap ada (tidak ada di mockup, tapi dibutuhkan untuk memastikan tersambung).
+- Popup "Kode berhasil dibuat" muncul setelah kode diterima. Kode bisa disalin. Header pilih outlet + lonceng di mockup diabaikan (keputusan sebelumnya).
+- Uji: tes unit `wa_devices_page_test` diperbarui; screenshot `wa_connect_{daftar,qr,kode,berhasil}` di CI.
