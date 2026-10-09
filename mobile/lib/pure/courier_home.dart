@@ -111,7 +111,7 @@ class CourierHomePage extends PurePage {
         out
           ..add({'type': 'title', 't': '📍 ${o.name}'})
           ..add({'type': 'hint', 't': '${pickupWhen(o, host.now)} · ${_address(o)}${o.note.isEmpty || o.note == '-' ? '' : ' · ${o.note}'}'})
-          ..add(_buttons(k, o, o.items.isEmpty ? 'Timbang & Jemput' : 'Sudah Dijemput', open: true));
+          ..add(_buttons(k, o, o.items.isEmpty ? 'Buat Pesanan' : 'Sudah Dijemput', open: true));
       }
       out.add({'type': 'hint', 't': 'Timbang di lokasi lewat Buka Nota → Edit. Harga mengikuti daftar harga, tanpa diskon. Kasir mengecek timbangan lagi di outlet.'});
     } else if (tab == 1) {

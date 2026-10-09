@@ -1094,7 +1094,7 @@ class CourierPage extends PurePage {
           {'t': 'Navigasi', 'on': false, 'i': 1000 + 10 * k},
           {'t': 'WhatsApp', 'on': false, 'i': 1001 + 10 * k},
           if (tasks[k].status != 'jemput' && !tasks[k].isPaid) {'t': 'Bayar', 'on': false, 'i': 1002 + 10 * k},
-          {'t': tasks[k].status == 'jemput' ? 'Sudah Dijemput' : (tasks[k].status == 'siap' ? 'Mulai Antar' : 'Sudah Diterima'), 'on': true, 'i': 1003 + 10 * k},
+          {'t': tasks[k].status == 'jemput' ? (tasks[k].items.isEmpty ? 'Buat Pesanan' : 'Sudah Dijemput') : (tasks[k].status == 'siap' ? 'Mulai Antar' : 'Sudah Diterima'), 'on': true, 'i': 1003 + 10 * k},
         ]},
       ],
     ];

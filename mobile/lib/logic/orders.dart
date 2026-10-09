@@ -86,7 +86,7 @@ Map<String, dynamic> _card(Business b, Order o, int index, DateTime now, {requir
   const off = ['rgb(241, 242, 245)', 'rgb(154, 160, 172)'];
   const on = ['rgb(232, 73, 63)', 'rgb(255, 255, 255)'];
   final next = switch (key) {
-    'jemput' => ['Jemput ›', ...on],
+    'jemput' => [o.items.isEmpty ? 'Buat Pesanan' : 'Jemput ›', ...on],
     'antrian' => ['Proses', ...on],
     'proses' => ['Tandai Siap ›', ...on],
     'siap' || 'telat' => [antar ? 'Antar ›' : 'Serahkan ›', ...on],

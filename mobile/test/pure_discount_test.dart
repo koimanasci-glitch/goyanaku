@@ -980,6 +980,15 @@ void templateTests() {
     final cardItem = s.debugItems().firstWhere((e) => e['type'] == 'pickup');
     expect([cardItem['t'], cardItem['when'], cardItem['who'], cardItem['badge']], ['Sari', 'Besok, Pagi 08.00–11.00', 'Kurir: Budi', 'Ditugaskan']);
     expect([for (final x in cardItem['btns'] as List) (x as Map)['t']], ['Navigasi', 'Buat Pesanan', 'WhatsApp']);
+    // Tab Penjemputan di Pesanan: tombol kartu "Buat Pesanan", tidak langsung masuk Antrian dengan Rp0.
+    s.nav('orders');
+    await _settle(tester);
+    s.cardAction(b.orders.indexWhere((e) => e.id == o.id));
+    await _settle(tester);
+    expect(s.debugSheetIds(), contains('dur'), reason: 'membuka Buat Pesanan (Pilih Durasi)');
+    expect((await Business.load(kv)).orderById(o.id)!.status, 'jemput');
+    s.aoBack();
+    await _settle(tester);
     // Ikut tampil di Tugas Kurir.
     s.nav('couriers');
     await _settle(tester);

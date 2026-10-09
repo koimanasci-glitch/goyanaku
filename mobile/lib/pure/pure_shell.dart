@@ -1626,6 +1626,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void advanceOrder(String id, {String? by}) {
     final o = _b!.orderById(id);
     if (o == null) return;
+    if (_pickupNeedsOrder(o)) return;
     if (_stageNext(o)) return refresh();
     if (_weighCheck(o)) return;
     if (_askHandoverPay(o, by ?? _kasir)) return;
@@ -1634,7 +1635,16 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     refresh();
   }
 
+  /// Penjemputan tanpa layanan/berat tidak boleh langsung masuk Antrian (Rp0): buka Buat Pesanan (Tambah Transaksi) dulu.
+  bool _pickupNeedsOrder(Order o) {
+    if (o.status != 'jemput' || o.items.isNotEmpty) return false;
+    setState(() => _detailId = null);
+    weighOrder(o.id);
+    return true;
+  }
+
   void _next(Order o) {
+    if (_pickupNeedsOrder(o)) return;
     if (_stageNext(o)) return;
     if (_weighCheck(o)) return;
     if (_askHandoverPay(o, _kasir)) return;
@@ -2944,6 +2954,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       // Buat Pesanan dari Penjemputan dibatalkan: pesanan Penjemputan tetap seperti semula.
       final to = _fillFrom.isEmpty ? 'jemput202' : _fillFrom;
       _fillId = _fillFrom = '';
+      setState(() {
+        _sheets.clear();
+        _aoSheet = null;
+      });
       return nav(to);
     }
     if (_aoStage == 'services') {

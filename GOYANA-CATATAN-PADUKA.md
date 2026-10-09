@@ -152,3 +152,8 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 ## 9 Oktober 2026, 20.54 WIB — permintaan tampilan (dicatat dulu, belum dikerjakan)
 
 - **Antar Jemput → tombol "+ Buat Penjemputan"**: jadikan tombol utama berwarna **oranye/merah GOYANA** (sama dengan tombol utama lain di aplikasi), bukan tombol putih bergaris.
+
+## 9 Oktober 2026, 21.10 WIB — bug penjemputan masuk Antrian Rp0 (diperbaiki)
+
+- Di Pesanan → tab Penjemputan, tombol **Jemput ›** langsung memindahkan penjemputan ke Antrian tanpa timbangan dan harga (Rp0). Sekarang penjemputan yang belum ada layanannya memakai tombol **Buat Pesanan** (Tambah Transaksi tanpa Penyerahan) di kartu Pesanan, rincian pesanan, Tugas Kurir, dan HP kurir. Penjemputan tidak bisa masuk Antrian sebelum ditimbang.
+- Pesanan Rp0 yang sudah terlanjur masuk Antrian (GY-261009-0135, -0137) data uji di HP; bisa dibatalkan atau diisi lewat Edit.
