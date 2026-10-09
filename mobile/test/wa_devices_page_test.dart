@@ -130,7 +130,7 @@ Future<_Host> _host(_Server server, {bool login = true, String account = 'owner@
 
 Future<void> _settle() => Future<void>.delayed(Duration.zero);
 
-List<Map<String, dynamic>> _entries(WaDevicesPage p) => [for (final it in p.items()) if (it['type'] == 'entry') it];
+List<Map<String, dynamic>> _entries(WaDevicesPage p) => [for (final it in p.items()) if (it['type'] == 'wadevice') it];
 List<String> _hints(List<Map<String, dynamic>> items) => [for (final it in items) if (it['type'] == 'hint') '${it['t']}'];
 
 Future<void> _add(WaDevicesPage page, {String name = 'WA Kasir', String phone = '0812-3456-7890'}) async {
@@ -156,7 +156,7 @@ void main() {
     expect(host.toasts.last, 'Perangkat tersimpan');
     expect(host.sheets, isEmpty);
     final row = _entries(page).single;
-    expect([row['t'], (row['lines'] as List).take(2).toList()], ['WA Kasir', ['+6281234567890 · Pusat', 'Draf di HP ini, belum dihubungkan']]);
+    expect([row['t'], (row['lines'] as List).take(2).toList()], ['WA Kasir', ['+6281234567890 · Pusat', 'Belum dihubungkan']]);
     expect([for (final b in row['btns'] as List) (b as Map)['t']], ['Hubungkan', 'Edit', 'Hapus']);
     expect(server.devices, isEmpty, reason: 'draf belum memakai slot server');
 
@@ -186,7 +186,9 @@ void main() {
     expect(page.sheetItems('wa195-pair')!.any((e) => e['type'] == 'qr'), isFalse);
     page.sheetEvent('wa195-pair', 'button', 3, null);
     await _settle();
-    expect(page.sheetItems('wa195-pair')!.map((e) => e['t']), contains('1234-5678'));
+    expect(page.sheetItems('wa195-pair')!.singleWhere((e) => e['type'] == 'pcode')['t'], '1234-5678');
+    expect(host.sheets, contains('wa195-ok'), reason: 'popup Kode berhasil dibuat');
+    expect(page.sheetItems('wa195-ok')!.first['t'], 'Kode berhasil dibuat');
 
     // Periksa Status: belum tertaut → tetap di popup; sudah tertaut → popup ditutup.
     page.sheetEvent('wa195-pair', 'button', 4, null);

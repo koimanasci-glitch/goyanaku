@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'common.dart';
@@ -91,7 +92,7 @@ class NativeSheet extends StatelessWidget {
     // Popup tanpa kolom isian selalu menempel di bawah (tidak ikut terdorong keyboard).
     final hasInput = items.any((it) => it['type'] == 'input');
     // Popup pilih Pria/Wanita: di tengah layar (permintaan Koko).
-    if (id == 'gp128') {
+    if (id == 'gp128' || items.any((it) => it['type'] == 'success')) {
       return Material(
         color: const Color(0x80141b26),
         child: Stack(children: [
@@ -278,6 +279,18 @@ class NativeForm extends StatelessWidget {
             ),
           ),
         );
+      case 'wadevice':
+        return _WaDeviceCard(it: it, onTap: a.fmButton);
+      case 'sheethead':
+        return _SheetHead(it: it, onTap: a.fmButton);
+      case 'methods':
+        return _MethodTiles(it: it, onTap: a.fmButton);
+      case 'pcode':
+        return _PairCode(it: it, onTap: a.fmButton);
+      case 'tip':
+        return _TipBox(it: it);
+      case 'success':
+        return _SuccessBox(it: it);
       case 'pickup':
         return _PickupCard(it: it, onTap: (i) { FocusManager.instance.primaryFocus?.unfocus(); a.fmButton(i); });
       case 'title':
@@ -788,6 +801,8 @@ class NativeForm extends StatelessWidget {
           ),
         );
       case 'qr':
+        // QR penautan WhatsApp: bingkai sudut merah dan logo WhatsApp di tengah (koreksi galat tinggi agar tetap terbaca).
+        if (it['frame'] == true) return _FramedQr(data: _s(it['data']), size: (it['size'] as num?)?.toDouble() ?? 220);
         // Kode QR digambar Flutter (QRIS dinamis di mode murni).
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -913,7 +928,13 @@ class NativeForm extends StatelessWidget {
             child: Container(height: 50, alignment: Alignment.center,
                 decoration: BoxDecoration(color: primary ? gBrand : Colors.white, borderRadius: BorderRadius.circular(12),
                     border: primary ? null : Border.all(color: const Color(0xffe1e5ea))),
-                child: Text(_s(it['t']), style: gText(14, w: FontWeight.w600, c: primary ? Colors.white : _ink, ls: .3))),
+                child: _s(it['ic']).isEmpty
+                    ? Text(_s(it['t']), style: gText(14, w: FontWeight.w600, c: primary ? Colors.white : _ink, ls: .3))
+                    : Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(_icons[_s(it['ic'])] ?? Icons.circle_outlined, size: 18, color: primary ? Colors.white : _ink),
+                        const SizedBox(width: 8),
+                        Text(_s(it['t']), style: gText(14, w: FontWeight.w600, c: primary ? Colors.white : _ink, ls: .3)),
+                      ])),
           ),
         );
     }
@@ -1117,4 +1138,255 @@ class _PickupCard extends StatelessWidget {
       ]),
     );
   }
+}
+
+
+const _icons = <String, IconData>{
+  'link': Icons.link_rounded, 'edit': Icons.edit_outlined, 'delete': Icons.delete_outline_rounded, 'check': Icons.verified_outlined,
+  'share': Icons.share_outlined, 'refresh': Icons.refresh_rounded, 'qr': Icons.qr_code_scanner_rounded,
+};
+
+const _waLogo = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#25D366"/><path fill="#fff" d="M17.2 14.3c-.3-.1-1.6-.8-1.8-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.6.1-.3-.1-1.1-.4-2.1-1.3-.8-.7-1.3-1.5-1.5-1.8-.2-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.3-.4.1-.2 0-.3 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1.1 2.7c.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.1.2-1.3-.1 0-.3-.1-.6-.2z"/><path fill="#fff" d="M12 4.6a7.4 7.4 0 0 0-6.4 11.1l-1 3.7 3.8-1A7.4 7.4 0 1 0 12 4.6zm0 13.5c-1.1 0-2.2-.3-3.1-.9l-.2-.1-2.3.6.6-2.2-.1-.2A6.1 6.1 0 1 1 12 18.1z"/></svg>';
+
+/// Hubungkan WhatsApp (mockup Paduka 9 Oktober 2026): kartu perangkat dengan status bertitik dan tombol berikon.
+class _WaDeviceCard extends StatelessWidget {
+  const _WaDeviceCard({required this.it, required this.onTap});
+  final Map<String, dynamic> it;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = _list2(it['lines']);
+    final btns = _list(it['btns']);
+    final ok = it['ok'] == true;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xffeef0f4)),
+          boxShadow: [gShadow(const Color(0x0d1e1e1e), 2, 10)]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Container(width: 56, height: 56, alignment: Alignment.center,
+              decoration: BoxDecoration(color: const Color(0xfffdecee), borderRadius: BorderRadius.circular(14)),
+              child: Text(_s(it['avatar']), style: gText(24, w: FontWeight.w700, c: gBrand))),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_s(it['t']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(15.5, w: FontWeight.w600, c: _ink)),
+              if (lines.isNotEmpty) Text(lines[0], style: gText(12.5, c: const Color(0xff8a8fa3))),
+              for (var k = 1; k < lines.length; k++)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(children: [
+                    Container(width: 8, height: 8, margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(color: k == 1 ? (ok ? const Color(0xff22b35e) : const Color(0xffa0a4ac)) : const Color(0xff2f62d6), shape: BoxShape.circle)),
+                    Expanded(child: Text(lines[k], style: gText(12, c: k == 1 && ok ? const Color(0xff1e8a4c) : const Color(0xff6b7280)))),
+                  ]),
+                ),
+            ]),
+          ),
+        ]),
+        if (btns.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Row(children: [
+            for (var k = 0; k < btns.length; k++) ...[
+              if (k > 0) const SizedBox(width: 8),
+              Expanded(
+                flex: k == 0 ? 6 : 5,
+                child: GestureDetector(
+                  onTap: () => onTap(_i(btns[k]['i'])),
+                  child: Container(
+                    height: 40, padding: const EdgeInsets.symmetric(horizontal: 6),
+                    decoration: BoxDecoration(color: btns[k]['on'] == true ? gBrand : Colors.white, borderRadius: BorderRadius.circular(10),
+                        border: btns[k]['on'] == true ? null : Border.all(color: const Color(0xffe1e5ea))),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        if (_icons[_s(btns[k]['ic'])] case final ic?) ...[
+                          Icon(ic, size: 17, color: btns[k]['on'] == true ? Colors.white : _ink),
+                          const SizedBox(width: 6),
+                        ],
+                        Text(_s(btns[k]['t']), style: gText(13, w: FontWeight.w500, c: btns[k]['on'] == true ? Colors.white : _ink)),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ]),
+        ],
+      ]),
+    );
+  }
+}
+
+/// Judul popup besar dengan keterangan dan tombol X bundar.
+class _SheetHead extends StatelessWidget {
+  const _SheetHead({required this.it, required this.onTap});
+  final Map<String, dynamic> it;
+  final ValueChanged<int> onTap;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_s(it['t']), style: gText(20, w: FontWeight.w700, c: _ink)),
+              if (_s(it['s']).isNotEmpty) Padding(padding: const EdgeInsets.only(top: 2), child: Text(_s(it['s']), style: gText(13, c: const Color(0xff6b7280)))),
+            ]),
+          ),
+          GestureDetector(
+            onTap: () => onTap(_i(it['i'])),
+            child: Container(width: 38, height: 38, alignment: Alignment.center,
+                decoration: const BoxDecoration(color: Color(0xfff1f3f6), shape: BoxShape.circle),
+                child: const Icon(Icons.close_rounded, size: 20, color: _ink)),
+          ),
+        ]),
+      );
+}
+
+/// Pilihan cara menautkan: Scan QR / Kode WhatsApp (ubin berikon, terpilih = merah muda).
+class _MethodTiles extends StatelessWidget {
+  const _MethodTiles({required this.it, required this.onTap});
+  final Map<String, dynamic> it;
+  final ValueChanged<int> onTap;
+  @override
+  Widget build(BuildContext context) {
+    final opts = _list(it['options']);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(children: [
+        for (var k = 0; k < opts.length; k++) ...[
+          if (k > 0) const SizedBox(width: 10),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onTap(_i(opts[k]['i'])),
+              child: Container(
+                height: 82,
+                decoration: BoxDecoration(color: opts[k]['on'] == true ? const Color(0xfffff0ee) : const Color(0xfff6f7f9), borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: opts[k]['on'] == true ? gBrand : const Color(0xffe8ebef), width: opts[k]['on'] == true ? 1.4 : 1)),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  _s(opts[k]['kind']) == 'code'
+                      ? Icon(Icons.chat_outlined, size: 28, color: opts[k]['on'] == true ? gBrand : _ink)
+                      : Icon(Icons.qr_code_scanner_rounded, size: 28, color: opts[k]['on'] == true ? gBrand : _ink),
+                  const SizedBox(height: 6),
+                  Text(_s(opts[k]['t']), style: gText(13, w: FontWeight.w500, c: opts[k]['on'] == true ? const Color(0xffb3261e) : _ink)),
+                ]),
+              ),
+            ),
+          ),
+        ],
+      ]),
+    );
+  }
+}
+
+/// QR penautan dengan bingkai sudut merah dan logo WhatsApp di tengah.
+class _FramedQr extends StatelessWidget {
+  const _FramedQr({required this.data, required this.size});
+  final String data;
+  final double size;
+  @override
+  Widget build(BuildContext context) {
+    const corner = BorderSide(color: gBrand, width: 3);
+    Widget c(Alignment al) => Align(
+          alignment: al,
+          child: Container(width: 28, height: 28, decoration: BoxDecoration(border: Border(
+            top: al.y < 0 ? corner : BorderSide.none, bottom: al.y > 0 ? corner : BorderSide.none,
+            left: al.x < 0 ? corner : BorderSide.none, right: al.x > 0 ? corner : BorderSide.none,
+          ))),
+        );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Center(
+        child: SizedBox(
+          width: size + 28, height: size + 28,
+          child: Stack(children: [
+            c(Alignment.topLeft), c(Alignment.topRight), c(Alignment.bottomLeft), c(Alignment.bottomRight),
+            Center(child: QrImageView(data: data, size: size, backgroundColor: Colors.white, errorCorrectionLevel: QrErrorCorrectLevel.H)),
+            Center(
+              child: Container(width: size * .2, height: size * .2, padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: gSvg(_waLogo, size * .2)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Kode penautan besar ("5289 7143") dengan tombol salin.
+class _PairCode extends StatelessWidget {
+  const _PairCode({required this.it, required this.onTap});
+  final Map<String, dynamic> it;
+  final ValueChanged<int> onTap;
+  @override
+  Widget build(BuildContext context) {
+    final code = _s(it['t']);
+    final shown = code.replaceAll('-', '   ').split('').join(' ');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(16, 16, 10, 16),
+      decoration: BoxDecoration(color: const Color(0xfff7f9fc), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xffe8ecf2))),
+      child: Row(children: [
+        Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
+            child: Text(shown, style: gText(26, w: FontWeight.w700, c: const Color(0xff1b2a4a))))),
+        GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: code.replaceAll('-', ''))).catchError((_) {});
+            onTap(_i(it['i']));
+          },
+          child: Container(width: 40, height: 40, alignment: Alignment.center, child: const Icon(Icons.copy_rounded, size: 22, color: Color(0xff1b2a4a))),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Kotak petunjuk merah muda dengan logo WhatsApp; **teks** ditebalkan.
+class _TipBox extends StatelessWidget {
+  const _TipBox({required this.it});
+  final Map<String, dynamic> it;
+  @override
+  Widget build(BuildContext context) {
+    final parts = _s(it['s']).split('**');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: const Color(0xfffff3f1), borderRadius: BorderRadius.circular(14)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        gSvg(_waLogo, 30),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_s(it['t']), style: gText(13, w: FontWeight.w600, c: _ink)),
+            const SizedBox(height: 2),
+            Text.rich(TextSpan(children: [
+              for (var k = 0; k < parts.length; k++)
+                TextSpan(text: parts[k], style: gText(12, w: k.isOdd ? FontWeight.w600 : FontWeight.w400, c: k.isOdd ? _ink : const Color(0xff5b6170))),
+            ])),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Isi popup berhasil: tanda centang hijau besar, judul, keterangan.
+class _SuccessBox extends StatelessWidget {
+  const _SuccessBox({required this.it});
+  final Map<String, dynamic> it;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 8, bottom: 4),
+        child: Column(children: [
+          Container(width: 64, height: 64, alignment: Alignment.center,
+              decoration: const BoxDecoration(color: Color(0xff22b35e), shape: BoxShape.circle),
+              child: const Icon(Icons.check_rounded, size: 40, color: Colors.white)),
+          const SizedBox(height: 14),
+          Text(_s(it['t']), textAlign: TextAlign.center, style: gText(16, w: FontWeight.w600, c: _ink)),
+          const SizedBox(height: 4),
+          Text(_s(it['s']), textAlign: TextAlign.center, style: gText(13, c: const Color(0xff6b7280))),
+        ]),
+      );
 }

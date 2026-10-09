@@ -12,7 +12,7 @@ class WaDevicesPage extends PurePage {
   WaDevicesPage(super.host, this.wa);
   final WaLink wa;
 
-  static const _form = 'wa195-form', _pair = 'wa195-pair', _del = 'wa195-del';
+  static const _form = 'wa195-form', _pair = 'wa195-pair', _del = 'wa195-del', _ok = 'wa195-ok';
 
   String? _editId;
   String _name = '', _phone = '';
@@ -40,7 +40,7 @@ class WaDevicesPage extends PurePage {
   }
 
   String _status(WaDevice d) => switch (d.status) {
-        'draft' => 'Draf di HP ini, belum dihubungkan',
+        'draft' => 'Belum dihubungkan',
         'connected' => 'Terhubung (pemeriksaan terakhir)',
         'pairing' => 'Menunggu penautan',
         'disconnected' => 'Belum terhubung',
@@ -51,7 +51,7 @@ class WaDevicesPage extends PurePage {
   List<Map<String, dynamic>> items() {
     final st = wa.store;
     final out = <Map<String, dynamic>>[
-      {'type': 'hint', 't': 'Kelola beberapa nomor WhatsApp dan pilih cabang untuk setiap perangkat.'},
+      {'type': 'hint', 't': 'Kelola nomor WhatsApp untuk setiap perangkat.'},
     ];
     if (wa.staffOnly) {
       out.add({'type': 'hint', 't': 'Hanya pemilik usaha yang dapat mengatur nomor WhatsApp.'});
@@ -77,22 +77,17 @@ class WaDevicesPage extends PurePage {
     for (var k = 0; k < list.length; k++) {
       final d = list[k];
       out.add({
-        'type': 'entry', 't': d.name,
+        'type': 'wadevice', 't': d.name, 'ok': d.status == 'connected',
         'lines': ['+${d.phone} · ${wa.outletName(d)}', _status(d), if (d.registered && d.replyStatus) 'Balas Status WhatsApp aktif'],
-        'badge': '', 'avatar': d.name.isEmpty ? 'W' : d.name[0].toUpperCase(), 'svg': '', 'color': '', 'amount': '',
+        'avatar': d.name.isEmpty ? 'W' : d.name[0].toUpperCase(),
         'btns': [
-          {'t': d.status == 'connected' ? 'Cek Status' : 'Hubungkan', 'on': d.status != 'connected', 'i': 1000 + 10 * k},
-          {'t': 'Edit', 'on': false, 'i': 1001 + 10 * k},
-          {'t': 'Hapus', 'on': false, 'i': 1002 + 10 * k},
+          {'t': d.status == 'connected' ? 'Cek Status' : 'Hubungkan', 'ic': d.status == 'connected' ? 'check' : 'link', 'on': d.status != 'connected', 'i': 1000 + 10 * k},
+          {'t': 'Edit', 'ic': 'edit', 'on': false, 'i': 1001 + 10 * k},
+          {'t': 'Hapus', 'ic': 'delete', 'on': false, 'i': 1002 + 10 * k},
         ],
       });
     }
-    out.add({
-      'type': 'hint',
-      't': host.server.loggedIn
-          ? 'Perangkat baru tersimpan sebagai draf di HP ini sampai dihubungkan. QR dan kode pemasangan berasal dari layanan WhatsApp GOYANA.'
-          : 'Perangkat tersimpan di HP ini. Masuk ke akun GOYANA untuk menautkan WhatsApp.',
-    });
+    if (!host.server.loggedIn) out.add({'type': 'hint', 't': 'Perangkat tersimpan di HP ini. Masuk ke akun GOYANA untuk menautkan WhatsApp.'});
     return out;
   }
 
@@ -171,37 +166,42 @@ class WaDevicesPage extends PurePage {
         _button('Batal', 1),
       ];
     }
+    if (id == _ok) {
+      return [
+        {'type': 'success', 't': 'Kode berhasil dibuat', 's': 'Masukkan kode ini di WhatsApp pada Perangkat Tertaut.'},
+        _button('OK', 0, primary: true),
+      ];
+    }
     if (id != _pair) return null;
     final p = _pairing;
     final qr = _method == 'qr';
     final expired = p != null && !p.expiresAt.isAfter(st.clock());
+    final live = p != null && !expired ? p : null, shown = live != null;
     return [
-      {'type': 'title', 't': 'Hubungkan WhatsApp', 's': ''},
-      {'type': 'hint', 't': '${d.name} · +${d.phone} · ${wa.outletName(d)}'},
-      {'type': 'hint', 't': 'Pilih cara menautkan nomor WhatsApp outlet.'},
+      {'type': 'sheethead', 't': 'Hubungkan WhatsApp', 's': '${d.name} · +${d.phone}', 'i': 2},
       {
-        'type': 'buttons',
+        'type': 'methods',
         'options': [
-          {'t': 'Scan QR', 'svg': '', 'file': '', 'after': false, 'on': qr, 'i': 0},
-          {'t': 'Kode WhatsApp', 'svg': '', 'file': '', 'after': false, 'on': !qr, 'i': 1},
+          {'t': 'Scan QR', 'kind': 'qr', 'on': qr, 'i': 0},
+          {'t': 'Kode WhatsApp', 'kind': 'code', 'on': !qr, 'i': 1},
         ],
       },
+      if (live != null)
+        if (live.kind == 'qr') {'type': 'qr', 'data': live.value, 'size': 210, 'frame': true} else {'type': 'pcode', 't': live.value, 'i': 5},
+      if (expired) {'type': 'hint', 't': 'QR atau kode sudah kedaluwarsa. Minta yang baru.'},
       {
-        'type': 'hint',
-        't': qr
-            ? 'Buka WhatsApp di HP nomor outlet. Pilih Perangkat tertaut, lalu Tautkan perangkat dan pindai QR di bawah.'
-            : 'Buka WhatsApp di HP nomor outlet. Pilih Perangkat tertaut, Tautkan perangkat, lalu Tautkan dengan nomor telepon dan masukkan kode di bawah.',
+        'type': 'tip',
+        't': qr ? 'Pindai QR ini di WhatsApp' : 'Masukkan kode ini di WhatsApp',
+        's': qr
+            ? 'Buka WhatsApp di HP outlet, pilih **Perangkat Tertaut**, lalu **Tautkan Perangkat** dan pindai QR.'
+            : 'Buka WhatsApp di HP outlet, pilih **Perangkat Tertaut** lalu masukkan kode ini.',
       },
-      if (p == null)
-        _button(wa.busy ? 'Meminta…' : (qr ? 'Tampilkan QR' : 'Minta Kode'), 3, primary: true)
-      else if (expired) ...[
-        {'type': 'hint', 't': 'QR atau kode sudah kedaluwarsa.'},
-        _button('Minta Ulang', 3, primary: true),
-      ] else ...[
-        if (p.kind == 'qr') {'type': 'qr', 'data': p.value, 'size': 220} else {'type': 'title', 't': p.value, 's': ''},
-        {'type': 'hint', 't': 'Berlaku sampai ${_clock(p.expiresAt)}. Setelah menautkan, ketuk Periksa Status.'},
-        _button('Periksa Status', 4, primary: true),
-      ],
+      if (live != null) {'type': 'hint', 't': 'Berlaku sampai ${_clock(live.expiresAt)} · ${wa.outletName(d)}'},
+      {
+        ..._button(wa.busy ? 'Meminta…' : (qr ? 'Tampilkan QR' : (shown ? 'Buat Kode Baru' : 'Minta Kode')), 3, primary: true),
+        'ic': qr ? 'share' : 'refresh',
+      },
+      if (shown) {..._button('Periksa Status', 4), 'ic': 'check'},
       _button('Tutup', 2),
     ];
   }
@@ -234,6 +234,10 @@ class WaDevicesPage extends PurePage {
     }
     if (kind != 'button') return;
     final d = _target;
+    if (id == _ok) {
+      host.closePageSheet(_ok);
+      return;
+    }
     if (id == _del) {
       host.closePageSheet(_del);
       if (index == 0 && d != null) wa.run(() => st.remove(d.id), ok: 'Perangkat dihapus');
@@ -247,6 +251,7 @@ class WaDevicesPage extends PurePage {
         host.refresh();
       case 2:
         _clearPairing();
+        host.closePageSheet(_ok);
         host.closePageSheet(_pair);
       case 3:
         if (d == null) return;
@@ -257,13 +262,17 @@ class WaDevicesPage extends PurePage {
           _pairing = p;
           final left = p.expiresAt.difference(st.clock());
           _expiry = Timer(left + const Duration(seconds: 1), host.refresh);
+          if (p.kind == 'code') host.openPageSheet(_ok);
         });
+      case 5:
+        host.toast('Kode disalin');
       case 4:
         if (d == null) return;
         wa.run(() => st.refreshDevice(d.id)).then((done) {
           if (!done) return;
           if (_target?.status == 'connected') {
             _clearPairing();
+            host.closePageSheet(_ok);
             host.closePageSheet(_pair);
             host.toast('WhatsApp terhubung');
           } else {
