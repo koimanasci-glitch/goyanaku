@@ -18,7 +18,10 @@
 	}
 
 	# Berkas tersembunyi (.env dll.) tidak pernah disajikan.
-	@hidden path_regexp hidden /\.(?!well-known)
+	@hidden {
+		path */.*
+		not path /.well-known/*
+	}
 	respond @hidden 404
 
 	# Aplikasi web GOYANA (/app/); index.html tanpa cache agar update langsung terpakai.
