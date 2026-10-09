@@ -1031,11 +1031,11 @@ class CourierPage extends PurePage {
       await host.server.api('POST', '/courier-cash/${c['courier_id']}/deposit', {'amount': got, if (note.isNotEmpty) 'note': note});
       // Uangnya masuk laci kasir ini.
       if (got > 0) {
-        host.business.kasEntry(income: true, type: 'Setoran kurir', amount: got, note: '${c['courier'] ?? ''}${note.isEmpty ? '' : ' · $note'}', now: host.now);
+        host.business.courierDeposit(amount: got, courier: '${c['courier'] ?? ''}', note: note, now: host.now);
       }
       addAudit(host, '💵', 'Setoran kurir diterima', '${c['courier'] ?? ''} · ${rp(got)}');
       await host.saveAll();
-      host.toast('Setoran ${rp(got)} diterima · masuk kas');
+      host.toast('Setoran ${rp(got)} diterima · masuk omset tunai');
       await _loadHeld();
     } on ServerFailure catch (e) {
       host.toast(e.offline ? 'Butuh internet untuk menerima setoran' : e.message);

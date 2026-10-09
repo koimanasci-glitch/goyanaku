@@ -215,7 +215,9 @@ class CashClosePage extends PurePage {
         case '#kc-start':
           k['start'] = parseRupiah(value);
         case '#kc-phys':
+          // Diketik manual: hitungan pecahan dikosongkan supaya kolom Rp tidak ditimpa diam-diam.
           k['phys'] = _int(value);
+          k['den'] = <String, dynamic>{};
           k['setor'] = null;
         case '#kc-setor':
           k['setor'] = _int(value);
@@ -242,6 +244,8 @@ class CashClosePage extends PurePage {
     active = '';
     if (selector == '#cashclose .back') return host.go(back);
     if (selector == '#kc-den label') {
+      // Tutup keyboard: kolom Rp yang sedang diketik ikut berganti ke total pecahan.
+      FocusManager.instance.primaryFocus?.unfocus();
       final key = '${cashDenominations[index.clamp(0, cashDenominations.length - 1)]}', den = k['den'] as Map;
       final cur = (den[key] as num?)?.toInt() ?? 0, next = cur + (child == 'button:first-of-type' ? -1 : 1);
       den[key] = next < 0 ? 0 : next;

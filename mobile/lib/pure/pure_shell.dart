@@ -2450,12 +2450,13 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           final r = (_form['reason'] as num?)?.toInt() ?? int.tryParse('${_form['reason']}') ?? 0;
           final reason = r > 0 ? cancelReasons[r] : '';
           final note = '${_form['note'] ?? ''}'.trim();
-          final err = b.cancel(o, reason: note.isEmpty ? reason : (reason.isEmpty ? '' : '$reason · $note'), now: now);
+          final err = b.cancel(o, reason: note.isEmpty ? reason : (reason.isEmpty ? '' : '$reason · $note'), now: now, by: _kasir);
           if (err != null) return toast(err);
-          addAudit(this, '✕', 'Pesanan dibatalkan', '$_kasir · ${o.id}');
+          final refund = int.tryParse('${o.detail['refunded'] ?? ''}') ?? 0;
+          addAudit(this, '✕', 'Pesanan dibatalkan', '$_kasir · ${o.id}${refund > 0 ? ' · dana kembali ${rp(refund)}' : ''}');
           saveAll();
           _close('cancel');
-          toast('Pesanan dibatalkan');
+          toast(refund > 0 ? 'Pesanan dibatalkan · pengembalian ${rp(refund)} dicatat' : 'Pesanan dibatalkan');
           _refreshDetail();
         } else {
           _close('cancel');
@@ -3288,11 +3289,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
       discKey: _courierMode ? '0' : _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
-      payMethod: method == 'DP' ? 'DP' : method, dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
+      payMethod: method == 'DP' ? 'DP' : (method == 'Saldo Deposit' ? 'Bayar Nanti' : method), dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );
     if (method == 'Saldo Deposit') {
-      // Saldo deposit dipotong lewat pembayaran (bukan kas tunai).
-      o.detail['paid'] = 0;
+      // Saldo deposit dipotong lewat satu pembayaran saja (sebelumnya tercatat dua kali di kas & riwayat bayar).
       b.pay(o, method: 'Deposit', amount: o.total, now: now);
     }
     if (_pickupId.isNotEmpty) {

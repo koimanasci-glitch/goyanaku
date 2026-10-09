@@ -543,9 +543,49 @@ class Business {
   String? cancel(Order o, {required String reason, required DateTime now, String by = 'Kasir'}) {
     if (reason.trim().isEmpty) return 'Pilih alasan pembatalan';
     if (o.status == 'diambil') return 'Pesanan sudah diambil';
+    if (o.isCancelled) return 'Pesanan sudah dibatalkan';
     o.detail['cancelReason'] = reason;
+    _refund(o, now);
     _setStatus(o, 'batal', now, by);
     return null;
+  }
+
+  /// Pembatalan pesanan yang sudah dibayar (keputusan Paduka 10 Oktober 2026): uang dikembalikan otomatis.
+  /// Tunai/non-tunai dicatat sebagai pengeluaran kas "Pengembalian dana", saldo deposit dikembalikan ke saldo pelanggan.
+  void _refund(Order o, DateTime now) {
+    final paid = o.paid;
+    if (paid <= 0 || o.detail['refunded'] != null) return;
+    final byMethod = <String, int>{};
+    var listed = 0;
+    for (final p in o.payments) {
+      final a = parseRupiah(p['a']);
+      if (a <= 0) continue;
+      final m = normalizeMethod('${p['m'] ?? 'Tunai'}');
+      byMethod[m] = (byMethod[m] ?? 0) + a;
+      listed += a;
+    }
+    // Catatan lama tanpa rincian pembayaran: sisanya dianggap tunai.
+    if (listed < paid) byMethod['Tunai'] = (byMethod['Tunai'] ?? 0) + paid - listed;
+    var left = paid;
+    for (final e in byMethod.entries) {
+      final a = e.value > left ? left : e.value;
+      if (a <= 0) continue;
+      left -= a;
+      if (e.key == 'Deposit') {
+        _depositMove(o.name, a, 'refund', 'Deposit', now);
+      } else {
+        kasEntry(income: false, type: 'Pengembalian dana', amount: a, note: o.id, method: e.key, now: now);
+      }
+    }
+    o.detail['refunded'] = paid;
+  }
+
+  /// Setoran tunai kurir yang diterima kasir (keputusan Paduka 10 Oktober 2026): dihitung sebagai omset tunai
+  /// pada tutup kasir (masuk penjualan tunai), bukan kas masuk biasa.
+  void courierDeposit({required int amount, required String courier, String note = '', required DateTime now}) {
+    if (amount <= 0) return;
+    (kas.putIfAbsent('sales', () => <dynamic>[]) as List)
+        .add({'m': 'Tunai', 'a': amount, 'id': 'Setoran kurir $courier', 'src': 'kurir', if (note.isNotEmpty) 'n': note, 'at': isoString(now)});
   }
 
   /// Ubah rincian (estimasi, keterangan, parfum, diskon).
