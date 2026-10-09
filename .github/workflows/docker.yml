@@ -42,4 +42,11 @@ jobs:
           bash deploy/docker/backup.sh && ls -la ~/goyana-backup
       - name: Log bila gagal
         if: failure()
-        run: docker compose -f deploy/docker/docker-compose.yml logs --tail 80
+        run: |
+          docker compose -f deploy/docker/docker-compose.yml ps -a
+          docker compose -f deploy/docker/docker-compose.yml logs --no-color --tail 60 app scheduler > logs.txt 2>&1 || true
+          cat logs.txt
+          curl -sk https://localhost/up | head -c 600 || true
+          # Baris log sebagai anotasi (bisa dibaca lewat API tanpa unduh log).
+          grep -v '^\s*$' logs.txt | tail -40 | sed 's/^/::warning::/'
+          docker compose -f deploy/docker/docker-compose.yml ps -a --format '{{.Service}} {{.Status}}' | sed 's/^/::warning::ps /'
