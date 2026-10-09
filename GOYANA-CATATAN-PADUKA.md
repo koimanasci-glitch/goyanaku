@@ -164,3 +164,9 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Pilih pelanggan → popup **Jadwal Penjemputan** (Hari ini/Besok/Lusa + Secepatnya/Pagi/Siang/Sore) → popup **Pilih Kurir** (kurir + Saya sendiri; belum ada kurir → Buat Akun Kurir). Kurir dipilih = penjemputan langsung dibuat.
 - Alamat otomatis dari data pelanggan; kolom alamat dan catatan di formulir dihapus.
 - Tombol **+ Buat Penjemputan** di Antar Jemput jadi tombol utama warna GOYANA (permintaan 20.54).
+
+## 10 Oktober 2026, 05.45 WIB — tutup kasir
+
+- **Pembatalan pesanan yang sudah dibayar**: pengembalian dana dicatat **otomatis** (tunai/non-tunai = pengeluaran "Pengembalian dana", deposit kembali ke saldo pelanggan).
+- **Setoran tunai kurir** yang diterima kasir dihitung sebagai **omset** (penjualan tunai) pada tutup kasir.
+- Diperbaiki sekalian: kolom Rp tutup kasir mengikuti hitungan pecahan; bayar Saldo Deposit tidak lagi tercatat dua kali.
