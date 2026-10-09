@@ -125,3 +125,16 @@ Paduka: "Mulai sekarang ci aku kasih bebas jatah ke kamu." Batas 2 CI per bagian
 
 - 8 Oktober 2026 — Balas Status WhatsApp otomatis: mulai paket Silver (Silver, Gold, Platinum). Basic tidak dapat.
 - 9 Oktober 2026 — CI hanya membangun APK Mode Murni. APK Hibrida dan APK HTML asli tidak dibangun otomatis lagi ("Pantesan kamu lama mulu"); kodenya tetap di repo. Backend Laravel tetap diuji tiap kiriman.
+
+## 9 Oktober 2026, 07.10–07.56 WIB — Penjemputan disederhanakan ("Gas")
+
+Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaskan tidak muncul di tab Penjemputan maupun Tugas Kurir (disimpan terpisah, bukan sebagai pesanan).
+
+- **Buat Penjemputan langsung jadi pesanan berstatus Penjemputan** → muncul di tab Penjemputan (Pesanan), Tugas Kurir HP yang ditugaskan, dan pantauan server.
+- **+ Tambah Pesanan tidak diubah** (tetap ada pilihan antar jemput + timbangan di outlet). Buat Penjemputan = **timbang di lokasi**.
+- **Kartu Antar Jemput**: foto avatar, nama, jadwal, alamat, kurir, label status. Tombol: **Navigasi**, **Buat Pesanan**, **WhatsApp**. Tombol **⋮** → popup Ganti kurir, Batalkan. Tugaskan / Kirim ke Kurir / Sampai Lokasi dihapus.
+- **Form Buat Penjemputan**: cari pelanggan + **Tambah Pelanggan Baru**; hari (Hari ini/Besok/Lusa); jam **Secepatnya · Pagi (08–11) · Siang (11–15) · Sore (15–18)**; Pilih Kurir + **Saya sendiri** (laundry kecil, owner jemput sendiri); alamat otomatis dari pelanggan; catatan opsional.
+- Belum ada kurir → popup arahkan **Buat Akun Kurir** (Pengaturan Kurir); isian form tetap tersimpan.
+- Avatar memakai foto avatar yang sudah ada. Header (pilih outlet) dan menu bawah (Scan) di mockup **diabaikan**.
+- Buat Pesanan bisa dipakai owner, kasir, dan kurir yang ditugaskan (asumsi disetujui).
+- Data uji penjemputan lama hanya di HP, tidak dipindahkan.
