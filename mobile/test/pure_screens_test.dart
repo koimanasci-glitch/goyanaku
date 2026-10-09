@@ -180,6 +180,13 @@ void main() {
     s.fmScoped('pickcust', 'button', 0);
     s.fmButton(21);
     await shot('jemput_terisi');
+    s.fmInput(2, 'Jl. Melati No. 12, Bekasi');
+    s.fmButton(31); // Pagi
+    s.fmButton(0); // Buat Penjemputan
+    await shot('jemput_daftar');
+    s.fmButton(103); // ⋮
+    await shot('jemput_menu');
+    s.fmScoped('jmenu', 'button', 0);
     s.nav('stock');
     await shot('stok_kosong');
     s.fmButton(0);

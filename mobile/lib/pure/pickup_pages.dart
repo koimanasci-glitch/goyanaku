@@ -357,7 +357,7 @@ class PickupNewPage extends PurePage {
       {'type': 'buttons', 'cols': 3, 'options': [for (var k = 0; k < pickupDays.length; k++) {'t': pickupDays[k], 'on': day == k, 'i': 21 + k}]},
       {'type': 'buttons', 'cols': 2, 'options': [for (var k = 0; k < pickupSlots.length; k++) {'t': pickupSlots[k][1], 'on': slot == k, 'i': 30 + k}]},
       {'type': 'title', 't': 'Pilih Kurir'},
-      {'type': 'row', 't': _kurirLabel, 's': self || kurir.isNotEmpty ? 'Tugas muncul di Tugas Kurir' : 'Bisa dipilih nanti lewat ⋮ di kartu', 'btn': 'Pilih', 'svg': '', 'i': 12},
+      {'type': 'row', 't': _kurirLabel, 's': self || kurir.isNotEmpty ? 'Tugas muncul di Tugas Kurir' : 'Bisa dipilih nanti lewat menu titik tiga di kartu', 'btn': 'Pilih', 'svg': '', 'i': 12},
       if (c != null) ...[
         {'type': 'title', 't': 'Alamat Penjemputan'},
         _input(2, address, 'Alamat penjemputan', false),
@@ -467,7 +467,7 @@ class PickupNewPage extends PurePage {
     o.detail['address'] = addr;
     if (maps.isNotEmpty) o.detail['maps'] = maps;
     host.saveAll();
-    final msg = self || kurir.isNotEmpty ? 'Penjemputan dibuat · masuk Tugas Kurir' : 'Penjemputan dibuat · pilih kurir lewat ⋮';
+    final msg = self || kurir.isNotEmpty ? 'Penjemputan dibuat · masuk Tugas Kurir' : 'Penjemputan dibuat · pilih kurir lewat menu titik tiga';
     keep = false;
     opened();
     host.go('jemput202');
