@@ -1047,10 +1047,11 @@ class _PickupCard extends StatelessWidget {
       _ => Icon(Icons.navigation_rounded, size: 17, color: fg),
     };
     return Expanded(
+      flex: kind == 'order' ? 6 : 5, // "Buat Pesanan" paling panjang: sedikit lebih lebar agar hurufnya tidak mengecil
       child: GestureDetector(
         onTap: () => onTap(_i(b['i'])),
         child: Container(
-          height: 40, padding: const EdgeInsets.symmetric(horizontal: 6),
+          height: 40, padding: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
           child: FittedBox(
             fit: BoxFit.scaleDown,
