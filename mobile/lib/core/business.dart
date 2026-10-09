@@ -12,6 +12,7 @@ import 'store.dart';
 List<String>? Function(String outlet)? serverNoteCode;
 
 String _two(int n) => n.toString().padLeft(2, '0');
+String? _s0(Object? v) => v == null ? null : '$v';
 String _dmyHm(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year} · ${_two(d.hour)}:${_two(d.minute)}';
 
 /// Metode bayar: nama yang dicatat di kartu (method177) & kas.
@@ -347,6 +348,53 @@ class Business {
     if (paid > 0) _kasSale(method, paid, id, now);
     if (customerByName(customer) == null && phone.isNotEmpty) saveCustomer(Customer(name: customer, phone: phone));
     return order;
+  }
+
+  /// Penjemputan → Buat Pesanan (keputusan Paduka 9 Oktober 2026): pesanan Penjemputan yang sudah ada diisi lewat
+  /// Tambah Transaksi (durasi, layanan, parfum, diskon, catatan, pembayaran). Nomor nota, kurir, dan riwayatnya tetap;
+  /// penyerahan selalu Jemput & Antar. Pembayaran dicatat lewat [pay] oleh pemanggil.
+  void fillPickup(Order o, {
+    required String dur,
+    required List<OrderItem> items,
+    String discKey = '0',
+    int ongkir = 0,
+    String perfume = 'Tanpa Parfum',
+    String note = '',
+    bool priority = false,
+    required DateTime now,
+  }) {
+    const hand = 'Jemput & Antar';
+    final due = now.add(Duration(hours: durationHours(dur)));
+    final list = items.map((e) => e.toJson()).toList();
+    o.detail
+      ..['dur'] = dur
+      ..['items'] = list
+      ..['discKey'] = discKey
+      ..['ongkir'] = ongkir
+      ..['perfume'] = perfume
+      ..['note'] = note.trim().isEmpty ? '-' : note.trim()
+      ..['handover'] = hand
+      ..['due'] = isoString(due);
+    final totals = calcTotals(items, discKey, ongkir);
+    o.dataset
+      ..['items'] = jsonEncode(list)
+      ..['perfume178'] = perfume
+      ..['antar'] = '1'
+      ..['transport183'] = '$ongkir'
+      ..['transportType183'] = 'roundtrip';
+    if (totals.disc > 0) {
+      o.dataset['disc'] = '${totals.disc}';
+    } else {
+      o.dataset.remove('disc');
+    }
+    final f = o.fields;
+    if (f.isNotEmpty) f[0] = [dur];
+    if (f.length > 3) f[3] = [_s0((f[3] as List?)?.firstOrNull) ?? 'Masuk · baru saja', 'Estimasi · ${_dmyHm(due)}'];
+    o.card['chips'] = [
+      {'text': 'Prioritas', 'hidden': !priority},
+      {'text': hand, 'hidden': false},
+    ];
+    _syncCard(o);
   }
 
   /// Transaksi lama dari file import: dicatat pada tanggal aslinya, langsung berstatus Diambil,

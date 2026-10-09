@@ -1363,15 +1363,29 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _loadCrmRule();
     _hppSync();
   }
-  /// Penjemputan → Buat Pesanan: timbang di lokasi lewat Isi Layanan & Berat; setelah disimpan pesanan masuk Antrian.
-  String _weighAdvance = '';
+  /// Penjemputan → Buat Pesanan (keputusan Paduka 9 Oktober 2026): Tambah Transaksi yang sama persis (durasi, layanan,
+  /// Atur Pesanan, Pembayaran) untuk pesanan Penjemputan ini, tanpa pilihan Penyerahan (selalu Jemput & Antar).
+  /// Hasilnya mengisi pesanan yang sama (nomor nota tetap) lalu masuk Antrian.
+  String _fillId = '', _fillFrom = '';
   @override
   void weighOrder(String id) {
     final o = _b!.orderById(id);
-    if (o == null) return;
-    _showDetail(id);
-    _weighAdvance = id;
-    _openItems(o);
+    if (o == null || o.status != 'jemput') return;
+    final from = _page;
+    _startOrder();
+    _fillId = id;
+    _fillFrom = from;
+    _opt['note'] = o.note == '-' ? '' : o.note;
+    if (_courierMode) {
+      // Kurir memakai durasi pesanan (harga dicek server menurut durasi itu), langsung ke daftar layanan.
+      _aoCustomer = o.name;
+      setState(() {
+        _aoDur = o.dur.isEmpty ? 'Reguler' : o.dur;
+        _aoStage = 'services';
+      });
+      return;
+    }
+    _aoPickName(o.name);
   }
 
   @override
@@ -2189,10 +2203,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   void _itemsButton(int index) {
     final o = _detailId == null ? null : _b!.orderById(_detailId!);
-    if (o == null || index != 1001) {
-      _weighAdvance = '';
-      return _close('items');
-    }
+    if (o == null || index != 1001) return _close('items');
     final items = <OrderItem>[];
     _itemQty.forEach((k, v) {
       final q = parseQty(v);
@@ -2203,12 +2214,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
     if (items.isEmpty) return toast('Isi jumlah minimal satu layanan');
     _b!.setItems(o, items);
-    final picked = _weighAdvance == o.id && o.status == 'jemput';
-    _weighAdvance = '';
-    if (picked) _b!.advance(o, now: now, by: _kasir);
     _save();
     _close('items');
-    toast(picked ? 'Pesanan masuk Antrian · total ${rp(o.total)}' : 'Layanan tersimpan · total ${rp(o.total)}');
+    toast('Layanan tersimpan · total ${rp(o.total)}');
     _refreshDetail();
   }
 
@@ -2662,6 +2670,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   void _startOrder() => setState(() {
+        _fillId = _fillFrom = '';
         _sheets.clear();
         _page = 'addorder';
         _aoStage = 'customer';
@@ -2821,6 +2830,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   List<String> get _hands => handoverOptions(_settings!.raw);
   String get _optHand {
+    if (_fillId.isNotEmpty) return 'Jemput & Antar';
     final h = _hands;
     return h[(_opt['hand'] as int).clamp(0, h.length - 1)];
   }
@@ -2883,7 +2893,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         'kind': 'options', 'title': 'Atur Pesanan',
         'fields': [
           {'k': 0, 'type': 'select', 'label': 'Parfum', 'options': _perfumes, 'index': _opt['perfume']},
-          {'k': 1, 'type': 'select', 'label': 'Penyerahan', 'options': _hands, 'index': _opt['hand']},
+          if (_fillId.isEmpty) {'k': 1, 'type': 'select', 'label': 'Penyerahan', 'options': _hands, 'index': _opt['hand']},
           {'k': 2, 'type': 'switch', 'label': 'Jadikan Prioritas', 'sub': 'naik ke atas antrian', 'on': _opt['prio'] == true},
           {'k': 3, 'type': 'select', 'label': 'Diskon', 'options': [for (final d in _discs) d[0]], 'index': _opt['disc']},
         ],
@@ -2891,7 +2901,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         'main': 'Buat Pesanan',
       };
     } else if (_aoSheet == 'payment') {
-      m['sheet'] = _paySheetJson(rpSpaced(t.total), b.nextOrderId(now), _aoCustomer, 'BATALKAN PESANAN');
+      m['sheet'] = _paySheetJson(rpSpaced(t.total), _fillId.isNotEmpty ? _fillId : b.nextOrderId(now), _aoCustomer, 'BATALKAN PESANAN');
     }
     return m;
   }
@@ -2930,6 +2940,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   @override
   void aoBack() {
+    if (_fillId.isNotEmpty) {
+      // Buat Pesanan dari Penjemputan dibatalkan: pesanan Penjemputan tetap seperti semula.
+      final to = _fillFrom.isEmpty ? 'jemput202' : _fillFrom;
+      _fillId = _fillFrom = '';
+      return nav(to);
+    }
     if (_aoStage == 'services') {
       setState(() => _aoStage = 'customer');
     } else {
@@ -3027,6 +3043,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   @override
   void aoNext() {
+    if (_cart.isEmpty && _fillId.isNotEmpty) return toast('Pilih layanan dan isi berat atau jumlahnya');
     if (_cart.isEmpty) {
       // Tanpa layanan: pesanan jemput, ditimbang setelah cucian diambil kurir.
       return _open(_Sheet('pickup', [
@@ -3250,6 +3267,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       });
     }
     final pointsBefore = _points(_aoCustomer);
+    final fill = _fillId.isEmpty ? null : b.orderById(_fillId);
+    if (fill != null && fill.status == 'jemput') return _finishFill(fill, method, change: change, dp: dp, dpMethod: dpMethod, pointsBefore: pointsBefore);
+    _fillId = _fillFrom = '';
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
       discKey: _courierMode ? '0' : _optDiscKey, ongkir: _optOngkir, perfume: _perfumeValue((_opt['perfume'] as int)),
@@ -3279,6 +3299,34 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _pointsToast(o.name, pointsBefore);
     _showDetail(o.id, banner: true);
     // Pengaturan → Barcode & Label: "Otomatis cetak struk setelah order".
+    if (tplToggle(_settings!, 'barcode', 0)) _print(o);
+  }
+
+  /// Penjemputan → Buat Pesanan selesai: isi pesanan yang sama, catat pembayaran, lalu majukan ke Antrian.
+  void _finishFill(Order o, String method, {int change = 0, int? dp, String dpMethod = 'Tunai', int pointsBefore = 0}) {
+    final b = _b!;
+    _fillId = _fillFrom = '';
+    b.fillPickup(o, dur: _aoDur, items: _cartItems, discKey: _courierMode ? '0' : _optDiscKey, ongkir: _optOngkir,
+        perfume: _perfumeValue(_opt['perfume'] as int), note: '${_opt['note']}', priority: _opt['prio'] == true, now: now);
+    if (method == 'Saldo Deposit') {
+      b.pay(o, method: 'Deposit', amount: o.remaining, now: now);
+    } else if (method == 'DP') {
+      if ((dp ?? 0) > 0) b.pay(o, method: dpMethod, amount: dp!, now: now);
+    } else if (!RegExp('Bayar Nanti', caseSensitive: false).hasMatch(method)) {
+      b.pay(o, method: method, amount: o.remaining, now: now);
+    }
+    b.advance(o, now: now, by: _kasir);
+    _save();
+    setState(() {
+      _aoSheet = null;
+      _sheets.clear();
+      _page = 'orders';
+      _tab = 1;
+      _search = '';
+    });
+    toast(change > 0 ? 'Masuk Antrian · lunas · kembalian ${rp(change)}' : 'Pesanan masuk Antrian · kirim nota lewat tombol WA hijau');
+    _pointsToast(o.name, pointsBefore);
+    _showDetail(o.id, banner: true);
     if (tplToggle(_settings!, 'barcode', 0)) _print(o);
   }
 

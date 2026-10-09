@@ -64,7 +64,7 @@ abstract class PureHost {
   Future<void> reloadAll();
   /// Buka Rincian Pesanan lalu lembar Pembayaran untuk sisa tagihannya.
   void payOrder(String id);
-  /// Penjemputan → Buat Pesanan: buka Isi Layanan & Berat pesanan jemput ini; setelah disimpan pesanan masuk Antrian.
+  /// Penjemputan → Buat Pesanan: Tambah Transaksi untuk pesanan jemput ini (tanpa pilihan Penyerahan); selesai → masuk Antrian.
   void weighOrder(String id);
   /// Pelanggan tersimpan dari halaman Tambah/Edit Pelanggan: lanjut ke Tambah Transaksi bila [forOrder], selain itu kembali ke Pelanggan.
   void customerSaved(String name, {bool forOrder = false, String? returnTo});
@@ -1139,7 +1139,7 @@ class CourierPage extends PurePage {
         if (id.isEmpty && self.isEmpty) return host.toast('Pilih kurir dulu');
         final by = id.isEmpty ? self : '${_live.where((k) => '${k['id']}' == id).firstOrNull?['name'] ?? 'Kurir'}';
         final st = o.status;
-        // Penjemputan tanpa layanan: timbang di lokasi dulu (Isi Layanan & Berat), lalu masuk Antrian.
+        // Penjemputan tanpa layanan: timbang di lokasi lewat Tambah Transaksi, lalu masuk Antrian.
         if (st == 'jemput' && o.items.isEmpty) return host.weighOrder(o.id);
         if (o.remaining > 0 && (st == 'siap' || st == 'telat' || st == 'diantar')) return host.advanceOrder(o.id, by: by);
         host.business.advance(o, now: host.now, by: by);

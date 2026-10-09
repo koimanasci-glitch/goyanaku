@@ -995,18 +995,33 @@ void templateTests() {
     s.fmScoped('jkurir', 'button', 1000);
     await _settle(tester);
     expect(s.debugItems().firstWhere((e) => e['type'] == 'pickup')['who'], 'Dijemput: Owner');
-    // Buat Pesanan: timbang di lokasi → masuk Antrian.
+    // Buat Pesanan: Tambah Transaksi yang sama (durasi → layanan → Atur Pesanan → Pembayaran), tanpa pilihan Penyerahan.
     s.fmButton(101);
     await _settle(tester);
-    expect(s.debugSheetIds(), contains('items'));
-    s.fmScoped('items', 'input', 0, '3');
-    s.fmScoped('items', 'button', 1001);
+    expect(s.debugSheetIds(), contains('dur'));
+    s.fmScoped('dur', 'button', 1); // Express
+    await _settle(tester);
+    s.aoService(0);
+    await _settle(tester);
+    s.fmScoped('qty', 'input', 0, '3');
+    s.fmScoped('qty', 'button', 1);
+    s.aoNext();
+    await _settle(tester);
+    final fields = ((s.debugAddOrder()['sheet'] as Map)['fields'] as List).map((f) => (f as Map)['label']).toList();
+    expect(fields, isNot(contains('Penyerahan')));
+    s.aoSheetMain();
+    await _settle(tester);
+    expect((s.debugAddOrder()['sheet'] as Map)['id'], o.id, reason: 'nomor nota tetap');
+    s.aoPay(3); // Bayar Nanti
     await _settle(tester);
     expect(s.debugToast, startsWith('Pesanan masuk Antrian'));
     b = await Business.load(kv);
+    expect(b.orders.where((e) => e.name == 'Sari').length, 1, reason: 'tidak membuat pesanan kedua');
     final done = b.orderById(o.id)!;
     expect(done.status, 'antrian');
-    expect(done.items, isNotEmpty);
+    expect(done.dur, 'Express');
+    expect(done.items.single.qty, 3);
+    expect(done.handover, 'Jemput & Antar');
     expect(done.dataset['picked'], '1');
     expect(tester.takeException(), isNull);
   });

@@ -186,7 +186,7 @@ class CourierHomePage extends PurePage {
         host.openOrder(o.id);
       default:
         final st = o.status;
-        // Penjemputan tanpa layanan: timbang di lokasi dulu (Isi Layanan & Berat), lalu masuk Antrian.
+        // Penjemputan tanpa layanan: timbang di lokasi lewat Tambah Transaksi, lalu masuk Antrian.
         if (st == 'jemput' && o.items.isEmpty) return host.weighOrder(o.id);
         // Serah terima yang belum lunas: tampilkan Pembayaran dulu (bisa "Hutang Dulu" bila usaha mengizinkan).
         if (o.remaining > 0 && st == 'diantar') return host.advanceOrder(o.id, by: _myName);
