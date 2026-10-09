@@ -1,3 +1,7 @@
 node_modules/
 __pycache__/
 tests/package-lock.json
+
+# Docker server (deploy/docker)
+deploy/docker/.env
+.build-id

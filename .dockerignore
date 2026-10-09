@@ -1,0 +1,14 @@
+.git
+.github
+**/node_modules
+mobile/*
+!mobile/assets
+backend/vendor
+backend/.env
+backend/storage
+backend/bootstrap/cache/*.php
+backend/public/app
+deploy/docker/.env
+tests
+native
+*.apk

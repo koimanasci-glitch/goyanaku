@@ -1,0 +1,35 @@
+{
+	frankenphp
+}
+
+# DOMAIN diambil dari .env (mis. app.goyana.id). Sertifikat HTTPS dibuat & diperpanjang otomatis.
+{$DOMAIN:localhost} {
+	root * /srv/goyana/backend/public
+	encode zstd gzip
+	request_body {
+		max_size 20MB
+	}
+	header {
+		X-Frame-Options "SAMEORIGIN"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		-X-Powered-By
+	}
+
+	# Berkas tersembunyi (.env dll.) tidak pernah disajikan.
+	@hidden path_regexp hidden /\.(?!well-known)
+	respond @hidden 404
+
+	# Aplikasi web GOYANA (/app/); index.html tanpa cache agar update langsung terpakai.
+	handle /app/* {
+		@index path /app/ /app/index.html
+		header @index Cache-Control "no-cache"
+		try_files {path} /app/index.html
+		file_server
+	}
+
+	handle {
+		php_server
+	}
+}
