@@ -940,12 +940,11 @@ void templateTests() {
     expect(s.debugItems().where((e) => e['type'] == 'pickup'), isEmpty);
     s.fmButton(0);
     await _settle(tester);
+    // Halaman: Pilih Pelanggan, Tambah Pelanggan Baru, lalu daftar pelanggan terdaftar.
     expect([for (final it in s.debugItems()) if (it['type'] == 'title' || it['type'] == 'button') it['t']],
-        ['Pelanggan', 'Pilih Pelanggan', '+ Tambah Pelanggan Baru', 'Jadwal Penjemputan', 'Pilih Kurir', 'Catatan (opsional)', 'Buat Penjemputan']);
-    s.fmButton(0);
-    expect(s.debugToast, 'Pilih pelanggan dulu');
-    s.fmButton(22); // Besok → Secepatnya tidak berlaku, jam otomatis Pagi
-    // Tambah pelanggan baru dari sini → kembali dengan pelanggan terpilih dan isian tetap.
+        ['Pelanggan', 'Pilih Pelanggan', '+ Tambah Pelanggan Baru', 'Pelanggan terdaftar']);
+    expect(s.debugItems().where((e) => e['type'] == 'card').map((e) => e['t']), contains('Budi Native'));
+    // Tambah pelanggan baru → kembali dan langsung muncul popup Jadwal Penjemputan.
     s.fmButton(11);
     await _settle(tester);
     s.fmScoped('gp128', 'button', 1);
@@ -953,21 +952,17 @@ void templateTests() {
     s.fmInput(1, '081277776666');
     s.fmButton(7);
     await _settle(tester);
-    expect(s.debugItems().firstWhere((e) => e['type'] == 'row')['t'], 'Sari');
-    expect(s.debugItems().firstWhere((e) => e['type'] == 'buttons' && e['cols'] == 3)['options'][1]['on'], isTrue, reason: 'Besok tetap terpilih');
-    // Pilih Kurir: Saya sendiri + daftar kurir.
-    s.fmButton(12);
+    expect(s.debugSheetIds(), contains('jjadwal'));
+    expect(s.debugSheet('jjadwal')!.first['s'], 'Sari');
+    s.fmScoped('jjadwal', 'button', 22); // Besok → Secepatnya tidak berlaku, jam otomatis Pagi
     await _settle(tester);
+    s.fmScoped('jjadwal', 'button', 1); // Lanjut Pilih Kurir
+    await _settle(tester);
+    // Pilih Kurir: Saya sendiri + daftar kurir; memilih kurir langsung membuat penjemputan.
     expect([for (final e in s.debugSheet('jkurir')!) if (e['type'] == 'card') e['t']], ['Saya sendiri', 'Budi']);
     s.fmScoped('jkurir', 'button', 0);
     await _settle(tester);
-    s.fmButton(0);
-    expect(s.debugToast, 'Isi alamat penjemputan');
-    s.fmInput(2, 'Jl. Mawar 1');
-    s.fmInput(7, 'Pagar hitam');
-    s.fmButton(0);
-    await _settle(tester);
-    expect(s.debugToast, 'Penjemputan dibuat · masuk Tugas Kurir');
+    expect(s.debugToast, startsWith('Penjemputan dibuat'));
     var b = await Business.load(kv);
     final o = b.orders.firstWhere((e) => e.name == 'Sari');
     expect(o.status, 'jemput');
@@ -975,14 +970,25 @@ void templateTests() {
     expect(o.dataset['courier181'], 'k1');
     expect(o.dataset['jemputDate'], '2026-10-04');
     expect(o.dataset['jemputSlot'], 'pagi');
-    expect(o.detail['address'], 'Jl. Mawar 1');
-    expect(o.note, 'Pagar hitam');
-    final cardItem = s.debugItems().firstWhere((e) => e['type'] == 'pickup');
+    // Pelanggan terdaftar dari daftar: Pilih → Jadwal → Kurir (Saya sendiri).
+    s.nav('jemputnew202');
+    await _settle(tester);
+    final idx = s.debugItems().where((e) => e['type'] == 'card').firstWhere((e) => e['t'] == 'Budi Native')['i'] as int;
+    s.fmButton(idx);
+    await _settle(tester);
+    expect(s.debugSheetIds(), contains('jjadwal'));
+    s.fmScoped('jjadwal', 'button', 1);
+    await _settle(tester);
+    s.fmScoped('jkurir', 'button', 1000);
+    await _settle(tester);
+    expect((await Business.load(kv)).orders.where((e) => e.name == 'Budi Native' && e.status == 'jemput' && e.dataset['jemputSelf'] != null).length, 1);
+    final cardItem = s.debugItems().firstWhere((e) => e['type'] == 'pickup' && e['t'] == 'Sari');
     expect([cardItem['t'], cardItem['when'], cardItem['who'], cardItem['badge']], ['Sari', 'Besok, Pagi 08.00–11.00', 'Kurir: Budi', 'Ditugaskan']);
     expect([for (final x in cardItem['btns'] as List) (x as Map)['t']], ['Navigasi', 'Buat Pesanan', 'WhatsApp']);
     // Tab Penjemputan di Pesanan: tombol kartu "Buat Pesanan", tidak langsung masuk Antrian dengan Rp0.
     s.nav('orders');
     await _settle(tester);
+    b = await Business.load(kv);
     s.cardAction(b.orders.indexWhere((e) => e.id == o.id));
     await _settle(tester);
     expect(s.debugSheetIds(), contains('dur'), reason: 'membuka Buat Pesanan (Pilih Durasi)');
@@ -996,16 +1002,17 @@ void templateTests() {
     // ⋮ → Ganti Kurir → Saya sendiri.
     s.nav('jemput202');
     await _settle(tester);
-    s.fmButton(103);
+    Map sari() => s.debugItems().firstWhere((e) => e['type'] == 'pickup' && e['t'] == 'Sari');
+    s.fmButton(sari()['menu'] as int);
     await _settle(tester);
     expect([for (final e in s.debugSheet('jmenu')!) if (e['type'] == 'button') e['t']], ['Ganti Kurir', 'Buka Rincian Pesanan', 'Batalkan Penjemputan', 'Tutup']);
     s.fmScoped('jmenu', 'button', 1);
     await _settle(tester);
     s.fmScoped('jkurir', 'button', 1000);
     await _settle(tester);
-    expect(s.debugItems().firstWhere((e) => e['type'] == 'pickup')['who'], 'Dijemput: Owner');
+    expect(sari()['who'], 'Dijemput: Owner');
     // Buat Pesanan: Tambah Transaksi yang sama (durasi → layanan → Atur Pesanan → Pembayaran), tanpa pilihan Penyerahan.
-    s.fmButton(101);
+    s.fmButton(((sari()['btns'] as List)[1] as Map)['i'] as int);
     await _settle(tester);
     expect(s.debugSheetIds(), contains('dur'));
     s.fmScoped('dur', 'button', 1); // Express

@@ -157,3 +157,10 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 
 - Di Pesanan → tab Penjemputan, tombol **Jemput ›** langsung memindahkan penjemputan ke Antrian tanpa timbangan dan harga (Rp0). Sekarang penjemputan yang belum ada layanannya memakai tombol **Buat Pesanan** (Tambah Transaksi tanpa Penyerahan) di kartu Pesanan, rincian pesanan, Tugas Kurir, dan HP kurir. Penjemputan tidak bisa masuk Antrian sebelum ditimbang.
 - Pesanan Rp0 yang sudah terlanjur masuk Antrian (GY-261009-0135, -0137) data uji di HP; bisa dibatalkan atau diisi lewat Edit.
+
+## 9 Oktober 2026, 22.08 WIB — Buat Penjemputan versi ringkas
+
+- Halaman **Buat Penjemputan** hanya: **Pilih Pelanggan** (cari), **+ Tambah Pelanggan Baru**, lalu **daftar pelanggan terdaftar** di bawahnya.
+- Pilih pelanggan → popup **Jadwal Penjemputan** (Hari ini/Besok/Lusa + Secepatnya/Pagi/Siang/Sore) → popup **Pilih Kurir** (kurir + Saya sendiri; belum ada kurir → Buat Akun Kurir). Kurir dipilih = penjemputan langsung dibuat.
+- Alamat otomatis dari data pelanggan; kolom alamat dan catatan di formulir dihapus.
+- Tombol **+ Buat Penjemputan** di Antar Jemput jadi tombol utama warna GOYANA (permintaan 20.54).

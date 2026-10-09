@@ -177,14 +177,14 @@ void main() {
     await shot('jemput_baru');
     s.fmButton(10);
     await shot('jemput_pilih');
-    s.fmScoped('pickcust', 'button', 0);
-    s.fmButton(21);
+    s.fmScoped('pickcust', 'button', 0); // pilih → popup Jadwal Penjemputan
+    s.fmScoped('jjadwal', 'button', 31); // Pagi
     await shot('jemput_terisi');
-    s.fmInput(2, 'Jl. Melati No. 12, Bekasi');
-    s.fmButton(31); // Pagi
-    s.fmButton(0); // Buat Penjemputan
+    s.fmScoped('jjadwal', 'button', 1); // Lanjut → popup Pilih Kurir
+    await shot('jemput_kurir');
+    s.fmScoped('jkurir', 'button', 1000); // Saya sendiri → penjemputan dibuat
     await shot('jemput_daftar');
-    s.fmButton(103); // ⋮
+    s.fmButton((s.debugItems().firstWhere((e) => e['type'] == 'pickup')['menu']) as int); // ⋮
     await shot('jemput_menu');
     s.fmScoped('jmenu', 'button', 0);
     s.nav('stock');

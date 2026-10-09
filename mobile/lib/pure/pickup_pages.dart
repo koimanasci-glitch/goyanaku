@@ -138,7 +138,7 @@ class PickupPage extends PurePage {
     final active = _active, done = _done, courier = _courierMode(host);
     final rows = filter == 'aktif' ? active : done;
     final out = <Map<String, dynamic>>[
-      if (!courier) {'type': 'button', 't': '+ Buat Penjemputan', 'primary': false, 'file': '', 'after': false, 'i': 0},
+      if (!courier) {'type': 'button', 't': '+ Buat Penjemputan', 'primary': true, 'file': '', 'after': false, 'i': 0},
       {'type': 'buttons', 'options': [
         {'t': 'Aktif (${active.length})', 'svg': '', 'file': '', 'after': false, 'on': filter == 'aktif', 'i': 1},
         {'t': 'Selesai', 'svg': '', 'file': '', 'after': false, 'on': filter == 'selesai', 'i': 2},
@@ -285,13 +285,15 @@ class PickupPage extends PurePage {
 /// Buat Penjemputan (jemputnew202): pelanggan, hari, jam (Secepatnya/Pagi/Siang/Sore), kurir, alamat, catatan.
 class PickupNewPage extends PurePage {
   PickupNewPage(super.host);
-  String customer = '', address = '', note = '', query = '';
+  String customer = '', query = '';
   int day = 0, slot = 0;
   /// Penjemput: id kurir, atau [self] = jemput sendiri.
   String kurir = '';
   bool self = false;
   List<Map<String, dynamic>> couriers = [];
   int _known = -1;
+  /// Popup yang dibuka lagi saat kembali ke halaman ini ('jjadwal' setelah tambah pelanggan, 'jkurir' setelah buat akun kurir).
+  String _resume = '';
 
   /// True sekali: kembali dari Tambah Pelanggan / Pengaturan Kurir, isian jangan dikosongkan.
   bool keep = false;
@@ -304,6 +306,8 @@ class PickupNewPage extends PurePage {
   @override
   void opened() {
     CourierSettingsPage.returnTo = '';
+    final resume = keep ? _resume : '';
+    _resume = '';
     Couriers.load(host.kv).then((v) {
       final live = _couriersFor(v.list, host.business.activeOutlet);
       // Kembali dari Pengaturan Kurir dengan kurir baru: langsung terpilih.
@@ -311,12 +315,13 @@ class PickupNewPage extends PurePage {
       _known = -1;
       couriers = v.list;
       host.refresh();
+      if (resume.isNotEmpty && customer.isNotEmpty) host.openPageSheet(resume);
     });
     if (keep) {
       keep = false;
       return;
     }
-    customer = address = note = query = kurir = '';
+    customer = query = kurir = '';
     self = false;
     day = slot = 0;
   }
@@ -324,84 +329,89 @@ class PickupNewPage extends PurePage {
   List<Map<String, dynamic>> get _live => _couriersFor(couriers, host.business.activeOutlet);
   Customer? get _cust => customer.isEmpty ? null : host.business.customerByName(customer);
 
-  /// Pilih pelanggan: alamat penjemputan mengikuti alamat pelanggan (masih bisa diubah).
+  /// Pelanggan dipilih (dari daftar, pencarian, atau baru ditambahkan): lanjut ke popup Jadwal Penjemputan.
   void pick(String name) {
     final c = host.business.customerByName(name);
     if (c == null) return;
     customer = c.name;
-    address = c.address;
+    _resume = 'jjadwal';
   }
 
-  List<Customer> get _found {
-    final q = query.trim().toLowerCase();
-    return [for (final c in host.business.customers) if (q.isEmpty || '${c.name} ${c.phone}'.toLowerCase().contains(q)) c].take(50).toList();
+  List<Customer> _match(String q) {
+    final t = q.trim().toLowerCase();
+    return [for (final c in host.business.customers) if (t.isEmpty || '${c.name} ${c.phone}'.toLowerCase().contains(t)) c].take(50).toList();
   }
 
-  String get _kurirLabel {
-    if (self) return 'Saya sendiri (${pickupSelfName(host)})';
-    final k = _live.where((x) => '${x['id']}' == kurir).firstOrNull;
-    return k == null ? 'Pilih kurir' : '${k['name']}';
-  }
+  Map<String, dynamic> _card(Customer c, int i) => {
+        'type': 'card', 't': c.name, 's': [c.phone, if (c.address.isNotEmpty) c.address].join(' · '),
+        'svg': c.gender == 'female' ? custAvatarFemale : custAvatarMale, 'ic': '', 'badge': '', 'meta': '', 'on': false, 'i': i,
+      };
 
+  /// Halaman: Pilih Pelanggan (cari), Tambah Pelanggan Baru, lalu daftar pelanggan terdaftar.
   @override
   List<Map<String, dynamic>> items() {
-    final c = _cust;
+    final list = _match('');
     return [
       {'type': 'title', 't': 'Pelanggan'},
-      if (c == null)
-        {'type': 'button', 't': 'Pilih Pelanggan', 'primary': true, 'file': '', 'after': false, 'i': 10}
-      else
-        {'type': 'row', 't': c.name, 's': [c.phone, if (c.address.isNotEmpty) c.address].join(' · '), 'btn': 'Ganti', 'svg': c.gender == 'female' ? custAvatarFemale : custAvatarMale, 'i': 10},
+      {'type': 'button', 't': 'Pilih Pelanggan', 'primary': true, 'file': '', 'after': false, 'i': 10},
       {'type': 'button', 't': '+ Tambah Pelanggan Baru', 'primary': false, 'file': '', 'after': false, 'i': 11},
-      {'type': 'title', 't': 'Jadwal Penjemputan'},
-      {'type': 'buttons', 'cols': 3, 'options': [for (var k = 0; k < pickupDays.length; k++) {'t': pickupDays[k], 'on': day == k, 'i': 21 + k}]},
-      {'type': 'buttons', 'cols': 2, 'options': [for (var k = 0; k < pickupSlots.length; k++) {'t': pickupSlots[k][1], 'on': slot == k, 'i': 30 + k}]},
-      {'type': 'title', 't': 'Pilih Kurir'},
-      {'type': 'row', 't': _kurirLabel, 's': self || kurir.isNotEmpty ? 'Tugas muncul di Tugas Kurir' : 'Bisa dipilih nanti lewat menu titik tiga di kartu', 'btn': 'Pilih', 'svg': '', 'i': 12},
-      if (c != null) ...[
-        {'type': 'title', 't': 'Alamat Penjemputan'},
-        _input(2, address, 'Alamat penjemputan', false),
-        {'type': 'hint', 't': mapsLink(c).isEmpty ? 'Titik lokasi belum ditandai · bisa ditambah lewat Edit Pelanggan.' : '📍 Titik lokasi pelanggan tersimpan · bisa langsung Navigasi.'},
-      ],
-      {'type': 'title', 't': 'Catatan (opsional)'},
-      _input(7, note, 'Contoh: rumah warna biru, pagar hitam', true),
-      {'type': 'button', 't': 'Buat Penjemputan', 'primary': true, 'file': '', 'after': false, 'i': 0},
+      if (list.isNotEmpty) {'type': 'title', 't': 'Pelanggan terdaftar'} else {'type': 'hint', 't': 'Belum ada pelanggan. Tambahkan pelanggan baru dulu.'},
+      for (var k = 0; k < list.length; k++) _card(list[k], 100 + k),
     ];
-  }
-
-  Map<String, dynamic> _input(int i, String v, String ph, bool multi) =>
-      {'type': 'input', 'v': v, 'ph': ph, 'multiline': multi, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
-
-  @override
-  void input(int i, Object value) {
-    if (i == 2) address = '$value';
-    if (i == 7) note = '$value';
   }
 
   @override
   List<Map<String, dynamic>>? sheetItems(String id) {
     if (id == 'jkurir') return _kurirSheet(host, _live, kurir, self);
+    if (id == 'jjadwal') {
+      final c = _cust;
+      if (c == null) return null;
+      return [
+        {'type': 'title', 't': 'Jadwal Penjemputan', 's': c.name},
+        {'type': 'buttons', 'cols': 3, 'options': [for (var k = 0; k < pickupDays.length; k++) {'t': pickupDays[k], 'on': day == k, 'i': 21 + k}]},
+        {'type': 'buttons', 'cols': 2, 'options': [for (var k = 0; k < pickupSlots.length; k++) {'t': pickupSlots[k][1], 'on': slot == k, 'i': 30 + k}]},
+        {'type': 'hint', 't': c.address.isEmpty && c.maps.trim().isEmpty ? 'Alamat pelanggan belum diisi · bisa dilengkapi lewat Edit Pelanggan.' : '📍 ${c.address.isEmpty ? 'Titik lokasi tersimpan' : c.address}'},
+        {'type': 'button', 't': 'Lanjut Pilih Kurir', 'primary': true, 'i': 1},
+        {'type': 'button', 't': 'Batal', 'primary': false, 'i': 0},
+      ];
+    }
     if (id != 'pickcust') return null;
-    final list = _found;
+    final list = _match(query);
     return [
       {'type': 'title', 't': 'Pilih Pelanggan', 's': ''},
       {'type': 'input', 'v': query, 'ph': 'Cari nama atau nomor', 'i': 0},
       {'type': 'button', 't': '+ Tambah Pelanggan Baru', 'primary': false, 'i': 1001},
       if (list.isEmpty) {'type': 'hint', 't': host.business.customers.isEmpty ? 'Belum ada pelanggan. Tambahkan dulu.' : 'Pelanggan tidak ditemukan. Tambahkan sebagai pelanggan baru.'},
-      for (var k = 0; k < list.length; k++)
-        {'type': 'card', 't': list[k].name, 's': [list[k].phone, if (list[k].address.isNotEmpty) list[k].address].join(' · '), 'svg': list[k].gender == 'female' ? custAvatarFemale : custAvatarMale, 'ic': '', 'badge': '', 'meta': '', 'on': list[k].name == customer, 'i': k},
+      for (var k = 0; k < list.length; k++) _card(list[k], k),
       {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1000},
     ];
   }
 
   @override
   void sheetEvent(String id, String kind, int index, Object? value) {
+    if (id == 'jjadwal') {
+      if (kind != 'button') return;
+      if (index >= 21 && index < 21 + pickupDays.length) {
+        day = index - 21;
+        if (day > 0 && slot == 0) slot = 1; // Secepatnya hanya untuk hari ini
+        return host.refresh();
+      }
+      if (index >= 30 && index < 30 + pickupSlots.length) {
+        slot = index - 30;
+        if (slot == 0) day = 0;
+        return host.refresh();
+      }
+      host.closePageSheet(id);
+      if (index == 1) host.openPageSheet('jkurir');
+      return;
+    }
     if (id == 'jkurir') {
       if (kind != 'button') return;
       host.closePageSheet(id);
       if (index == 2000) {
         keep = true;
         _known = _live.length;
+        _resume = 'jkurir';
         CourierSettingsPage.returnTo = 'jemputnew202';
         return host.go('kurirsetting');
       }
@@ -412,8 +422,10 @@ class PickupNewPage extends PurePage {
       } else if (index >= 0 && index < list.length) {
         self = false;
         kurir = '${list[index]['id']}';
+      } else {
+        return;
       }
-      return host.refresh();
+      return _create();
     }
     if (id != 'pickcust') return;
     if (kind == 'input') {
@@ -421,11 +433,17 @@ class PickupNewPage extends PurePage {
       return host.refresh();
     }
     if (kind != 'button') return;
-    final list = _found;
+    final list = _match(query);
     host.closePageSheet('pickcust');
     if (index == 1001) return host.addCustomerFor('jemputnew202');
-    if (index >= 0 && index < list.length) pick(list[index].name);
-    host.refresh();
+    if (index >= 0 && index < list.length) _choose(list[index].name);
+  }
+
+  void _choose(String name) {
+    pick(name);
+    _resume = '';
+    if (_cust == null) return;
+    host.openPageSheet('jjadwal');
   }
 
   @override
@@ -435,28 +453,21 @@ class PickupNewPage extends PurePage {
       return host.openPageSheet('pickcust');
     }
     if (i == 11) return host.addCustomerFor('jemputnew202');
-    if (i == 12) return host.openPageSheet('jkurir');
-    if (i >= 21 && i < 21 + pickupDays.length) {
-      day = i - 21;
-      if (day > 0 && slot == 0) slot = 1; // Secepatnya hanya untuk hari ini
-      return host.refresh();
-    }
-    if (i >= 30 && i < 30 + pickupSlots.length) {
-      slot = i - 30;
-      if (slot == 0) day = 0;
-      return host.refresh();
-    }
-    if (i != 0) return;
+    final list = _match('');
+    if (i >= 100 && i - 100 < list.length) _choose(list[i - 100].name);
+  }
+
+  /// Kurir dipilih: penjemputan langsung dibuat (pesanan berstatus Penjemputan, alamat dari data pelanggan).
+  void _create() {
     final c = _cust;
     if (c == null) return host.toast('Pilih pelanggan dulu');
-    final addr = address.trim(), maps = c.maps.trim();
-    if (addr.isEmpty && maps.isEmpty) return host.toast('Isi alamat penjemputan');
+    final addr = c.address.trim(), maps = c.maps.trim();
     final b = host.business, now = host.now, by = pickupSelfName(host);
     final hand = handoverOptions(host.settings.raw).contains('Jemput & Antar') ? 'Jemput & Antar' : 'Jemput';
     final outlet = b.activeOutlet.isNotEmpty ? b.activeOutlet : (b.outlets.isEmpty ? '' : b.outlets.first.id);
     final o = b.createOrder(
       customer: c.name, phone: c.phone, dur: 'Reguler', items: const [], ongkir: transportFee(hand, transportCfg(outlet)),
-      note: note.trim(), handover: hand, payMethod: 'Bayar Nanti', kasir: by, now: now,
+      handover: hand, payMethod: 'Bayar Nanti', kasir: by, now: now,
     );
     o.dataset
       ..['jemput202'] = '1'
@@ -464,13 +475,12 @@ class PickupNewPage extends PurePage {
       ..['jemputSlot'] = pickupSlots[slot][0];
     if (self) o.dataset['jemputSelf'] = by;
     if (!self && kurir.isNotEmpty) o.dataset['courier181'] = kurir;
-    o.detail['address'] = addr;
+    if (addr.isNotEmpty) o.detail['address'] = addr;
     if (maps.isNotEmpty) o.detail['maps'] = maps;
     host.saveAll();
-    final msg = self || kurir.isNotEmpty ? 'Penjemputan dibuat · masuk Tugas Kurir' : 'Penjemputan dibuat · pilih kurir lewat menu titik tiga';
     keep = false;
     opened();
     host.go('jemput202');
-    host.toast(msg);
+    host.toast(addr.isEmpty && maps.isEmpty ? 'Penjemputan dibuat · alamat pelanggan belum diisi' : 'Penjemputan dibuat · masuk Tugas Kurir');
   }
 }
