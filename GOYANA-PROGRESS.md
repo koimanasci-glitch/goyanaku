@@ -1663,3 +1663,11 @@ Diuji: PHPUnit 56 tes lulus, dicek tampilannya di 360 px dan 1200 px. CI backend
 - **Backend**: provider terdaftar; saklar `GOYANA_WHATSAPP_ENABLED` (bawaan mati); template WA masuk menu administrator (area `support`, tema administrator); WA blast memakai kontrak `ChatkuGateway` yang sama (driver `http` tebakan dan `/api/marketing/inbound` dihapus; migrasi `2026_10_08_000015` menambah `marketing_senders.remote_id`); `goyana:wa-retry` terjadwal; nomor nota format baru dikenali balasan status.
 - **Mode Murni**: `pure/wa_link.dart`, `pure/wa_devices_page.dart` (menu Hubungkan WhatsApp), sakelar Balas Status WhatsApp per nomor di Otomasi; `ServerFailure.status`.
 - **Belum**: adapter Chatku (kontrak API belum ada), pemasangan nomor marketing, pembayaran slot tambahan, penyedia AI template, uji HP/server/MySQL sungguhan.
+
+### [Claude] Penjemputan disederhanakan dan jadi pesanan (9 Okt, "Gas" 07.56)
+- **Acuan**: GOYANA-CATATAN-PADUKA.md, 9 Oktober 07.10–07.56.
+- **Mode Murni**: `pure/pickup_pages.dart` ditulis ulang — Buat Penjemputan membuat pesanan berstatus Penjemputan (tanpa berat) dengan jadwal (`jemputDate`, `jemputSlot`), kurir (`courier181`) atau `jemputSelf` (Saya sendiri). Kartu baru `pickup` di `native/form_page.dart` (avatar, label status, Navigasi/Buat Pesanan/WhatsApp, menu titik tiga). `PureHost.weighOrder` membuka Isi Layanan & Berat lalu memajukan ke Antrian. Tugas Kurir dan HP kurir: Sudah Dijemput tanpa layanan → timbang dulu. Pengaturan Kurir kembali ke form bila dibuka dari "Buat Akun Kurir".
+- **Tambah Pesanan tidak disentuh.** Data lama `goyana-pickup202` tidak dipakai lagi (hanya data uji di HP).
+- **Backend**: Monitoring web + API menambah `pickups` (Penjemputan berjalan).
+- **Uji**: PHPUnit 144 lulus lokal; CI Flutter (analyze, tes unit termasuk tes baru alur penjemputan, screenshot `pure_rev_jemput_daftar/menu`, APK Mode Murni) lulus di 4aa8e3d; CI backend lulus.
+- **Belum diuji di HP sungguhan**: kurir login menerima tugas lewat server.
