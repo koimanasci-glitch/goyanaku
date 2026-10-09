@@ -148,3 +148,7 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 ## 9 Oktober 2026, 20.36 WIB — laporan bug (dicatat dulu, belum diperbaiki)
 
 - **Tutup Kasir → Hitung uang fisik**: saat tombol + / − pecahan diketuk, kolom **Rp** tetap menampilkan **160000** dan tidak mengikuti hitungan pecahan. Contoh di HP Paduka: 50rb × 1 (pecahan lain 0) seharusnya Rp50.000, tetapi kolom tetap 160000, dan pesan selisih ("Kurang Rp44.200") dihitung dari 160000. Perlu dicek: kolom Rp harus = jumlah pecahan setiap kali + / − ditekan (dan isian manual tetap bisa).
+
+## 9 Oktober 2026, 20.54 WIB — permintaan tampilan (dicatat dulu, belum dikerjakan)
+
+- **Antar Jemput → tombol "+ Buat Penjemputan"**: jadikan tombol utama berwarna **oranye/merah GOYANA** (sama dengan tombol utama lain di aplikasi), bukan tombol putih bergaris.
