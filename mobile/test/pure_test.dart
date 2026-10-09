@@ -249,11 +249,21 @@ void main() {
     var o = (await Business.load(kv)).orders.first;
     expect(o.status, 'jemput');
     expect(o.total, 0);
-    s.fmScoped('detail', 'button', 1); // Sudah dijemput
-    s.fmScoped('detail', 'button', 9); // Isi layanan
+    // Penjemputan tanpa layanan tidak boleh langsung masuk Antrian (Rp0): tombol tahap membuka Buat Pesanan.
+    s.fmScoped('detail', 'button', 1);
     await _settle(tester);
-    s.fmScoped('items', 'input', 0, '3,5');
-    s.fmScoped('items', 'button', 1001);
+    expect((await Business.load(kv)).orders.first.status, 'jemput');
+    expect(s.debugSheetIds(), contains('dur'));
+    s.fmScoped('dur', 'button', 0);
+    await _settle(tester);
+    s.aoService(0);
+    await _settle(tester);
+    s.fmScoped('qty', 'input', 0, '3,5');
+    s.fmScoped('qty', 'button', 1);
+    s.aoNext();
+    s.aoSheetMain();
+    await _settle(tester);
+    s.aoPay(3); // Bayar Nanti
     await _settle(tester);
     o = (await Business.load(kv)).orders.first;
     expect(o.status, 'antrian');
