@@ -25,6 +25,11 @@ class CourierSettingsPage extends PurePage {
   @override
   String get title => 'PENGATURAN KURIR';
 
+  /// Dibuka dari Buat Penjemputan (belum ada kurir): kembali ke halaman itu setelah akun kurir dibuat atau saat Kembali.
+  static String returnTo = '';
+  @override
+  String get back => returnTo.isNotEmpty ? returnTo : 'settings';
+
   bool get _owner => host.server.isOwner;
   List<Outlet> get _outlets => [for (final o in host.business.outlets) if (ServerSync.outletNumber(o.id) != null) o];
   List<Map<String, dynamic>> get _couriers => [for (final m in team) if ('${m['role']}' == 'kurir') m];
@@ -243,6 +248,11 @@ class CourierSettingsPage extends PurePage {
       if (done) {
         _reset();
         host.closePageSheet(_form);
+        if (id0 == null && returnTo.isNotEmpty) {
+          final to = returnTo;
+          returnTo = '';
+          host.go(to);
+        }
       }
     });
   }

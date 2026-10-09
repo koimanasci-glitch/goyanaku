@@ -1363,6 +1363,17 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _loadCrmRule();
     _hppSync();
   }
+  /// Penjemputan → Buat Pesanan: timbang di lokasi lewat Isi Layanan & Berat; setelah disimpan pesanan masuk Antrian.
+  String _weighAdvance = '';
+  @override
+  void weighOrder(String id) {
+    final o = _b!.orderById(id);
+    if (o == null) return;
+    _showDetail(id);
+    _weighAdvance = id;
+    _openItems(o);
+  }
+
   @override
   void payOrder(String id) {
     openOrder(id);
@@ -2178,7 +2189,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   void _itemsButton(int index) {
     final o = _detailId == null ? null : _b!.orderById(_detailId!);
-    if (o == null || index != 1001) return _close('items');
+    if (o == null || index != 1001) {
+      _weighAdvance = '';
+      return _close('items');
+    }
     final items = <OrderItem>[];
     _itemQty.forEach((k, v) {
       final q = parseQty(v);
@@ -2189,9 +2203,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
     if (items.isEmpty) return toast('Isi jumlah minimal satu layanan');
     _b!.setItems(o, items);
+    final picked = _weighAdvance == o.id && o.status == 'jemput';
+    _weighAdvance = '';
+    if (picked) _b!.advance(o, now: now, by: _kasir);
     _save();
     _close('items');
-    toast('Layanan tersimpan · total ${rp(o.total)}');
+    toast(picked ? 'Pesanan masuk Antrian · total ${rp(o.total)}' : 'Layanan tersimpan · total ${rp(o.total)}');
     _refreshDetail();
   }
 

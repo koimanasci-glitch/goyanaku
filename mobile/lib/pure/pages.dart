@@ -64,6 +64,8 @@ abstract class PureHost {
   Future<void> reloadAll();
   /// Buka Rincian Pesanan lalu lembar Pembayaran untuk sisa tagihannya.
   void payOrder(String id);
+  /// Penjemputan → Buat Pesanan: buka Isi Layanan & Berat pesanan jemput ini; setelah disimpan pesanan masuk Antrian.
+  void weighOrder(String id);
   /// Pelanggan tersimpan dari halaman Tambah/Edit Pelanggan: lanjut ke Tambah Transaksi bila [forOrder], selain itu kembali ke Pelanggan.
   void customerSaved(String name, {bool forOrder = false, String? returnTo});
   /// Buka Tambah Pelanggan; setelah tersimpan kembali ke halaman [page] dengan pelanggan itu terpilih.
@@ -1083,7 +1085,7 @@ class CourierPage extends PurePage {
       // Kartu tugas (HTML v181 renderCourier): pilih kurir, Navigasi, WhatsApp, Bayar (bila belum lunas), tahap berikut.
       for (var k = 0; k < tasks.length; k++) ...[
         {'type': 'title', 't': '${tasks[k].status == 'jemput' ? '📍 Penjemputan' : (tasks[k].status == 'siap' ? '📦 Siap Diantar' : '🚚 Pengantaran')} · ${tasks[k].name}'},
-        {'type': 'hint', 't': '${tasks[k].id} · ${_map(tasks[k]).isNotEmpty ? 'Lokasi Maps tersedia' : 'Lokasi belum diisi'}'},
+        {'type': 'hint', 't': '${tasks[k].id} · ${_map(tasks[k]).isNotEmpty ? 'Lokasi Maps tersedia' : 'Lokasi belum diisi'}${'${tasks[k].dataset['courier181'] ?? ''}'.isEmpty && '${tasks[k].dataset['jemputSelf'] ?? ''}'.isNotEmpty ? ' · Dijemput sendiri: ${tasks[k].dataset['jemputSelf']}' : ''}'},
         {
           'type': 'select', 'options': ['Pilih kurir', for (final x in _for(tasks[k])) '${x['name']}'],
           'index': _for(tasks[k]).indexWhere((x) => '${x['id']}' == '${tasks[k].dataset['courier181'] ?? ''}') + 1, 'i': k,
@@ -1115,6 +1117,7 @@ class CourierPage extends PurePage {
     final opts = _for(tasks[i]);
     final n = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
     tasks[i].dataset['courier181'] = n >= 1 && n <= opts.length ? '${opts[n - 1]['id']}' : '';
+    if ('${tasks[i].dataset['courier181']}'.isNotEmpty) tasks[i].dataset.remove('jemputSelf');
     host.saveAll();
     host.refresh();
   }
@@ -1132,10 +1135,12 @@ class CourierPage extends PurePage {
       case 2:
         host.payOrder(o.id);
       default:
-        final id = '${o.dataset['courier181'] ?? ''}';
-        if (id.isEmpty) return host.toast('Pilih kurir dulu');
-        final by = '${_live.where((k) => '${k['id']}' == id).firstOrNull?['name'] ?? 'Kurir'}';
+        final id = '${o.dataset['courier181'] ?? ''}', self = '${o.dataset['jemputSelf'] ?? ''}';
+        if (id.isEmpty && self.isEmpty) return host.toast('Pilih kurir dulu');
+        final by = id.isEmpty ? self : '${_live.where((k) => '${k['id']}' == id).firstOrNull?['name'] ?? 'Kurir'}';
         final st = o.status;
+        // Penjemputan tanpa layanan: timbang di lokasi dulu (Isi Layanan & Berat), lalu masuk Antrian.
+        if (st == 'jemput' && o.items.isEmpty) return host.weighOrder(o.id);
         if (o.remaining > 0 && (st == 'siap' || st == 'telat' || st == 'diantar')) return host.advanceOrder(o.id, by: by);
         host.business.advance(o, now: host.now, by: by);
         host.saveAll();

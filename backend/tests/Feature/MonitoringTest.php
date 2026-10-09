@@ -118,6 +118,27 @@ class MonitoringTest extends TestCase {
         $this->api($this->owner, 'GET', '/monitoring?from='.$past.'&to='.$past)->assertJsonPath('totals.orders', 0)->assertJsonPath('totals.debt', 21000);
     }
 
+    public function test_running_pickups_show_schedule_and_who_picks_up(): void {
+        $pickup = function (string $id, array $dataset) {
+            $o = $this->order($id, 0, 'jemput', 0, $dataset);
+            $o['card']['dataset']['items'] = '[]'; $o['detail']['items'] = []; $o['card']['total'] = 0; $o['detail']['address'] = 'Jl. Mawar 1';
+            return $o;
+        };
+        $this->push($this->kasirA, [
+            ['collection' => 'orders', 'key' => 'J-1', 'data' => $pickup('J-1', ['courier181' => 'kur-1', 'jemput202' => '1', 'jemputDate' => '2026-10-10', 'jemputSlot' => 'pagi'])],
+            ['collection' => 'orders', 'key' => 'J-2', 'data' => $pickup('J-2', ['jemput202' => '1', 'jemputSelf' => 'Kasir A', 'jemputDate' => '2026-10-09', 'jemputSlot' => 'asap'])],
+        ], 'hp-kasir-a-01')->assertJsonPath('results.0.status', 'applied')->assertJsonPath('results.1.status', 'applied');
+        $r = $this->api($this->owner, 'GET', '/monitoring')->assertOk();
+        $rows = collect($r->json('pickups'))->keyBy('order');
+        $this->assertSame(['Budi', false, '10 Oct · Pagi 08.00–11.00', 'Jl. Mawar 1'], [$rows['J-1']['courier'], $rows['J-1']['self'], $rows['J-1']['when'], $rows['J-1']['address']]);
+        $this->assertSame(['Kasir A', true, 'Secepatnya'], [$rows['J-2']['courier'], $rows['J-2']['self'], $rows['J-2']['when']]);
+        $this->app['auth']->forgetGuards(); $this->flushHeaders();
+        $this->actingAs($this->owner)->get('/monitoring')->assertOk()->assertSee('Penjemputan berjalan')->assertSee('Dijemput sendiri: Kasir A');
+        // Setelah dijemput (masuk Antrian) tidak lagi tampil.
+        $this->move($this->kurir, 'J-1', 'antrian');
+        $this->assertSame(['J-2'], collect($this->api($this->owner, 'GET', '/monitoring')->json('pickups'))->pluck('order')->all());
+    }
+
     public function test_full_report_is_owner_only_and_admin_outlet_sees_own_branch(): void {
         $this->workday();
         foreach ([$this->kasirA, $this->pegawai, $this->kurir] as $staff) {

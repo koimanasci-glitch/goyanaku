@@ -278,6 +278,8 @@ class NativeForm extends StatelessWidget {
             ),
           ),
         );
+      case 'pickup':
+        return _PickupCard(it: it, onTap: (i) { FocusManager.instance.primaryFocus?.unfocus(); a.fmButton(i); });
       case 'title':
         return Padding(
           padding: const EdgeInsets.only(top: 6, bottom: 8),
@@ -1003,5 +1005,115 @@ class _FormInputState extends State<_FormInput> {
         style: gText(13.5, c: ro ? const Color(0xff8a8fa3) : _ink, h: 19),
         decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: _s(it['ph']), hintStyle: gText(13.5, c: const Color(0xffb0b4bf))),
       );
+  }
+}
+
+
+const _waSvg = '<svg viewBox="0 0 24 24"><path fill="#25D366" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.07-.12-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.4 9.4 0 0 1-1.44-5.02c0-5.2 4.23-9.43 9.43-9.43a9.37 9.37 0 0 1 6.67 2.77 9.37 9.37 0 0 1 2.76 6.67c0 5.2-4.23 9.42-9.43 9.42zm8.03-17.45A11.27 11.27 0 0 0 12.05.72C5.8.72.7 5.8.7 12.07c0 2 .52 3.95 1.52 5.67L.6 23.6l6.01-1.58a11.33 11.33 0 0 0 5.43 1.38h.01c6.26 0 11.35-5.09 11.35-11.35 0-3.03-1.18-5.88-3.32-8.02z"/></svg>';
+
+/// Kartu Antar Jemput (Mode Murni, mockup Paduka 9 Oktober 2026): foto, nama, jadwal, alamat, kurir, label status,
+/// tombol ⋮ (menu), lalu Navigasi · Buat Pesanan · WhatsApp.
+class _PickupCard extends StatelessWidget {
+  const _PickupCard({required this.it, required this.onTap});
+  final Map<String, dynamic> it;
+  final ValueChanged<int> onTap;
+
+  static const _tones = {
+    'orange': (Color(0xfffff1e2), Color(0xffd9741c)),
+    'blue': (Color(0xffe8f0ff), Color(0xff2f62d6)),
+    'green': (Color(0xffe6f7ec), Color(0xff1e8a4c)),
+    'grey': (Color(0xfff1f3f6), Color(0xff6b7280)),
+  };
+
+  Widget _line(IconData ic, String t) => Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(children: [
+          Icon(ic, size: 15, color: const Color(0xff8a8fa3)),
+          const SizedBox(width: 6),
+          Expanded(child: Text(t, maxLines: 2, overflow: TextOverflow.ellipsis, style: gText(12.5, c: const Color(0xff5b6170)))),
+        ]),
+      );
+
+  Widget _btn(Map<String, dynamic> b) {
+    final kind = _s(b['kind']);
+    final (bg, fg, border) = switch (kind) {
+      'order' => (const Color(0xffe8f0ff), const Color(0xff2f62d6), const Color(0xffe8f0ff)),
+      'wa' => (const Color(0xffe6f7ec), const Color(0xff1e8a4c), const Color(0xffe6f7ec)),
+      _ => (Colors.white, _ink, const Color(0xffe1e5ea)),
+    };
+    final Widget icon = switch (kind) {
+      'order' => Icon(Icons.description_outlined, size: 17, color: fg),
+      'wa' => gSvg(_waSvg, 17),
+      _ => Icon(Icons.navigation_rounded, size: 17, color: fg),
+    };
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onTap(_i(b['i'])),
+        child: Container(
+          height: 40, padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10), border: Border.all(color: border)),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              icon,
+              const SizedBox(width: 5),
+              Text(_s(b['t']), style: gText(12.5, w: FontWeight.w600, c: fg)),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = _tones[_s(it['tone'])] ?? _tones['grey']!;
+    final menu = _i(it['menu']);
+    final btns = _list(it['btns']);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xffe8ecf2)),
+          boxShadow: [gShadow(const Color(0x0d1e1e1e), 2, 8)]),
+      child: Column(children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 52, height: 52, alignment: Alignment.center,
+              decoration: const BoxDecoration(color: Color(0xfff3f5f9), shape: BoxShape.circle),
+              child: gAvatar(_s(it['svg']), _s(it['t']), 52)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(child: Text(_s(it['t']), maxLines: 1, overflow: TextOverflow.ellipsis, style: gText(15, w: FontWeight.w600, c: _ink))),
+                if (_s(it['badge']).isNotEmpty)
+                  Container(margin: const EdgeInsets.only(left: 6), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: tone.$1, borderRadius: BorderRadius.circular(20)),
+                      child: Text(_s(it['badge']), style: gText(11, w: FontWeight.w600, c: tone.$2))),
+              ]),
+              _line(Icons.event_outlined, _s(it['when'])),
+              _line(Icons.place_outlined, _s(it['addr'])),
+              _line(Icons.delivery_dining_outlined, _s(it['who'])),
+              if (_s(it['note']).isNotEmpty) _line(Icons.sticky_note_2_outlined, _s(it['note'])),
+            ]),
+          ),
+          if (menu >= 0)
+            GestureDetector(
+              onTap: () => onTap(menu),
+              child: Container(width: 34, height: 34, margin: const EdgeInsets.only(left: 6, top: 22), alignment: Alignment.center,
+                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: const Color(0xffe1e5ea))),
+                  child: const Icon(Icons.more_vert_rounded, size: 19, color: _ink)),
+            ),
+        ]),
+        if (btns.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Row(children: [
+            for (var k = 0; k < btns.length; k++) ...[
+              if (k > 0) const SizedBox(width: 8),
+              _btn(btns[k]),
+            ],
+          ]),
+        ],
+      ]),
+    );
   }
 }

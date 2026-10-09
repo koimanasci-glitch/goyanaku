@@ -5,7 +5,7 @@
 import '../core/models.dart' show Order;
 import '../core/money.dart';
 import 'pages.dart';
-import 'pickup_pages.dart' show loadPickups;
+import 'pickup_pages.dart' show loadPickups, pickupWhen;
 import 'server_sync.dart' show ServerFailure;
 import 'views.dart' show mapsLink;
 
@@ -110,8 +110,8 @@ class CourierHomePage extends PurePage {
         final o = jemput[k];
         out
           ..add({'type': 'title', 't': '📍 ${o.name}'})
-          ..add({'type': 'hint', 't': '${o.id} · ${_address(o)}'})
-          ..add(_buttons(k, o, 'Sudah Dijemput', open: true));
+          ..add({'type': 'hint', 't': '${pickupWhen(o, host.now)} · ${_address(o)}${o.note.isEmpty || o.note == '-' ? '' : ' · ${o.note}'}'})
+          ..add(_buttons(k, o, o.items.isEmpty ? 'Timbang & Jemput' : 'Sudah Dijemput', open: true));
       }
       out.add({'type': 'hint', 't': 'Timbang di lokasi lewat Buka Nota → Edit. Harga mengikuti daftar harga, tanpa diskon. Kasir mengecek timbangan lagi di outlet.'});
     } else if (tab == 1) {
@@ -186,6 +186,8 @@ class CourierHomePage extends PurePage {
         host.openOrder(o.id);
       default:
         final st = o.status;
+        // Penjemputan tanpa layanan: timbang di lokasi dulu (Isi Layanan & Berat), lalu masuk Antrian.
+        if (st == 'jemput' && o.items.isEmpty) return host.weighOrder(o.id);
         // Serah terima yang belum lunas: tampilkan Pembayaran dulu (bisa "Hutang Dulu" bila usaha mengizinkan).
         if (o.remaining > 0 && st == 'diantar') return host.advanceOrder(o.id, by: _myName);
         host.business.advance(o, now: host.now, by: _myName);

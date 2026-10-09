@@ -931,23 +931,21 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Antar Jemput (v202): buat penjemputan, tugaskan kurir, Sampai Lokasi → transaksi; butir sama dengan HTML', (tester) async {
-    final fx = jsonDecode(File('test/fixtures/pure/pickup.json').readAsStringSync()) as Map;
+  testWidgets('Antar Jemput (9 Okt 2026): penjemputan = pesanan Penjemputan → Tugas Kurir → timbang di lokasi → Antrian', (tester) async {
     final kv = _store();
     kv.data['goyana-couriers181'] = jsonEncode([{'id': 'k1', 'name': 'Budi', 'phone': '081233334444', 'outlets': [], 'active': true}]);
     final s = await _pump(tester, kv);
-    s.tile(1);
+    s.nav('jemput202');
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['empty']));
+    expect(s.debugItems().where((e) => e['type'] == 'pickup'), isEmpty);
     s.fmButton(0);
     await _settle(tester);
-    // Revisi Koiman: pelanggan dipilih dari daftar (tidak diketik ulang) + Atur Jam Jemput.
     expect([for (final it in s.debugItems()) if (it['type'] == 'title' || it['type'] == 'button') it['t']],
-        ['Pelanggan', 'Pilih dari Daftar Pelanggan', '+ Tambah Pelanggan Baru', 'Atur Jam Jemput', 'Lainnya (opsional)', 'Buat Penjemputan']);
+        ['Pelanggan', 'Pilih Pelanggan', '+ Tambah Pelanggan Baru', 'Jadwal Penjemputan', 'Pilih Kurir', 'Catatan (opsional)', 'Buat Penjemputan']);
     s.fmButton(0);
     expect(s.debugToast, 'Pilih pelanggan dulu');
-    // Tambah pelanggan baru dari sini → kembali ke Penjemputan Baru dengan pelanggan itu terpilih.
-    s.fmButton(21); // Besok (harus tetap terpilih sesudah kembali)
+    s.fmButton(22); // Besok → Secepatnya tidak berlaku, jam otomatis Pagi
+    // Tambah pelanggan baru dari sini → kembali dengan pelanggan terpilih dan isian tetap.
     s.fmButton(11);
     await _settle(tester);
     s.fmScoped('gp128', 'button', 1);
@@ -956,36 +954,60 @@ void templateTests() {
     s.fmButton(7);
     await _settle(tester);
     expect(s.debugItems().firstWhere((e) => e['type'] == 'row')['t'], 'Sari');
-    expect(s.debugItems().any((e) => e['type'] == 'select'), isTrue, reason: 'pilihan jam muncul karena hari = Besok');
-    s.fmButton(20); // Secepatnya
+    expect(s.debugItems().firstWhere((e) => e['type'] == 'buttons' && e['cols'] == 3)['options'][1]['on'], isTrue, reason: 'Besok tetap terpilih');
+    // Pilih Kurir: Saya sendiri + daftar kurir.
+    s.fmButton(12);
+    await _settle(tester);
+    expect([for (final e in s.debugSheet('jkurir')!) if (e['type'] == 'card') e['t']], ['Saya sendiri', 'Budi']);
+    s.fmScoped('jkurir', 'button', 0);
+    await _settle(tester);
     s.fmButton(0);
     expect(s.debugToast, 'Isi alamat penjemputan');
-    // Ganti lewat daftar pelanggan lalu kembali ke Sari.
-    s.fmButton(10);
-    await _settle(tester);
-    expect(s.debugSheet('pickcust')!.where((e) => e['type'] == 'card').map((e) => e['t']), containsAll(['Budi Native', 'Sari']));
-    s.fmScoped('pickcust', 'input', 0, 'sari');
-    s.fmScoped('pickcust', 'button', 0);
-    await _settle(tester);
     s.fmInput(2, 'Jl. Mawar 1');
-    s.fmInput(6, 'Cuci kering');
+    s.fmInput(7, 'Pagar hitam');
     s.fmButton(0);
     await _settle(tester);
-    expect(s.debugToast, 'Penjemputan dibuat');
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['one']));
-    s.fmButton(5);
-    expect(s.debugToast, 'Pilih kurir dulu');
-    s.fmInput(0, 1);
-    s.fmButton(5);
+    expect(s.debugToast, 'Penjemputan dibuat · masuk Tugas Kurir');
+    var b = await Business.load(kv);
+    final o = b.orders.firstWhere((e) => e.name == 'Sari');
+    expect(o.status, 'jemput');
+    expect(o.items, isEmpty);
+    expect(o.dataset['courier181'], 'k1');
+    expect(o.dataset['jemputDate'], '2026-10-04');
+    expect(o.dataset['jemputSlot'], 'pagi');
+    expect(o.detail['address'], 'Jl. Mawar 1');
+    expect(o.note, 'Pagar hitam');
+    final cardItem = s.debugItems().firstWhere((e) => e['type'] == 'pickup');
+    expect([cardItem['t'], cardItem['when'], cardItem['who'], cardItem['badge']], ['Sari', 'Besok, Pagi 08.00–11.00', 'Kurir: Budi', 'Ditugaskan']);
+    expect([for (final x in cardItem['btns'] as List) (x as Map)['t']], ['Navigasi', 'Buat Pesanan', 'WhatsApp']);
+    // Ikut tampil di Tugas Kurir.
+    s.nav('couriers');
     await _settle(tester);
-    expect(s.debugToast, 'Ditugaskan ke Budi · tekan Kirim ke Kurir untuk mengabari lewat WhatsApp');
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['assigned']));
-    expect((await Business.load(kv)).customers.any((c) => c.name == 'Sari'), isTrue, reason: 'pelanggan baru ikut tersimpan');
-    s.fmButton(7); // Sampai Lokasi
+    expect(s.debugItems().any((e) => e['type'] == 'title' && '${e['t']}'.contains('Penjemputan · Sari')), isTrue);
+    // ⋮ → Ganti Kurir → Saya sendiri.
+    s.nav('jemput202');
     await _settle(tester);
-    expect(s.debugToast, 'Timbang barang, lalu pilih ongkos kirim di opsi pesanan');
-    final saved = (jsonDecode(kv.data['goyana-pickup202']!) as List).single as Map;
-    expect(saved['status'], 'sampai');
+    s.fmButton(103);
+    await _settle(tester);
+    expect([for (final e in s.debugSheet('jmenu')!) if (e['type'] == 'button') e['t']], ['Ganti Kurir', 'Buka Rincian Pesanan', 'Batalkan Penjemputan', 'Tutup']);
+    s.fmScoped('jmenu', 'button', 1);
+    await _settle(tester);
+    s.fmScoped('jkurir', 'button', 1000);
+    await _settle(tester);
+    expect(s.debugItems().firstWhere((e) => e['type'] == 'pickup')['who'], 'Dijemput: Owner');
+    // Buat Pesanan: timbang di lokasi → masuk Antrian.
+    s.fmButton(101);
+    await _settle(tester);
+    expect(s.debugSheetIds(), contains('items'));
+    s.fmScoped('items', 'input', 0, '3');
+    s.fmScoped('items', 'button', 1001);
+    await _settle(tester);
+    expect(s.debugToast, startsWith('Pesanan masuk Antrian'));
+    b = await Business.load(kv);
+    final done = b.orderById(o.id)!;
+    expect(done.status, 'antrian');
+    expect(done.items, isNotEmpty);
+    expect(done.dataset['picked'], '1');
     expect(tester.takeException(), isNull);
   });
 

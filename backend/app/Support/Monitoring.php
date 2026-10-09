@@ -105,6 +105,10 @@ final class Monitoring {
                 'received' => (int) $d->amount, 'difference' => (int) $d->amount - (int) $d->expected, 'confirmed_by' => $name($d->confirmed_by),
                 'note' => $d->note, 'at' => CarbonImmutable::parse($d->created_at, 'UTC')->toIso8601String()])->all();
 
+        // ---------- penjemputan yang sedang berjalan (keputusan pengguna 9 Oktober 2026) ----------
+        // Penjemputan dari aplikasi = pesanan berstatus 'jemput' (berat ditimbang kurir di lokasi).
+        $pickups = $this->pickups(clone $index, $users);
+
         return [
             'range' => ['from' => $from->toIso8601String(), 'to' => $to->toIso8601String(), 'timezone' => self::TZ],
             'scope' => $outletId ? 'outlet' : 'all',
@@ -115,8 +119,45 @@ final class Monitoring {
                 'deposits' => $deposits, 'cash_closes' => $this->cashCloses($ids, $from, $to)],
             'cashiers' => array_values($cashiers), 'production' => array_values($production), 'couriers' => array_values($couriers),
             'devices' => $this->devices($ids),
+            'pickups' => $pickups,
             'alerts' => $this->alerts($outletId),
         ];
+    }
+
+    private const PICKUP_SLOTS = ['asap' => 'Secepatnya', 'pagi' => 'Pagi 08.00–11.00', 'siang' => 'Siang 11.00–15.00', 'sore' => 'Sore 15.00–18.00'];
+
+    /** Penjemputan berjalan: pelanggan, jadwal, siapa yang menjemput, dan sejak kapan dibuat. */
+    private function pickups($index, $users): array {
+        $rows = $index->where('status', 'jemput')->orderBy('ordered_at')->limit(100)->get(['outlet_id', 'record_key', 'customer', 'courier_key', 'ordered_at']);
+        if ($rows->isEmpty()) return [];
+        $data = DB::table('sync_records')->where('business_id', $this->business->id)->where('collection', 'orders')
+            ->whereIn('record_key', $rows->pluck('record_key')->all())->pluck('data', 'record_key');
+        $byKey = $users->filter(fn ($u) => (string) $u->courier_key !== '')->keyBy('courier_key');
+        $couriers = $this->collectionNames('couriers');
+        return $rows->map(function ($r) use ($data, $byKey, $couriers) {
+            $order = json_decode((string) ($data[$r->record_key] ?? ''), true);
+            if (is_string($order)) $order = json_decode($order, true);
+            $set = is_array($order) ? (array) ($order['card']['dataset'] ?? []) : [];
+            $who = $r->courier_key ? ($byKey[$r->courier_key]->name ?? ($couriers[$r->courier_key] ?? 'Kurir')) : (string) ($set['jemputSelf'] ?? '');
+            $slot = self::PICKUP_SLOTS[(string) ($set['jemputSlot'] ?? '')] ?? null;
+            $date = (string) ($set['jemputDate'] ?? '');
+            $when = $slot ? ($slot === 'Secepatnya' ? $slot : trim(($date !== '' ? CarbonImmutable::parse($date, self::TZ)->format('d M') : '').' · '.$slot, ' ·')) : null;
+            return ['outlet_id' => (int) $r->outlet_id, 'order' => $r->record_key, 'customer' => $r->customer ?: '-', 'courier' => $who ?: null,
+                'self' => !$r->courier_key && $who !== '', 'when' => $when,
+                'address' => is_array($order) ? ((string) ($order['detail']['address'] ?? '')) ?: null : null,
+                'since' => $r->ordered_at ? CarbonImmutable::parse($r->ordered_at, 'UTC')->toIso8601String() : null];
+        })->values()->all();
+    }
+
+    /** Nama per kunci dari koleksi tersinkron (mis. data kurir lama tanpa akun). */
+    private function collectionNames(string $collection): array {
+        $out = [];
+        foreach (DB::table('sync_records')->where('business_id', $this->business->id)->where('collection', $collection)->where('deleted', false)->get(['record_key', 'data']) as $row) {
+            $d = json_decode((string) $row->data, true);
+            if (is_string($d)) $d = json_decode($d, true);
+            if (is_array($d) && isset($d['name'])) $out[(string) $row->record_key] = (string) $d['name'];
+        }
+        return $out;
     }
 
     /** Tunai yang masih dipegang tiap kurir: yang diterima sejak setoran terakhir. */
