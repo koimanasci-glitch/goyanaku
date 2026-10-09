@@ -467,9 +467,10 @@ class PickupNewPage extends PurePage {
     o.detail['address'] = addr;
     if (maps.isNotEmpty) o.detail['maps'] = maps;
     host.saveAll();
+    final msg = self || kurir.isNotEmpty ? 'Penjemputan dibuat · masuk Tugas Kurir' : 'Penjemputan dibuat · pilih kurir lewat ⋮';
     keep = false;
     opened();
     host.go('jemput202');
-    host.toast(self || kurir.isNotEmpty ? 'Penjemputan dibuat · masuk Tugas Kurir' : 'Penjemputan dibuat · pilih kurir lewat ⋮');
+    host.toast(msg);
   }
 }
