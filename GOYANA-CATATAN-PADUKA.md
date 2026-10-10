@@ -176,3 +176,9 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Penjemputan yang **belum punya kurir/penjemput** tidak bisa diproses (Buat Pesanan / Jemput): muncul peringatan **"Pilih kurir dulu"** (di Antar Jemput langsung muncul popup Pilih Kurir).
 - **Tambah Pesanan** dengan penyerahan **Antar** atau **Jemput & Antar**: di Atur Pesanan ada pilihan **Kurir** (Saya sendiri + daftar kurir), wajib dipilih sebelum lanjut ke Pembayaran. **Datang Langsung tetap seperti biasa** (tanpa kurir).
 - Tambah Pesanan tanpa layanan → "Buat Pesanan Jemput" sekarang memakai alur Buat Penjemputan (popup Jadwal → Pilih Kurir).
+
+## 10 Oktober 2026, 08.56 WIB — menu WhatsApp & Chatbot dirapikan
+
+- Halaman **WhatsApp & Chatbot** memakai **tab pil** (seperti filter Laporan): **Perangkat · Otomatis · Chatbot AI · Balas Cepat · Promo**.
+- Tab **Chatbot AI** punya **Pengetahuan dari laundry**: tanya-jawab yang ditulis pemilik (aturan, promo, area antar, cara bayar). AI memakainya **selain data aplikasi**. Bisa tambah, edit, hapus.
+- Sakelar lama tetap di tempat penyimpanan yang sama (tidak ada pengaturan yang hilang).

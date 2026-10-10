@@ -210,6 +210,18 @@ void main() {
     await shot('pengeluaran');
     s.nav('automation');
     await shot('otomasi');
+    // WhatsApp & Chatbot bertab (10 Okt 2026): tab Perangkat, lalu Chatbot AI dengan satu Pengetahuan dari laundry.
+    s.nav('whatsappbot');
+    await shot('wa_hub_perangkat');
+    s.fmButton(902);
+    s.fmButton(20);
+    s.fmScoped('wa-kb', 'input', 0, 'Area antar jemput');
+    s.fmScoped('wa-kb', 'input', 1, 'Gratis radius 3 km dari outlet, di luar itu Rp5.000.');
+    s.fmScoped('wa-kb', 'button', 0);
+    await shot('wa_hub_chatbot');
+    expect(s.debugItems().any((e) => e['type'] == 'entry' && e['t'] == 'Area antar jemput'), isTrue);
+    s.fmButton(901);
+    await shot('wa_hub_otomatis');
     s.nav('kurirsetting');
     await shot('pengaturan_kurir_terkunci');
     // Hubungkan WhatsApp: formulir Tambah Device, daftar dengan satu draf, lalu popup Scan QR / Kode WhatsApp.

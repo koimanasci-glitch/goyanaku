@@ -279,6 +279,34 @@ class NativeForm extends StatelessWidget {
             ),
           ),
         );
+      case 'chips':
+        // Tab bergaya pil (seperti filter Laporan): aktif hitam, lainnya putih; bisa digeser ke samping.
+        final opts = _list(it['options']);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: opts.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (_, k) {
+                final o = opts[k], on = o['on'] == true;
+                return GestureDetector(
+                  onTap: () { FocusManager.instance.primaryFocus?.unfocus(); a.fmButton(_i(o['i'])); },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: on ? _ink : Colors.white, borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: on ? _ink : const Color(0xffe8ecf2))),
+                    child: Text('${_s(o['ic']).isEmpty ? '' : '${_s(o['ic'])} '}${_s(o['t'])}',
+                        style: gText(13, w: FontWeight.w500, c: on ? Colors.white : const Color(0xff5b6170))),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
       case 'wadevice':
         return _WaDeviceCard(it: it, onTap: a.fmButton);
       case 'sheethead':

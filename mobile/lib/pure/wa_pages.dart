@@ -252,6 +252,11 @@ class AiPage extends TemplatePage {
       ];
       return list.isEmpty ? 'Belum ada harga layanan aktif. Hubungi kasir.' : list.join('\n');
     }
+    // Pengetahuan dari laundry (tanya-jawab pemilik): cocokkan kata penting topik dengan pertanyaan.
+    for (final e in (ai['kb'] as List? ?? const []).whereType<Map>()) {
+      final words = '${e['q'] ?? ''}'.toLowerCase().split(RegExp(r'[^a-z0-9]+')).where((w) => w.length > 3);
+      if (words.isNotEmpty && words.any(m.contains)) return '${e['a'] ?? ''}';
+    }
     return 'Pertanyaan ini membutuhkan koneksi AI. Pengetahuan tambahan sudah tersimpan, tetapi layanan AI belum terhubung.';
   }
 
@@ -268,18 +273,187 @@ class AiPage extends TemplatePage {
   }
 }
 
+/// WhatsApp & Chatbot (permintaan Paduka 10 Oktober 2026): satu halaman dengan tab supaya tidak membingungkan.
+/// Sakelar tetap disimpan di tempat yang sama (setelan `tpl.whatsappbot`), jadi fitur lain yang membacanya tidak berubah.
+/// Tab Chatbot AI punya "Pengetahuan dari laundry": tanya-jawab yang ditulis pemilik untuk bahan balasan AI.
+class WaHubPage extends TemplatePage {
+  // ignore: use_super_parameters
+  WaHubPage(PureHost host, this.wa) : super(host, 'whatsappbot');
+  final WaLink wa;
+  int tab = 0;
+  Map<String, dynamic> st = {};
+  static const _tabs = [['📱', 'Perangkat'], ['⚡', 'Otomatis'], ['🤖', 'Chatbot AI'], ['💬', 'Balas Cepat'], ['📣', 'Promo']];
+  static const _kbSheet = 'wa-kb';
+  int? _kbEdit;
+  String _kbQ = '', _kbA = '';
+
+  @override
+  void opened() {
+    loadChat(host).then((v) {
+      st = v;
+      host.refresh();
+    });
+    wa.sync();
+  }
+
+  Map<String, dynamic> get _ai => ((st['ai'] ??= <String, dynamic>{}) as Map).cast<String, dynamic>();
+  List<Map<String, dynamic>> get kb => [for (final e in (_ai['kb'] as List? ?? const []).whereType<Map>()) e.cast<String, dynamic>()];
+
+  Map<String, dynamic> _tg(int i, String t, String s) => {'type': 'toggle', 't': t, 's': s, 'on': toggleValue(i), 'i': i};
+  Map<String, dynamic> _btn(String t, int i, {bool primary = false, String file = ''}) =>
+      {'type': 'button', 't': t, 'primary': primary, 'file': file, 'after': false, 'i': i};
+
+  @override
+  List<Map<String, dynamic>> items() {
+    final out = <Map<String, dynamic>>[
+      {'type': 'chips', 'options': [for (var k = 0; k < _tabs.length; k++) {'t': _tabs[k][1], 'ic': _tabs[k][0], 'on': tab == k, 'i': 900 + k}]},
+    ];
+    switch (tab) {
+      case 0:
+        final devs = wa.store.devices;
+        final on = devs.where((d) => d.status == 'connected').length;
+        out
+          ..add({'type': 'title', 't': 'Nomor WhatsApp outlet'})
+          ..add({'type': 'hint', 't': 'Nomor ini yang mengirim pesan otomatis dan membalas chat pelanggan. Satu nomor untuk satu cabang.'})
+          ..add({
+            'type': 'entry', 't': devs.isEmpty ? 'Belum ada nomor WhatsApp' : '${devs.length} nomor · $on terhubung',
+            'lines': [devs.isEmpty ? 'Tambahkan nomor lalu hubungkan lewat Scan QR atau Kode WhatsApp.' : devs.map((d) => '+${d.phone}').join(' · ')],
+            'badge': on > 0 ? 'Terhubung' : '', 'avatar': '📱', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[],
+          })
+          ..add(_btn(devs.isEmpty ? '+ Tambah Nomor WhatsApp' : 'Kelola Perangkat WhatsApp', 3, primary: true));
+        if (wa.note.isNotEmpty) out.add({'type': 'hint', 't': wa.note});
+      case 1:
+        out
+          ..add({'type': 'title', 't': 'Pesan otomatis ke pelanggan'})
+          ..add({'type': 'hint', 't': 'Dikirim dari nomor outlet. Hanya pesan penting, tidak ada pesan harian.'})
+          ..add(_tg(0, 'Pesanan diterima', 'Konfirmasi + nota elektronik saat transaksi dibuat'))
+          ..add(_tg(1, 'Siap ambil', 'Pelanggan dikabari begitu cucian Siap Ambil'))
+          ..add(_tg(2, 'Pengingat telat ambil', 'Sekali, saat cucian 7 hari belum diambil'));
+      case 2:
+        out
+          ..add(_tg(3, 'Chatbot AI 24 jam', 'Membalas pertanyaan pelanggan dari nomor outlet'))
+          ..add({'type': 'title', 't': 'Yang boleh dijawab dari data aplikasi'})
+          ..add({'type': 'hint', 't': 'Bot hanya membaca data, tidak bisa mengubah transaksi.'})
+          ..add(_tg(5, 'Status cucian', 'Sesuai nomor WhatsApp pelanggan'))
+          ..add(_tg(6, 'Total tagihan', ''))
+          ..add(_tg(7, 'Harga & layanan', 'Mengikuti daftar harga aktif'))
+          ..add(_tg(8, 'Jam buka & alamat outlet', ''))
+          ..add(_tg(9, 'Permintaan antar-jemput', ''))
+          ..add(_tg(10, 'Teruskan ke admin (CS manusia)', 'Bila bot tidak yakin atau pelanggan minta bicara dengan orang'))
+          ..add({'type': 'title', 't': 'Pengetahuan dari laundry', 's': '${kb.length} catatan'})
+          ..add({'type': 'hint', 't': 'Tulis info yang sering ditanyakan pelanggan (aturan, promo, area antar, cara bayar). AI memakai ini selain data aplikasi.'});
+        final list = kb;
+        for (var k = 0; k < list.length; k++) {
+          out.add({
+            'type': 'entry', 't': '${list[k]['q'] ?? ''}', 'lines': ['${list[k]['a'] ?? ''}'],
+            'badge': '', 'avatar': '📝', 'svg': '', 'color': '', 'amount': '',
+            'btns': [{'t': 'Edit', 'on': false, 'i': 1000 + 10 * k}, {'t': 'Hapus', 'on': false, 'i': 1001 + 10 * k}],
+          });
+        }
+        out
+          ..add(_btn('+ Tambah Pengetahuan', 20, primary: list.isEmpty))
+          ..add(_btn('Pengaturan Chatbot AI ›', 1));
+      case 3:
+        out
+          ..add(_tg(4, 'Balas cepat & trigger', 'Jawaban template berdasarkan kata kunci, tanpa AI'))
+          ..add(_btn('Atur Balas Cepat & Trigger ›', 4, primary: true))
+          ..add({'type': 'label', 't': 'Gambar default balasan / promo'})
+          ..add(_btn('Pilih Gambar', -1, file: 'chat-image191'))
+          ..add({'type': 'hint', 't': 'Dipakai untuk balasan cepat tanpa gambar khusus. Maksimal 1 MB.'});
+        final src = (((host.settings.raw['tpl'] as Map?)?['whatsappbot'] as Map?)?['img'] as Map?)?['chat-image191'];
+        if (src is String && src.isNotEmpty) out.add(pickedImageItem(src));
+      default:
+        out
+          ..add({'type': 'title', 't': 'WhatsApp Blast'})
+          ..add({'type': 'hint', 't': 'Kirim promo ke pelanggan yang setuju dihubungi. Dikirim bergilir supaya nomor aman.'})
+          ..add(_btn('Buka WhatsApp Blast ›', 2, primary: true));
+    }
+    if (!wa.store.devices.any((d) => d.status == 'connected') && tab != 0) {
+      out.add({'type': 'hint', 't': 'WhatsApp belum terhubung · pesan baru terkirim setelah nomor outlet dihubungkan di tab Perangkat.'});
+    }
+    return out;
+  }
+
+  @override
+  void button(int i) {
+    if (i >= 900 && i < 900 + _tabs.length) {
+      tab = i - 900;
+      return host.refresh();
+    }
+    if (i == 20 || (i >= 1000 && (i - 1000) % 10 == 0)) {
+      if (!_gate(host, 'ai')) return;
+      final k = i == 20 ? null : (i - 1000) ~/ 10;
+      _kbEdit = k;
+      _kbQ = k == null ? '' : '${kb[k]['q'] ?? ''}';
+      _kbA = k == null ? '' : '${kb[k]['a'] ?? ''}';
+      return host.openPageSheet(_kbSheet);
+    }
+    if (i >= 1000 && (i - 1000) % 10 == 1) {
+      final k = (i - 1000) ~/ 10, list = kb;
+      if (k >= list.length) return;
+      list.removeAt(k);
+      _ai['kb'] = list;
+      saveChat(host, st);
+      host.toast('Pengetahuan dihapus');
+      return host.refresh();
+    }
+    const go = ['triggers191', 'ai191', 'blast191', 'wadevices195', 'quickreply'];
+    const need = ['quick', 'ai', 'blast', '', 'quick'];
+    if (i < 0 || i >= go.length) return;
+    if (need[i].isNotEmpty && !_gate(host, need[i])) return;
+    host.go(go[i]);
+  }
+
+  Map<String, dynamic> _in(int i, String v, String ph, bool multi) =>
+      {'type': 'input', 'v': v, 'ph': ph, 'multiline': multi, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
+
+  @override
+  List<Map<String, dynamic>>? sheetItems(String id) => id != _kbSheet
+      ? null
+      : [
+          {'type': 'title', 't': _kbEdit == null ? 'Tambah Pengetahuan' : 'Edit Pengetahuan', 's': ''},
+          {'type': 'label', 't': 'Topik / pertanyaan pelanggan'},
+          _in(0, _kbQ, 'Contoh: Area antar jemput', false),
+          {'type': 'label', 't': 'Jawaban'},
+          _in(1, _kbA, 'Contoh: Gratis antar jemput radius 3 km dari outlet, di luar itu Rp5.000.', true),
+          {'type': 'button', 't': 'Simpan', 'primary': true, 'i': 0},
+          {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1},
+        ];
+
+  @override
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    if (id != _kbSheet) return;
+    if (kind == 'input') {
+      if (index == 0) _kbQ = '${value ?? ''}';
+      if (index == 1) _kbA = '${value ?? ''}';
+      return;
+    }
+    if (kind != 'button') return;
+    if (index == 1) return host.closePageSheet(_kbSheet);
+    final q = _kbQ.trim(), a = _kbA.trim();
+    if (q.isEmpty || a.isEmpty) return host.toast('Isi topik dan jawabannya');
+    final list = kb, e = _kbEdit;
+    if (e != null && e < list.length) {
+      list[e] = {'q': q, 'a': a};
+    } else {
+      list.add({'q': q, 'a': a});
+    }
+    _ai['kb'] = list;
+    saveChat(host, st).then((ok) {
+      if (!ok) return host.toast('Penyimpanan penuh');
+      host.closePageSheet(_kbSheet);
+      host.toast('Pengetahuan tersimpan');
+      host.refresh();
+    });
+  }
+}
+
 /// Halaman WhatsApp lain yang susunannya tetap (dari tangkapan HTML).
 Map<String, PurePage> whatsappPages(PureHost host) {
   // Satu sumber data perangkat WhatsApp untuk halaman perangkat dan sakelar Balas Status di Otomasi.
   final wa = WaLink(host);
   return {
-      'whatsappbot': TemplatePage(host, 'whatsappbot', onButton: (p, i) {
-        const go = ['triggers191', 'ai191', 'blast191', 'wadevices195', 'quickreply'];
-        const need = ['quick', 'ai', 'blast', '', 'quick'];
-        if (i < 0 || i >= go.length) return;
-        if (need[i].isNotEmpty && !_gate(host, need[i])) return;
-        host.go(go[i]);
-      }),
+      'whatsappbot': WaHubPage(host, wa),
       'triggers191': TriggersPage(host),
       'ai191': AiPage(host),
       'blast191': TemplatePage(host, 'blast191', backTo: 'whatsappbot', onButton: (p, i) {
