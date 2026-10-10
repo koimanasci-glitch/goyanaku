@@ -19,6 +19,7 @@ class User extends Authenticatable implements MustVerifyEmail {
             'deactivated_at' => 'immutable_datetime', 'mfa_secret' => 'encrypted',
             'mfa_confirmed_at' => 'immutable_datetime', 'mfa_last_step' => 'integer',
             'pin' => 'hashed', 'pin_failed' => 'integer', 'pin_locked_until' => 'immutable_datetime',
+            'courier_limits' => 'array',
         ];
     }
 
@@ -46,6 +47,17 @@ class User extends Authenticatable implements MustVerifyEmail {
     public function permissions(): array {
         if ($this->is_platform_admin || !$this->business_id) return [];
         return config("goyana.roles.{$this->role}.permissions", []);
+    }
+
+    /** Hak akses per kurir: weigh (timbang saat jemput), create (transaksi di lokasi), pay (terima pembayaran). Bawaan: boleh. */
+    public const COURIER_LIMITS = ['weigh', 'create', 'pay'];
+    public function courierCan(string $what): bool {
+        return ((array) ($this->courier_limits ?? []))[$what] ?? true;
+    }
+
+    /** @return array<string, bool> */
+    public function courierLimits(): array {
+        return array_combine(self::COURIER_LIMITS, array_map(fn ($k) => (bool) $this->courierCan($k), self::COURIER_LIMITS));
     }
 
     public function hasPermission(string $permission): bool {

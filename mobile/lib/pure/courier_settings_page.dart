@@ -21,6 +21,14 @@ class CourierSettingsPage extends PurePage {
   int? _id;
   String _name = '', _phone = '', _pin = '', _link = '';
   int _outlet = 0;
+  /// Hak kurir (diatur pemilik per kurir; bawaan semua boleh). Ditegakkan server saat sinkron.
+  Map<String, bool> _can = {for (final k in limitKeys) k: true};
+  static const limitKeys = ['weigh', 'create', 'pay'];
+  static const limitLabels = {
+    'weigh': ('Boleh menimbang di lokasi', 'Mati: kurir hanya menandai sudah dijemput, timbangan diisi kasir di outlet.'),
+    'create': ('Boleh buat transaksi di lokasi', 'Pelanggan datang langsung ke kurir tanpa penjemputan terjadwal.'),
+    'pay': ('Boleh terima pembayaran', 'Mati: pelanggan membayar di outlet; kurir tidak memegang uang.'),
+  };
 
   @override
   String get title => 'PENGATURAN KURIR';
@@ -54,6 +62,14 @@ class CourierSettingsPage extends PurePage {
     _id = null;
     _name = _phone = _pin = _link = '';
     _outlet = 0;
+    _can = {for (final k in limitKeys) k: true};
+  }
+
+  /// Hak yang dimatikan untuk satu kurir, untuk ditampilkan di daftar.
+  static String offList(Object? limits) {
+    final m = limits is Map ? limits : const {};
+    final off = [for (final k in limitKeys) if (m[k] == false) {'weigh': 'timbang', 'create': 'transaksi di lokasi', 'pay': 'terima uang'}[k]!];
+    return off.isEmpty ? '' : 'Tidak boleh: ${off.join(', ')}';
   }
 
   Future<void> _load() async {
@@ -103,6 +119,7 @@ class CourierSettingsPage extends PurePage {
           'lines': [
             '${list[k]['phone'] ?? ''} · ${_outletName(list[k]['outlet_id'])}',
             list[k]['active'] == false ? 'Nonaktif · tidak bisa masuk' : (list[k]['pin_locked'] == true ? 'PIN terkunci · ganti PIN lewat Edit' : 'Aktif'),
+            if (offList(list[k]['courier_limits']).isNotEmpty) offList(list[k]['courier_limits']),
           ],
           'badge': '', 'avatar': '${list[k]['name']}'.isEmpty ? 'K' : '${list[k]['name']}'[0].toUpperCase(), 'svg': '', 'color': '', 'amount': '',
           'btns': [
@@ -156,6 +173,8 @@ class CourierSettingsPage extends PurePage {
     _phone = '${m['phone'] ?? ''}';
     final at = outs.indexWhere((o) => o.id == 'srv-${m['outlet_id']}');
     _outlet = at < 0 ? 0 : at;
+    final lim = m['courier_limits'] is Map ? m['courier_limits'] as Map : const {};
+    _can = {for (final k in limitKeys) k: lim[k] != false};
     host.openPageSheet(_form);
   }
 
@@ -199,6 +218,9 @@ class CourierSettingsPage extends PurePage {
       {'type': 'label', 't': 'PIN 6 angka'},
       inp(_pin, _id == null ? 'PIN untuk kurir masuk' : 'Kosongkan jika tidak diganti', 3, numeric: true, secret: true),
       {'type': 'hint', 't': 'Kurir masuk di HP-nya dengan nomor HP dan PIN ini. Berikan PIN langsung kepada kurirnya.'},
+      {'type': 'label', 't': 'Hak akses kurir'},
+      for (var k = 0; k < limitKeys.length; k++)
+        {'type': 'toggle', 't': limitLabels[limitKeys[k]]!.$1, 's': limitLabels[limitKeys[k]]!.$2, 'on': _can[limitKeys[k]] != false, 'i': 10 + k},
       {'type': 'button', 't': 'Simpan', 'primary': true, 'file': '', 'after': false, 'i': 0},
       {'type': 'button', 't': 'Batal', 'primary': false, 'file': '', 'after': false, 'i': 1},
     ];
@@ -222,6 +244,11 @@ class CourierSettingsPage extends PurePage {
       }
       return;
     }
+    if (kind == 'toggle') {
+      final k = index - 10;
+      if (k >= 0 && k < limitKeys.length) _can[limitKeys[k]] = _can[limitKeys[k]] == false;
+      return host.refresh();
+    }
     if (kind != 'button') return;
     if (index == 1) return host.closePageSheet(_form);
     final outs = _outlets, id0 = _id;
@@ -234,6 +261,7 @@ class CourierSettingsPage extends PurePage {
       'name': name, 'phone': phone, 'role': 'kurir',
       'outlet_id': ServerSync.outletNumber(outs[_outlet.clamp(0, outs.length - 1)].id),
       if (_link.isNotEmpty) 'courier_key': _link,
+      'courier_limits': {for (final k in limitKeys) k: _can[k] != false},
     };
     final pin = _pin;
     _send(() async {

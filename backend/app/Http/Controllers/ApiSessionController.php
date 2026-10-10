@@ -152,7 +152,7 @@ class ApiSessionController {
         return response()->json([
             'user' => ['id' => $user->id, 'name' => $user->name, 'role' => $user->role, 'role_label' => $user->roleLabel(),
                 'permissions' => $user->permissions(), 'outlet_id' => $user->outlet_id, 'phone' => $user->phone,
-                'login' => $user->pin ? 'pin' : 'password', 'courier_key' => $user->courier_key],
+                'login' => $user->pin ? 'pin' : 'password', 'courier_key' => $user->courier_key, 'courier_limits' => $user->courierLimits()],
             'business' => ['id' => $business->id, 'name' => $business->name, 'allow_debt' => (bool) $business->allow_debt],
             'access' => [
                 'package' => $access['package'], 'source' => $access['source'], 'read_only' => $access['read_only'],

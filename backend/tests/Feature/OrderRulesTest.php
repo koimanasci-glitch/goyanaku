@@ -283,6 +283,35 @@ class OrderRulesTest extends TestCase {
         $this->assertEquals(3, $weigh['before'][0]['qty']); $this->assertEquals(2.5, $weigh['after'][0]['qty']);
     }
 
+    public function test_owner_limits_what_each_courier_may_do(): void {
+        // Diatur owner lewat API Tim; kurir lain tetap bebas (bawaan).
+        $kurir = $this->staff('kurir', 0, 'kur-1');
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->token($this->owner))->patchJson('/api/team/'.$kurir->id, ['courier_limits' => ['weigh' => false, 'create' => false, 'pay' => false]])
+            ->assertOk()->assertJsonPath('member.courier_limits', ['weigh' => false, 'create' => false, 'pay' => false]);
+        $t = $this->token($kurir->fresh());
+        $this->app['auth']->forgetGuards();
+        $this->withToken($t)->getJson('/api/me')->assertJsonPath('user.courier_limits.weigh', false);
+
+        // Tidak boleh membuat transaksi di lokasi.
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-L1', 'data' => $this->order('GY-L1', [$this->baju(3)], 'jemput')]])
+            ->assertJsonPath('results.0.status', 'rejected')->assertJsonPath('results.0.message', 'Kurir ini tidak diizinkan membuat transaksi di lokasi.');
+        // Tidak boleh menimbang penjemputan; tetap boleh menandai sudah dijemput (kasir menimbang di outlet).
+        $pickup = $this->order('GY-L2', [], 'jemput', ['courier181' => 'kur-1']); $rev = $this->create('GY-L2', $pickup);
+        $weighed = $pickup; $weighed['detail']['items'] = [$this->baju(2)]; $weighed['card']['dataset']['items'] = json_encode([$this->baju(2)]); $weighed['card']['total'] = 14000;
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-L2', 'data' => $weighed, 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'conflict')->assertJsonPath('results.0.message', 'Kurir ini tidak diizinkan menimbang. Timbangan diisi kasir di outlet.');
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-L2', 'data' => $this->withStatus($pickup, 'antrian', 'Kurir'), 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'applied');
+        // Tidak boleh menerima pembayaran.
+        $order = $this->order('GY-L3', [$this->baju()], 'diantar', ['courier181' => 'kur-1', 'antar' => '1']); $rev = $this->create('GY-L3', $order);
+        $paid = $order; $paid['detail']['paid'] = 14000; $paid['card']['dataset']['paid177'] = '14000';
+        $paid['card']['dataset']['payments178'] = json_encode([['m' => 'Tunai', 'a' => 14000, 'at' => now()->toIso8601String()]]);
+        $this->push($t, [['collection' => 'orders', 'key' => 'GY-L3', 'data' => $paid, 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'conflict')->assertJsonPath('results.0.message', 'Kurir ini tidak diizinkan menerima pembayaran.');
+        $this->assertDatabaseCount('courier_ledger', 0);
+    }
+
     public function test_kurir_delivery_fee_must_match_the_outlet_tariff(): void {
         $t = $this->token($this->staff('kurir', 0, 'kur-1'));
         $make = fn (string $id, int $fee) => $this->order($id, [$this->baju(3)], 'jemput', [], ['ongkir' => $fee]) ;

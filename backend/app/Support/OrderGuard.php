@@ -130,6 +130,7 @@ final class OrderGuard {
 
         // Menimbang di lokasi: selama masih Penjemputan, kurir boleh mengisi berat/jumlah dengan harga dari daftar harga.
         if ($from === 'jemput' && $this->itemsChanged($old, $new)) {
+            if (!$user->courierCan('weigh')) return $this->revert($old, $new, 'Kurir ini tidak diizinkan menimbang. Timbangan diisi kasir di outlet.');
             $items = OrderData::items($new);
             if ($problem = $this->priceProblem($items, (string) ($old['detail']['dur'] ?? ''))) return $this->revert($old, $new, $problem);
             $merged['detail']['items'] = $items;
@@ -141,6 +142,7 @@ final class OrderGuard {
         // Pembayaran di lokasi: hanya boleh bertambah, tidak melebihi total, riwayat lama tidak diubah.
         $paidOld = OrderData::paid($old); $paidNew = OrderData::paid($new);
         if ($paidNew !== $paidOld) {
+            if (!$user->courierCan('pay')) return $this->revert($old, $new, 'Kurir ini tidak diizinkan menerima pembayaran.');
             $total = OrderData::total($merged);
             $before = OrderData::payments($old); $after = OrderData::payments($new);
             if ($paidNew < $paidOld || $paidNew > $total || array_slice($after, 0, count($before)) !== $before) {
@@ -154,7 +156,9 @@ final class OrderGuard {
 
     /** Transaksi baru yang dibuat kurir saat menjemput. */
     private function courierCreates(User $user, int $outletId, string $key, array $new): array|string {
+        if (!$user->courierCan('create')) return 'Kurir ini tidak diizinkan membuat transaksi di lokasi.';
         if (!in_array(OrderData::status($new), ['jemput', 'antrian'], true)) return 'Transaksi kurir harus dimulai dari penjemputan.';
+        if (OrderData::paid($new) > 0 && !$user->courierCan('pay')) return 'Kurir ini tidak diizinkan menerima pembayaran.';
         if (OrderData::discKey($new) !== '0') return 'Kurir tidak bisa memberi diskon.';
         $items = OrderData::items($new);
         if (!$items) return 'Isi layanan dan berat atau jumlahnya.';

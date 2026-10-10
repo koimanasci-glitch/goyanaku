@@ -30,6 +30,10 @@ final class Team {
             'email' => ['nullable', 'email', 'max:254', Rule::unique('users', 'email')->ignore($member?->id)],
             'password' => ['nullable', Password::min(12)->letters()->numbers()],
             'courier_key' => ['nullable', 'string', 'max:160'],
+            'courier_limits' => ['nullable', 'array'],
+            'courier_limits.weigh' => ['sometimes', 'boolean'],
+            'courier_limits.create' => ['sometimes', 'boolean'],
+            'courier_limits.pay' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -48,6 +52,7 @@ final class Team {
             $user->business_id = $business->id; $user->role = $data['role']; $user->outlet_id = (int) $data['outlet_id'];
             if (!empty($data['password'])) $user->password = $data['password'];
             if (!empty($data['pin'])) $user->pin = $data['pin'];
+            if (isset($data['courier_limits'])) $user->courier_limits = self::limits($data['courier_limits']);
             $user->email_verified_at = now(); // dibuat oleh owner yang sudah terverifikasi
             $user->save();
             self::syncCourier($owner, $user, $data['courier_key'] ?? null);
@@ -65,6 +70,7 @@ final class Team {
             if (array_key_exists('phone', $data)) $member->phone = self::phone($data['phone'], $member);
             if (array_key_exists('role', $data)) $member->role = $data['role'];
             if (array_key_exists('outlet_id', $data)) $member->outlet_id = (int) $data['outlet_id'];
+            if (array_key_exists('courier_limits', $data)) $member->courier_limits = self::limits((array) $data['courier_limits']);
             $member->save();
             // Hak di token mengikuti peran, jadi ganti peran mengeluarkan sesi lama. Pindah outlet saja tidak:
             // outlet dibaca dari akun pada setiap permintaan, sehingga langsung berlaku tanpa login ulang.
@@ -163,10 +169,17 @@ final class Team {
         SyncStore::put($business, 'couriers', $member->courier_key, $data, $owner);
     }
 
+    /** Simpan hanya kunci yang dikenal, sebagai boolean. */
+    private static function limits(array $raw): array {
+        $out = [];
+        foreach (User::COURIER_LIMITS as $k) if (array_key_exists($k, $raw)) $out[$k] = (bool) $raw[$k];
+        return $out;
+    }
+
     public static function present(User $member): array {
         return ['id' => $member->id, 'name' => $member->name, 'role' => $member->role, 'role_label' => $member->roleLabel(),
             'outlet_id' => $member->outlet_id, 'phone' => $member->phone, 'email' => $member->email, 'has_pin' => $member->pin !== null,
-            'active' => $member->isActive(), 'courier_key' => $member->courier_key,
+            'active' => $member->isActive(), 'courier_key' => $member->courier_key, 'courier_limits' => $member->courierLimits(),
             'pin_locked' => $member->pin_locked_until !== null && $member->pin_locked_until->isFuture()];
     }
 

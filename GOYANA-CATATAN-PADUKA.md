@@ -187,3 +187,11 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 
 - Di Pengaturan → Pegawai ada **Management Kurir** dan **Pengaturan Kurir** yang membuka halaman yang sama (tab Pengaturan Kurir ada di halaman Kurir). Menu **Pengaturan Kurir** terpisah dihapus; yang tersisa satu menu **Kurir** (Tugas antar-jemput, akun & PIN kurir).
 - Menu tetap terpisah: **Pegawai**, **Kasir**, **Kurir** — masing-masing dengan hak aksesnya.
+
+## Hak akses kurir per orang (10 Oktober 2026)
+- Keputusan Paduka: menu Pegawai / Kasir / Kurir tetap terpisah, masing-masing dengan hak aksesnya. Menu "Pengaturan Kurir" yang dobel dihapus, tinggal satu: Pengaturan › Kurir.
+- Pengaturan › Kurir › Edit punya 3 sakelar (bawaan semua nyala): Boleh menimbang di lokasi, Boleh buat transaksi di lokasi, Boleh terima pembayaran.
+- Server menegakkan semuanya (kolom users.courier_limits; OrderGuard menolak bila dilanggar).
+- Alur bila timbang dimatikan: kurir cukup ketuk "Sudah Dijemput" → pesanan masuk Antrian tanpa layanan → kasir menekan lanjut di Antrian → terbuka Buat Pesanan untuk menimbang di outlet.
+- Bila terima pembayaran dimatikan: tombol Bayar disembunyikan di HP kurir; pelanggan membayar di outlet.
+- Bila transaksi di lokasi dimatikan: tombol "+ Transaksi di Lokasi" disembunyikan.

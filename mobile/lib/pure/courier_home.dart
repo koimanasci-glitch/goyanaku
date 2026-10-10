@@ -31,6 +31,12 @@ class CourierHomePage extends PurePage {
     return n.isEmpty ? 'Kurir' : n;
   }
 
+  /// Hak dari pemilik (Pengaturan › Kurir); bawaan boleh. Server tetap menolak bila dilanggar.
+  bool can(String what) {
+    final m = host.server.user['courier_limits'];
+    return !(m is Map && m[what] == false);
+  }
+
   /// Transaksi yang baru dibuat di HP ini belum diberi nama kurir oleh server, jadi yang kosong ikut dihitung.
   bool _mine(Order o) {
     final c = '${o.dataset['courier181'] ?? ''}';
@@ -84,7 +90,7 @@ class CourierHomePage extends PurePage {
           {'t': 'Navigasi', 'on': false, 'i': 1000 + 10 * k},
           {'t': 'WhatsApp', 'on': false, 'i': 1001 + 10 * k},
           if (open) {'t': 'Buka Nota', 'on': false, 'i': 1004 + 10 * k},
-          if (pay) {'t': 'Bayar', 'on': false, 'i': 1002 + 10 * k},
+          if (pay && can('pay')) {'t': 'Bayar', 'on': false, 'i': 1002 + 10 * k},
           {'t': next, 'on': true, 'i': 1003 + 10 * k},
         ],
       };
@@ -103,7 +109,7 @@ class CourierHomePage extends PurePage {
       },
     ];
     if (tab == 0) {
-      out.add({'type': 'button', 't': '+ Transaksi di Lokasi', 'primary': true, 'file': '', 'after': false, 'i': 3});
+      if (can('create')) out.add({'type': 'button', 't': '+ Transaksi di Lokasi', 'primary': true, 'file': '', 'after': false, 'i': 3});
       if (_requests > 0) out.add(card('Permintaan jemput', '$_requests permintaan menunggu · buka untuk berangkat', '📍', 4));
       if (jemput.isEmpty) out.add({'type': 'hint', 't': 'Tidak ada cucian yang harus dijemput.'});
       for (var k = 0; k < jemput.length; k++) {
@@ -111,9 +117,14 @@ class CourierHomePage extends PurePage {
         out
           ..add({'type': 'title', 't': '📍 ${o.name}'})
           ..add({'type': 'hint', 't': '${pickupWhen(o, host.now)} · ${_address(o)}${o.note.isEmpty || o.note == '-' ? '' : ' · ${o.note}'}'})
-          ..add(_buttons(k, o, o.items.isEmpty ? 'Buat Pesanan' : 'Sudah Dijemput', open: true));
+          ..add(_buttons(k, o, o.items.isEmpty && can('weigh') ? 'Buat Pesanan' : 'Sudah Dijemput', open: true));
       }
-      out.add({'type': 'hint', 't': 'Timbang di lokasi lewat Buka Nota → Edit. Harga mengikuti daftar harga, tanpa diskon. Kasir mengecek timbangan lagi di outlet.'});
+      out.add({
+        'type': 'hint',
+        't': can('weigh')
+            ? 'Timbang di lokasi lewat Buka Nota → Edit. Harga mengikuti daftar harga, tanpa diskon. Kasir mengecek timbangan lagi di outlet.'
+            : 'Cukup jemput cucian lalu ketuk Sudah Dijemput. Timbangan diisi kasir di outlet.',
+      });
     } else if (tab == 1) {
       if (antar.isEmpty) out.add({'type': 'hint', 't': 'Tidak ada cucian yang harus diantar.'});
       for (var k = 0; k < antar.length; k++) {
@@ -123,6 +134,7 @@ class CourierHomePage extends PurePage {
           ..add({'type': 'title', 't': '${going ? '🚚 Sedang diantar' : '📦 Siap diantar'} · ${o.name}'})
           ..add({'type': 'hint', 't': '${o.id} · ${_address(o)} · ${o.remaining > 0 ? 'Tagih ${rp(o.remaining)}' : 'Lunas'}'})
           ..add(_buttons(k, o, going ? 'Sudah Diterima' : 'Mulai Antar', pay: o.remaining > 0));
+        if (o.remaining > 0 && !can('pay')) out.add({'type': 'hint', 't': 'Anda tidak menerima uang. Pelanggan membayar di outlet.'});
       }
     } else {
       final cash = _cash;
@@ -160,7 +172,7 @@ class CourierHomePage extends PurePage {
       if (i == 2) _loadCash();
       return host.refresh();
     }
-    if (i == 3) return host.go('addorder');
+    if (i == 3) return can('create') ? host.go('addorder') : host.toast('Anda tidak diizinkan membuat transaksi di lokasi');
     if (i == 4) return host.go('jemput202');
     if (i == 5) {
       _loadCash();
@@ -181,18 +193,22 @@ class CourierHomePage extends PurePage {
         if (p.isEmpty) return host.toast('Nomor WA belum ada');
         host.device.invokeMethod('App.openUrl', {'url': 'https://wa.me/$p'}).catchError((_) => null);
       case 2:
+        if (!can('pay')) return host.toast('Anda tidak diizinkan menerima pembayaran');
         host.payOrder(o.id);
       case 4:
         host.openOrder(o.id);
       default:
         final st = o.status;
         // Penjemputan tanpa layanan: timbang di lokasi lewat Tambah Transaksi, lalu masuk Antrian.
-        if (st == 'jemput' && o.items.isEmpty) return host.weighOrder(o.id);
+        // Kurir yang tidak boleh menimbang: langsung masuk Antrian, kasir yang menimbang di outlet.
+        if (st == 'jemput' && o.items.isEmpty && can('weigh')) return host.weighOrder(o.id);
         // Serah terima yang belum lunas: tampilkan Pembayaran dulu (bisa "Hutang Dulu" bila usaha mengizinkan).
-        if (o.remaining > 0 && st == 'diantar') return host.advanceOrder(o.id, by: _myName);
+        if (o.remaining > 0 && st == 'diantar' && can('pay')) return host.advanceOrder(o.id, by: _myName);
         host.business.advance(o, now: host.now, by: _myName);
         host.saveAll();
-        host.toast(st == 'jemput' ? 'Sudah dijemput · masuk Antrian outlet' : (st == 'diantar' ? 'Sudah diterima pelanggan · selesai' : 'Pengantaran dimulai'));
+        host.toast(st == 'jemput'
+            ? (o.items.isEmpty ? 'Sudah dijemput · timbangan diisi kasir di outlet' : 'Sudah dijemput · masuk Antrian outlet')
+            : (st == 'diantar' ? 'Sudah diterima pelanggan · selesai' : 'Pengantaran dimulai'));
         host.refresh();
     }
   }

@@ -1381,8 +1381,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   void weighOrder(String id) {
     final o = _b!.orderById(id);
-    if (o == null || o.status != 'jemput') return;
-    if (_noPicker(o)) return toast('Pilih kurir dulu');
+    // Juga cucian yang sudah dijemput kurir tanpa ditimbang (hak timbang dimatikan pemilik): kasir menimbangnya di outlet.
+    final unweighed = !_courierMode && o != null && o.status == 'antrian' && o.items.isEmpty;
+    if (o == null || (o.status != 'jemput' && !unweighed)) return;
+    if (!unweighed && _noPicker(o)) return toast('Pilih kurir dulu');
     final from = _page;
     _startOrder();
     _fillId = id;
@@ -1649,6 +1651,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   /// Penjemputan tanpa layanan/berat tidak boleh langsung masuk Antrian (Rp0): buka Buat Pesanan (Tambah Transaksi) dulu.
   bool _pickupNeedsOrder(Order o) {
+    if (!_courierMode && o.status == 'antrian' && o.items.isEmpty) {
+      setState(() => _detailId = null);
+      weighOrder(o.id);
+      toast('Timbang dulu cucian dari kurir');
+      return true;
+    }
     if (o.status != 'jemput') return false;
     if (_noPicker(o)) {
       toast('Pilih kurir dulu · lewat Antar Jemput (menu titik tiga) atau Tugas Kurir');
@@ -3328,7 +3336,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     }
     final pointsBefore = _points(_aoCustomer);
     final fill = _fillId.isEmpty ? null : b.orderById(_fillId);
-    if (fill != null && fill.status == 'jemput') return _finishFill(fill, method, change: change, dp: dp, dpMethod: dpMethod, pointsBefore: pointsBefore);
+    if (fill != null && (fill.status == 'jemput' || fill.items.isEmpty)) return _finishFill(fill, method, change: change, dp: dp, dpMethod: dpMethod, pointsBefore: pointsBefore);
     _fillId = _fillFrom = '';
     final o = b.createOrder(
       customer: _aoCustomer, phone: cust?.phone ?? '', dur: _aoDur, items: _cartItems,
@@ -3379,7 +3387,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     } else if (!RegExp('Bayar Nanti', caseSensitive: false).hasMatch(method)) {
       b.pay(o, method: method, amount: o.remaining, now: now);
     }
-    b.advance(o, now: now, by: _kasir);
+    if (o.status == 'jemput') b.advance(o, now: now, by: _kasir);
     _save();
     setState(() {
       _aoSheet = null;
