@@ -2218,17 +2218,94 @@ class CashierPage extends TemplatePage {
   // ignore: use_super_parameters
   CashierPage(PureHost host) : super(host, 'cashier', onButton: (p, i) => host.go('tim'));
 
+  /// Hak akses per cabang (10 Okt 2026): '' = setelan umum; selain itu id outlet. Disimpan di setelan usaha bersama
+  /// (tpl.cashier.tgOutlet[outlet]) sehingga berlaku di HP kasir cabang itu. Yang belum diatur ikut setelan umum.
+  String outlet = '';
+
+  @override
+  void opened() {
+    outlet = '';
+  }
+
+  Map<String, dynamic> _perOutlet(String id) {
+    final all = (_state.putIfAbsent('tgOutlet', () => <String, dynamic>{}) as Map).cast<String, dynamic>();
+    return (all.putIfAbsent(id, () => <String, dynamic>{}) as Map).cast<String, dynamic>();
+  }
+
+  @override
+  bool toggleValue(int i) {
+    if (outlet.isNotEmpty) {
+      final v = _perOutlet(outlet)['$i'];
+      if (v is bool) return v;
+    }
+    return super.toggleValue(i);
+  }
+
+  @override
+  void toggle(int i) {
+    if (outlet.isEmpty) return super.toggle(i);
+    _perOutlet(outlet)['$i'] = !toggleValue(i);
+    host.saveAll();
+    host.refresh();
+  }
+
+  @override
+  void button(int i) {
+    final outs = host.business.outlets;
+    if (i == 700) {
+      outlet = '';
+      return host.refresh();
+    }
+    if (i > 700 && i <= 700 + outs.length) {
+      outlet = outs[i - 701].id;
+      return host.refresh();
+    }
+    if (i == 699) {
+      // Salin dari Pusat: setelan outlet pertama (pusat) dipakai untuk cabang yang sedang dipilih.
+      if (outlet.isEmpty || outs.isEmpty) return;
+      final from = outs.first.id, target = outlet;
+      if (from == target) return;
+      final copied = <String, bool>{};
+      outlet = from;
+      for (var n = 0; n < 9; n++) {
+        copied['$n'] = toggleValue(n);
+      }
+      outlet = target;
+      _perOutlet(target).addAll(copied);
+      host.saveAll();
+      host.toast('Hak akses disalin dari ${outs.first.name}');
+      return host.refresh();
+    }
+    super.button(i);
+  }
+
   @override
   List<Map<String, dynamic>> items() {
     final out = super.items();
     final locked = host.settings.raw['pinLock'] == true;
     final k = out.indexWhere((e) => e['type'] == 'toggle');
+    final outs = host.business.outlets;
     out.insert(k < 0 ? out.length : k, {
       'type': 'hint',
-      't': locked
-          ? 'Berlaku untuk siapa pun yang membuka aplikasi dengan PIN pegawai. Pemilik masuk dengan PIN Admin untuk akses penuh.'
-          : 'Izin ini baru berlaku setelah "Kunci aplikasi dengan PIN" dinyalakan di Pegawai & PIN. Tanpa kunci PIN, aplikasi dianggap dipakai pemilik.',
+      't': host.server.loggedIn
+          ? 'Berlaku untuk akun kasir yang masuk ke GOYANA dan untuk PIN pegawai di HP ini. Pemilik dan kepala cabang tetap akses penuh.'
+          : locked
+              ? 'Berlaku untuk siapa pun yang membuka aplikasi dengan PIN pegawai. Pemilik masuk dengan PIN Admin untuk akses penuh.'
+              : 'Izin ini baru berlaku setelah "Kunci aplikasi dengan PIN" dinyalakan di Pegawai & PIN. Tanpa kunci PIN, aplikasi dianggap dipakai pemilik.',
     });
+    if (outs.length > 1) {
+      final at = out.indexWhere((e) => e['type'] == 'hint');
+      final name = outs.where((o) => o.id == outlet).firstOrNull?.name ?? '';
+      out.insertAll(at < 0 ? 0 : at, [
+        {'type': 'title', 't': 'Hak akses per cabang'},
+        {'type': 'buttons', 'options': [
+          {'t': 'Semua Cabang', 'on': outlet.isEmpty, 'i': 700},
+          for (var n = 0; n < outs.length; n++) {'t': outs[n].name, 'on': outlet == outs[n].id, 'i': 701 + n},
+        ]},
+        {'type': 'hint', 't': outlet.isEmpty ? 'Setelan umum: dipakai cabang yang belum diatur sendiri.' : 'Setelan khusus $name. Yang belum diubah mengikuti setelan umum.'},
+        if (outlet.isNotEmpty && outlet != outs.first.id) {'type': 'button', 't': 'Salin dari ${outs.first.name}', 'primary': false, 'file': '', 'after': false, 'i': 699},
+      ]);
+    }
     return out;
   }
 }

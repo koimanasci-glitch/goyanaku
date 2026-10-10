@@ -747,6 +747,48 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Hak akses per cabang: kasir & pegawai diatur per cabang, salin dari Pusat, berlaku di HP cabangnya', (tester) async {
+    final kv = _store();
+    const uji = 'outlet180-5b424413-a465-4529-8c7b-ba442ad71afa';
+    kv.data[Keys.outlets] = jsonEncode([
+      {'id': uji, 'name': 'Uji', 'address': '', 'phone': '', 'logo': ''},
+      {'id': 'srv-9', 'name': 'Bekasi', 'address': '', 'phone': '', 'logo': ''},
+    ]);
+    final s = await _pump(tester, kv);
+    s.nav('cashier');
+    await _settle(tester);
+    expect(s.debugItems().any((e) => e['t'] == 'Hak akses per cabang'), isTrue);
+    // Cabang aktif HP ini (Uji): "Membatalkan Pesanan" dimatikan khusus cabang ini.
+    s.fmButton(701);
+    await _settle(tester);
+    s.fmToggle(3);
+    await _settle(tester);
+    s.debugKasirSession = true;
+    expect(s.kasirCan(3), isFalse);
+    s.fmButton(700);
+    await _settle(tester);
+    expect(s.debugItems().firstWhere((e) => e['type'] == 'toggle' && e['i'] == 3)['on'], isTrue, reason: 'setelan umum tidak berubah');
+    // Bekasi menyalin dari Pusat (outlet pertama = Uji).
+    s.fmButton(702);
+    await _settle(tester);
+    s.fmButton(699);
+    await _settle(tester);
+    expect(s.debugToast, 'Hak akses disalin dari Uji');
+    final tg = ((s.settings.raw['tpl'] as Map)['cashier'] as Map)['tgOutlet'] as Map;
+    expect((tg['srv-9'] as Map)['3'], isFalse);
+
+    // Pegawai: sakelar per cabang tersimpan di setelan bersama yang dibaca server.
+    s.debugKasirSession = false;
+    s.nav('aksespegawai');
+    await _settle(tester);
+    expect([for (final e in s.debugItems()) if (e['type'] == 'toggle') e['on']], [false, false, true]);
+    s.fmButton(702);
+    s.fmToggle(0);
+    await _settle(tester);
+    expect(((((s.settings.raw['tpl'] as Map)['pegawai'] as Map)['tgOutlet'] as Map)['srv-9'] as Map)['0'], isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Zona waktu cabang: dipilih di Edit Outlet dan tersimpan (WIB/WITA/WIT)', (tester) async {
     final kv = _store();
     final s = await _pump(tester, kv);

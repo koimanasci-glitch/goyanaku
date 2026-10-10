@@ -86,6 +86,30 @@ class OrderRulesTest extends TestCase {
         return $order;
     }
 
+    // ---------- Hak akses pegawai per cabang (10 Okt 2026) ----------
+
+    public function test_owner_can_let_pegawai_of_one_branch_see_phone_and_price(): void {
+        $this->create('GY-P', $this->order('GY-P', [$this->baju(3)], 'cuci'), 0);
+        $this->create('GY-Q', $this->order('GY-Q', [$this->baju(1)], 'cuci'), 1);
+        $pusat = $this->token($this->staff('produksi', 0));
+        $orders = fn (string $t) => collect($this->pull($t)->json('records'))->where('collection', 'orders')->keyBy('key');
+        // Bawaan: tanpa nomor HP dan harga.
+        $this->assertArrayNotHasKey('phone', $orders($pusat)['GY-P']['data']['detail']);
+        // Pemilik mengizinkan pegawai Pusat melihat HP & harga; cabang lain tetap tertutup.
+        $shared = json_encode(['tpl' => ['pegawai' => ['tgOutlet' => [$this->outletKey(0) => ['0' => true, '1' => true]]]]]);
+        $this->push($this->token($this->owner), [['collection' => 'settings', 'key' => 'goyana-pure-shared', 'data' => $shared]])->assertJsonPath('results.0.status', 'applied');
+        $p = $orders($pusat)['GY-P']['data'];
+        $this->assertSame(['08123', 21000], [$p['detail']['phone'], $p['card']['total']]);
+        $cabang = $this->token($this->staff('produksi', 1));
+        $this->assertArrayNotHasKey('total', $orders($cabang)['GY-Q']['data']['card']);
+        // Stok: dimatikan untuk semua cabang → pegawai tidak bisa mencatat bahan dipakai.
+        $this->push($this->token($this->owner), [['collection' => 'settings', 'key' => 'goyana-pure-shared', 'base_rev' => (int) DB::table('sync_records')->where('record_key', 'goyana-pure-shared')->value('rev'),
+            'data' => json_encode(['tpl' => ['pegawai' => ['tg' => ['2' => false]]]])]])->assertJsonPath('results.0.status', 'applied');
+        $this->push($cabang, [['collection' => 'stock_ledger', 'key' => 'm1', 'outlet' => $this->outletKey(1),
+            'data' => ['id' => 'm1', 'itemId' => 'det', 'outletId' => $this->outletKey(1), 'type' => 'Pemakaian', 'qty' => -1]]])
+            ->assertJsonPath('results.0.status', 'rejected')->assertJsonPath('results.0.message', 'Pegawai di cabang ini tidak diizinkan mencatat stok.');
+    }
+
     // ---------- Riwayat Transaksi & Koreksi (10 Okt 2026) ----------
 
     public function test_history_shows_changes_after_payment_and_corrections_report_counts_per_cashier(): void {

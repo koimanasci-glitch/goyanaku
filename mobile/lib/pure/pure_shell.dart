@@ -28,6 +28,7 @@ import '../native/wa131_sheet.dart';
 import 'label_page.dart';
 import 'g181_mirror.dart';
 import 'kelola_page.dart';
+import 'staff_rights_page.dart';
 import 'team_page.dart';
 import 'order_history.dart';
 import 'order_view.dart';
@@ -139,7 +140,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 'aksespegawai': StaffRightsPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -156,8 +157,14 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   /// 3 batalkan pesanan, 4 lihat saldo tunai, 5 lihat saldo non-tunai, 6 kurangi kas tunai, 7 kurangi kas non-tunai, 8 mutasi kas.
   @override
   bool kasirCan(int k) {
-    if (!_kasirSession || k < 0 || k >= _kasirDefault.length) return true;
-    final v = (((_settings?.raw['tpl'] as Map?)?['cashier'] as Map?)?['tg'] as Map?)?['$k'];
+    // Berlaku untuk PIN pegawai di HP ini dan akun kasir yang masuk ke server (dulu akun kasir server tidak dibatasi).
+    final kasirAccount = _srv.loggedIn && _srv.role == 'kasir';
+    if ((!_kasirSession && !kasirAccount) || k < 0 || k >= _kasirDefault.length) return true;
+    final cashier = (_settings?.raw['tpl'] as Map?)?['cashier'] as Map?;
+    // Hak akses per cabang: setelan cabang aktif dulu, lalu setelan umum, lalu bawaan.
+    final own = ((cashier?['tgOutlet'] as Map?)?[_b?.activeOutlet ?? ''] as Map?)?['$k'];
+    if (own is bool) return own;
+    final v = (cashier?['tg'] as Map?)?['$k'];
     return v is bool ? v : _kasirDefault[k];
   }
 
@@ -561,7 +568,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         !const {'kurirhome', 'addorder', 'settings', 'jemput202', 'customeradd', 'ralat139', 'printer', 'printerconnect', 'printlabel', 'helpcenter'}.contains(pageId)) {
       return 'Menu ini tidak tersedia untuk akun kurir';
     }
-    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'tim', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
+    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'tim', 'aksespegawai', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
       return 'Hanya pemilik yang bisa membuka menu ini';
     }
     if (const {'reports', 'rp', 'branchmonitor58'}.contains(pageId) && !_srv.can('reports.view')) return 'Laporan hanya untuk pemilik';
@@ -1217,7 +1224,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
     final denied = _srvDenied(pageId);
     if (denied != null) return toast(denied);
-    if (_kasirSession && const {'cashier', 'employees', 'tim', 'pinlock'}.contains(pageId)) return toast('Hanya pemilik · buka aplikasi dengan PIN Admin');
+    if (_kasirSession && const {'cashier', 'employees', 'tim', 'aksespegawai', 'pinlock'}.contains(pageId)) return toast('Hanya pemilik · buka aplikasi dengan PIN Admin');
     if (_page == 'crm') _loadCrmRule();
     if (_page == 'stock') _hppSync();
     setState(() {
@@ -1326,6 +1333,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
             it['s'] = 'Antar-jemput dan setoran tunai kurir';
           }
         }
+        final items = g['items'] as List;
+        if (!items.any((it) => it is Map && it['j'] == 6)) {
+          items.insert((items.indexWhere((it) => it is Map && it['j'] == 1) + 1).clamp(0, items.length),
+              {'j': 6, 'icon': '🔑', 't': 'Hak Akses Pegawai', 'badge': '', 's': 'Yang boleh dilihat & dicatat pegawai per cabang'});
+        }
       }
       // "Stock Opname & Supplier" membuka halaman yang sama dengan "Stok & Bahan" → cukup satu menu.
       if (g['i'] == 9) (g['items'] as List).removeWhere((it) => it is Map && it['j'] == 7);
@@ -1362,7 +1374,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   static const Map<String, String> _stRoutes = {
     '0/0': 'profile', '1/0': 'outlets', '1/1': 'superbilling',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
-    '3/0': 'tim', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers', '3/4': 'kurirsetting',
+    '3/0': 'tim', '3/6': 'aksespegawai', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers', '3/4': 'kurirsetting',
     '4/0': 'customers', '4/1': 'crm',
     '5/0': 'wadevices195', '5/1': 'triggers191', '5/2': 'ai191', '5/3': 'blast191', '5/4': 'automation',
     '9/0': 'qris', '9/1': 'finance', '9/2': 'ralat139', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',

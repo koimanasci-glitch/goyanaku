@@ -53,6 +53,7 @@ class SyncController {
 
     public function pull(Request $request) {
         $user = $this->user($request);
+        \App\Support\StaffRights::forget();
         $data = $request->validate(['cursor' => 'nullable|integer|min:0', 'limit' => 'nullable|integer|min:1|max:1000']);
         $cursor = (int) ($data['cursor'] ?? 0); $limit = (int) ($data['limit'] ?? 500);
         $readable = collect($this->rules())->filter(fn ($r) => $this->allowed($user, $r['read']))->keys()->all();
@@ -101,13 +102,19 @@ class SyncController {
                 return $r;
             })->values();
         }
-        return $records->map(function (array $r) {
+        // Hak akses pegawai per cabang (StaffRights): nomor HP dan nilai pesanan hanya dikirim bila pemilik mengizinkan.
+        $business = $user->business;
+        return $records->map(function (array $r) use ($business) {
             if ($r['collection'] !== 'orders' || $r['deleted'] || !OrderData::isOrder($r['data'])) return $r;
+            $rights = \App\Support\StaffRights::pegawai($business, preg_match('/^srv-(\d+)$/', (string) ($r['outlet'] ?? ''), $m) ? (int) $m[1] : null);
             $d = $r['data'];
-            unset($d['card']['total'], $d['card']['paid'], $d['card']['payment'], $d['detail']['paid'], $d['detail']['phone'], $d['detail']['discKey'], $d['detail']['ongkir']);
-            foreach (['paid177', 'payments178', 'method177', 'disc', 'transport183', 'items'] as $k) unset($d['card']['dataset'][$k]);
-            if (is_array($d['detail']['items'] ?? null)) {
-                $d['detail']['items'] = array_map(function ($i) { if (is_array($i)) unset($i['price']); return $i; }, $d['detail']['items']);
+            if (!$rights['phone']) unset($d['detail']['phone']);
+            if (!$rights['price']) {
+                unset($d['card']['total'], $d['card']['paid'], $d['card']['payment'], $d['detail']['paid'], $d['detail']['discKey'], $d['detail']['ongkir']);
+                foreach (['paid177', 'payments178', 'method177', 'disc', 'transport183', 'items'] as $k) unset($d['card']['dataset'][$k]);
+                if (is_array($d['detail']['items'] ?? null)) {
+                    $d['detail']['items'] = array_map(function ($i) { if (is_array($i)) unset($i['price']); return $i; }, $d['detail']['items']);
+                }
             }
             $r['data'] = $d;
             return $r;
@@ -130,6 +137,7 @@ class SyncController {
         ]);
         $device = $data['device_id'];
         $this->guards = []; // aturan dibaca ulang setiap permintaan
+        \App\Support\StaffRights::forget();
 
         $results = DB::transaction(function () use ($user, $data, $device) {
             $business = Business::whereKey($user->business_id)->lockForUpdate()->firstOrFail();
@@ -201,6 +209,9 @@ class SyncController {
         }
 
         // Stok per cabang: catatan stok tidak bisa diubah staf; kiriman antar cabang diterima oleh cabang tujuan.
+        if ($change['collection'] === 'stock_ledger' && $user->role === 'produksi' && !\App\Support\StaffRights::pegawai($business, $user->outlet_id ? (int) $user->outlet_id : null)['stock']) {
+            return $this->reject('Pegawai di cabang ini tidak diizinkan mencatat stok.');
+        }
         if ($change['collection'] === 'stock_ledger') {
             $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
             $checked = StockGuard::ledger($user, (int) $outletId, $before, $change['data'] ?? null, $deleted);
@@ -248,6 +259,7 @@ class SyncController {
                 'record_key' => $change['key'], 'created_at' => now()]);
         }
         if (in_array($change['collection'], ['services', 'couriers', 'settings', 'crm'], true)) ($this->guards[$business->id] ?? null)?->forget();
+        if ($change['collection'] === 'settings') \App\Support\StaffRights::forget();
         // Profil outlet yang diubah owner di aplikasi (nama, alamat, nomor) ikut memperbarui data cabang di server.
         if ($change['collection'] === 'outlet_profiles' && !$deleted) \App\Support\Outlets::fromProfile($business, (string) $change['key'], $change['data'] ?? null);
         if ($change['collection'] === 'orders') {

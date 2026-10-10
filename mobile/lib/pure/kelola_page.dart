@@ -15,7 +15,8 @@ class KelolaUsahaPage extends PurePage {
     ('Cabang & Tim', [
       ('Outlet & Cabang', 'Profil, zona waktu, tambah cabang', '🏪', 'outlets'),
       ('Tim', 'Kasir, pegawai, kurir & kepala cabang per cabang', '👥', 'tim'),
-      ('Hak Akses Kasir', 'Fitur yang boleh dipakai kasir', '🔑', 'cashier'),
+      ('Hak Akses Kasir', 'Fitur yang boleh dipakai kasir, per cabang', '🔑', 'cashier'),
+      ('Hak Akses Pegawai', 'Yang boleh dilihat & dicatat pegawai, per cabang', '🔐', 'aksespegawai'),
       ('Tugas Kurir', 'Antar-jemput dan setoran tunai kurir', '🛵', 'couriers'),
     ]),
     ('Monitor & Laporan', [
