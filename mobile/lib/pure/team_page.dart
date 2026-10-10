@@ -39,9 +39,17 @@ class TeamPage extends PurePage {
       ];
   int _used(String outletKey, String role) => _members(outletKey, role).where((m) => m['active'] != false).length;
 
+  /// Dibuka dari halaman cabang: saringan langsung ke cabang itu.
+  static String presetOutlet = '';
+
   @override
   void opened() {
     _fOutlet = _fRole = 0;
+    if (presetOutlet.isNotEmpty) {
+      final k = _outs.indexWhere((o) => o.id == presetOutlet);
+      if (k >= 0) _fOutlet = k + 1;
+      presetOutlet = '';
+    }
     if (_owner) _load();
   }
 

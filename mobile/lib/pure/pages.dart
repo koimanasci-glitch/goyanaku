@@ -22,6 +22,7 @@ import '../native/crm_page.dart';
 import '../native/duration_page.dart';
 import '../native/perfume_page.dart';
 import 'access.dart';
+import 'branch_page.dart';
 import 'delivery.dart';
 import 'discounts.dart';
 import 'g181_mirror.dart';
@@ -1587,7 +1588,11 @@ class OutletsPage extends PurePage {
       for (var k = 0; k < list.length; k++)
         {
           'type': 'entry', 't': list[k].name, 'lines': [list[k].address, 'WA ${list[k].phone}'], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '',
-          'btns': [{'t': 'Monitoring', 'on': false, 'i': 2 + 2 * k}, {'t': 'Edit', 'on': false, 'i': 3 + 2 * k}],
+          'btns': [
+            {'t': 'Monitoring', 'on': false, 'i': 2 + 2 * k}, {'t': 'Edit', 'on': false, 'i': 3 + 2 * k},
+            // Halaman cabang (Tahap 2): pemilik yang masuk ke akun GOYANA.
+            if (host.server.isOwner) {'t': 'Kelola', 'on': true, 'i': 5000 + k},
+          ],
         },
     ];
   }
@@ -1598,6 +1603,11 @@ class OutletsPage extends PurePage {
     if (i == 1) {
       OutletEditPage.editId = null;
       return host.go('outletedit');
+    }
+    if (i >= 5000) {
+      if (i - 5000 >= list.length) return;
+      BranchPage.outletId = list[i - 5000].id;
+      return host.go('cabang');
     }
     final k = (i - 2) ~/ 2;
     if (k < 0 || k >= list.length) return;
@@ -1750,10 +1760,12 @@ class OutletEditPage extends PurePage {
       return host.toast('Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');
     }
     if (editId == null && b.outlets.length >= planAccess.outletLimit(host.now)) return host.toast(planAccess.outletLimitText(host.now));
+    final isNew = editId == null;
     final id = await b.upsertOutlet(id: editId, name: name, address: address, phone: phone, logo: _logo, tz: zones[_tz]);
     if (id == null) return host.toast('Penyimpanan perangkat penuh');
     editId = id;
-    host.toast('Outlet tersimpan');
+    // Cabang baru milik pemilik: lanjutkan lewat Kelola (daftar cek "Siap buka": kasir, HP kasir, hak akses).
+    host.toast(isNew && host.server.isOwner ? 'Outlet tersimpan · ketuk Kelola untuk melengkapi cabang' : 'Outlet tersimpan');
     host.go('outlets');
     // Akun owner yang sudah masuk ke server: cabang baru didaftarkan ke server pada sinkronisasi berikutnya.
     if (host.server.isOwner) await host.saveAll();
@@ -2221,10 +2233,13 @@ class CashierPage extends TemplatePage {
   /// Hak akses per cabang (10 Okt 2026): '' = setelan umum; selain itu id outlet. Disimpan di setelan usaha bersama
   /// (tpl.cashier.tgOutlet[outlet]) sehingga berlaku di HP kasir cabang itu. Yang belum diatur ikut setelan umum.
   String outlet = '';
+  /// Dibuka dari halaman cabang: langsung setelan cabang itu.
+  static String presetOutlet = '';
 
   @override
   void opened() {
-    outlet = '';
+    outlet = presetOutlet;
+    presetOutlet = '';
   }
 
   Map<String, dynamic> _perOutlet(String id) {

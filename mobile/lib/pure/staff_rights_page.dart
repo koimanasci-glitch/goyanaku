@@ -19,8 +19,14 @@ class StaffRightsPage extends PurePage {
   @override
   String get title => 'HAK AKSES PEGAWAI';
 
+  /// Dibuka dari halaman cabang: langsung setelan cabang itu.
+  static String presetOutlet = '';
+
   @override
-  void opened() => outlet = '';
+  void opened() {
+    outlet = presetOutlet;
+    presetOutlet = '';
+  }
 
   Map<String, dynamic> get _cfg {
     final tpl = host.settings.raw.putIfAbsent('tpl', () => <String, dynamic>{}) as Map;

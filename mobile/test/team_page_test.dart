@@ -7,6 +7,7 @@ import 'package:goyana_flutter/core/settings.dart';
 import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/pure/pages.dart';
 import 'package:goyana_flutter/pure/server_sync.dart';
+import 'package:goyana_flutter/pure/branch_page.dart';
 import 'package:goyana_flutter/pure/team_page.dart';
 
 class _Server {
@@ -41,8 +42,28 @@ class _Server {
       team.add({...d, 'id': 10 + team.length, 'active': true});
       return _json(201, {'member': d});
     }
+    if (path == '/api/devices') {
+      return _json(200, {
+        'limit_per_outlet': 2,
+        'cashier': [
+          for (final d in devices) d,
+        ],
+        'shared': <dynamic>[],
+      });
+    }
+    if (path.startsWith('/api/devices/cashier/') && method == 'DELETE') {
+      devices.removeWhere((d) => '${d['id']}' == path.split('/').last);
+      return const ServerReply(204, '');
+    }
+    if (path == '/api/outlets') {
+      return _json(200, {'outlets': [{'id': 5, 'name': 'Pusat', 'active': true}, {'id': 6, 'name': 'Bekasi', 'active': true}]});
+    }
     return const ServerReply(204, '');
   }
+
+  final devices = <Map<String, dynamic>>[
+    {'id': 31, 'outlet_id': 5, 'label': 'HP Kasir 1', 'slot': 1, 'paired': true, 'last_seen_at': null},
+  ];
 }
 
 class _Host implements PureHost {
@@ -124,5 +145,42 @@ void main() {
     expect(server.posted.single, containsPair('outlet_id', 6));
     expect(host.toasts.last, 'Pegawai ditambahkan');
     expect(host.sheets, isEmpty);
+  });
+
+  test('halaman cabang: daftar cek siap buka, tim, HP kasir dan cabut HP', () async {
+    final server = _Server();
+    final kv = MemoryKvStore({
+      Keys.business: jsonEncode({'orders': <dynamic>[], 'details': <String, dynamic>{}, 'customers': <dynamic>[]}),
+      Keys.outlets: jsonEncode([{'id': 'out-1', 'name': 'Pusat', 'address': 'Jl. A', 'phone': '0811', 'tz': 'WIB'}]),
+      Keys.activeOutlet: jsonEncode('out-1'),
+    });
+    final sync = ServerSync(kv, send: server.send);
+    await sync.load();
+    expect(await sync.setUrl('https://app.goyana.test/'), isNull);
+    await sync.login('owner@laundry.test', 'PasswordAman123');
+    final host = _Host(kv, await Business.load(kv), await AppSettings.load(kv), sync);
+    BranchPage.outletId = 'srv-6';
+    final page = BranchPage(host)..opened();
+    await _settle();
+    var items = page.items();
+    final titles = [for (final it in items) '${it['t']}'];
+    expect(titles, contains('Siap buka'));
+    expect(titles.where((t) => t.startsWith('⬜')), containsAll(['⬜ Zona waktu', '⬜ Kasir cabang', '⬜ HP kasir', '⬜ Daftar harga']));
+    expect(items.any((e) => e['t'] == 'Kasir 0 · Pegawai 0 · Kurir 1 · Kepala Cabang 0'), isTrue);
+
+    // Pusat: 2 kasir, 1 HP terhubung; cabut HP.
+    BranchPage.outletId = 'srv-5';
+    page.opened();
+    await _settle();
+    items = page.items();
+    expect(items.any((e) => e['t'] == '✅ Kasir cabang'), isTrue);
+    expect(items.any((e) => e['t'] == '✅ HP kasir'), isTrue);
+    expect(items.any((e) => e['t'] == '1 dari 2 slot HP kasir terpakai.'), isTrue);
+    page.button(100);
+    await _settle();
+    expect(host.toasts.last, 'HP dicabut · slot bisa dipakai HP lain');
+    expect(server.devices, isEmpty);
+    // Kelola tim cabang ini: Tim terbuka dengan saringan cabang tersebut.
+    expect(TeamPage.presetOutlet, '');
   });
 }

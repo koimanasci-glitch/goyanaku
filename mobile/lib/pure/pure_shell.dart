@@ -27,6 +27,7 @@ import '../native/popup_components.dart';
 import '../native/wa131_sheet.dart';
 import 'label_page.dart';
 import 'g181_mirror.dart';
+import 'branch_page.dart';
 import 'kelola_page.dart';
 import 'staff_rights_page.dart';
 import 'team_page.dart';
@@ -140,7 +141,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 'aksespegawai': StaffRightsPage(this), 
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 'cabang': BranchPage(this), 'aksespegawai': StaffRightsPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -568,7 +569,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         !const {'kurirhome', 'addorder', 'settings', 'jemput202', 'customeradd', 'ralat139', 'printer', 'printerconnect', 'printlabel', 'helpcenter'}.contains(pageId)) {
       return 'Menu ini tidak tersedia untuk akun kurir';
     }
-    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'tim', 'aksespegawai', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
+    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'tim', 'aksespegawai', 'cabang', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
       return 'Hanya pemilik yang bisa membuka menu ini';
     }
     if (const {'reports', 'rp', 'branchmonitor58'}.contains(pageId) && !_srv.can('reports.view')) return 'Laporan hanya untuk pemilik';
