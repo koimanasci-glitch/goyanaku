@@ -195,3 +195,8 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Alur bila timbang dimatikan: kurir cukup ketuk "Sudah Dijemput" → pesanan masuk Antrian tanpa layanan → kasir menekan lanjut di Antrian → terbuka Buat Pesanan untuk menimbang di outlet.
 - Bila terima pembayaran dimatikan: tombol Bayar disembunyikan di HP kurir; pelanggan membayar di outlet.
 - Bila transaksi di lokasi dimatikan: tombol "+ Transaksi di Lokasi" disembunyikan.
+
+## 10 Oktober 2026, 12.02 WIB — cabang, staf, stok
+- Keputusan Paduka: **stok bahan per cabang** (masing-masing cabang punya stok sendiri). Sekarang di server stok masih satu untuk semua cabang → perlu diubah (belum dikerjakan).
+- Pembukuan kasir masuk ke outlet cabangnya (sudah jalan: akun staf terkunci ke outlet tugasnya, server memaksa outlet_id).
+- Usulan menunggu keputusan: staf dikelompokkan per cabang di halaman Outlet; "+ Tambah Kasir/Pegawai/Kurir" langsung dengan tugas & cabang terisi.
