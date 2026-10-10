@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import '../whatsapp/device_store.dart';
+import 'access.dart';
 import 'pages.dart';
 import 'wa_link.dart';
 
@@ -96,6 +97,8 @@ class WaDevicesPage extends PurePage {
     if (wa.staffOnly) return;
     final st = wa.store;
     if (i == 0) {
+      // Server juga menolak (whatsapp.connection_packages): Basic & trial Basic belum bisa menghubungkan nomor.
+      if (!planAccess.has('wa', host.now)) return host.toast(planAccess.lockedText('wa'));
       if (st.outlets.isEmpty) return host.toast('Tambahkan pusat atau cabang di Pengaturan Outlet terlebih dahulu.');
       _editId = null;
       _name = '';

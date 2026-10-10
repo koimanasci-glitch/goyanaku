@@ -237,7 +237,7 @@ class PlanPricing extends StatelessWidget {
     ['Tambah Cabang', 'Rp 30.000/bulan', 'Rp 30.000', '/ bulan per cabang', 'Menambah satu outlet/cabang di luar kuota paket Anda.',
       'Rp 30.000 per bulan untuk tiap cabang tambahan', 'Bisa ditambah di paket apa pun', 'Data, kasir dan laporan tiap cabang terpisah'],
     ['Nomor Chatbot', 'Rp 30.000/bulan', 'Rp 30.000', '/ bulan per nomor', 'Menambah satu nomor WhatsApp untuk Chatbot & kirim nota otomatis.',
-      'Rp 30.000 per bulan untuk tiap nomor tambahan', 'Untuk semua paket, termasuk FREE', 'Satu nomor bisa dipakai satu outlet'],
+      'Rp 30.000 per bulan untuk tiap nomor tambahan', 'Mulai paket Silver (Basic & Free belum bisa menghubungkan WhatsApp)', 'Satu nomor bisa dipakai satu outlet'],
   ];
 
   void _addonDetail(BuildContext context, String svg, Color a, Color b, int i) {

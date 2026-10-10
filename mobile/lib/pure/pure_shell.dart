@@ -1299,7 +1299,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (r == null) return toast('Halaman ini sedang dipindahkan');
     // Kunci paket khusus menu WhatsApp/Chatbot (sama dengan HTML): grup Chatbot butuh paket AI, lainnya sesuai fiturnya.
     if (key == '5/4' && !planAccess.has('ai', now)) return _lockSheet('Otomasi Pelanggan');
-    final need = const {'5/1': 'quick', '5/2': 'ai', '5/3': 'blast'}[key];
+    final need = const {'5/0': 'wa', '5/1': 'quick', '5/2': 'ai', '5/3': 'blast'}[key];
     if (need != null && !planAccess.has(need, now)) return toast(planAccess.lockedText(need));
     if (r == 'sheet:deposits178') return _openDeposits();
     if (r == 'sheet:perm178') {

@@ -687,7 +687,7 @@ class StockPage extends PurePage {
     final transfers = _l('transfers').where((t) => t['from'] == o || t['to'] == o).toList().reversed;
     return [
       {'type': 'stats', 'cells': [
-        {'v': '${its.length}', 't': 'Jenis bahan', 'n': '', 'tone': '', 'i': 7},
+        {'v': '${its.length}', 't': 'Jenis bahan', 'n': '', 'tone': ''},
         {'v': '$low', 't': 'Stok menipis', 'n': low > 0 ? 'ketuk untuk lihat' : '', 'tone': low > 0 ? 'r' : '', 'i': 21},
         {'v': rp(value), 't': 'Nilai stok', 'n': '', 'tone': ''},
       ]},
@@ -3056,6 +3056,8 @@ class AuditPage extends PurePage {
   AuditPage(super.host);
   String _q = '';
   int _chip = 0;
+  /// Filter "Dari tanggal" (null = semua riwayat).
+  DateTime? _from;
   static const _chips = ['Semua', 'Transaksi', 'Kas', 'Login'];
   static final _re = [null, RegExp('transaksi|pesanan|harga', caseSensitive: false), RegExp('kas|pengeluaran', caseSensitive: false), RegExp('login', caseSensitive: false)];
   @override
@@ -3065,14 +3067,16 @@ class AuditPage extends PurePage {
   void opened() {
     _q = '';
     _chip = 0;
+    _from = null;
   }
 
   @override
   List<Map<String, dynamic>> items() {
-    final n = host.now;
+    final n = host.now, from = _from;
     final rows = <Map<String, dynamic>>[];
     for (final e in (host.settings.raw['audit'] as List? ?? const []).whereType<Map>()) {
-      final at = DateTime.tryParse('${e['at']}');
+      final at = DateTime.tryParse('${e['at']}')?.toLocal();
+      if (from != null && (at == null || at.isBefore(from))) continue;
       final today = at != null && at.year == n.year && at.month == n.month && at.day == n.day;
       final sub = today || at == null ? '${e['s']}' : '${at.day.toString().padLeft(2, '0')}/${at.month.toString().padLeft(2, '0')} · ${e['s']}';
       final text = '${e['ic']}${e['t']}$sub';
@@ -3085,7 +3089,8 @@ class AuditPage extends PurePage {
       {'type': 'input', 'v': _q, 'ph': 'Cari pegawai / Order ID...', 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 0},
       {'type': 'button', 't': '≡', 'primary': false, 'file': '', 'after': false, 'i': 0},
       {'type': 'buttons', 'options': [for (var k = 0; k < _chips.length; k++) {'t': _chips[k], 'svg': '', 'file': '', 'after': false, 'on': k == _chip, 'i': 1 + k}]},
-      {'type': 'title', 't': 'HARI INI'},
+      {'type': 'title', 't': from == null ? 'HARI INI' : 'SEJAK ${from.day.toString().padLeft(2, '0')}/${from.month.toString().padLeft(2, '0')}/${from.year}'},
+      if (from != null && rows.isEmpty) {'type': 'hint', 't': 'Tidak ada aktivitas sejak tanggal ini.'},
       ...rows,
       {'type': 'hint', 't': 'Riwayat audit tidak dapat diedit oleh kasir. Owner dapat melakukan filter dan export untuk pemeriksaan.'},
     ];
@@ -3113,7 +3118,14 @@ class AuditPage extends PurePage {
       ],
       'Terapkan',
       (v) {
-        if (v[1].isNotEmpty) _q = v[1];
+        final t = v[0].trim();
+        final d0 = t.isEmpty ? null : DateTime.tryParse(t);
+        if (t.isNotEmpty && d0 == null) {
+          host.toast('Tanggal tidak valid. Contoh: 2026-10-01');
+          return false;
+        }
+        _from = d0 == null ? null : DateTime(d0.year, d0.month, d0.day);
+        _q = v[1].trim();
         host.toast('Filter audit diterapkan');
         host.refresh();
         return null;

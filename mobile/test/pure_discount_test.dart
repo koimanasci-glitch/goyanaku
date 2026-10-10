@@ -415,7 +415,7 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kunci paket seperti HTML: trial Basic membuka Pegawai, menolak Stok/CRM/Ekspor; Mode Uji membukanya', (tester) async {
+  testWidgets('Kunci paket seperti HTML: trial Basic membuka Pegawai, membuka Stok, menolak WhatsApp/CRM/Ekspor; Mode Uji membukanya', (tester) async {
     expect(sha256Hex(utf8.encode('abc')), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
     final kv = _store();
     final s = await _pump(tester, kv);
@@ -426,8 +426,16 @@ void templateTests() {
     s.nav('employees');
     await _settle(tester);
     expect(s.debugToast, isNot('Pegawai membutuhkan paket Silver'));
+    // Keputusan 10 Okt 2026: stok, opname, transfer terbuka di semua paket; Hubungkan WhatsApp mulai Silver.
     s.nav('stock');
-    expect(s.debugToast, 'Stok bahan membutuhkan paket Silver');
+    await _settle(tester);
+    expect(s.debugState().split('|').first, 'stock');
+    expect(planAccess.has('transfer', s.now), isTrue);
+    expect(planAccess.has('wa', s.now), isFalse);
+    s.nav('settings');
+    await _settle(tester);
+    s.stItem(5, 0);
+    expect(s.debugToast, 'Hubungkan WhatsApp membutuhkan paket Silver');
     s.nav('crm');
     expect(s.debugToast, 'Loyalitas pelanggan membutuhkan paket Gold');
     s.nav('datacenter');
@@ -443,6 +451,7 @@ void templateTests() {
     expect(find.text('Password salah.'), findsOneWidget);
     expect(planAccess.testPlan, isNull);
     planAccess.testPlan = 'SILVER';
+    expect(planAccess.has('wa', s.now), isTrue);
     s.nav('employees');
     await _settle(tester);
     expect(s.debugToast, isNot('Pegawai membutuhkan paket Silver'));
@@ -517,6 +526,23 @@ void templateTests() {
     final got = s.debugItems();
     got[1]['v'] = '';
     expect(jsonEncode(got), jsonEncode(fx[4]).replaceFirst('"v":"rani"', '"v":""'), reason: 'cari');
+    // Filter "Dari tanggal" benar-benar menyaring (dulu hanya nama pegawai yang dipakai).
+    s.fmInput(0, '');
+    s.fmButton(0);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 0, '2026-10-04');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    var list = s.debugItems();
+    expect(list.where((e) => e['type'] == 'entry'), isEmpty);
+    expect(list.any((e) => e['t'] == 'SEJAK 04/10/2026'), isTrue);
+    s.fmButton(0);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 0, '2026-10-03');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    list = s.debugItems();
+    expect(list.where((e) => e['type'] == 'entry').length, 2);
     expect(tester.takeException(), isNull);
   });
 

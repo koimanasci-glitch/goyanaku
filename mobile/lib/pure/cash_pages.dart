@@ -143,7 +143,10 @@ class CashClosePage extends PurePage {
 
   ({int n, int a}) get _unpaid {
     var n = 0, a = 0;
+    // Hanya pesanan outlet yang sedang ditutup omsetnya (HP bisa menyimpan pesanan beberapa outlet).
+    final at = host.business.activeOutlet;
     for (final o in host.business.orders) {
+      if (at.isNotEmpty && o.outlet.isNotEmpty && o.outlet != at) continue;
       if (!o.isCancelled && o.paid <= 0 && o.total > 0) {
         n++;
         a += o.total;

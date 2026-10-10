@@ -398,7 +398,7 @@ class WaHubPage extends TemplatePage {
       return host.refresh();
     }
     const go = ['triggers191', 'ai191', 'blast191', 'wadevices195', 'quickreply'];
-    const need = ['quick', 'ai', 'blast', '', 'quick'];
+    const need = ['quick', 'ai', 'blast', 'wa', 'quick'];
     if (i < 0 || i >= go.length) return;
     if (need[i].isNotEmpty && !_gate(host, need[i])) return;
     host.go(go[i]);

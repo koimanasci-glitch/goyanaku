@@ -40,7 +40,8 @@ List<_Hit> _hits(Object? node, [List<_Hit>? out]) {
     final type = '${node['type'] ?? ''}';
     final label = '${node['t'] ?? node['btn'] ?? node['v'] ?? ''}'.replaceAll('\n', ' ');
     // Dilewati: isian, pilihan yang sudah terpilih (menekannya memang tidak mengubah apa pun), dan pemindai kamera.
-    final skip = node['on'] == true && type != 'toggle' || RegExp(r'^(Scan|📷)').hasMatch(label);
+    // ⌫ pada isian PIN yang masih kosong memang tidak mengubah apa pun.
+    final skip = node['on'] == true && type != 'toggle' || RegExp(r'^(Scan|📷|⌫)').hasMatch(label);
     if (!skip && node['i'] is int && !const {'input', 'select', 'date', 'stepper', 'labelprev'}.contains(type) && '${node['file'] ?? ''}'.isEmpty) {
       out.add(_Hit(type == 'toggle' ? 'toggle' : (type == 'radio' ? 'radio' : 'button'), node['i'] as int, label));
     }
@@ -181,6 +182,12 @@ void main() {
         if (!seen.add('${h.kind}${h.i}')) continue;
         final where = '$page · ${h.kind == 'button' ? '' : '${h.kind} '}#${h.i} "${h.label}"';
         final s = await fresh(page);
+        // Popup yang terbuka sendiri saat halaman dibuka (mis. jenis kelamin di Tambah Pelanggan) ditutup dulu,
+        // seperti pengguna yang menutupnya sebelum menekan tombol di halaman.
+        for (final id in s.debugSheetIds().toList()) {
+          s.closePageSheet(id);
+        }
+        await settle();
         final sheetsBefore = s.debugSheetIds().toSet();
         void tap(PureShellState x) {
           switch (h.kind) {

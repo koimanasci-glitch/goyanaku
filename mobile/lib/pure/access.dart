@@ -14,10 +14,11 @@ const planCatalog = [
   ['PLATINUM', 4, 5],
 ];
 
-const _need = {'export': 2, 'opname': 2, 'quick': 2, 'ai': 3, 'messages': 3, 'blast': 4, 'stock': 2, 'crm': 3, 'transfer': 4, 'employees': 1};
+// Keputusan Paduka 10 Okt: stok, opname, transfer semua paket; Hubungkan WhatsApp mulai Silver.
+const _need = {'export': 2, 'opname': 1, 'quick': 2, 'ai': 3, 'messages': 3, 'blast': 4, 'stock': 1, 'crm': 3, 'transfer': 1, 'employees': 1, 'wa': 2};
 const _labels = {
   'export': 'Ekspor Data', 'opname': 'Stok Opname', 'quick': 'Balasan Cepat', 'ai': 'Chatbot AI', 'messages': 'Pesan otomatis',
-  'blast': 'WhatsApp Blast', 'stock': 'Stok bahan', 'crm': 'Loyalitas pelanggan', 'transfer': 'Transfer stok', 'employees': 'Pegawai',
+  'blast': 'WhatsApp Blast', 'stock': 'Stok bahan', 'crm': 'Loyalitas pelanggan', 'transfer': 'Transfer stok', 'employees': 'Pegawai', 'wa': 'Hubungkan WhatsApp',
 };
 
 /// Halaman Mode Murni yang dikunci paket (sama dengan `gates` di HTML).
@@ -59,7 +60,7 @@ class PlanAccess {
 
   /// Pesan saat fitur terkunci, sama dengan HTML.
   String lockedText(String feature) =>
-      '${_labels[feature] ?? 'Fitur'} membutuhkan paket ${const ['ai', 'messages', 'crm'].contains(feature) ? 'Gold' : (const ['blast', 'transfer'].contains(feature) ? 'Platinum' : 'Silver')}';
+      '${_labels[feature] ?? 'Fitur'} membutuhkan paket ${const ['ai', 'messages', 'crm'].contains(feature) ? 'Gold' : (feature == 'blast' ? 'Platinum' : (_need[feature] == 1 ? 'Basic' : 'Silver'))}';
 
   /// 1 pusat + cabang sesuai paket.
   int outletLimit(DateTime now) {
