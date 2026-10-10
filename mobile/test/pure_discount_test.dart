@@ -731,6 +731,54 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Stok per cabang: cabang tujuan menerima kiriman, selisih wajib dicatat', (tester) async {
+    final kv = _store();
+    const pusat = 'srv-1', bekasi = 'outlet180-5b424413-a465-4529-8c7b-ba442ad71afa';
+    kv.data[Keys.outlets] = jsonEncode([
+      {'id': bekasi, 'name': 'Bekasi', 'address': '', 'phone': '', 'logo': ''},
+      {'id': pusat, 'name': 'Pusat', 'address': '', 'phone': '', 'logo': ''},
+    ]);
+    kv.data['goyana-stock181'] = jsonEncode({
+      'items': [{'id': 'det', 'name': 'Deterjen', 'unit': 'kg', 'min': 1, 'cost': 15000}],
+      'ledger': [
+        {'id': 'm1', 'itemId': 'det', 'outletId': pusat, 'type': 'Stok Awal', 'qty': 20},
+        {'id': 'm2', 'itemId': 'det', 'outletId': pusat, 'type': 'Transfer Keluar', 'qty': -10, 'ref': 'tr-1'},
+      ],
+      'transfers': [{'id': 'tr-1', 'itemId': 'det', 'from': pusat, 'to': bekasi, 'qty': 10, 'status': 'sent', 'sentAt': '2026-10-03T01:00:00Z'}],
+    });
+    final s = await _pump(tester, kv);
+    s.nav('stock');
+    await _settle(tester);
+    Map row() => s.debugItems().firstWhere((e) => '${e['t']}'.startsWith('Deterjen · 10'));
+    expect('${(row()['lines'] as List).first}', contains('Pusat → Bekasi · Dalam perjalanan'));
+    final btn = ((row()['btns'] as List).single as Map);
+    expect(btn['t'], 'Terima Kiriman');
+    s.fmButton(btn['i'] as int);
+    await _settle(tester);
+    final sheet = s.debugSheet('g181-modal')!;
+    expect(sheet.first['t'], 'Terima Kiriman');
+    expect(sheet.any((e) => e['t'] == 'Deterjen · dikirim 10 kg dari Pusat'), isTrue);
+    expect(sheet.firstWhere((e) => e['type'] == 'input')['v'], '10');
+    // Lebih dari yang dikirim ditolak; kurang wajib diberi catatan.
+    s.fmScoped('g181-modal', 'input', 0, '12');
+    s.fmScoped('g181-modal', 'button', 0);
+    expect(s.debugToast, 'Jumlah diterima tidak boleh melebihi yang dikirim');
+    s.fmScoped('g181-modal', 'input', 0, '8');
+    s.fmScoped('g181-modal', 'button', 0);
+    expect(s.debugToast, 'Isi catatan selisih');
+    s.fmScoped('g181-modal', 'input', 1, '2 kg bocor di jalan');
+    s.fmScoped('g181-modal', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'Kiriman diterima · selisih 2');
+    expect('${(row()['lines'] as List).first}', contains('Diterima 8 dari 10 · selisih 2'));
+    final saved = jsonDecode(kv.data['goyana-stock181']!) as Map;
+    final t = (saved['transfers'] as List).single as Map;
+    expect([t['status'], t['receivedQty'], t['receivedNote']], ['received', 8, '2 kg bocor di jalan']);
+    final masuk = (saved['ledger'] as List).cast<Map>().where((x) => x['type'] == 'Transfer Masuk').single;
+    expect([masuk['outletId'], masuk['qty'], masuk['ref']], [bekasi, 8, 'tr-1']);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Voucher kode unik CRM di Atur Pesanan: validasi dan pesan sama dengan HTML', (tester) async {
     final kv = _store();
     kv.data['goyana-crm203'] = jsonEncode({

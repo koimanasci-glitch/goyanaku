@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Business, CashierDevice, Outlet, User};
-use App\Support\{Devices, OrderData, OrderGuard, OrderLedger};
+use App\Support\{Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -62,6 +62,8 @@ class SyncController {
         $next = $rows->isEmpty() ? $cursor : (int) $rows->last()->rev;
         $visible = $rows->filter(function ($r) use ($user, $readable) {
             if (!in_array($r->collection, $readable, true)) return false;
+            // Kiriman bahan antar cabang: staf hanya melihat yang dari/ke cabangnya.
+            if ($r->collection === 'stock_transfers' && !$r->deleted && !StockGuard::visibleTransfer($user, json_decode((string) $r->data, true))) return false;
             return $user->role === 'owner' || $r->outlet_id === null || (int) $r->outlet_id === $user->outlet_id;
         })->map(fn ($r) => $this->present($r))->values();
         $visible = $this->forRole($user, $visible);
@@ -196,6 +198,18 @@ class SyncController {
         if ($change['collection'] === 'crm') {
             $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
             if ($problem = \App\Support\CrmGuard::problem($user, (string) $change['key'], $before, $change['data'] ?? null, $deleted)) return $this->reject($problem);
+        }
+
+        // Stok per cabang: catatan stok tidak bisa diubah staf; kiriman antar cabang diterima oleh cabang tujuan.
+        if ($change['collection'] === 'stock_ledger') {
+            $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+            $checked = StockGuard::ledger($user, (int) $outletId, $before, $change['data'] ?? null, $deleted);
+            if (is_string($checked)) return $this->reject($checked);
+            if (!$deleted) $json = json_encode($checked, JSON_UNESCAPED_UNICODE);
+        }
+        if ($change['collection'] === 'stock_transfers') {
+            $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+            if ($problem = StockGuard::transfer($user, $business, $before, $change['data'] ?? null, $deleted)) return $this->reject($problem);
         }
 
         // Pesanan dan penjemputan: server menegakkan hak tiap peran, bukan menerima kiriman HP apa adanya.

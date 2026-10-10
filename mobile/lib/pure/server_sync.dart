@@ -38,6 +38,7 @@ const _stockParts = {
   'stock_suppliers': 'suppliers',
   'stock_purchases': 'purchases',
   'stock_recipes': 'recipes',
+  'stock_transfers': 'transfers',
 };
 
 /// Setelan usaha yang dikirim sebagai teks apa adanya: tarif antar-jemput, QRIS, parfum, durasi layanan.
@@ -68,6 +69,7 @@ const _writeRules = {
   'stock_suppliers': ['stock.manage'],
   'stock_purchases': ['stock.manage'],
   'stock_recipes': ['stock.manage'],
+  'stock_transfers': ['stock.manage', 'stock.use'],
 };
 
 /// Kunci penyimpanan yang isinya ikut disinkronkan: perubahan padanya memicu sinkronisasi.
@@ -238,7 +240,8 @@ Future<Map<String, LocalRecord>> extractLocal(KvStore kv) async {
   if (stock is Map) {
     for (final part in _stockParts.entries) {
       for (final x in _asList(stock[part.value])) {
-        put(part.key, _idOf(x), null, x);
+        // Stok per cabang: catatan stok dikirim dengan outletnya (server menyimpan saldo per outlet).
+        put(part.key, _idOf(x), part.key == 'stock_ledger' && x is Map ? x['outletId'] : null, x);
       }
     }
   }
@@ -532,12 +535,23 @@ class ServerSync {
 
   /// [ck] = "koleksi|kunci". Data CRM: kasir hanya mengirim voucher terpakai, poin tertukar, dan catatan pengingat
   /// (aturan CRM dan penghapusan hanya dari akun yang boleh mengatur harga), sama dengan CrmGuard di server.
-  bool _mayWrite(String ck, {bool deleted = false}) {
+  bool _mayWrite(String ck, {bool deleted = false, Object? data}) {
     if (role == 'owner') return true;
     final i = ck.indexOf('|');
     final collection = i < 0 ? ck : ck.substring(0, i);
     final rule = _writeRules[collection];
     if (rule == null || !rule.any(can)) return false;
+    // Sama dengan StockGuard di server: staf hanya menulis catatan stok cabangnya; tanpa stock.manage hanya pemakaian
+    // dan penerimaan kiriman; catatan tidak pernah dihapus staf.
+    if (collection == 'stock_ledger') {
+      if (deleted || data is! Map) return false;
+      if (_text(data['outletId']) != 'srv-${_text(user['outlet_id'])}') return false;
+      return can('stock.manage') || const ['Pemakaian', 'Pemakaian Otomatis', 'Transfer Masuk'].contains(_text(data['type']));
+    }
+    if (collection == 'stock_transfers') {
+      if (deleted || data is! Map) return false;
+      return can('stock.manage') || _text(data['status']) == 'received';
+    }
     if (collection == 'crm' && !can('prices.edit')) {
       final key = ck.substring(i + 1);
       if (key.startsWith('reminded:')) return !deleted;
@@ -852,7 +866,7 @@ class ServerSync {
       final h = fingerprintOf(e.value), known = recs[e.key];
       if (staged.contains(e.key) || (known is Map && known['h'] == h)) continue;
       final i = e.key.indexOf('|');
-      if (!_mayWrite(e.key)) continue;
+      if (!_mayWrite(e.key, data: e.value.data)) continue;
       list.add({
         'ck': e.key, 'h': h, 'collection': e.key.substring(0, i), 'key': e.key.substring(i + 1), 'outlet': e.value.outlet,
         'data': e.value.data, 'deleted': false, 'base_rev': known is Map ? (known['rev'] ?? 0) : 0,

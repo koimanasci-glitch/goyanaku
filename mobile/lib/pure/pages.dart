@@ -619,6 +619,10 @@ class StockPage extends PurePage {
   }
 
   String get outletId => host.business.activeOutlet.isNotEmpty ? host.business.activeOutlet : (host.business.outlets.isEmpty ? 'default' : host.business.outlets.first.id);
+  /// Stok per cabang (10 Okt 2026): kasir dan pegawai hanya mencatat bahan dipakai dan menerima kiriman;
+  /// stok masuk, belanja, cek stok, kirim ke cabang, dan bahan diatur kepala cabang atau pemilik (ditegakkan server juga).
+  bool get _manage => !host.server.loggedIn || host.server.isOwner || host.server.can('stock.manage');
+  static const _manageOnly = 'Hanya kepala cabang atau pemilik yang bisa mengatur stok ini';
   List<List<String>> get _outs => host.business.outlets.isEmpty ? [['default', 'Outlet Aktif']] : [for (final o in host.business.outlets) [o.id, o.name]];
   String _outName(String id) => _outs.where((o) => o[0] == id).firstOrNull?[1] ?? id;
   List<Map<String, dynamic>> _l(String k) => ((book?.raw[k] as List?) ?? const []).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
@@ -700,14 +704,30 @@ class StockPage extends PurePage {
       ...list,
       for (final t in transfers)
         row('${its.where((e) => e['id'] == t['itemId']).firstOrNull?['name'] ?? 'Bahan'} · ${_js(t['qty'])}',
-            '${_outName('${t['from']}')} → ${_outName('${t['to']}')} · ${t['status'] == 'received' ? 'Diterima' : 'Dalam perjalanan'}', '',
-            [if (t['status'] == 'sent' && t['to'] == o) {'t': 'Konfirmasi diterima lengkap', 'on': false, 'i': 1000 + _l('transfers').indexWhere((x) => x['id'] == t['id'])}]),
+            '${_outName('${t['from']}')} → ${_outName('${t['to']}')} · ${_transferStatus(t)}', '',
+            [if (t['status'] == 'sent' && t['to'] == o) {'t': 'Terima Kiriman', 'on': false, 'i': 1000 + _l('transfers').indexWhere((x) => x['id'] == t['id'])}]),
       {'type': 'title', 't': 'Lainnya'},
       toolCard('Belanja Bahan', 'Catat pembelian · stok bertambah, lunas atau hutang', '🛒', 5),
       toolCard('Supplier', 'Toko / pemasok tempat belanja bahan', '🏭', 4),
       toolCard('Kirim ke Cabang Lain', 'Pindahkan bahan antar outlet', '⇄', 3),
       toolCard('Pemakaian Otomatis per Layanan', 'Bahan berkurang sendiri saat cucian diproses', '🫧', 6),
     ];
+  }
+
+  /// Ringkasan kiriman di popup Terima Kiriman.
+  List<Map<String, dynamic>> _recvInfo(StockBook b) {
+    final tid = tool.startsWith('recv:') ? tool.substring(5) : '';
+    final t = _l('transfers').where((x) => x['id'] == tid).firstOrNull;
+    if (t == null) return const [];
+    final e = b.items.where((x) => x['id'] == t['itemId']).firstOrNull;
+    return [{'type': 'hint', 't': '${e?['name'] ?? 'Bahan'} · dikirim ${_js(t['qty'])} ${e?['unit'] ?? ''} dari ${_outName('${t['from']}')}'}];
+  }
+
+  /// Status kiriman: dalam perjalanan, diterima lengkap, atau diterima dengan selisih.
+  static String _transferStatus(Map t) {
+    if (t['status'] != 'received') return 'Dalam perjalanan';
+    final sent = (t['qty'] as num?) ?? 0, got = (t['receivedQty'] as num?) ?? sent;
+    return got == sent ? 'Diterima lengkap' : 'Diterima ${_js(got)} dari ${_js(sent)} · selisih ${_js(sent - got)}';
   }
 
   /// Nama jenis catatan stok dalam bahasa sehari-hari (data tersimpan tidak diubah).
@@ -790,7 +810,8 @@ class StockPage extends PurePage {
       'sup' => [title('Tambah Supplier'), inp('Nama supplier', 0), inp('WhatsApp', 1), ...ok],
       'buy' => [title('Belanja Bahan'), pick(['Tanpa supplier', for (final x in _l('suppliers')) '${x['name']}'], 0), pick(itemOpt, 1), inp('Jumlah', 2, numeric: true, decimal: true), inp('Harga/unit', 3, numeric: true),
           pick(const ['Lunas', 'Hutang Supplier'], 4), {'type': 'date', 'v': f[5] ?? '', 'i': 5}, ...ok],
-      _ => [title('Terima transfer'), {'type': 'hint', 't': 'Pastikan seluruh jumlah kiriman sudah diterima. Jika ada selisih, jangan konfirmasi dulu.'}, ...ok],
+      _ => [title('Terima Kiriman'), ..._recvInfo(b), {'type': 'label', 't': 'Jumlah yang benar-benar diterima'}, inp('Jumlah diterima', 0, numeric: true, decimal: true),
+          inp('Catatan bila ada selisih', 1), {'type': 'hint', 't': 'Hitung barang yang datang. Bila kurang dari yang dikirim, selisihnya tercatat dan terlihat oleh pemilik.'}, ...ok],
     };
   }
 
@@ -803,6 +824,7 @@ class StockPage extends PurePage {
       final k = b.items.indexWhere((x) => x['id'] == curItem);
       if (kind != 'button' || k < 0) return;
       final e = b.items[k];
+      if (const {0, 2, 4}.contains(index) && !_manage) return host.toast(_manageOnly);
       switch (index) {
         case 0:
           _open('move', pick: {0: k, 1: 0});
@@ -875,6 +897,7 @@ class StockPage extends PurePage {
         if (q != 0) led({'itemId': iid, 'outletId': o, 'type': 'Stok Awal', 'qty': q == q.roundToDouble() ? q.round() : q, 'note': 'Stok awal'});
       case 'move':
         final iid = itemId(0), q = _num(f[2]), out = (sel[1] ?? 0) == 1;
+        if (!out && !_manage) return host.toast(_manageOnly);
         if (q <= 0 || (out && q > b.balance(iid, o))) return host.toast('Jumlah tidak valid atau stok tidak cukup');
         led({'itemId': iid, 'outletId': o, 'type': out ? 'Pemakaian' : 'Stok Masuk', 'qty': out ? -q : q, 'note': f[3] ?? ''});
       case 'op':
@@ -910,9 +933,16 @@ class StockPage extends PurePage {
         if (t == null) return host.toast('Transfer tidak ditemukan');
         if (t['to'] != o) return host.toast('Hanya cabang tujuan dapat menerima');
         if (t['status'] == 'sent') {
-          led({'itemId': t['itemId'], 'outletId': t['to'], 'type': 'Transfer Masuk', 'qty': t['qty'], 'ref': tid, 'note': 'Diterima dari ${t['from']}'});
+          final sent = (t['qty'] as num?) ?? 0, raw = (f[0] ?? '').trim(), got = raw.isEmpty ? sent.toDouble() : _num(raw), note = (f[1] ?? '').trim();
+          if (got < 0 || got > sent) return host.toast('Jumlah diterima tidak boleh melebihi yang dikirim');
+          if (got < sent && note.isEmpty) return host.toast('Isi catatan selisih');
+          final q = got == got.roundToDouble() ? got.round() : got;
+          if (got > 0) led({'itemId': t['itemId'], 'outletId': t['to'], 'type': 'Transfer Masuk', 'qty': q, 'ref': tid, 'note': 'Diterima dari ${_outName('${t['from']}')}'});
           t['status'] = 'received';
+          t['receivedQty'] = q;
           t['receivedAt'] = now.toUtc().toIso8601String();
+          if (note.isNotEmpty) t['receivedNote'] = note;
+          host.toast(got < sent ? 'Kiriman diterima · selisih ${_js(sent - got)}' : 'Kiriman diterima lengkap');
         }
     }
     b.save();
@@ -943,12 +973,13 @@ class StockPage extends PurePage {
     }
     if (i >= 1000 && i < 3000) {
       final tr = _l('transfers');
-      if (i - 1000 < tr.length) _open('recv:${tr[i - 1000]['id']}');
+      if (i - 1000 < tr.length) _open('recv:${tr[i - 1000]['id']}', fill: {0: _js(tr[i - 1000]['qty'])});
       return;
     }
     if (i >= 10) {
       final debts = _debts;
       if (tab != 'debt' || i - 10 >= debts.length) return;
+      if (!_manage) return host.toast(_manageOnly);
       final id = debts[i - 10]['id'];
       for (final p in (b.raw['purchases'] as List).whereType<Map>()) {
         if (p['id'] == id) {
@@ -960,6 +991,7 @@ class StockPage extends PurePage {
       await b.save();
       return host.refresh();
     }
+    if (const {0, 2, 3, 4, 5, 6}.contains(i) && !_manage) return host.toast(_manageOnly);
     if (i == 6) return _open('recipe');
     if (i == 0) return _open('add');
     if (b.items.isEmpty) return host.toast('Tambahkan bahan dulu');

@@ -172,6 +172,26 @@ void main() {
     expect(shortHash('abc'), '${0x1a47e90b.toRadixString(36)}:3');
   });
 
+  test('stok per cabang: catatan stok dikirim dengan outletnya, kiriman antar cabang ikut sinkron', () async {
+    final kv = MemoryKvStore({
+      'goyana-stock181': jsonEncode({
+        'items': [{'id': 'det', 'name': 'Deterjen'}],
+        'ledger': [{'id': 'm1', 'itemId': 'det', 'outletId': 'srv-2', 'type': 'Stok Awal', 'qty': 5}],
+        'transfers': [{'id': 'tr-1', 'itemId': 'det', 'from': 'srv-1', 'to': 'srv-2', 'qty': 3, 'status': 'sent'}],
+      }),
+    });
+    final local = await extractLocal(kv);
+    expect(local['stock_ledger|m1']!.outlet, 'srv-2');
+    expect(local['stock_items|det']!.outlet, isNull);
+    expect((local['stock_transfers|tr-1']!.data as Map)['to'], 'srv-2');
+    // Kiriman dari server masuk ke daftar kiriman di HP.
+    await applyRemote(kv, [
+      {'collection': 'stock_transfers', 'key': 'tr-2', 'data': {'id': 'tr-2', 'itemId': 'det', 'from': 'srv-2', 'to': 'srv-1', 'qty': 1, 'status': 'sent'}, 'deleted': false},
+    ]);
+    final stock = jsonDecode(kv.data['goyana-stock181']!) as Map;
+    expect([for (final t in stock['transfers'] as List) (t as Map)['id']], ['tr-1', 'tr-2']);
+  });
+
   test('data dari server digabung ke HP: tambah, ubah, hapus', () async {
     final kv = _phone();
     await applyRemote(kv, [

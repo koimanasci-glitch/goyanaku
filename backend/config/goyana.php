@@ -59,6 +59,8 @@ return [
         'kasir' => ['label' => 'Kasir', 'permissions' => [
             'orders.create', 'orders.update', 'orders.status', 'payments.receive',
             'discounts.limited', 'customers.manage', 'courier.assign', 'cash.manage',
+            // Mencatat bahan dipakai dan menerima kiriman bahan di cabangnya (stok per cabang, 10 Okt 2026).
+            'stock.use',
         ]],
         'produksi' => ['label' => 'Pegawai', 'permissions' => ['orders.status', 'stock.use']],
         'kurir' => ['label' => 'Kurir', 'permissions' => ['courier.tasks']],
@@ -138,7 +140,10 @@ return [
             'crm' => ['scope' => 'business', 'read' => ['prices.edit', 'payments.receive'], 'write' => ['prices.edit', 'payments.receive']],
             'couriers' => ['scope' => 'business', 'read' => ['courier.assign', 'courier.tasks'], 'write' => ['courier.assign']],
             'stock_items' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage']],
-            'stock_ledger' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage', 'stock.use']],
+            // Stok per cabang (10 Okt 2026): saldo bahan = jumlah catatan stok outlet itu (App\Support\StockGuard).
+            'stock_ledger' => ['scope' => 'outlet', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage', 'stock.use']],
+            // Kiriman bahan antar cabang: satu catatan dilihat cabang asal dan tujuan (difilter di SyncController::pull).
+            'stock_transfers' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage', 'stock.use']],
             'stock_suppliers' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],
             'stock_purchases' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],
             'stock_recipes' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage']],
