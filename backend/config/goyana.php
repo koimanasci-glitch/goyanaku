@@ -12,11 +12,14 @@ return [
 
     // branches = cabang di luar 1 outlet pusat. Basic: 1 pusat + 1 cabang (ditegaskan pengguna 2 Oktober 2026).
     'packages' => [
-        'Basic' => ['price' => 30000, 'branches' => 1, 'rank' => 1, 'cashier_devices' => 2],
-        'Silver' => ['price' => 65000, 'branches' => 2, 'rank' => 2, 'cashier_devices' => 3],
-        'Gold' => ['price' => 100000, 'branches' => 3, 'rank' => 3, 'cashier_devices' => 4],
-        'Platinum' => ['price' => 350000, 'branches' => 5, 'rank' => 4, 'cashier_devices' => 5],
+        // staff = batas akun per outlet untuk tiap tugas kasir / pegawai / kurir (keputusan Paduka 10 Okt 2026:
+        // Basic 2, naik +1 tiap paket). Kepala cabang (manager) 1 per outlet di semua paket, di luar kuota itu.
+        'Basic' => ['price' => 30000, 'branches' => 1, 'rank' => 1, 'cashier_devices' => 2, 'staff' => 2],
+        'Silver' => ['price' => 65000, 'branches' => 2, 'rank' => 2, 'cashier_devices' => 3, 'staff' => 3],
+        'Gold' => ['price' => 100000, 'branches' => 3, 'rank' => 3, 'cashier_devices' => 4, 'staff' => 4],
+        'Platinum' => ['price' => 350000, 'branches' => 5, 'rank' => 4, 'cashier_devices' => 5, 'staff' => 5],
     ],
+    'managers_per_outlet' => 1,
 
     // Perangkat kasir per outlet (termasuk pusat) mengikuti paket (keputusan pengguna 8 Oktober 2026:
     // Trial/Basic 2, Silver 3, Gold 4, Platinum 5). Angka di bawah dipakai bila paket tidak menyebutnya.

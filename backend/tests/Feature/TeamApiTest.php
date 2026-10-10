@@ -312,4 +312,24 @@ class TeamApiTest extends TestCase {
         $this->app['auth']->forgetGuards();
         $this->pinLogin('081888888888', '739104')->assertOk();
     }
+
+    public function test_staff_accounts_per_outlet_follow_the_package(): void {
+        // Trial = Basic: 2 kasir per outlet; kepala cabang 1 per outlet.
+        $this->member(['phone' => '081200000001']);
+        $second = $this->member(['phone' => '081200000002', 'name' => 'Rina']);
+        $this->api('POST', '/team', ['name' => 'Tiga', 'role' => 'kasir', 'outlet_id' => $this->pusat(), 'phone' => '081200000003', 'pin' => '482915'])
+            ->assertStatus(422)->assertJsonPath('errors.role.0', 'Paket Basic: maksimal 2 Kasir per outlet. Upgrade paket atau beli tambahan akun.');
+        // Tugas lain punya kuota sendiri.
+        $kurir = $this->member(['phone' => '081200000004', 'role' => 'kurir', 'name' => 'Budi']);
+        $this->member(['phone' => '081200000005', 'role' => 'manager', 'name' => 'Kepala']);
+        $this->api('POST', '/team', ['name' => 'Kepala 2', 'role' => 'manager', 'outlet_id' => $this->pusat(), 'phone' => '081200000006', 'pin' => '482915'])
+            ->assertStatus(422)->assertJsonPath('errors.role.0', 'Setiap outlet hanya punya 1 Kepala Cabang.');
+        // Pindah tugas ke kasir yang sudah penuh ditolak; menonaktifkan membuka tempat.
+        $this->api('PATCH', '/team/'.$kurir['id'], ['role' => 'kasir'])->assertStatus(422);
+        $this->api('POST', '/team/'.$second['id'].'/deactivate')->assertOk();
+        $this->api('PATCH', '/team/'.$kurir['id'], ['role' => 'kasir'])->assertOk();
+        // Mengaktifkan lagi saat penuh ditolak.
+        $this->api('POST', '/team/'.$second['id'].'/activate')->assertStatus(422);
+        $this->api('GET', '/team')->assertJsonPath('limits.kasir', 2)->assertJsonPath('limits.manager', 1)->assertJsonPath('package', 'Basic');
+    }
 }

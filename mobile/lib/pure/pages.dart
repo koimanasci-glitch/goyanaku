@@ -2216,7 +2216,7 @@ class ReminderPage extends TemplatePage {
 /// Pengaturan Kasir: sakelar izin sungguh membatasi kasir (yang masuk dengan PIN pegawai).
 class CashierPage extends TemplatePage {
   // ignore: use_super_parameters
-  CashierPage(PureHost host) : super(host, 'cashier', onButton: (p, i) => host.go('employees'));
+  CashierPage(PureHost host) : super(host, 'cashier', onButton: (p, i) => host.go('tim'));
 
   @override
   List<Map<String, dynamic>> items() {

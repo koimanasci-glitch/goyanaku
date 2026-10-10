@@ -48,6 +48,8 @@ final class Team {
         }
         if (!empty($data['pin'])) self::assertPin($data['pin']);
         return DB::transaction(function () use ($owner, $business, $data, $phone) {
+            \App\Models\Business::whereKey($business->id)->lockForUpdate()->first();
+            self::assertSeat($business, (string) $data['role'], (int) $data['outlet_id']);
             $user = new User(['name' => $data['name'], 'email' => $data['email'] ?? null, 'phone' => $phone]);
             $user->business_id = $business->id; $user->role = $data['role']; $user->outlet_id = (int) $data['outlet_id'];
             if (!empty($data['password'])) $user->password = $data['password'];
@@ -65,6 +67,11 @@ final class Team {
         self::guard($owner, $member);
         $before = ['role' => $member->role, 'outlet_id' => $member->outlet_id];
         return DB::transaction(function () use ($owner, $member, $data, $before) {
+            $role = (string) ($data['role'] ?? $member->role); $outlet = (int) ($data['outlet_id'] ?? $member->outlet_id);
+            if ($member->isActive() && ($role !== $before['role'] || $outlet !== (int) $before['outlet_id'])) {
+                \App\Models\Business::whereKey($member->business_id)->lockForUpdate()->first();
+                self::assertSeat($owner->business, $role, $outlet, $member->id);
+            }
             if (array_key_exists('name', $data)) $member->name = $data['name'];
             if (array_key_exists('email', $data)) $member->email = $data['email'] ?: null;
             if (array_key_exists('phone', $data)) $member->phone = self::phone($data['phone'], $member);
@@ -79,6 +86,25 @@ final class Team {
             self::audit($owner, 'team.updated', ['user_id' => $member->id, 'before' => $before, 'after' => ['role' => $member->role, 'outlet_id' => $member->outlet_id]]);
             return $member;
         });
+    }
+
+    /** Batas akun per outlet sesuai paket (10 Okt 2026). Akun lama yang sudah melebihi tetap jalan; hanya yang baru ditolak. */
+    public static function seatLimit(\App\Models\Business $business, string $role): int {
+        if ($role === 'manager') return (int) config('goyana.managers_per_outlet', 1);
+        return (int) ($business->currentAccess()['staff_limit'] ?? 2);
+    }
+
+    public static function assertSeat(\App\Models\Business $business, string $role, int $outletId, ?int $except = null): void {
+        $limit = self::seatLimit($business, $role);
+        $used = User::where('business_id', $business->id)->where('role', $role)->where('outlet_id', $outletId)
+            ->whereNull('deactivated_at')->when($except, fn ($q) => $q->where('id', '!=', $except))->count();
+        if ($used < $limit) return;
+        $label = config("goyana.roles.$role.label", $role);
+        $label = $role === 'manager' ? 'Kepala Cabang' : $label;
+        $package = $business->currentAccess()['package'] ?? 'Basic';
+        throw ValidationException::withMessages(['role' => $role === 'manager'
+            ? "Setiap outlet hanya punya $limit $label."
+            : "Paket $package: maksimal $limit $label per outlet. Upgrade paket atau beli tambahan akun."]);
     }
 
     public static function setPin(User $owner, User $member, string $pin): void {
@@ -112,7 +138,10 @@ final class Team {
     public static function activate(User $owner, User $member): void {
         self::guard($owner, $member);
         abort_if($owner->business->currentAccess()['read_only'], 403, 'Paket sudah berakhir.');
+        if (!$member->deactivated_at) return;
         DB::transaction(function () use ($owner, $member) {
+            \App\Models\Business::whereKey($member->business_id)->lockForUpdate()->first();
+            self::assertSeat($owner->business, (string) $member->role, (int) $member->outlet_id, $member->id);
             $member->deactivated_at = null; $member->save();
             self::syncCourier($owner, $member, null);
             self::audit($owner, 'team.activated', ['user_id' => $member->id]);

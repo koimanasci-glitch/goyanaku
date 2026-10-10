@@ -15,6 +15,9 @@ class ApiTeamController {
         return response()->json([
             'team' => $query->get()->map(fn (User $u) => Team::present($u))->values(),
             'roles' => collect(config('goyana.roles'))->except('owner')->map(fn ($r, $k) => ['key' => $k, 'label' => $r['label']])->values(),
+            // Batas akun per outlet untuk tiap tugas (paket); aplikasi menampilkan "Kasir 1/2".
+            'limits' => collect(Team::roles())->mapWithKeys(fn ($k) => [$k => Team::seatLimit($owner->business, $k)]),
+            'package' => $owner->business->currentAccess()['package'],
         ]);
     }
 

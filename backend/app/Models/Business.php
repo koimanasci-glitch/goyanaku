@@ -68,6 +68,8 @@ class Business extends Model {
             'outlet_limit' => $readOnly ? $this->outlets()->count() : 1 + $branches,
             // HP kasir per outlet mengikuti paket (keputusan pengguna 8 Oktober 2026).
             'cashier_device_limit' => (int) ($package ? config("goyana.packages.$package.cashier_devices") : null) ?: (int) config('goyana.cashier_devices_per_outlet'),
+            // Akun kasir / pegawai / kurir per outlet (masing-masing); kepala cabang 1 per outlet.
+            'staff_limit' => (int) ($package ? config("goyana.packages.$package.staff") : null) ?: 2,
         ];
     }
 }

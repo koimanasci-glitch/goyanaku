@@ -27,6 +27,8 @@ import '../native/popup_components.dart';
 import '../native/wa131_sheet.dart';
 import 'label_page.dart';
 import 'g181_mirror.dart';
+import 'kelola_page.dart';
+import 'team_page.dart';
 import 'order_history.dart';
 import 'order_view.dart';
 import 'receipt_image.dart';
@@ -137,7 +139,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -559,7 +561,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         !const {'kurirhome', 'addorder', 'settings', 'jemput202', 'customeradd', 'ralat139', 'printer', 'printerconnect', 'printlabel', 'helpcenter'}.contains(pageId)) {
       return 'Menu ini tidak tersedia untuk akun kurir';
     }
-    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
+    if (const {'outlets', 'outletedit', 'superbilling', 'employees', 'tim', 'kurirsetting', 'cashier', 'pinlock', 'upgrade', 'datacenter', 'testmode192'}.contains(pageId)) {
       return 'Hanya pemilik yang bisa membuka menu ini';
     }
     if (const {'reports', 'rp', 'branchmonitor58'}.contains(pageId) && !_srv.can('reports.view')) return 'Laporan hanya untuk pemilik';
@@ -1215,7 +1217,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (gate != null && !planAccess.has(gate, now)) return toast(planAccess.lockedText(gate));
     final denied = _srvDenied(pageId);
     if (denied != null) return toast(denied);
-    if (_kasirSession && const {'cashier', 'employees', 'pinlock'}.contains(pageId)) return toast('Hanya pemilik · buka aplikasi dengan PIN Admin');
+    if (_kasirSession && const {'cashier', 'employees', 'tim', 'pinlock'}.contains(pageId)) return toast('Hanya pemilik · buka aplikasi dengan PIN Admin');
     if (_page == 'crm') _loadCrmRule();
     if (_page == 'stock') _hppSync();
     setState(() {
@@ -1310,15 +1312,31 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       // Satu menu Kurir saja (10 Okt): "Pengaturan Kurir" terpisah dobel dengan tab di halaman Kurir.
       if (g['i'] == 3) {
         for (final it in (g['items'] as List).whereType<Map>()) {
+          // Tim gabungan (10 Okt 2026): kasir, pegawai, kurir, kepala cabang per cabang di satu menu.
+          if (it['j'] == 0) {
+            it['t'] = 'Tim';
+            it['s'] = 'Kasir, pegawai, kurir & kepala cabang per cabang';
+          }
+          if (it['j'] == 1) {
+            it['t'] = 'Hak Akses Kasir';
+            it['s'] = 'Atur fitur yang boleh dipakai kasir';
+          }
           if (it['j'] == 3) {
-            it['t'] = 'Kurir';
-            it['s'] = 'Tugas antar-jemput, akun & PIN kurir';
+            it['t'] = 'Tugas Kurir';
+            it['s'] = 'Antar-jemput dan setoran tunai kurir';
           }
         }
       }
       // "Stock Opname & Supplier" membuka halaman yang sama dengan "Stok & Bahan" → cukup satu menu.
       if (g['i'] == 9) (g['items'] as List).removeWhere((it) => it is Map && it['j'] == 7);
     }
+    // Kelola Usaha (10 Okt 2026): satu pintu untuk fitur cabang, tim, dan kontrol; diletakkan di bawah Profil.
+    (m['groups'] as List).insert(1, {
+      'i': 14,
+      'svg': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"></path></svg>',
+      'icon': '', 't': 'Kelola Usaha', 's': 'Cabang, tim, monitor, laporan, kontrol',
+      'accordion': false, 'open': false, 'items': <dynamic>[],
+    });
     (m['groups'] as List).add({
       'i': 13,
       'svg': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-6 10a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L14 9V3M8 14h8"></path></svg>',
@@ -1344,11 +1362,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   static const Map<String, String> _stRoutes = {
     '0/0': 'profile', '1/0': 'outlets', '1/1': 'superbilling',
     '2/0': 'services', '2/1': 'duration', '2/2': 'perfume', '2/3': 'discounts', '2/4': 'delivery',
-    '3/0': 'employees', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers', '3/4': 'kurirsetting',
+    '3/0': 'tim', '3/1': 'cashier', '3/2': 'audit', '3/3': 'couriers', '3/4': 'kurirsetting',
     '4/0': 'customers', '4/1': 'crm',
     '5/0': 'wadevices195', '5/1': 'triggers191', '5/2': 'ai191', '5/3': 'blast191', '5/4': 'automation',
     '9/0': 'qris', '9/1': 'finance', '9/2': 'ralat139', '9/3': 'stock', '9/4': 'reminder', '9/5': 'reports', '9/6': 'sheet:deposits178', '9/7': 'stock',
-    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '12/0': 'helpcenter', '12/1': 'aboutgoyana', '12/2': 'sheet:perm178',
+    '10/0': 'printer', '10/1': 'barcode', '11': 'datacenter', '13': 'testmode192', '14': 'kelola', '12/0': 'helpcenter', '12/1': 'aboutgoyana', '12/2': 'sheet:perm178',
   };
   void _stGo(String key) {
     final r = _stRoutes[key];
