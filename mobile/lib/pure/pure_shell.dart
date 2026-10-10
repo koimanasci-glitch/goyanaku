@@ -356,7 +356,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   int _aoCat = 0;
   final Map<String, double> _cart = {}; // nama layanan → jumlah
   String? _aoSheet; // 'options' | 'payment'
-  final Map<String, Object> _opt = {'perfume': 0, 'disc': 0, 'hand': 0, 'prio': false, 'note': ''};
+  final Map<String, Object> _opt = {'perfume': 0, 'disc': 0, 'hand': 0, 'kurir': 0, 'prio': false, 'note': ''};
 
   final List<_Sheet> _sheets = [];
 
@@ -1367,10 +1367,15 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   /// Atur Pesanan, Pembayaran) untuk pesanan Penjemputan ini, tanpa pilihan Penyerahan (selalu Jemput & Antar).
   /// Hasilnya mengisi pesanan yang sama (nomor nota tetap) lalu masuk Antrian.
   String _fillId = '', _fillFrom = '';
+  /// Penjemputan belum punya penjemput (kurir atau "Saya sendiri"): proses tidak bisa dilanjutkan (keputusan Paduka 10 Okt).
+  /// HP kurir dikecualikan: kurirnya sendiri yang menjemput.
+  bool _noPicker(Order o) => !_courierMode && '${o.dataset['courier181'] ?? ''}'.isEmpty && '${o.dataset['jemputSelf'] ?? ''}'.isEmpty;
+
   @override
   void weighOrder(String id) {
     final o = _b!.orderById(id);
     if (o == null || o.status != 'jemput') return;
+    if (_noPicker(o)) return toast('Pilih kurir dulu');
     final from = _page;
     _startOrder();
     _fillId = id;
@@ -1637,7 +1642,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   /// Penjemputan tanpa layanan/berat tidak boleh langsung masuk Antrian (Rp0): buka Buat Pesanan (Tambah Transaksi) dulu.
   bool _pickupNeedsOrder(Order o) {
-    if (o.status != 'jemput' || o.items.isNotEmpty) return false;
+    if (o.status != 'jemput') return false;
+    if (_noPicker(o)) {
+      toast('Pilih kurir dulu · lewat Antar Jemput (menu titik tiga) atau Tugas Kurir');
+      return true;
+    }
+    if (o.items.isNotEmpty) return false;
     setState(() => _detailId = null);
     weighOrder(o.id);
     return true;
@@ -2501,8 +2511,14 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       case 'pickup':
         _close('pickup');
         if (index == 1) {
-          _opt['hand'] = 2; // Jemput & Antar
-          _finishOrder('Bayar Nanti');
+          // Pesanan jemput tanpa layanan = Buat Penjemputan: langsung popup Jadwal lalu Pilih Kurir untuk pelanggan ini.
+          final p = _pages['jemputnew202'];
+          if (p is PickupNewPage) {
+            p
+              ..pick(_aoCustomer)
+              ..keep = true;
+          }
+          nav('jemputnew202');
         }
       case 'items':
         _itemsButton(index);
@@ -2680,7 +2696,21 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     await widget.store.remove(pickupActiveKey);
   }
 
+  /// Kurir aktif outlet ini untuk pilihan Kurir di Atur Pesanan.
+  List<Map<String, dynamic>> _aoCouriers = [];
+  bool get _needsCourier => !_courierMode && _fillId.isEmpty && transportType(_optHand) != 'none';
+  List<String> get _courierOptions => ['Pilih kurir', 'Saya sendiri (${pickupSelfName(this)})', for (final k in _aoCouriers) '${k['name']}'];
+
   void _startOrder() => setState(() {
+        Couriers.load(widget.store).then((v) {
+          final out = _b?.activeOutlet ?? '';
+          _aoCouriers = [
+            for (final k in v.list)
+              if (k['deleted'] != true && k['active'] != false &&
+                  ((k['outlets'] as List? ?? const []).isEmpty || out.isEmpty || (k['outlets'] as List).map((e) => '$e').contains(out)))
+                k,
+          ];
+        });
         _fillId = _fillFrom = '';
         _sheets.clear();
         _page = 'addorder';
@@ -2697,6 +2727,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
           ..['perfume'] = 0
           ..['disc'] = 0
           ..['hand'] = 0
+          ..['kurir'] = 0
           ..['prio'] = false
           ..['note'] = '';
       });
@@ -2905,6 +2936,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         'fields': [
           {'k': 0, 'type': 'select', 'label': 'Parfum', 'options': _perfumes, 'index': _opt['perfume']},
           if (_fillId.isEmpty) {'k': 1, 'type': 'select', 'label': 'Penyerahan', 'options': _hands, 'index': _opt['hand']},
+          // Antar / jemput: wajib pilih kurir (Datang Langsung tidak). Keputusan Paduka 10 Okt 2026.
+          if (_needsCourier) {'k': 4, 'type': 'select', 'label': 'Kurir', 'options': _courierOptions, 'index': _opt['kurir'] ?? 0},
           {'k': 2, 'type': 'switch', 'label': 'Jadikan Prioritas', 'sub': 'naik ke atas antrian', 'on': _opt['prio'] == true},
           {'k': 3, 'type': 'select', 'label': 'Diskon', 'options': [for (final d in _discs) d[0]], 'index': _opt['disc']},
         ],
@@ -3072,13 +3105,18 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   @override
-  void aoSheetSelect(int field, int option) => field == 3 ? _pickDisc(option) : setState(() => _opt[field == 1 ? 'hand' : 'perfume'] = option);
+  void aoSheetSelect(int field, int option) => field == 3
+      ? _pickDisc(option)
+      : setState(() => _opt[field == 1 ? 'hand' : (field == 4 ? 'kurir' : 'perfume')] = option);
   @override
   void aoSheetSwitch(int field) => setState(() => _opt['prio'] = _opt['prio'] != true);
   @override
   void aoSheetNote(String text) => _opt['note'] = text;
   @override
-  void aoSheetMain() => setState(() => _aoSheet = 'payment');
+  void aoSheetMain() {
+    if (_needsCourier && ((_opt['kurir'] as int?) ?? 0) <= 0) return toast('Pilih kurir dulu');
+    setState(() => _aoSheet = 'payment');
+  }
   @override
   void aoSheetClose() => setState(() {
         if (_payOrderId != null) {
@@ -3291,6 +3329,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       note: '${_opt['note']}'.trim(), handover: hand, priority: _opt['prio'] == true,
       payMethod: method == 'DP' ? 'DP' : (method == 'Saldo Deposit' ? 'Bayar Nanti' : method), dpMethod: dpMethod, payAmount: dp, kasir: _kasir, now: now,
     );
+    if (_needsCourier) {
+      final pick = (_opt['kurir'] as int?) ?? 0;
+      if (pick == 1) o.dataset['jemputSelf'] = pickupSelfName(this);
+      if (pick >= 2 && pick - 2 < _aoCouriers.length) o.dataset['courier181'] = '${_aoCouriers[pick - 2]['id']}';
+    }
     if (method == 'Saldo Deposit') {
       // Saldo deposit dipotong lewat satu pembayaran saja (sebelumnya tercatat dua kali di kas & riwayat bayar).
       b.pay(o, method: 'Deposit', amount: o.total, now: now);

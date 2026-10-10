@@ -170,3 +170,9 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - **Pembatalan pesanan yang sudah dibayar**: pengembalian dana dicatat **otomatis** (tunai/non-tunai = pengeluaran "Pengembalian dana", deposit kembali ke saldo pelanggan).
 - **Setoran tunai kurir** yang diterima kasir dihitung sebagai **omset** (penjualan tunai) pada tutup kasir.
 - Diperbaiki sekalian: kolom Rp tutup kasir mengikuti hitungan pecahan; bayar Saldo Deposit tidak lagi tercatat dua kali.
+
+## 10 Oktober 2026, 07.40 WIB — kurir wajib untuk antar jemput
+
+- Penjemputan yang **belum punya kurir/penjemput** tidak bisa diproses (Buat Pesanan / Jemput): muncul peringatan **"Pilih kurir dulu"** (di Antar Jemput langsung muncul popup Pilih Kurir).
+- **Tambah Pesanan** dengan penyerahan **Antar** atau **Jemput & Antar**: di Atur Pesanan ada pilihan **Kurir** (Saya sendiri + daftar kurir), wajib dipilih sebelum lanjut ke Pembayaran. **Datang Langsung tetap seperti biasa** (tanpa kurir).
+- Tambah Pesanan tanpa layanan → "Buat Pesanan Jemput" sekarang memakai alur Buat Penjemputan (popup Jadwal → Pilih Kurir).

@@ -204,6 +204,12 @@ class PickupPage extends PurePage {
         return u.isEmpty ? host.toast('Alamat belum diisi') : _open(u);
       case 1:
         if (o.status != 'jemput') return host.openOrder(o.id);
+        if (!_courierMode(host) && pickupWho(o, couriers).isEmpty) {
+          // Belum ada penjemput: proses tidak bisa dilanjutkan, langsung tawarkan Pilih Kurir.
+          host.toast('Pilih kurir dulu');
+          _menuId = o.id;
+          return host.openPageSheet('jkurir');
+        }
         return host.weighOrder(o.id);
       case 2:
         final p = waNumber(o.phone.isNotEmpty ? o.phone : (host.business.customerByName(o.name)?.phone ?? ''));

@@ -244,13 +244,21 @@ void main() {
     await _settle(tester);
     s.aoNext();
     await _settle(tester);
-    s.fmScoped('pickup', 'button', 1);
+    s.fmScoped('pickup', 'button', 1); // → Buat Penjemputan: popup Jadwal lalu Pilih Kurir
+    await _settle(tester);
+    expect(s.debugSheetIds(), contains('jjadwal'));
+    s.fmScoped('jjadwal', 'button', 1);
+    await _settle(tester);
+    s.fmScoped('jkurir', 'button', 1000); // Saya sendiri
     await _settle(tester);
     var o = (await Business.load(kv)).orders.first;
     expect(o.status, 'jemput');
     expect(o.total, 0);
-    // Penjemputan tanpa layanan tidak boleh langsung masuk Antrian (Rp0): tombol tahap membuka Buat Pesanan.
-    s.fmScoped('detail', 'button', 1);
+    expect(o.dataset['jemputSelf'], isNotNull);
+    // Penjemputan tanpa layanan tidak boleh langsung masuk Antrian (Rp0): tombol kartu membuka Buat Pesanan.
+    s.nav('orders');
+    await _settle(tester);
+    s.cardAction(0);
     await _settle(tester);
     expect((await Business.load(kv)).orders.first.status, 'jemput');
     expect(s.debugSheetIds(), contains('dur'));
