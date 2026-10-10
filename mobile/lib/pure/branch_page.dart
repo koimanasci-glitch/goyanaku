@@ -11,7 +11,7 @@ import 'team_page.dart';
 class BranchPage extends PurePage {
   BranchPage(super.host);
 
-  /// Outlet yang dibuka (id lokal, "srv-<n>" bila sudah di server).
+  /// Outlet yang dibuka (id lokal, atau `srv-N` bila sudah di server).
   static String outletId = '';
 
   List<Map<String, dynamic>> team = [], devices = [], shared = [];
@@ -148,7 +148,8 @@ class BranchPage extends PurePage {
       case 15:
         return host.go('stock');
       case 16:
-        return _toggleActive();
+        _toggleActive();
+        return;
     }
     if (i >= 100 && i - 100 < devices.length) _revoke(devices[i - 100]);
   }
