@@ -160,7 +160,7 @@ void main() {
     page.button(1000 + b * 10 + 1);
     expect(host.sheets, contains('tim-form'));
     final form = page.sheetItems('tim-form')!;
-    expect(form.first['t'], 'Tambah Pegawai');
+    expect(form.first['t'], 'Tambah Pegawai · Bekasi');
     expect([for (final it in form) if (it['type'] == 'select') it['index']], [1, b]);
     page.sheetEvent('tim-form', 'input', 0, 'Dodi');
     page.sheetEvent('tim-form', 'input', 1, '0812-0000-1111');

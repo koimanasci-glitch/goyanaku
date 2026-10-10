@@ -91,7 +91,7 @@ class BranchPage extends PurePage {
       if (!active) {'type': 'hint', 't': '⛔ Cabang ini nonaktif: tidak menerima transaksi baru. Riwayatnya tetap ada.'},
       {'type': 'title', 't': ready ? 'Siap buka ✅' : 'Siap buka'},
       ...steps,
-      if (!owner) {'type': 'hint', 't': 'Tim, HP kasir, dan status cabang tampil setelah masuk ke akun GOYANA sebagai pemilik.'},
+      if (!owner) {'type': 'hint', 't': 'Daftar tim, HP kasir, dan status cabang tampil setelah masuk ke akun GOYANA sebagai pemilik.'},
       if (owner && _n == null) {'type': 'hint', 't': 'Cabang ini belum tersimpan di server. Tunggu sinkron (butuh internet), lalu buka lagi.'},
       if (_note.isNotEmpty) {'type': 'hint', 't': _note},
       {'type': 'button', 't': 'Kelola Cabang Ini', 'primary': true, 'file': '', 'after': false, 'i': 18},
@@ -102,12 +102,15 @@ class BranchPage extends PurePage {
         {'type': 'hint', 't': '🏠 Cabang rumah HP ini: pesanan baru dari HP ini masuk ke ${o.name}.'}
       else if (!host.server.loggedIn || owner)
         {'type': 'button', 't': 'Jadikan Cabang Rumah HP Ini', 'primary': false, 'file': '', 'after': false, 'i': 17},
+      // Tim cabang: kasir, pegawai, kurir, kepala cabang khusus cabang ini (akun di server).
+      {'type': 'title', 't': 'Tim cabang ini'},
+      if (online) {'type': 'hint', 't': [for (final r in TeamPage.roles) '${r[1]} ${_count(r[0])}'].join(' · ')}
+      else {'type': 'hint', 't': 'Kasir, pegawai, dan kurir cabang ini punya akun sendiri (nomor HP + PIN) di server GOYANA. Bisa ditambah setelah masuk ke akun GOYANA sebagai pemilik.'},
+      {'type': 'button', 't': 'Kelola Tim Cabang Ini', 'primary': false, 'file': '', 'after': false, 'i': 11},
+      // Hak akses per cabang tersimpan di HP pemilik dan ikut sinkron: bisa diatur walau server belum online.
+      {'type': 'title', 't': 'Hak akses cabang ini'},
+      {'type': 'buttons', 'cols': 2, 'options': [{'t': 'Hak Akses Kasir', 'on': false, 'i': 13}, {'t': 'Hak Akses Pegawai', 'on': false, 'i': 14}]},
       if (online) ...[
-        {'type': 'title', 't': 'Tim'},
-        {'type': 'hint', 't': [for (final r in TeamPage.roles) '${r[1]} ${_count(r[0])}'].join(' · ')},
-        {'type': 'button', 't': 'Kelola Tim Cabang Ini', 'primary': false, 'file': '', 'after': false, 'i': 11},
-        {'type': 'title', 't': 'Hak akses cabang ini'},
-        {'type': 'buttons', 'cols': 2, 'options': [{'t': 'Hak Akses Kasir', 'on': false, 'i': 13}, {'t': 'Hak Akses Pegawai', 'on': false, 'i': 14}]},
         {'type': 'title', 't': 'HP kasir'},
         {'type': 'hint', 't': '${devices.length} dari $devLimit slot HP kasir terpakai${shared.isEmpty ? '' : ' · ${shared.length} HP outlet bersama'}.'},
         for (var k = 0; k < devices.length; k++)

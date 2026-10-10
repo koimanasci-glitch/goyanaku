@@ -213,7 +213,7 @@ class TeamPage extends PurePage {
         {'type': 'input', 'v': v, 'ph': ph, 'multiline': false, 'numeric': numeric, 'decimal': false, 'ro': false, 'secret': secret, 'email': false, 'i': i};
     final outs = _outs, kurir = roles[_role][0] == 'kurir';
     return [
-      {'type': 'title', 't': _id == null ? 'Tambah ${roles[_role][1]}' : 'Edit ${roles[_role][1]}', 's': ''},
+      {'type': 'title', 't': '${_id == null ? 'Tambah' : 'Edit'} ${roles[_role][1]}${outs.isEmpty ? '' : ' · ${outs[_outlet.clamp(0, outs.length - 1)].name}'}', 's': ''},
       {'type': 'label', 't': 'Nama'},
       inp(_name, 'Contoh: Rina', 0),
       {'type': 'label', 't': 'Nomor HP (untuk masuk)'},
@@ -253,6 +253,7 @@ class TeamPage extends PurePage {
           host.refresh();
         case 3:
           _outlet = value is int ? value : int.tryParse(v) ?? 0;
+          host.refresh();
         case 4:
           _pin = v;
       }

@@ -1617,8 +1617,8 @@ class OutletsPage extends PurePage {
           'type': 'entry', 't': list[k].name, 'lines': [list[k].address, 'WA ${list[k].phone}'], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '',
           'btns': [
             {'t': 'Monitoring', 'on': false, 'i': 2 + 2 * k}, {'t': 'Edit', 'on': false, 'i': 3 + 2 * k},
-            // Halaman cabang (Tahap 2): pemilik yang masuk ke akun GOYANA.
-            if (host.server.isOwner) {'t': 'Kelola', 'on': true, 'i': 5000 + k},
+            // Halaman cabang (Tahap 2): selalu tampil untuk pemilik (juga sebelum server online); akun staf tidak.
+            if (!host.server.loggedIn || host.server.isOwner) {'t': 'Kelola', 'on': true, 'i': 5000 + k},
           ],
         },
     ];
