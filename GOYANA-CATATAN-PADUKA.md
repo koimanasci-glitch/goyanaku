@@ -209,3 +209,5 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Keputusan Paduka: koreksi kesalahan (mis. berat kiloan salah) boleh, tapi **ada batas per bulan** (contoh 3x); koreksi berikutnya (ke-4 dst) **wajib approve / kode dari pemilik**.
 - 12.18 — Keputusan Paduka: kuota koreksi **per kasir, 2x per bulan**. Koreksi ke-3 dst wajib approve/kode pemilik.
 - 12.19 — Diperjelas Paduka: begitu pesanan **sudah masuk sistem** (Antrian/Penjemputan) **atau sudah dibayar**, setiap perubahan = koreksi berkuota. Bebas hanya selama belum disimpan (masih di layar Tambah Transaksi). Mengisi timbangan pertama pada penjemputan kosong bukan koreksi.
+- 12.56 — Keputusan Paduka: **laundry kecil tidak dibatasi fiturnya**. Fondasi sistem sama untuk kecil & besar; semua fitur (monitoring, hak akses, kuota koreksi, stok/transfer, laporan) tersedia walau 1 cabang. Buka cabang kedua = tinggal tambah cabang, tanpa pindah sistem/data.
+- Rancangan lengkap: dokumen "Rancangan Multi-Cabang GOYANA" (claude.ai artifact bd689e71-a1e5-44bd-8cb4-f375a07c4ad2).
