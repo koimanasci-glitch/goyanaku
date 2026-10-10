@@ -8,6 +8,7 @@ import 'package:goyana_flutter/core/store.dart';
 import 'package:goyana_flutter/pure/pages.dart';
 import 'package:goyana_flutter/pure/server_sync.dart';
 import 'package:goyana_flutter/pure/branch_page.dart';
+import 'package:goyana_flutter/pure/kelola_cabang_page.dart';
 import 'package:goyana_flutter/pure/team_page.dart';
 
 class _Server {
@@ -110,6 +111,11 @@ class _Host implements PureHost {
   void closePageSheet(String id) => sheets.remove(id);
   @override
   DateTime get now => DateTime(2026, 10, 10, 10);
+  final went = <String>[];
+  @override
+  void go(String page) => went.add(page);
+  @override
+  Future<void> saveAll() async {}
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -266,5 +272,71 @@ void main() {
     expect(items.any((e) => e['t'] == 'Tunai Dipegang Kurir'), isFalse, reason: 'tunai kurir ada di tab Kas');
     one.button(955);
     expect(one.items().any((e) => e['t'] == 'Belum ada riwayat aktivitas cabang ini di HP ini.'), isTrue);
+  });
+
+  test('kelola cabang ini: banner cabang, kas ke cabang lain lewat server, cabang rumah langsung ke laci', () async {
+    final server = _Server();
+    final kv = MemoryKvStore({
+      Keys.business: jsonEncode({'orders': <dynamic>[], 'details': <String, dynamic>{}, 'customers': <dynamic>[]}),
+      Keys.outlets: jsonEncode([{'id': 'out-1', 'name': 'Pusat', 'address': 'A', 'phone': '0811'}]),
+      Keys.activeOutlet: jsonEncode('out-1'),
+    });
+    final sync = ServerSync(kv, send: server.send);
+    await sync.load();
+    expect(await sync.setUrl('https://app.goyana.test/'), isNull);
+    await sync.login('owner@laundry.test', 'PasswordAman123');
+    final host = _Host(kv, await Business.load(kv), await AppSettings.load(kv), sync);
+    expect(host.business.activeOutlet, 'srv-5');
+
+    KelolaCabangPage.outletId = 'srv-6';
+    final page = KelolaCabangPage(host)..opened();
+    await _settle();
+    var items = page.items();
+    expect(items.first, containsPair('type', 'banner'));
+    expect(items.first['t'], 'Simpan ke Cabang Bekasi');
+
+    // Tarik uang dari laci Bekasi: tersimpan sebagai catatan cabang, menunggu HP kasir Bekasi.
+    page.button(2);
+    expect(host.sheets, contains('kc-form'));
+    expect(page.sheetItems('kc-form')!.firstWhere((e) => e['type'] == 'button')['t'], 'Simpan ke Bekasi');
+    page.sheetEvent('kc-form', 'button', 0, null);
+    expect(host.toasts.last, 'Isi jumlah uang');
+    page.sheetEvent('kc-form', 'input', 0, '150.000');
+    page.sheetEvent('kc-form', 'input', 1, 'Setor ke bank');
+    page.sheetEvent('kc-form', 'button', 0, null);
+    await _settle();
+    expect(host.toasts.last, 'Tarik Uang tersimpan ke Bekasi');
+    final tasks = jsonDecode(kv.data[branchTasksKey]!) as List;
+    expect(tasks.single, allOf(containsPair('kind', 'kas_out'), containsPair('amount', 150000), containsPair('o', 'srv-6'), containsPair('by', 'Koko')));
+    expect((await extractLocal(kv))['branch_tasks|${tasks.single['id']}']!.outlet, 'srv-6');
+    expect((host.settings.raw['audit'] as List).first['o'], 'srv-6');
+    items = page.items();
+    final row = items.firstWhere((e) => e['t'] == 'Tarik Uang · Setor ke bank');
+    expect('${(row['lines'] as List).single}', contains('menunggu HP kasir cabang'));
+    expect(row['amount'], '-Rp150.000');
+    page.button(100);
+    await _settle();
+    expect(jsonDecode(kv.data[branchTasksKey]!), isEmpty);
+
+    // Stok & koreksi nota membuka halaman cabang itu.
+    page.button(4);
+    expect(StockPage.nextOutlet, 'srv-6');
+    page.button(7);
+    expect(host.went, ['stock', 'branchmonitor58']);
+    expect(BranchMonitorPage.startTab, 1);
+    BranchMonitorPage.startTab = 0;
+    StockPage.nextOutlet = '';
+
+    // Cabang rumah HP ini: tanpa banner, kas langsung masuk laci HP ini.
+    KelolaCabangPage.outletId = 'srv-5';
+    page.opened();
+    await _settle();
+    expect(page.items().any((e) => e['type'] == 'banner'), isFalse);
+    page.button(1);
+    page.sheetEvent('kc-form', 'input', 0, '20000');
+    page.sheetEvent('kc-form', 'button', 0, null);
+    await _settle();
+    expect(host.toasts.last, 'Kas Masuk tersimpan');
+    expect((host.business.kas['ins'] as List).last, containsPair('a', 20000));
   });
 }

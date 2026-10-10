@@ -3,6 +3,7 @@
 // HP kasir terdaftar, stok cabang, dan nonaktifkan/aktifkan cabang. Data tim, HP, dan status dari server (khusus pemilik).
 
 import '../core/stock.dart';
+import 'kelola_cabang_page.dart';
 import 'pages.dart';
 import 'server_sync.dart' show ServerFailure, ServerSync;
 import 'staff_rights_page.dart';
@@ -93,6 +94,8 @@ class BranchPage extends PurePage {
       if (!owner) {'type': 'hint', 't': 'Tim, HP kasir, dan status cabang tampil setelah masuk ke akun GOYANA sebagai pemilik.'},
       if (owner && _n == null) {'type': 'hint', 't': 'Cabang ini belum tersimpan di server. Tunggu sinkron (butuh internet), lalu buka lagi.'},
       if (_note.isNotEmpty) {'type': 'hint', 't': _note},
+      {'type': 'button', 't': 'Kelola Cabang Ini', 'primary': true, 'file': '', 'after': false, 'i': 18},
+      {'type': 'hint', 't': 'Kas masuk, tarik uang, pengeluaran, stok, minta cek stok, dan koreksi nota untuk cabang ini.'},
       {'type': 'button', 't': 'Edit Profil & Zona Waktu', 'primary': false, 'file': '', 'after': false, 'i': 10},
       // Cabang rumah HP: pesanan baru, kas, dan tutup omset dari HP ini masuk ke outlet aktifnya.
       if (outletId == host.business.activeOutlet)
@@ -157,6 +160,9 @@ class BranchPage extends PurePage {
         return;
       case 17:
         return _makeHome();
+      case 18:
+        KelolaCabangPage.outletId = outletId;
+        return host.go('kelolacabang');
     }
     if (i >= 100 && i - 100 < devices.length) _revoke(devices[i - 100]);
   }

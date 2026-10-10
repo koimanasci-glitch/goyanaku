@@ -674,4 +674,43 @@ void main() {
     access.serverPlan = null;
     expect(access.rank(now), 1);
   });
+
+  test('kelola cabang ini: kas dari pemilik diambil satu HP kasir cabang lalu masuk lacinya sekali saja', () async {
+    final kv = _phone(), server = _Server()
+      ..role = 'kasir'
+      ..perms = ['orders.create', 'payments.receive', 'cash.manage'];
+    kv.data[Keys.outlets] = jsonEncode([{'id': 'srv-5', 'name': 'Pusat'}]);
+    kv.data[Keys.activeOutlet] = jsonEncode('srv-5');
+    final sync = await _connected(kv, server, account: '0812-3456-7890', secret: '482915');
+    await sync.cycle();
+    final me = await sync.deviceId();
+    server.rev = 50;
+    server.pullRecords = [
+      {'collection': 'branch_tasks', 'key': 'bt-1', 'outlet': 'srv-5', 'deleted': false, 'rev': 49,
+        'data': {'id': 'bt-1', 'kind': 'kas_out', 'amount': 50000, 'note': 'Tarik uang', 'o': 'srv-5', 'at': '2026-10-08T06:00:00Z', 'by': 'Koko'}},
+      {'collection': 'branch_tasks', 'key': 'bt-2', 'outlet': 'srv-5', 'deleted': false, 'rev': 50,
+        'data': {'id': 'bt-2', 'kind': 'kas_in', 'amount': 9000, 'o': 'srv-5', 'at': '2026-10-08T06:00:00Z', 'by': 'Koko', 'claimedBy': 'hp-lain'}},
+    ];
+    await sync.cycle();
+    expect(await sync.applyInbox(), 2);
+    var tasks = jsonDecode(kv.data[branchTasksKey]!) as List;
+    expect(tasks.firstWhere((t) => t['id'] == 'bt-1')['claimedBy'], me, reason: 'diambil HP ini');
+    expect(await sync.branchTasksDue(), isFalse, reason: 'tunggu server menerima pengambilan');
+    Map kas() => (jsonDecode(kv.data[Keys.business]!) as Map)['kas'] as Map;
+    expect(kas()['outs'], isEmpty);
+
+    await sync.cycle();
+    final claim = server.pushed().where((c) => c['collection'] == 'branch_tasks').toList();
+    expect(claim.map((c) => c['key']), ['bt-1']);
+    expect(await sync.branchTasksDue(), isTrue);
+    expect(await sync.applyInbox(), 1);
+    expect(kas()['outs'], [
+      {'a': 50000, 't': 'Tarik uang · dari Koko', 'at': '2026-10-08T06:00:00Z', 'task': 'bt-1'},
+    ]);
+    expect(kas()['ins'], isEmpty, reason: 'bt-2 milik laci HP lain');
+    expect(await sync.applyInbox(), 0, reason: 'tidak masuk dua kali');
+    await sync.cycle();
+    expect(server.pushed().where((c) => c['collection'] == 'branch_tasks').length, 1);
+    expect(server.pushed().last['collection'], 'kas');
+  });
 }

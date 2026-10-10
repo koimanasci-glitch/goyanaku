@@ -32,7 +32,7 @@ import 'page_templates.dart';
 import 'plan_page.dart';
 import 'qr_decode.dart';
 import 'reminders.dart';
-import 'server_sync.dart' show ServerFailure, ServerSync;
+import 'server_sync.dart' show ServerFailure, ServerSync, branchTasksKey;
 import 'views.dart' show mapsLink;
 import 'wa_link.dart';
 
@@ -609,17 +609,33 @@ class StockPage extends PurePage {
   @override
   String get title => 'STOK & BAHAN';
 
+  /// Kelola Cabang Ini: halaman stok dibuka untuk cabang tertentu (sekali buka); kosong = cabang rumah HP ini.
+  static String nextOutlet = '';
+  String _branch = '';
+  List<Map<String, dynamic>> _requests = [];
+
+  @override
+  String get back => _branch.isEmpty ? super.back : 'kelolacabang';
+
   @override
   void opened() {
     tab = 'stock';
     histItem = '';
+    _branch = host.business.outlets.any((o) => o.id == nextOutlet) && nextOutlet != host.business.activeOutlet ? nextOutlet : '';
+    nextOutlet = '';
+    _requests = [];
+    host.kv.get(branchTasksKey).then((raw) {
+      final list = raw == null || raw.isEmpty ? const [] : (jsonDecode(raw) as List? ?? const []);
+      _requests = [for (final t in list.whereType<Map>()) if (t['kind'] == 'opname') Map<String, dynamic>.from(t)];
+      host.refresh();
+    });
     StockBook.load(host.kv).then((b) {
       book = b;
       host.refresh();
     });
   }
 
-  String get outletId => host.business.activeOutlet.isNotEmpty ? host.business.activeOutlet : (host.business.outlets.isEmpty ? 'default' : host.business.outlets.first.id);
+  String get outletId => _branch.isNotEmpty ? _branch : host.business.activeOutlet.isNotEmpty ? host.business.activeOutlet : (host.business.outlets.isEmpty ? 'default' : host.business.outlets.first.id);
   /// Stok per cabang (10 Okt 2026): kasir dan pegawai hanya mencatat bahan dipakai dan menerima kiriman;
   /// stok masuk, belanja, cek stok, kirim ke cabang, dan bahan diatur kepala cabang atau pemilik (ditegakkan server juga).
   bool get _manage => !host.server.loggedIn || host.server.isOwner || host.server.can('stock.manage');
@@ -690,7 +706,15 @@ class StockPage extends PurePage {
       }
     }
     final transfers = _l('transfers').where((t) => t['from'] == o || t['to'] == o).toList().reversed;
+    // Permintaan cek stok dari pemilik yang belum dikerjakan (belum ada Cek Stok di cabang ini sesudahnya).
+    final asked = [
+      for (final r in _requests)
+        if ('${r['o']}' == o && !_l('ledger').any((x) => x['type'] == 'Stock Opname' && '${x['outletId']}' == o && '${x['at'] ?? ''}'.compareTo('${r['at'] ?? ''}') > 0)) r,
+    ];
     return [
+      if (_branch.isNotEmpty) {'type': 'banner', 't': 'Simpan ke Cabang ${_outName(o)}', 's': 'Stok masuk, cek stok, dan kiriman di halaman ini dicatat untuk ${_outName(o)}, bukan cabang rumah HP ini.'},
+      for (final r in asked)
+        {'type': 'banner', 't': '📋 ${r['by'] ?? 'Pemilik'} minta cek stok', 's': '${'${r['note'] ?? ''}'.isEmpty ? '' : '${r['note']} · '}Ketuk bahan › Cek Stok untuk mencatat hasil hitungan.'},
       {'type': 'stats', 'cells': [
         {'v': '${its.length}', 't': 'Jenis bahan', 'n': '', 'tone': ''},
         {'v': '$low', 't': 'Stok menipis', 'n': low > 0 ? 'ketuk untuk lihat' : '', 'tone': low > 0 ? 'r' : '', 'i': 21},
@@ -3183,11 +3207,11 @@ class EmployeesPage extends PurePage {
 
 
 /// Catat aktivitas ke Audit (di HTML hanya ada di memori; di sini tersimpan, paling banyak 300 terakhir).
-void addAudit(PureHost host, String icon, String title, String sub) {
+void addAudit(PureHost host, String icon, String title, String sub, {String? outlet}) {
   final list = host.settings.raw.putIfAbsent('audit', () => <dynamic>[]) as List;
   final n = host.now;
   // id + cabang ikut disimpan supaya riwayat terkirim ke server dan pemilik melihat semua cabang (10 Okt 2026).
-  list.insert(0, {'id': 'a-${n.microsecondsSinceEpoch}-${list.length}', 'ic': icon, 't': title, 's': sub, 'at': n.toIso8601String(), 'o': host.business.activeOutlet});
+  list.insert(0, {'id': 'a-${n.microsecondsSinceEpoch}-${list.length}', 'ic': icon, 't': title, 's': sub, 'at': n.toIso8601String(), 'o': outlet ?? host.business.activeOutlet});
   if (list.length > 300) list.removeRange(300, list.length);
 }
 
@@ -3571,13 +3595,16 @@ class BranchMonitorPage extends PurePage {
   String get back => 'superbilling';
   /// Tab satu cabang (data server): 0 Ringkasan, 1 Pesanan, 2 Kas, 3 Stok, 4 Tim, 5 Riwayat.
   int tab = 0;
+  /// Tab saat dibuka (Kelola Cabang Ini › Koreksi Nota membuka tab Pesanan); dipakai sekali.
+  static int startTab = 0;
   static const tabs = ['Ringkasan', 'Pesanan', 'Kas', 'Stok', 'Tim', 'Riwayat'];
   StockBook? _stock;
 
   @override
   void opened() {
     _report = null;
-    tab = 0;
+    tab = startTab;
+    startTab = 0;
     StockBook.load(host.kv).then((s) {
       _stock = s;
       host.refresh();

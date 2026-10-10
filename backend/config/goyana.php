@@ -149,6 +149,8 @@ return [
             // Riwayat aktivitas (Audit Aktivitas) per cabang, dikirim semua HP; dibaca owner dan kepala cabang.
             // Tidak bisa diubah atau dihapus siapa pun; server mencap nama akun pengirim (App\Support\AuditTrail).
             'audit' => ['scope' => 'outlet', 'read' => ['reports.view'], 'write' => ['*']],
+            // Kelola Cabang Ini: kas dan permintaan cek stok dari pemilik untuk cabang tertentu (App\Support\BranchTask).
+            'branch_tasks' => ['scope' => 'outlet', 'read' => ['cash.manage', 'stock.manage', 'stock.use'], 'write' => ['cash.manage', 'stock.manage']],
             'stock_transfers' => ['scope' => 'business', 'read' => ['stock.manage', 'stock.use'], 'write' => ['stock.manage', 'stock.use']],
             'stock_suppliers' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],
             'stock_purchases' => ['scope' => 'business', 'read' => ['stock.manage'], 'write' => ['stock.manage']],

@@ -317,6 +317,17 @@ class NativeForm extends StatelessWidget {
         return _PairCode(it: it, onTap: a.fmButton);
       case 'tip':
         return _TipBox(it: it);
+      case 'banner':
+        // Peringatan oranye (Tahap 2: "Simpan ke Cabang X" saat mengelola cabang lain).
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(color: const Color(0xfffff4e5), border: Border.all(color: const Color(0xfff59e0b)), borderRadius: BorderRadius.circular(12)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_s(it['t']), style: gText(13, w: FontWeight.w700, c: const Color(0xffb45309))),
+            if (_s(it['s']).isNotEmpty) ...[const SizedBox(height: 2), Text(_s(it['s']), style: gText(11.5, c: const Color(0xff92400e), h: 16))],
+          ]),
+        );
       case 'success':
         return _SuccessBox(it: it);
       case 'pickup':

@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Business, CashierDevice, Outlet, User};
-use App\Support\{AuditTrail, Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
+use App\Support\{AuditTrail, BranchTask, Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -64,6 +64,7 @@ class SyncController {
         $visible = $rows->filter(function ($r) use ($user, $readable) {
             if (!in_array($r->collection, $readable, true)) return false;
             // Kiriman bahan antar cabang: staf hanya melihat yang dari/ke cabangnya.
+            if ($r->collection === 'branch_tasks' && !$r->deleted && !BranchTask::visible($user, json_decode((string) $r->data, true))) return false;
             if ($r->collection === 'stock_transfers' && !$r->deleted && !StockGuard::visibleTransfer($user, json_decode((string) $r->data, true))) return false;
             return $user->role === 'owner' || $r->outlet_id === null || (int) $r->outlet_id === $user->outlet_id;
         })->map(fn ($r) => $this->present($r))->values();
@@ -224,6 +225,12 @@ class SyncController {
             if (is_string($checked)) return $this->reject($checked);
             if ($before !== null) return ['status' => 'applied', 'rev' => (int) $existing->rev];
             $json = json_encode($checked, JSON_UNESCAPED_UNICODE);
+        }
+        if ($change['collection'] === 'branch_tasks') {
+            $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+            $checked = BranchTask::check($user, $device, (int) $outletId, $before, $change['data'] ?? null, $deleted);
+            if (is_string($checked)) return $this->reject($checked);
+            if (!$deleted) $json = json_encode($checked, JSON_UNESCAPED_UNICODE);
         }
         if ($change['collection'] === 'stock_transfers') {
             $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;

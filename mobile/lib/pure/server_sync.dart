@@ -28,6 +28,11 @@ const serverSharedKey = 'goyana-psync-shared';
 const _stockKey = 'goyana-stock181';
 const _couriersKey = 'goyana-couriers181';
 const _pickupsKey = 'goyana-pickup202';
+/// Kelola Cabang Ini (Tahap 2): catatan kas / minta cek stok dari pemilik untuk satu cabang, dan id catatan kas yang
+/// sudah dimasukkan ke laci kas HP ini (supaya tidak masuk dua kali).
+const branchTasksKey = 'goyana-branch-tasks';
+const _tasksAppliedKey = 'goyana-branch-tasks-applied';
+const branchCashKinds = ['kas_in', 'kas_out', 'expense'];
 const _transportKey = 'goyana-transport183';
 const _crmKey = 'goyana-crm203';
 
@@ -70,12 +75,13 @@ const _writeRules = {
   'stock_purchases': ['stock.manage'],
   'stock_recipes': ['stock.manage'],
   'stock_transfers': ['stock.manage', 'stock.use'],
+  'branch_tasks': ['cash.manage', 'stock.manage'],
 };
 
 /// Kunci penyimpanan yang isinya ikut disinkronkan: perubahan padanya memicu sinkronisasi.
 const serverWatchedKeys = [
   Keys.business, Keys.services, _stockKey, _couriersKey, Keys.outlets, _pickupsKey, _transportKey, Keys.qrisText, Keys.qrisImage,
-  Keys.qrisOptions, Keys.perfumes, 'goyana-durations199', pureSettingsKey, _crmKey,
+  Keys.qrisOptions, Keys.perfumes, 'goyana-durations199', pureSettingsKey, _crmKey, branchTasksKey,
 ];
 
 class ServerFailure implements Exception {
@@ -254,6 +260,9 @@ Future<Map<String, LocalRecord>> extractLocal(KvStore kv) async {
   for (final p in _asList(_decode(await kv.get(_pickupsKey)))) {
     if (p is Map && _text(p['id']).isNotEmpty) put('pickups', _text(p['id']), p['outlet'], p);
   }
+  for (final t in _asList(_decode(await kv.get(branchTasksKey)))) {
+    if (t is Map && _text(t['id']).isNotEmpty) put('branch_tasks', _text(t['id']), t['o'], t);
+  }
   for (final k in _settingKeys) {
     final v = await kv.get(k);
     if (v != null && v.isNotEmpty) put('settings', k, null, v);
@@ -312,7 +321,7 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
   final deposits = _asMap(b['deposits178']);
   final active = _text(_decode(await kv.get(Keys.activeOutlet)));
   var businessChanged = false;
-  List<dynamic>? services, couriers, outlets, pickups;
+  List<dynamic>? services, couriers, outlets, pickups, tasks;
   Map<String, dynamic>? stock, crm;
 
   for (final r in records) {
@@ -359,6 +368,9 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
       case 'pickups':
         pickups ??= _asList(_decode(await kv.get(_pickupsKey)));
         _upsert(pickups, key, (x) => x is Map ? _text(x['id']) : '', data, deleted);
+      case 'branch_tasks':
+        tasks ??= _asList(_decode(await kv.get(branchTasksKey)));
+        _upsert(tasks, key, (x) => x is Map ? _text(x['id']) : '', data, deleted);
       case 'audit':
         // Riwayat dari HP/cabang lain digabung ke Audit Aktivitas (terbaru di atas, paling banyak 500 catatan).
         if (!deleted && data is Map) {
@@ -434,6 +446,7 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
   if (couriers != null) await kv.set(_couriersKey, jsonEncode(couriers));
   if (outlets != null) await kv.set(Keys.outlets, jsonEncode(outlets));
   if (pickups != null) await kv.set(_pickupsKey, jsonEncode(pickups));
+  if (tasks != null) await kv.set(branchTasksKey, jsonEncode(tasks));
   if (stock != null) await kv.set(_stockKey, jsonEncode(stock));
   if (crm != null) await kv.set(_crmKey, jsonEncode(crm));
   return records.length;
@@ -574,6 +587,11 @@ class ServerSync {
       if (deleted || data is! Map) return false;
       if (_text(data['outletId']) != 'srv-${_text(user['outlet_id'])}') return false;
       return can('stock.manage') || const ['Pemakaian', 'Pemakaian Otomatis', 'Transfer Masuk'].contains(_text(data['type']));
+    }
+    // Kelola Cabang Ini: staf tidak membuat catatan cabang; HP kasir hanya mengirim pengambilan ke lacinya (BranchTask di server).
+    if (collection == 'branch_tasks') {
+      if (deleted || data is! Map) return false;
+      return role == 'manager' || _text(data['claimedBy']).isNotEmpty;
     }
     if (collection == 'stock_transfers') {
       if (deleted || data is! Map) return false;
@@ -1006,7 +1024,14 @@ class ServerSync {
   /// lalu muat ulang data di layar. Mengembalikan jumlah yang diterapkan.
   Future<int> applyInbox() async {
     final inbox = await _inbox();
-    if (inbox.isEmpty) return 0;
+    if (inbox.isEmpty) {
+      final settled = await _settleBranchTasks();
+      if (settled > 0) {
+        status.pending = (await _pending()).length;
+        onChanged?.call();
+      }
+      return settled;
+    }
     await applyRemote(kv, inbox);
     final st = await _state();
     final recs = _asMap(st['recs']);
@@ -1019,9 +1044,63 @@ class ServerSync {
     st['recs'] = recs;
     await kv.set(serverStateKey, jsonEncode(st));
     await kv.remove(serverInboxKey);
+    await _settleBranchTasks();
     status.pending = (await _pending()).length;
     onChanged?.call();
     return inbox.length;
+  }
+
+  /// Ada catatan kas dari pemilik yang perlu diambil atau dimasukkan ke laci kas HP ini.
+  Future<bool> branchTasksDue() async => await _settleBranchTasks(dry: true) > 0;
+
+  /// Kelola Cabang Ini: catatan kas dari pemilik untuk cabang HP ini diambil oleh satu HP kasir (dicap id HP; server
+  /// menolak HP kedua), lalu setelah server menerima pengambilan itu masuk ke kas masuk / pengeluaran laci, sekali saja.
+  /// Dipanggil saat data server diterapkan (pengguna tidak sedang mengisi apa pun). Mengembalikan jumlah yang diubah.
+  Future<int> _settleBranchTasks({bool dry = false}) async {
+    if (!loggedIn || role == 'owner' || !can('cash.manage')) return 0;
+    final tasks = _asList(_decode(await kv.get(branchTasksKey)));
+    if (tasks.isEmpty) return 0;
+    final me = await deviceId();
+    final active = _text(_decode(await kv.get(Keys.activeOutlet)));
+    final applied = {for (final x in _asList(_decode(await kv.get(_tasksAppliedKey)))) _text(x)};
+    final recs = _asMap((await _state())['recs']);
+    Map<String, dynamic>? b;
+    var n = 0, claimed = false;
+    for (final t in tasks) {
+      if (t is! Map || !branchCashKinds.contains(_text(t['kind'])) || _text(t['o']) != active) continue;
+      final id = _text(t['id']), by = _text(t['claimedBy']);
+      if (by.isEmpty) {
+        n++;
+        if (dry) continue;
+        t['claimedBy'] = me;
+        t['claimedAt'] = _clock().toUtc().toIso8601String();
+        claimed = true;
+        continue;
+      }
+      if (by != me || applied.contains(id)) continue;
+      final known = recs['branch_tasks|$id'];
+      if (known is! Map || known['h'] != fingerprintOf(LocalRecord(_text(t['o']), t))) continue; // tunggu server menerima
+      n++;
+      if (dry) continue;
+      b ??= _asMap(_decode(await kv.get(Keys.business)));
+      final kas = _asMap(b['kas']);
+      b['kas'] = kas;
+      final amount = (t['amount'] as num?)?.round() ?? int.tryParse(_text(t['amount'])) ?? 0;
+      final income = _text(t['kind']) == 'kas_in';
+      final label = _text(t['note']).isNotEmpty ? _text(t['note']) : (income ? 'Kas masuk' : (_text(t['kind']) == 'kas_out' ? 'Tarik uang' : 'Pengeluaran'));
+      final entry = {'m': 'Tunai', 'a': amount, 't': '$label · dari ${_text(t['by']).isEmpty ? 'pemilik' : _text(t['by'])}', 'at': _text(t['at']), 'task': id};
+      final list = kas[income ? 'ins' : 'outs'];
+      kas[income ? 'ins' : 'outs'] = [..._asList(list), if (!income) (entry..remove('m')) else entry];
+      applied.add(id);
+    }
+    if (dry || n == 0) return n;
+    if (claimed) await kv.set(branchTasksKey, jsonEncode(tasks));
+    if (b != null) {
+      await kv.set(Keys.business, jsonEncode(b));
+      final keep = applied.toList();
+      await kv.set(_tasksAppliedKey, jsonEncode(keep.length > 500 ? keep.sublist(keep.length - 500) : keep));
+    }
+    return n;
   }
 
   /// Satu putaran: tarik lalu kirim. Aman dipanggil berulang; putaran yang sedang jalan dipakai bersama.
