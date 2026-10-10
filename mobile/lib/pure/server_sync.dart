@@ -153,6 +153,9 @@ String canonJson(Object? v) {
 }
 
 /// Sidik pendek (FNV-1a 32-bit), sama bentuknya dengan aplikasi HTML.
+/// Kunci riwayat aktivitas di server: id catatan, atau sidik dari isinya untuk catatan lama tanpa id.
+String auditKeyOf(Map e) => _text(e['id']).isNotEmpty ? _text(e['id']) : 'a-${shortHash('${e['at']}|${e['t']}|${e['s']}')}';
+
 String shortHash(String s) {
   var h = 2166136261;
   for (final c in s.codeUnits) {
@@ -256,6 +259,10 @@ Future<Map<String, LocalRecord>> extractLocal(KvStore kv) async {
     if (v != null && v.isNotEmpty) put('settings', k, null, v);
   }
   final pure = _asMap(_decode(await kv.get(pureSettingsKey)));
+  // Riwayat aktivitas: tiap catatan dikirim sekali ke server (cabangnya ikut), supaya pemilik melihat semua cabang.
+  for (final e in _asList(pure['audit'])) {
+    if (e is Map && _text(e['t']).isNotEmpty) put('audit', auditKeyOf(e), e['o'], e);
+  }
   final shared = <String, dynamic>{for (final k in _sharedSettingParts) if (pure.containsKey(k)) k: pure[k]};
   if (shared.isNotEmpty) put('settings', sharedSettingsRecord, null, canonJson(shared));
   // CRM dipecah per kunci supaya dua HP tidak saling menimpa: aturan, tiap voucher, poin tertukar tiap pelanggan, pengingat tiap nota.
@@ -352,6 +359,15 @@ Future<int> applyRemote(KvStore kv, List<Map<String, dynamic>> records) async {
       case 'pickups':
         pickups ??= _asList(_decode(await kv.get(_pickupsKey)));
         _upsert(pickups, key, (x) => x is Map ? _text(x['id']) : '', data, deleted);
+      case 'audit':
+        // Riwayat dari HP/cabang lain digabung ke Audit Aktivitas (terbaru di atas, paling banyak 500 catatan).
+        if (!deleted && data is Map) {
+          final pure = _asMap(_decode(await kv.get(pureSettingsKey)));
+          final list = [for (final e in _asList(pure['audit'])) if (e is! Map || auditKeyOf(e) != key) e, data];
+          list.sort((a, b) => _text(b is Map ? b['at'] : '').compareTo(_text(a is Map ? a['at'] : '')));
+          pure['audit'] = list.length > 500 ? list.sublist(0, 500) : list;
+          await kv.set(pureSettingsKey, jsonEncode(pure));
+        }
       case 'settings':
         if (key == sharedSettingsRecord) {
           final shared = data is String ? _decode(data) : null;
@@ -536,9 +552,11 @@ class ServerSync {
   /// [ck] = "koleksi|kunci". Data CRM: kasir hanya mengirim voucher terpakai, poin tertukar, dan catatan pengingat
   /// (aturan CRM dan penghapusan hanya dari akun yang boleh mengatur harga), sama dengan CrmGuard di server.
   bool _mayWrite(String ck, {bool deleted = false, Object? data}) {
-    if (role == 'owner') return true;
     final i = ck.indexOf('|');
     final collection = i < 0 ? ck : ck.substring(0, i);
+    // Riwayat aktivitas dikirim semua akun dan tidak pernah dihapus (catatan lama yang terpangkas di HP tetap di server).
+    if (collection == 'audit') return !deleted;
+    if (role == 'owner') return true;
     final rule = _writeRules[collection];
     if (rule == null || !rule.any(can)) return false;
     // Sama dengan StockGuard di server: staf hanya menulis catatan stok cabangnya; tanpa stock.manage hanya pemakaian

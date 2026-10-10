@@ -19,7 +19,7 @@ import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/import_csv.dart';
 import 'package:goyana_flutter/pure/label_page.dart';
-import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, HelpCenterPage, restoreBackup;
+import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, HelpCenterPage, addAudit, restoreBackup;
 import 'package:goyana_flutter/pure/reminders.dart';
 import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
@@ -543,6 +543,18 @@ void templateTests() {
     await _settle(tester);
     list = s.debugItems();
     expect(list.where((e) => e['type'] == 'entry').length, 2);
+    // Catatan baru membawa id dan cabang (untuk dikirim ke server); riwayat dari cabang lain menampilkan nama akun & cabangnya.
+    addAudit(s, '✓', 'Uji', 'catatan baru');
+    final mine = (s.settings.raw['audit'] as List).first as Map;
+    expect(mine['id'], startsWith('a-'));
+    expect(mine['o'], s.business.activeOutlet);
+    (s.settings.raw['audit'] as List).insert(0, {'ic': '✕', 't': 'Batal pesanan', 's': 'GY-9', 'at': DateTime(2026, 10, 3, 9).toIso8601String(), 'by': 'Dodi', 'o': 'srv-77'});
+    s.fmButton(0);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 0, '');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugItems().where((e) => e['type'] == 'entry').any((e) => (e['lines'] as List).first == 'GY-9 · Dodi'), isTrue);
     expect(tester.takeException(), isNull);
   });
 

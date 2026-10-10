@@ -3079,7 +3079,9 @@ class EmployeesPage extends PurePage {
 /// Catat aktivitas ke Audit (di HTML hanya ada di memori; di sini tersimpan, paling banyak 300 terakhir).
 void addAudit(PureHost host, String icon, String title, String sub) {
   final list = host.settings.raw.putIfAbsent('audit', () => <dynamic>[]) as List;
-  list.insert(0, {'ic': icon, 't': title, 's': sub, 'at': host.now.toIso8601String()});
+  final n = host.now;
+  // id + cabang ikut disimpan supaya riwayat terkirim ke server dan pemilik melihat semua cabang (10 Okt 2026).
+  list.insert(0, {'id': 'a-${n.microsecondsSinceEpoch}-${list.length}', 'ic': icon, 't': title, 's': sub, 'at': n.toIso8601String(), 'o': host.business.activeOutlet});
   if (list.length > 300) list.removeRange(300, list.length);
 }
 
@@ -3110,7 +3112,12 @@ class AuditPage extends PurePage {
       final at = DateTime.tryParse('${e['at']}')?.toLocal();
       if (from != null && (at == null || at.isBefore(from))) continue;
       final today = at != null && at.year == n.year && at.month == n.month && at.day == n.day;
-      final sub = today || at == null ? '${e['s']}' : '${at.day.toString().padLeft(2, '0')}/${at.month.toString().padLeft(2, '0')} · ${e['s']}';
+      // Riwayat dari server menyertakan nama akun dan cabangnya (cabang ditulis bila bukan outlet HP ini).
+      final who = '${e['by'] ?? ''}'.trim(), o = '${e['o'] ?? ''}';
+      final where = o.isNotEmpty && o != host.business.activeOutlet ? host.business.outlets.where((x) => x.id == o).firstOrNull?.name ?? '' : '';
+      final extra = [if (who.isNotEmpty) who, if (where.isNotEmpty) where].join(' · ');
+      final base = extra.isEmpty ? '${e['s']}' : '${e['s']} · $extra';
+      final sub = today || at == null ? base : '${at.day.toString().padLeft(2, '0')}/${at.month.toString().padLeft(2, '0')} · $base';
       final text = '${e['ic']}${e['t']}$sub';
       // Seperti HTML: pencarian (bila diisi) mengalahkan chip; selain itu chip menyaring dengan kata kunci.
       final show = _q.isNotEmpty ? text.toLowerCase().contains(_q.toLowerCase()) : (_re[_chip]?.hasMatch(text) ?? true);

@@ -192,6 +192,28 @@ void main() {
     expect([for (final t in stock['transfers'] as List) (t as Map)['id']], ['tr-1', 'tr-2']);
   });
 
+  test('riwayat aktivitas: dikirim dengan cabangnya, riwayat cabang lain digabung terbaru di atas', () async {
+    final kv = MemoryKvStore({
+      'goyana-pure-settings': jsonEncode({
+        'audit': [
+          {'id': 'a-2', 'ic': '✓', 't': 'Tutup kas', 's': 'Rina', 'at': '2026-10-10T05:00:00', 'o': 'srv-1'},
+          {'ic': '✎', 't': 'Ralat lama', 's': 'tanpa id', 'at': '2026-10-01T05:00:00'},
+        ],
+      }),
+    });
+    final local = await extractLocal(kv);
+    expect(local['audit|a-2']!.outlet, 'srv-1');
+    final old = local.keys.where((k) => k.startsWith('audit|a-') && k != 'audit|a-2').single;
+    expect(old, 'audit|${auditKeyOf({'at': '2026-10-01T05:00:00', 't': 'Ralat lama', 's': 'tanpa id'})}');
+    await applyRemote(kv, [
+      {'collection': 'audit', 'key': 'b-1', 'outlet': 'srv-2', 'deleted': false,
+        'data': {'id': 'b-1', 't': 'Batal pesanan', 's': 'GY-9', 'at': '2026-10-10T06:00:00', 'o': 'srv-2', 'by': 'Dodi'}},
+      {'collection': 'audit', 'key': 'a-2', 'outlet': 'srv-1', 'deleted': true, 'data': null},
+    ]);
+    final audit = (jsonDecode(kv.data['goyana-pure-settings']!) as Map)['audit'] as List;
+    expect([for (final e in audit) (e as Map)['t']], ['Batal pesanan', 'Tutup kas', 'Ralat lama']);
+  });
+
   test('data dari server digabung ke HP: tambah, ubah, hapus', () async {
     final kv = _phone();
     await applyRemote(kv, [

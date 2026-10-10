@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Business, CashierDevice, Outlet, User};
-use App\Support\{Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
+use App\Support\{AuditTrail, Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -206,6 +206,13 @@ class SyncController {
             $checked = StockGuard::ledger($user, (int) $outletId, $before, $change['data'] ?? null, $deleted);
             if (is_string($checked)) return $this->reject($checked);
             if (!$deleted) $json = json_encode($checked, JSON_UNESCAPED_UNICODE);
+        }
+        if ($change['collection'] === 'audit') {
+            $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+            $checked = AuditTrail::check($user, $before, $change['data'] ?? null, $deleted);
+            if (is_string($checked)) return $this->reject($checked);
+            if ($before !== null) return ['status' => 'applied', 'rev' => (int) $existing->rev];
+            $json = json_encode($checked, JSON_UNESCAPED_UNICODE);
         }
         if ($change['collection'] === 'stock_transfers') {
             $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
