@@ -147,11 +147,15 @@ Future<void> _add(WaDevicesPage page, {String name = 'WA Kasir', String phone = 
 void main() {
   // Hubungkan WhatsApp mulai paket Silver (keputusan 10 Okt 2026); tes perangkat memakai Silver.
   setUp(() => planAccess.testPlan = 'SILVER');
-  tearDown(() => planAccess.testPlan = null);
+  tearDown(() {
+    planAccess.testPlan = null;
+    planAccess.serverPlan = null;
+  });
 
   test('Basic/Free belum bisa menambah nomor WhatsApp', () async {
     planAccess.testPlan = null;
     final host = await _host(_Server());
+    planAccess.serverPlan = 'BASIC';
     final page = WaDevicesPage(host, WaLink(host));
     page.opened();
     page.button(0);
