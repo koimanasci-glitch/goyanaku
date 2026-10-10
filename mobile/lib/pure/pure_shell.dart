@@ -3004,13 +3004,20 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
 
+  /// Cabang rumah HP (10 Okt 2026): pesanan baru dari HP ini masuk ke outlet aktifnya; ditulis jelas bila usaha punya >1 outlet.
+  String get _homeLine {
+    final b = _b!;
+    if (b.outlets.length < 2) return '';
+    return ' · Masuk ke: ${b.outlets.where((o) => o.id == b.activeOutlet).firstOrNull?.name ?? b.outlets.first.name}';
+  }
+
   Map<String, dynamic> _addOrderJson() {
     final b = _b!;
     final m = <String, dynamic>{'title': _aoStage == 'customer' ? 'PILIH PELANGGAN' : 'TAMBAHKAN LAYANAN', 'stage': _aoStage};
     if (_aoStage == 'customer') {
       final q = _aoCustSearch.trim().toLowerCase();
       final list = b.customers;
-      m['step'] = 'Langkah 1 dari 5';
+      m['step'] = 'Langkah 1 dari 5$_homeLine';
       m['search'] = {'v': _aoCustSearch, 'ph': 'Cari nama / no handphone'};
       m['add'] = 'Tambah Pelanggan';
       m['people'] = [
@@ -3023,7 +3030,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return m;
     }
     final t = calcTotals(_cartItems, _optDiscKey, 0);
-    m['step'] = _aoSheet == 'options' ? 'Langkah 3 dari 5' : (_aoSheet == 'payment' ? 'Langkah 4 dari 5' : 'Langkah 2 dari 5');
+    m['step'] = '${_aoSheet == 'options' ? 'Langkah 3 dari 5' : (_aoSheet == 'payment' ? 'Langkah 4 dari 5' : 'Langkah 2 dari 5')}$_homeLine';
     if (_aoSheet == 'options') m['title'] = 'ATUR PESANAN';
     if (_aoSheet == 'payment') m['title'] = 'PEMBAYARAN';
     m['customer'] = {'name': _aoCustomer, 'sub': '$_aoDur · ${durationHours(_aoDur)} Jam', 'avatar': aoBarAvatar};

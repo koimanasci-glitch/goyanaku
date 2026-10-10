@@ -167,6 +167,7 @@ void main() {
     expect(titles, contains('Siap buka'));
     expect(titles.where((t) => t.startsWith('⬜')), containsAll(['⬜ Zona waktu', '⬜ Kasir cabang', '⬜ HP kasir', '⬜ Daftar harga']));
     expect(items.any((e) => e['t'] == 'Kasir 0 · Pegawai 0 · Kurir 1 · Kepala Cabang 0'), isTrue);
+    expect(items.any((e) => e['t'] == 'Jadikan Cabang Rumah HP Ini'), isTrue, reason: 'Bekasi bukan cabang rumah HP ini');
 
     // Pusat: 2 kasir, 1 HP terhubung; cabut HP.
     BranchPage.outletId = 'srv-5';
@@ -176,6 +177,7 @@ void main() {
     expect(items.any((e) => e['t'] == '✅ Kasir cabang'), isTrue);
     expect(items.any((e) => e['t'] == '✅ HP kasir'), isTrue);
     expect(items.any((e) => e['t'] == '1 dari 2 slot HP kasir terpakai.'), isTrue);
+    expect(items.any((e) => '${e['t']}'.startsWith('🏠 Cabang rumah HP ini')), isTrue);
     page.button(100);
     await _settle();
     expect(host.toasts.last, 'HP dicabut · slot bisa dipakai HP lain');

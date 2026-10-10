@@ -94,6 +94,11 @@ class BranchPage extends PurePage {
       if (owner && _n == null) {'type': 'hint', 't': 'Cabang ini belum tersimpan di server. Tunggu sinkron (butuh internet), lalu buka lagi.'},
       if (_note.isNotEmpty) {'type': 'hint', 't': _note},
       {'type': 'button', 't': 'Edit Profil & Zona Waktu', 'primary': false, 'file': '', 'after': false, 'i': 10},
+      // Cabang rumah HP: pesanan baru, kas, dan tutup omset dari HP ini masuk ke outlet aktifnya.
+      if (outletId == host.business.activeOutlet)
+        {'type': 'hint', 't': '🏠 Cabang rumah HP ini: pesanan baru dari HP ini masuk ke ${o.name}.'}
+      else if (!host.server.loggedIn || owner)
+        {'type': 'button', 't': 'Jadikan Cabang Rumah HP Ini', 'primary': false, 'file': '', 'after': false, 'i': 17},
       if (online) ...[
         {'type': 'title', 't': 'Tim'},
         {'type': 'hint', 't': [for (final r in TeamPage.roles) '${r[1]} ${_count(r[0])}'].join(' · ')},
@@ -150,8 +155,31 @@ class BranchPage extends PurePage {
       case 16:
         _toggleActive();
         return;
+      case 17:
+        return _makeHome();
     }
     if (i >= 100 && i - 100 < devices.length) _revoke(devices[i - 100]);
+  }
+
+  void _makeHome() {
+    final o = host.business.outlets.where((x) => x.id == outletId).firstOrNull;
+    if (o == null) return;
+    final from = host.business.outlets.where((x) => x.id == host.business.activeOutlet).firstOrNull?.name ?? '-';
+    host.openFormSheet(FormSheetDef(
+      'Ganti Cabang Rumah HP',
+      const [],
+      'Ya, Pindahkan',
+      (_) {
+        host.business.setActiveOutlet(o.id).then((_) async {
+          addAudit(host, '🏠', 'Cabang rumah HP diganti', '$from → ${o.name}');
+          await host.saveAll();
+          await host.reloadAll();
+          host.toast('Pesanan baru dari HP ini sekarang masuk ke ${o.name}');
+        });
+        return true;
+      },
+      sub: 'Transaksi baru, kas, dan tutup omset dari HP ini akan masuk ke ${o.name} (sebelumnya $from). Pesanan lama tetap di cabangnya.',
+    ));
   }
 
   Future<void> _toggleActive() async {

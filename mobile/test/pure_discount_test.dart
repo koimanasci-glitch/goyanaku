@@ -777,6 +777,12 @@ void templateTests() {
     final tg = ((s.settings.raw['tpl'] as Map)['cashier'] as Map)['tgOutlet'] as Map;
     expect((tg['srv-9'] as Map)['3'], isFalse);
 
+    // Cabang rumah HP: Tambah Transaksi menulis cabang tujuan pesanan bila usaha punya lebih dari 1 outlet.
+    s.debugKasirSession = false;
+    s.nav('addorder');
+    await _settle(tester);
+    expect('${s.debugAddOrder()['step']}', endsWith(' · Masuk ke: Uji'));
+
     // Pegawai: sakelar per cabang tersimpan di setelan bersama yang dibaca server.
     s.debugKasirSession = false;
     s.nav('aksespegawai');
