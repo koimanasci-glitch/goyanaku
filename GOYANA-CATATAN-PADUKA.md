@@ -200,3 +200,10 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Keputusan Paduka: **stok bahan per cabang** (masing-masing cabang punya stok sendiri). Sekarang di server stok masih satu untuk semua cabang → perlu diubah (belum dikerjakan).
 - Pembukuan kasir masuk ke outlet cabangnya (sudah jalan: akun staf terkunci ke outlet tugasnya, server memaksa outlet_id).
 - Usulan menunggu keputusan: staf dikelompokkan per cabang di halaman Outlet; "+ Tambah Kasir/Pegawai/Kurir" langsung dengan tugas & cabang terisi.
+
+## 10 Oktober 2026, 12.09–12.16 WIB — rancangan cabang & hak akses (diskusi, belum dikerjakan)
+- Tidak ada email/password per cabang. Pemilik 1 akun; staf masuk No HP + PIN, terkunci ke cabangnya.
+- Pilihan Paduka condong ke **monitoring** (bukan switch): HP punya "cabang rumah"; pesanan baru selalu masuk cabang rumah. Cabang lain lewat Monitor Cabang › Kelola Cabang Ini (kas masuk/keluar, tarik uang, stok masuk, opname, transfer stok, koreksi pesanan) dengan pita oranye + tombol "Simpan ke Cabang X" + riwayat "oleh Pemilik (dari jauh)".
+- Hak akses 3 lapis: (1) khusus pemilik, tidak bisa dibuka; (2) sakelar per cabang untuk Kasir/Pegawai/Kurir, langsung muncul saat tambah cabang (setelan aman bawaan / salin dari Pusat); (3) selalu boleh sesuai tugas.
+- Keputusan Paduka: **ubah berat/jumlah tidak boleh jadi sakelar untuk pegawai** (rawan curang).
+- Keputusan Paduka: koreksi kesalahan (mis. berat kiloan salah) boleh, tapi **ada batas per bulan** (contoh 3x); koreksi berikutnya (ke-4 dst) **wajib approve / kode dari pemilik**.
