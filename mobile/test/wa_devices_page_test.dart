@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:goyana_flutter/core/business.dart';
 import 'package:goyana_flutter/core/settings.dart';
 import 'package:goyana_flutter/core/store.dart';
+import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/pages.dart';
 import 'package:goyana_flutter/pure/server_sync.dart';
 import 'package:goyana_flutter/pure/wa_devices_page.dart';
@@ -106,6 +107,8 @@ class _Host implements PureHost {
   @override
   void closePageSheet(String id) => sheets.remove(id);
   @override
+  DateTime get now => DateTime(2026, 10, 8, 10);
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -142,6 +145,19 @@ Future<void> _add(WaDevicesPage page, {String name = 'WA Kasir', String phone = 
 }
 
 void main() {
+  // Hubungkan WhatsApp mulai paket Silver (keputusan 10 Okt 2026); tes perangkat memakai Silver.
+  setUp(() => planAccess.testPlan = 'SILVER');
+  tearDown(() => planAccess.testPlan = null);
+
+  test('Basic/Free belum bisa menambah nomor WhatsApp', () async {
+    planAccess.testPlan = null;
+    final host = await _host(_Server());
+    final page = WaDevicesPage(host, WaLink(host));
+    page.opened();
+    page.button(0);
+    expect(host.toasts.last, 'Hubungkan WhatsApp membutuhkan paket Silver');
+  });
+
   test('pemilik: draf di HP, didaftarkan ke server saat dihubungkan, QR asli dari server, lalu status diperiksa', () async {
     final server = _Server();
     final host = await _host(server);

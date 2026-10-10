@@ -627,7 +627,8 @@ void main() {
     access.serverPlan = '';
     expect([access.rank(now), access.has('employees', now)], [0, false]);
     access.serverPlan = 'BASIC';
-    expect([access.has('employees', now), access.has('stock', now)], [true, false]);
+    // Keputusan 10 Okt 2026: stok/opname/transfer semua paket; Hubungkan WhatsApp mulai Silver.
+    expect([access.has('employees', now), access.has('stock', now), access.has('transfer', now), access.has('wa', now)], [true, true, true, false]);
     access.serverPlan = null;
     expect(access.rank(now), 1);
   });
