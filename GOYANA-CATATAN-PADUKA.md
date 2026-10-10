@@ -207,4 +207,5 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Hak akses 3 lapis: (1) khusus pemilik, tidak bisa dibuka; (2) sakelar per cabang untuk Kasir/Pegawai/Kurir, langsung muncul saat tambah cabang (setelan aman bawaan / salin dari Pusat); (3) selalu boleh sesuai tugas.
 - Keputusan Paduka: **ubah berat/jumlah tidak boleh jadi sakelar untuk pegawai** (rawan curang).
 - Keputusan Paduka: koreksi kesalahan (mis. berat kiloan salah) boleh, tapi **ada batas per bulan** (contoh 3x); koreksi berikutnya (ke-4 dst) **wajib approve / kode dari pemilik**.
-- 12.18 — Keputusan Paduka: kuota koreksi **per kasir, 2x per bulan**. Edit pesanan yang **belum diproses** (masih Penjemputan/Antrian) bebas, tidak dihitung. Kuota hanya untuk pesanan yang **sudah masuk proses** (Cuci dst.); koreksi ke-3 dst wajib approve/kode pemilik.
+- 12.18 — Keputusan Paduka: kuota koreksi **per kasir, 2x per bulan**. Koreksi ke-3 dst wajib approve/kode pemilik.
+- 12.19 — Diperjelas Paduka: begitu pesanan **sudah masuk sistem** (Antrian/Penjemputan) **atau sudah dibayar**, setiap perubahan = koreksi berkuota. Bebas hanya selama belum disimpan (masih di layar Tambah Transaksi). Mengisi timbangan pertama pada penjemputan kosong bukan koreksi.
