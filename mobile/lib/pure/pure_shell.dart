@@ -188,7 +188,44 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   String _rpKey = '30', _rpCat = 'all', _rpQuery = '', _rpId = 'omzet';
   DateTime? _rpFrom, _rpTo;
 
-  RepCtx _rpCtx() => RepCtx.fromJson(reportStateFromBusiness(_b!.raw, now: now));
+  /// Laporan per cabang (10 Okt 2026): '' = outlet aktif HP ini, '*' = semua cabang, selain itu id outlet.
+  /// Akun staf selalu melihat cabangnya sendiri.
+  String _rpOutletSel = '';
+  String get _rpHome {
+    final b = _b!;
+    return b.activeOutlet.isNotEmpty ? b.activeOutlet : (b.outlets.isEmpty ? '' : b.outlets.first.id);
+  }
+
+  String get _rpOutlet {
+    final b = _b!, home = _rpHome;
+    if ((_srv.loggedIn && !_srv.isOwner) || _rpOutletSel.isEmpty) return home;
+    if (_rpOutletSel == '*') return '*';
+    return b.outlets.any((o) => o.id == _rpOutletSel) ? _rpOutletSel : home;
+  }
+
+  String _rpOutletLabel() {
+    final sel = _rpOutlet;
+    if (sel == '*') return 'Semua Cabang';
+    return _b!.outlets.where((o) => o.id == sel).firstOrNull?.name ?? _activeOutletName();
+  }
+
+  RepCtx _rpCtx() {
+    final sel = _rpOutlet, home = _rpHome;
+    // Laci kas di HP ini milik outlet aktifnya, jadi hanya ikut di laporan outlet itu atau gabungan.
+    return RepCtx.fromJson(reportStateFromBusiness(_b!.raw, now: now, outlet: sel == '*' || sel.isEmpty ? null : sel, blankOutlet: home, withKas: sel == '*' || sel == home));
+  }
+
+  void _rpOutletEvent(String kind, int index) {
+    _close('rpoutlet');
+    if (kind != 'button') return;
+    final outs = _b!.outlets;
+    if (index == 0) {
+      setState(() => _rpOutletSel = '*');
+    } else if (index - 1 < outs.length) {
+      setState(() => _rpOutletSel = outs[index - 1].id);
+    }
+  }
+
   String _activeOutletName() {
     final b = _b;
     if (b == null) return '';
@@ -218,7 +255,20 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   }
 
   @override
-  void rpOutlet() {}
+  void rpOutlet() {
+    final outs = _b!.outlets;
+    if (_srv.loggedIn && !_srv.isOwner) return toast('Laporan menampilkan cabang Anda saja');
+    if (outs.length < 2) return toast('Laporan ${_rpOutletLabel()} · usaha ini baru punya 1 outlet');
+    final sel = _rpOutlet;
+    _open(_Sheet('rpoutlet', [
+      {'type': 'title', 't': 'Laporan Cabang', 's': ''},
+      {'type': 'hint', 't': 'Pilih cabang yang laporannya ingin dilihat.'},
+      {'type': 'button', 't': '${sel == '*' ? '✓ ' : ''}Semua Cabang', 'primary': sel == '*', 'file': '', 'after': false, 'i': 0},
+      for (var k = 0; k < outs.length; k++)
+        {'type': 'button', 't': '${sel == outs[k].id ? '✓ ' : ''}${outs[k].name}', 'primary': sel == outs[k].id, 'file': '', 'after': false, 'i': k + 1},
+      {'type': 'hint', 't': 'Uang laci kas yang belum ditutup hanya terlihat di laporan cabang HP ini atau Semua Cabang.'},
+    ]));
+  }
   @override
   void rpPeriod(int index) => rdPeriod(reportPeriodsA8[index].$1);
   @override
@@ -252,6 +302,11 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   /// Izin kasir untuk laporan: mutasi kas (Arus Kas), statistik harian (keuangan) dan statistik layanan.
   bool _denyReport(String id) {
+    // Keputusan paket 10 Okt 2026: laba-rugi gabungan semua cabang hanya Platinum.
+    if (_rpOutlet == '*' && const {'laba', 'labaop182'}.contains(id) && planAccess.rank(now) < 4) {
+      toast('Laba-rugi gabungan semua cabang membutuhkan paket Platinum');
+      return true;
+    }
     if (id == 'arus') return _deny(8, 'melihat mutasi kas');
     if (const {'layanan', 'durasi'}.contains(id)) return _deny(1, 'melihat statistik layanan');
     final cat = reportCatalogA8.where((r) => r.$1 == id).firstOrNull?.$2;
@@ -814,7 +869,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (s == null) return const <String, dynamic>{'k': <dynamic>[], 'cols': <dynamic>[], 'rows': <dynamic>[], 'raw': 1, 'empty': 'Belum ada pemakaian otomatis.'};
     String money(num n) => rp(n.round());
     if (id == 'hpp182') {
-      final a = hppRows(s, r.s, r.e);
+      final a = hppRows(s, r.s, r.e, _rpOutlet == '*' || _rpOutlet.isEmpty ? null : _rpOutlet);
       final v = a.fold<double>(0, (q, x) => q + (x[3] as double));
       return {
         'k': [['Total HPP', money(v), '${a.length} bahan', 'w']],
@@ -823,7 +878,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
         'raw': 1, 'pv': v.round(), 'empty': 'Belum ada pemakaian otomatis.',
       };
     }
-    final rev = ctx.ords(r).fold<num>(0, (a, o) => a + o.total), cost = hppTotal(s, r.s, r.e);
+    final rev = ctx.ords(r).fold<num>(0, (a, o) => a + o.total), cost = hppTotal(s, r.s, r.e, _rpOutlet == '*' || _rpOutlet.isEmpty ? null : _rpOutlet);
     final ops = ctx.exps(r).where((x) => !RegExp('Bahan Baku', caseSensitive: false).hasMatch(x.cat)).fold<num>(0, (a, x) => a + x.a);
     final profit = rev - cost - ops;
     return {
@@ -2310,6 +2365,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     if (b == null) return;
     if (scope == 'srvlogin') return _srvLoginEvent(kind, index, value);
     if (scope == 'gs107') return _formSheetEvent(kind, index, value);
+    if (scope == 'rpoutlet') return _rpOutletEvent(kind, index);
     if (scope == 'cat99') return _catEvent(kind, index, value);
     if (scope == 'qr160-menu') {
       _close('qr160-menu');
@@ -3479,7 +3535,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
       case 'reports':
-        page = NativeReports(model: reportsHubA8(_rpCtx(), periodKey: _rpKey, from: _rpFrom, to: _rpTo, cat: _rpCat, query: _rpQuery, outlet: _activeOutletName()), actions: this);
+        page = NativeReports(model: reportsHubA8(_rpCtx(), periodKey: _rpKey, from: _rpFrom, to: _rpTo, cat: _rpCat, query: _rpQuery, outlet: _rpOutletLabel(), lockProfit: _rpOutlet == '*' && planAccess.rank(now) < 4), actions: this);
       case 'rp':
         page = _rpDetail();
       case 'services':

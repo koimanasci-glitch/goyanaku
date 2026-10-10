@@ -119,18 +119,20 @@ bool syncPurchaseCash(Business b, StockBook s, DateTime now) {
 
 double _cost(Map x) => -_n(x['qty']) * _n(x['cost']);
 
-Iterable<Map> _hppEntries(StockBook s, DateTime from, DateTime to) => _ledger(s).where((x) {
+/// [outlet] = hanya catatan cabang itu (laporan per cabang); null = semua cabang.
+Iterable<Map> _hppEntries(StockBook s, DateTime from, DateTime to, [String? outlet]) => _ledger(s).where((x) {
       final d = DateTime.tryParse('${x['at']}');
+      if (outlet != null && '${x['outletId']}' != outlet) return false;
       return d != null && !d.isBefore(from) && d.isBefore(to) && (x['type'] == 'Pemakaian Otomatis' || x['type'] == 'Pembatalan HPP');
     });
 
 /// Total HPP bahan pada rentang waktu.
-double hppTotal(StockBook s, DateTime from, DateTime to) => _hppEntries(s, from, to).fold<double>(0, (a, x) => a + _cost(x));
+double hppTotal(StockBook s, DateTime from, DateTime to, [String? outlet]) => _hppEntries(s, from, to, outlet).fold<double>(0, (a, x) => a + _cost(x));
 
 /// Baris laporan "HPP Bahan Terpakai": [nama, satuan, jumlah bersih, biaya].
-List<List<Object>> hppRows(StockBook s, DateTime from, DateTime to) {
+List<List<Object>> hppRows(StockBook s, DateTime from, DateTime to, [String? outlet]) {
   final rows = <String, List<Object>>{};
-  for (final x in _hppEntries(s, from, to)) {
+  for (final x in _hppEntries(s, from, to, outlet)) {
     final item = s.items.where((i) => i['id'] == x['itemId']).firstOrNull;
     final z = rows.putIfAbsent('${x['itemId']}', () => ['${item?['name'] ?? 'Bahan'}', '${item?['unit'] ?? ''}', 0.0, 0.0]);
     z[2] = (z[2] as double) - _n(x['qty']);

@@ -40,7 +40,8 @@ List<String> reportVisibleIds({String cat = 'all', String query = ''}) {
   return out;
 }
 
-ReportsModel reportsHubA8(RepCtx ctx, {required String periodKey, DateTime? from, DateTime? to, String cat = 'all', String query = '', String outlet = ''}) {
+/// [lockProfit] = laba-rugi tidak ditampilkan (laporan gabungan semua cabang di bawah paket Platinum).
+ReportsModel reportsHubA8(RepCtx ctx, {required String periodKey, DateTime? from, DateTime? to, String cat = 'all', String query = '', String outlet = '', bool lockProfit = false}) {
   final r = ctx.range(periodKey, from: from, to: to);
   final o = ctx.ords(r), pvOrd = ctx.ords(ctx.prev(r));
   num sum<T>(Iterable<T> a, num Function(T) f) => a.fold<num>(0, (s, x) => s + f(x));
@@ -64,7 +65,7 @@ ReportsModel reportsHubA8(RepCtx ctx, {required String periodKey, DateTime? from
     for (final id in visible) {
       final ent = reportCatalogA8.firstWhere((x) => x.$1 == id);
       if (ent.$2 != c.$1) continue;
-      items.add(RpTile(index: idx++, icon: ent.$4, bg: c.$4, title: ent.$3, sub: ent.$5, value: _preview(ctx, r, id)));
+      items.add(RpTile(index: idx++, icon: ent.$4, bg: c.$4, title: ent.$3, sub: ent.$5, value: lockProfit && (id == 'laba' || id == 'labaop182') ? '🔒 Platinum' : _preview(ctx, r, id)));
     }
     if (items.isNotEmpty) sections.add(RpSection('${c.$3} ${c.$2}', items));
   }
@@ -78,7 +79,7 @@ ReportsModel reportsHubA8(RepCtx ctx, {required String periodKey, DateTime? from
     methods: methods,
     kpis: [
       RpTile(index: 0, icon: '↘', bg: '#FFF0F1', title: 'Pengeluaran', sub: '${exps.length} catatan', value: shA8(e)),
-      RpTile(index: 1, icon: '＝', bg: '#EAF7E4', title: 'Laba bersih', sub: inc != 0 ? '${((inc - e) / inc * 100).round()}% margin' : '', value: shA8(inc - e)),
+      RpTile(index: 1, icon: '＝', bg: '#EAF7E4', title: 'Laba bersih', sub: lockProfit ? 'gabungan · paket Platinum' : (inc != 0 ? '${((inc - e) / inc * 100).round()}% margin' : ''), value: lockProfit ? '🔒' : shA8(inc - e)),
       RpTile(index: 2, icon: '⏳', bg: '#FFF6DF', title: 'Belum dibayar', sub: 'piutang berjalan', value: shA8(piut)),
       RpTile(index: 3, icon: '＋', bg: '#F3EFFF', title: 'Pelanggan baru', sub: label, value: '$nb orang'),
     ],

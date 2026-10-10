@@ -1059,7 +1059,10 @@ String periodLabelA8(String key, RepRange r) {
 
 /// Susun data laporan langsung dari database Dart (`goyana-business177`), meniru `reports()` di HTML
 /// (goyana-local-transactions177). Hasilnya berbentuk sama dengan keluaran `__goyanaReportsA8`.
-Map<String, Object?> reportStateFromBusiness(Map<String, dynamic> business, {required DateTime now, int? tzMinutes}) {
+///
+/// Laporan per cabang (10 Okt 2026): [outlet] = hanya pesanan cabang itu (pesanan tanpa cabang dihitung milik [blankOutlet]);
+/// null = semua cabang. [withKas] = sertakan laci kas di HP ini (laci itu milik outlet aktif HP).
+Map<String, Object?> reportStateFromBusiness(Map<String, dynamic> business, {required DateTime now, int? tzMinutes, String? outlet, String blankOutlet = '', bool withKas = true}) {
   final tz = tzMinutes ?? now.timeZoneOffset.inMinutes;
   final details = business['details'] is Map ? Map<String, dynamic>.from(business['details'] as Map) : <String, dynamic>{};
   String idOf(Map c) {
@@ -1073,6 +1076,7 @@ Map<String, Object?> reportStateFromBusiness(Map<String, dynamic> business, {req
     final id = idOf(card);
     final d = details[id] is Map ? Map<String, dynamic>.from(details[id] as Map) : <String, dynamic>{};
     final o = Order(card, d);
+    if (outlet != null && (o.outlet.isEmpty ? blankOutlet : o.outlet) != outlet) continue;
     final created = o.created ?? now;
     final total = o.total;
     final paid = math.min(total, o.paid);
@@ -1095,7 +1099,7 @@ Map<String, Object?> reportStateFromBusiness(Map<String, dynamic> business, {req
       'pts': paid ~/ 10000,
     });
   }
-  final kas = business['kas'] is Map ? business['kas'] as Map : const {};
+  final kas = withKas && business['kas'] is Map ? business['kas'] as Map : const {};
   int at(Object? v) => (DateTime.tryParse('${v ?? ''}') ?? now).millisecondsSinceEpoch;
   final t0 = DateTime.fromMillisecondsSinceEpoch(now.millisecondsSinceEpoch + tz * 60000, isUtc: true);
   final midnight = DateTime.utc(t0.year, t0.month, t0.day).millisecondsSinceEpoch - tz * 60000;

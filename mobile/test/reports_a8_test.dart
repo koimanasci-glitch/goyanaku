@@ -54,6 +54,28 @@ void main() {
 }
 
 void _adapterTests() {
+  test('Laporan per cabang: hanya pesanan cabang itu; laci kas HP hanya ikut di cabangnya', () {
+    final fx = jsonDecode(File('test/fixtures/parity/flows_a4_a5_a7.json').readAsStringSync()) as Map;
+    final before = ((fx['steps'] as List).cast<Map>().firstWhere((s) => s['part'] == 'A7'))['before'] as Map;
+    final business = Map<String, dynamic>.from(jsonDecode(before['goyana-business177'] as String) as Map);
+    final orders = (business['orders'] as List).cast<Map>();
+    expect(orders.length, greaterThan(1));
+    // Pesanan pertama milik Bekasi, sisanya tanpa cabang (dianggap milik outlet aktif HP = Pusat).
+    ((orders.first['dataset'] ??= <String, dynamic>{}) as Map)['outlet180'] = 'srv-2';
+    for (final o in orders.skip(1)) {
+      (o['dataset'] as Map?)?.remove('outlet180');
+    }
+    business['kas'] = {'outs': [{'a': 5000, 't': 'Gas', 'at': '2026-10-01T03:00:00Z'}], 'ins': <dynamic>[]};
+    final now = DateTime.utc(2026, 10, 3);
+    final all = reportStateFromBusiness(business, now: now, tzMinutes: 420);
+    final bekasi = reportStateFromBusiness(business, now: now, tzMinutes: 420, outlet: 'srv-2', blankOutlet: 'srv-1', withKas: false);
+    final pusat = reportStateFromBusiness(business, now: now, tzMinutes: 420, outlet: 'srv-1', blankOutlet: 'srv-1');
+    expect((bekasi['ord'] as List).length, 1);
+    expect((pusat['ord'] as List).length + (bekasi['ord'] as List).length, (all['ord'] as List).length);
+    expect((bekasi['exp'] as List), isEmpty);
+    expect((pusat['exp'] as List).length, 1);
+  });
+
   test('Adaptor database Dart menghasilkan pesanan laporan yang sama dengan HTML (data nyata)', () {
     final fx = jsonDecode(File('test/fixtures/parity/reports_a8.json').readAsStringSync()) as Map;
     final seed = (fx['scenarios'] as List).cast<Map>().firstWhere((s) => s['name'] == 'seed');

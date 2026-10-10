@@ -731,6 +731,38 @@ void templateTests() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Laporan per cabang: pemilik memilih cabang atau Semua Cabang; laba gabungan hanya Platinum', (tester) async {
+    final kv = _store();
+    kv.data[Keys.outlets] = jsonEncode([
+      {'id': 'outlet180-5b424413-a465-4529-8c7b-ba442ad71afa', 'name': 'Uji', 'address': '', 'phone': '', 'logo': ''},
+      {'id': 'srv-9', 'name': 'Bekasi', 'address': '', 'phone': '', 'logo': ''},
+    ]);
+    final s = await _pump(tester, kv);
+    s.nav('reports');
+    await _settle(tester);
+    expect(find.text('Uji'), findsWidgets);
+    s.rpOutlet();
+    await _settle(tester);
+    final sheet = s.debugSheet('rpoutlet')!;
+    expect([for (final e in sheet) if (e['type'] == 'button') e['t']], ['Semua Cabang', '✓ Uji', 'Bekasi']);
+    s.fmScoped('rpoutlet', 'button', 2);
+    await _settle(tester);
+    expect(find.text('Bekasi'), findsWidgets);
+    s.rpOutlet();
+    s.fmScoped('rpoutlet', 'button', 0);
+    await _settle(tester);
+    expect(find.text('Semua Cabang'), findsWidgets);
+    s.rpKpi(1);
+    expect(s.debugToast, 'Laba-rugi gabungan semua cabang membutuhkan paket Platinum');
+    expect(s.debugState().split('|').first, 'reports');
+    planAccess.testPlan = 'PLATINUM';
+    addTearDown(() => planAccess.testPlan = null);
+    s.rpKpi(1);
+    await _settle(tester);
+    expect(s.debugState().split('|').first, 'rp');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Stok per cabang: cabang tujuan menerima kiriman, selisih wajib dicatat', (tester) async {
     final kv = _store();
     const pusat = 'srv-1', bekasi = 'outlet180-5b424413-a465-4529-8c7b-ba442ad71afa';
