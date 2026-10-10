@@ -118,7 +118,7 @@ class MainActivity : FlutterActivity() {
             "Files.save" -> saveFile(call, result)
             "Files.share" -> shareFiles(call, result)
             "Files.pick" -> pickFiles(call, result)
-            "Files.read" -> readFile(call.argument<String>("uri") ?: "", result)
+            "Files.read" -> readFile(call.argument<String>("uri") ?: "", result, call.argument<Int>("maxSide") ?: 0)
 
             "Clipboard.write" -> {
                 val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -492,6 +492,8 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private var captureFile: File? = null
+
     private fun pickFiles(call: MethodCall, result: MethodChannel.Result) {
         pickResult?.success(emptyList<String>())
         val accept = (call.argument<List<String>>("accept") ?: emptyList())
@@ -508,9 +510,26 @@ class MainActivity : FlutterActivity() {
         }
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, call.argument<Boolean>("multiple") == true)
         pickResult = result
+        val chooser = Intent.createChooser(intent, "Pilih file")
+        // Foto cucian: kamera ikut ditawarkan di pemilih (izin kamera diminta aplikasi lebih dulu).
+        captureFile = null
+        if (call.argument<Boolean>("capture") == true && allowed("camera")) {
+            try {
+                val dir = File(cacheDir, "share").apply { mkdirs() }
+                val f = File(dir, "foto-${System.currentTimeMillis()}.jpg")
+                val out = FileProvider.getUriForFile(this, "$packageName.files", f)
+                val cam = Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, out)
+                    .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                cam.clipData = ClipData.newRawUri("", out)
+                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(cam))
+                captureFile = f
+            } catch (e: Exception) {
+                captureFile = null
+            }
+        }
         try {
             @Suppress("DEPRECATION")
-            startActivityForResult(Intent.createChooser(intent, "Pilih file"), REQ_PICK)
+            startActivityForResult(chooser, REQ_PICK)
         } catch (e: ActivityNotFoundException) {
             pickResult = null
             result.success(emptyList<String>())
@@ -518,13 +537,22 @@ class MainActivity : FlutterActivity() {
     }
 
     /** Reads a picked file (content URI) for the native pages' upload buttons; max 8 MB. */
-    private fun readFile(uri: String, result: MethodChannel.Result) {
+    private fun readFile(uri: String, result: MethodChannel.Result, maxSide: Int = 0) {
         io.execute {
             try {
                 val u = Uri.parse(uri)
                 var name = "upload"
                 contentResolver.query(u, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c -> if (c.moveToFirst()) name = c.getString(0) ?: name }
                 val bytes = contentResolver.openInputStream(u)?.use { it.readBytes() } ?: ByteArray(0)
+                // Foto cucian: diperkecil (sisi terpanjang maxSide, JPEG) dan diputar sesuai EXIF, supaya ringan disimpan & disinkronkan.
+                if (maxSide > 0) {
+                    val small = shrinkImage(bytes, maxSide)
+                    if (small != null) {
+                        val data = Base64.encodeToString(small, Base64.NO_WRAP)
+                        main.post { result.success(mapOf("name" to name, "mime" to "image/jpeg", "data" to data)) }
+                        return@execute
+                    }
+                }
                 if (bytes.size > 8 * 1024 * 1024) {
                     main.post { result.error("large", "File terlalu besar", null) }
                     return@execute
@@ -538,6 +566,36 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun shrinkImage(bytes: ByteArray, maxSide: Int): ByteArray? {
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
+        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+        var bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts) ?: return null
+        val longest = maxOf(bmp.width, bmp.height)
+        if (longest > maxSide) {
+            val f = maxSide.toFloat() / longest
+            bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * f).toInt().coerceAtLeast(1), (bmp.height * f).toInt().coerceAtLeast(1), true)
+        }
+        val turn = if (Build.VERSION.SDK_INT < 24) 0f else try {
+            when (android.media.ExifInterface(java.io.ByteArrayInputStream(bytes)).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, 1)) {
+                6 -> 90f
+                3 -> 180f
+                8 -> 270f
+                else -> 0f
+            }
+        } catch (e: Exception) { 0f }
+        if (turn != 0f) {
+            val m = android.graphics.Matrix().apply { postRotate(turn) }
+            bmp = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, m, true)
+        }
+        val out = java.io.ByteArrayOutputStream()
+        bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, out)
+        return out.toByteArray()
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -549,6 +607,11 @@ class MainActivity : FlutterActivity() {
             val clip = data.clipData
             if (clip != null) for (i in 0 until clip.itemCount) uris.add(clip.getItemAt(i).uri.toString())
             else data.data?.let { uris.add(it.toString()) }
+        }
+        val shot = captureFile
+        captureFile = null
+        if (resultCode == Activity.RESULT_OK && uris.isEmpty() && shot != null && shot.length() > 0) {
+            uris.add(FileProvider.getUriForFile(this, "$packageName.files", shot).toString())
         }
         result.success(uris)
     }

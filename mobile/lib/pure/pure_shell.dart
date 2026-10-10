@@ -29,6 +29,7 @@ import 'label_page.dart';
 import 'g181_mirror.dart';
 import 'branch_page.dart';
 import 'kelola_cabang_page.dart';
+import 'complaint_page.dart';
 import 'kelola_page.dart';
 import 'staff_rights_page.dart';
 import 'team_page.dart';
@@ -142,7 +143,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 'cabang': BranchPage(this), 'kelolacabang': KelolaCabangPage(this), 'aksespegawai': StaffRightsPage(this), 
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 'kelola': KelolaUsahaPage(this), 'tim': TeamPage(this), 'cabang': BranchPage(this), 'kelolacabang': KelolaCabangPage(this), 'komplain': ComplaintPage(this), 'aksespegawai': StaffRightsPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -580,6 +581,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       return 'Hanya pemilik yang bisa membuka menu ini';
     }
     if (const {'reports', 'rp', 'branchmonitor58'}.contains(pageId) && !_srv.can('reports.view')) return 'Laporan hanya untuk pemilik';
+    if (pageId == 'komplain' && !_srv.can('orders.create') && !_srv.can('orders.update')) return 'Komplain dicatat kasir atau pemilik';
     if (const {'services', 'duration', 'perfume', 'discounts', 'delivery', 'qris', 'finance'}.contains(pageId) && !_srv.can('prices.edit')) {
       return 'Harga dan setelan usaha diatur pemilik';
     }
@@ -1907,12 +1909,17 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   Future<void> _addPhoto(Order o, String slot) async {
     try {
+      // Foto cucian (Tahap 2 fitur 9): kamera ditawarkan bila izin ada; foto diperkecil ±1024 px JPEG supaya ringan disinkronkan.
+      try {
+        await _device.invokeMethod<dynamic>('GoyanaDevice.requestAccess', {'alias': 'camera'});
+      } catch (_) {}
       final uris = await _device.invokeListMethod<String>('Files.pick', {'accept': ['image/png', 'image/jpeg', 'image/webp'], 'multiple': false, 'capture': true});
       if (uris == null || uris.isEmpty) return;
-      final f = await _device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
+      final f = await _device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first, 'maxSide': 1024});
       final data = '${f?['data'] ?? ''}';
       if (data.isEmpty) return;
       final ph = o.detail.putIfAbsent('photos', () => <String, dynamic>{'in': <dynamic>[], 'out': <dynamic>[]}) as Map;
+      if (data.length > 380000) return toast('Foto terlalu besar. Coba ambil ulang.');
       (ph.putIfAbsent(slot, () => <dynamic>[]) as List).add(data.startsWith('data:') ? data : 'data:${f?['mime'] ?? 'image/jpeg'};base64,$data');
       await _save();
       if (mounted) _openPhotos(o);

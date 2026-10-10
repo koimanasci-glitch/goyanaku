@@ -9,6 +9,7 @@ import 'package:goyana_flutter/pure/pages.dart';
 import 'package:goyana_flutter/pure/server_sync.dart';
 import 'package:goyana_flutter/pure/branch_page.dart';
 import 'package:goyana_flutter/pure/kelola_cabang_page.dart';
+import 'package:goyana_flutter/pure/complaint_page.dart';
 import 'package:goyana_flutter/pure/team_page.dart';
 
 class _Server {
@@ -338,5 +339,60 @@ void main() {
     await _settle();
     expect(host.toasts.last, 'Kas Masuk tersimpan');
     expect((host.business.kas['ins'] as List).last, containsPair('a', 20000));
+  });
+
+  test('komplain & klaim: catat per nota, proses, selesai; ganti rugi masuk pengeluaran laci', () async {
+    final kv = MemoryKvStore({
+      Keys.business: jsonEncode({
+        'orders': [
+          {'dataset': {'st': 'siap', 'outlet180': 'out-1'}, 'fields': [['Reguler'], ['GY-7'], ['Siti']], 'total': 30000},
+        ],
+        'details': {'GY-7': {'id': 'GY-7', 'name': 'Siti', 'photos': {'in': ['data:image/jpeg;base64,AAAA'], 'out': <dynamic>[]}}},
+        'customers': <dynamic>[],
+      }),
+      Keys.outlets: jsonEncode([{'id': 'out-1', 'name': 'Pusat', 'address': 'A', 'phone': '0811'}]),
+      Keys.activeOutlet: jsonEncode('out-1'),
+    });
+    final sync = ServerSync(kv, send: _Server().send);
+    await sync.load();
+    final host = _Host(kv, await Business.load(kv), await AppSettings.load(kv), sync);
+    final page = ComplaintPage(host)..opened();
+    await _settle();
+    expect(page.items().any((e) => e['t'] == 'Tidak ada komplain terbuka.'), isTrue);
+
+    page.button(0);
+    expect(host.sheets, contains('kp-form'));
+    page.sheetEvent('kp-form', 'button', 0, null);
+    expect(host.toasts.last, 'Pilih nota yang dikomplain');
+    page.sheetEvent('kp-form', 'input', 0, 'siti');
+    final pick = page.sheetItems('kp-form')!.firstWhere((e) => e['t'] == 'GY-7 · Siti');
+    page.sheetEvent('kp-form', 'button', pick['i'] as int, null);
+    expect(page.sheetItems('kp-form')!.any((e) => e['t'] == 'GY-7 · Siti' && e['type'] == 'entry'), isTrue);
+    page.sheetEvent('kp-form', 'input', 1, 2);
+    page.sheetEvent('kp-form', 'input', 2, 'Kemeja putih kena warna');
+    page.sheetEvent('kp-form', 'button', 0, null);
+    await _settle();
+    expect(host.toasts.last, 'Komplain tersimpan');
+    final saved = (jsonDecode(kv.data[complaintsKey]!) as List).single as Map;
+    expect(saved, allOf(containsPair('order', 'GY-7'), containsPair('type', 'luntur'), containsPair('status', 'baru'), containsPair('o', 'out-1')));
+    var row = page.items().firstWhere((e) => e['t'] == 'GY-7 · Siti');
+    expect(row['lines'], ['Luntur · Kemeja putih kena warna', startsWith('🆕 Baru'), '📷 1 foto cucian']);
+
+    page.button(2000);
+    await _settle();
+    expect(host.toasts.last, 'Komplain sedang ditangani');
+    page.button(3000);
+    page.sheetEvent('kp-done', 'input', 0, 1);
+    page.sheetEvent('kp-done', 'button', 0, null);
+    expect(host.toasts.last, 'Isi jumlah ganti rugi');
+    page.sheetEvent('kp-done', 'input', 1, '25.000');
+    page.sheetEvent('kp-done', 'button', 0, null);
+    await _settle();
+    expect(host.toasts.last, 'Komplain selesai');
+    expect((host.business.kas['outs'] as List).last, allOf(containsPair('a', 25000), containsPair('t', 'Ganti rugi komplain GY-7')));
+    expect(page.items().any((e) => e['t'] == 'GY-7 · Siti'), isFalse, reason: 'pindah ke Selesai');
+    page.button(11);
+    row = page.items().firstWhere((e) => e['t'] == 'GY-7 · Siti');
+    expect((row['lines'] as List)[1], startsWith('✅ Ganti rugi uang Rp25.000 · Admin'));
   });
 }

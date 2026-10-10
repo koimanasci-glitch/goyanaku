@@ -713,4 +713,29 @@ void main() {
     expect(server.pushed().where((c) => c['collection'] == 'branch_tasks').length, 1);
     expect(server.pushed().last['collection'], 'kas');
   });
+
+  test('foto cucian dikirim terpisah dari pesanan; foto dari HP lain digabung, tidak hilang saat pesanan diperbarui', () async {
+    final kv = _phone();
+    final b = jsonDecode(kv.data[Keys.business]!) as Map;
+    ((b['details'] as Map)['GY-1'] as Map)['photos'] = {'in': ['data:image/jpeg;base64,AAAA'], 'out': <dynamic>[]};
+    kv.data[Keys.business] = jsonEncode(b);
+    kv.data[complaintsKey] = jsonEncode([{'id': 'kp-1', 'order': 'GY-1', 'type': 'luntur', 'status': 'baru', 'o': 'out-1'}]);
+    var local = await extractLocal(kv);
+    final key = orderPhotoKey('GY-1', 'in', 'data:image/jpeg;base64,AAAA');
+    expect(local['order_photos|$key']!.data, {'order': 'GY-1', 'slot': 'in', 'img': 'data:image/jpeg;base64,AAAA'});
+    expect(local['order_photos|$key']!.outlet, 'out-1');
+    expect(((local['orders|GY-1']!.data as Map)['detail'] as Map).containsKey('photos'), isFalse);
+    expect(local['complaints|kp-1']!.outlet, 'out-1');
+
+    await applyRemote(kv, [
+      {'collection': 'order_photos', 'key': orderPhotoKey('GY-1', 'out', 'data:image/jpeg;base64,BBBB'), 'deleted': false,
+        'data': {'order': 'GY-1', 'slot': 'out', 'img': 'data:image/jpeg;base64,BBBB'}},
+      {'collection': 'orders', 'key': 'GY-1', 'deleted': false, 'data': {'card': _card('GY-1', 'siap'), 'detail': {'id': 'GY-1', 'name': 'Siti', 'paid': 14000}}},
+    ]);
+    final photos = ((jsonDecode(kv.data[Keys.business]!) as Map)['details'] as Map)['GY-1']['photos'] as Map;
+    expect(photos['in'], ['data:image/jpeg;base64,AAAA']);
+    expect(photos['out'], ['data:image/jpeg;base64,BBBB']);
+    local = await extractLocal(kv);
+    expect(local.keys.where((k) => k.startsWith('order_photos|')).length, 2);
+  });
 }

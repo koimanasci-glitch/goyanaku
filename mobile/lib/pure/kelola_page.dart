@@ -30,6 +30,7 @@ class KelolaUsahaPage extends PurePage {
     ]),
     ('Operasional', [
       ('Stok & Bahan', 'Stok per cabang, cek stok, kirim ke cabang', '🧴', 'stock'),
+      ('Komplain & Klaim', 'Keluhan pelanggan, ganti rugi, foto bukti cucian', '❗', 'komplain'),
       ('Reminder Pekerjaan', 'Deadline, telat, stok menipis, belum bayar', '⏰', 'reminder'),
     ]),
   ];

@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Business, CashierDevice, Outlet, User};
-use App\Support\{AuditTrail, BranchTask, Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
+use App\Support\{AuditTrail, BranchTask, CaseGuard, Devices, OrderData, OrderGuard, OrderLedger, StockGuard};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -230,6 +230,14 @@ class SyncController {
             if (is_string($checked)) return $this->reject($checked);
             if ($before !== null) return ['status' => 'applied', 'rev' => (int) $existing->rev];
             $json = json_encode($checked, JSON_UNESCAPED_UNICODE);
+        }
+        if (in_array($change['collection'], ['complaints', 'order_photos'], true)) {
+            $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
+            $checked = $change['collection'] === 'complaints'
+                ? CaseGuard::complaint($user, $before, $change['data'] ?? null, $deleted)
+                : CaseGuard::photo($user, $before, $change['data'] ?? null, $deleted);
+            if (is_string($checked)) return $this->reject($checked);
+            if (!$deleted) $json = json_encode($checked, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
         if ($change['collection'] === 'branch_tasks') {
             $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
