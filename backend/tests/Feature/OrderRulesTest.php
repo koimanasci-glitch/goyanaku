@@ -86,6 +86,44 @@ class OrderRulesTest extends TestCase {
         return $order;
     }
 
+    // ---------- Riwayat Transaksi & Koreksi (10 Okt 2026) ----------
+
+    public function test_history_shows_changes_after_payment_and_corrections_report_counts_per_cashier(): void {
+        $kasirUser = $this->staff('kasir'); $kasir = $this->token($kasirUser);
+        $paid = $this->order('GY-H', [$this->baju(3)], 'antrian', ['paid177' => '21000'], ['paid' => 21000]);
+        $rev = $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-H', 'outlet' => $this->outletKey(0), 'data' => $paid]])
+            ->assertJsonPath('results.0.status', 'applied')->json('results.0.rev');
+        // Setelah lunas, berat diturunkan 3 → 2 kg dan uang dikembalikan Rp7.000.
+        $lower = $this->order('GY-H', [$this->baju(2)], 'antrian', ['paid177' => '14000'], ['paid' => 14000]);
+        $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-H', 'outlet' => $this->outletKey(0), 'data' => $lower, 'base_rev' => $rev]])
+            ->assertJsonPath('results.0.status', 'applied');
+        // Pesanan lain diubah sebelum diproses dan belum dibayar: tercatat di riwayat, tapi bukan koreksi.
+        $free = $this->order('GY-F', [$this->baju(1)]); $rev2 = $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-F', 'outlet' => $this->outletKey(0), 'data' => $free]])->json('results.0.rev');
+        $this->push($kasir, [['collection' => 'orders', 'key' => 'GY-F', 'outlet' => $this->outletKey(0), 'data' => $this->order('GY-F', [$this->baju(2)]), 'base_rev' => $rev2]]);
+
+        $this->app['auth']->forgetGuards();
+        $h = $this->withToken($kasir)->getJson('/api/orders/GY-H/history')->assertOk()->json('events');
+        $this->assertSame(['buat', 'bayar', 'ubah', 'kembali'], array_column($h, 'kind'));
+        $this->assertSame([21000, 14000, true, 21000], [$h[2]['details']['before']['total'], $h[2]['details']['after']['total'], $h[2]['details']['flag'], $h[2]['details']['paid_before']]);
+        $this->assertSame(7000, $h[3]['details']['amount']);
+        $this->assertSame($kasirUser->name, $h[2]['by']);
+
+        // Pegawai tidak bisa membuka riwayat (tidak melihat harga); kasir cabang lain tidak bisa.
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->token($this->staff('produksi')))->getJson('/api/orders/GY-H/history')->assertForbidden();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->token($this->staff('kasir', 1)))->getJson('/api/orders/GY-H/history')->assertForbidden();
+
+        // Laporan koreksi: hanya perubahan setelah bayar/proses dan pengembalian uang; kasir tidak boleh membukanya.
+        $this->app['auth']->forgetGuards();
+        $this->withToken($kasir)->getJson('/api/corrections')->assertForbidden();
+        $this->app['auth']->forgetGuards();
+        $c = $this->withToken($this->token($this->owner))->getJson('/api/corrections')->assertOk();
+        $this->assertSame(['kembali', 'ubah'], array_column($c->json('events'), 'kind'));
+        $c->assertJsonPath('people.0.name', $kasirUser->name)->assertJsonPath('people.0.count', 2)
+            ->assertJsonPath('people.0.lowered', 1)->assertJsonPath('people.0.refund', 7000);
+    }
+
     // ---------- pegawai ----------
 
     public function test_pegawai_advances_one_stage_but_cannot_change_price_or_payment(): void {

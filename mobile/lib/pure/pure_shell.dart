@@ -27,6 +27,7 @@ import '../native/popup_components.dart';
 import '../native/wa131_sheet.dart';
 import 'label_page.dart';
 import 'g181_mirror.dart';
+import 'order_history.dart';
 import 'order_view.dart';
 import 'receipt_image.dart';
 import 'addorder_assets.dart';
@@ -136,7 +137,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     'printer': PrinterNotaPage(this), 'printerconnect': PrinterPage(this), 'qris': QrisPage(this),
     'perfume': PerfumePage(this), 'duration': DurationPage(this), 
     'today': TodayPage(this), 
-    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 
+    'stock': StockPage(this), 'couriers': CourierPage(this), 'kurirsetting': CourierSettingsPage(this), 'finance': FinancePage(this), 'delivery': DeliveryPage(this), 'discounts': DiscountPage(this), 'employees': EmployeesPage(this), 'pinlock': PinLockPage(this), 'cashin': CashEntryPage(this, income: true), 'cashout': CashEntryPage(this, income: false), 'cashclose': CashClosePage(this), 'jemput202': PickupPage(this), 'jemputnew202': PickupNewPage(this), 'ralat139': RalatPage(this), 'printlabel': LabelPage(this), 'customeradd': CustomerAddPage(this), 'rank138': RankPage(this), 'audit': AuditPage(this), 'koreksi': CorrectionsPage(this), 
     'crm': CrmNativePage(this), 'outlets': OutletsPage(this), 'outletedit': OutletEditPage(this), 'superbilling': ManageBranchesPage(this), 'branchmonitor58': BranchMonitorPage(this), 'kurirhome': CourierHomePage(this), 'testmode192': TestModePage(this), 
   };
 
@@ -2059,7 +2060,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   void _openEdit(Order o) {
     if (o.isCancelled) return toast('Pesanan batal tidak bisa diedit');
     final free = o.status == 'antrian' && !o.isPaid;
-    if (!free && !(_pages['ralat139'] as RalatPage).owner) {
+    final ralat = _pages['ralat139'] as RalatPage;
+    if (!free && !ralat.owner) {
+      if (!ralat.hasPin) return toast('PIN Admin belum dibuat pemilik');
       _pin = '';
       return _open(_Sheet('pin139e', pinPadItems('Edit transaksi ${o.id} · minta Admin Utama memasukkan PIN', 0)));
     }
@@ -2073,9 +2076,9 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     final next = pinPadKey(_pin, index);
     if (next == null) return _close('pin139e');
     _pin = next;
-    final want = '${_settings!.raw['adminPin'] ?? '1234'}';
-    if (_pin.length < want.length) return _open(_Sheet('pin139e', pinPadItems('Edit transaksi ${o.id} · minta Admin Utama memasukkan PIN', _pin.length)));
-    if (_pin == '${_settings!.raw['adminPin'] ?? '1234'}') {
+    final ralat = _pages['ralat139'] as RalatPage;
+    if (_pin.length < ralat.pinLen) return _open(_Sheet('pin139e', pinPadItems('Edit transaksi ${o.id} · minta Admin Utama memasukkan PIN', _pin.length)));
+    if (ralat.pinOk(_pin)) {
       _pinFail = 0;
       _pin = '';
       _close('pin139e');
@@ -2310,7 +2313,21 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     _refreshDetail();
   }
 
-  void _openHistory(Order o) => _open(_Sheet('hist115', const [], mirror: orderHistoryMirror(o)));
+  /// Riwayat Transaksi (10 Okt 2026): akun yang masuk ke server (kasir, kepala cabang, owner) melihat catatan server —
+  /// siapa mengubah apa, sebelum → sesudah. Tanpa server: riwayat status di HP seperti sebelumnya.
+  void _openHistory(Order o) {
+    if (!_srv.loggedIn || !(_srv.isOwner || _srv.can('orders.update'))) return _open(_Sheet('hist115', const [], mirror: orderHistoryMirror(o)));
+    _open(_Sheet('histsrv', historySheetItems(o.id, const [], showOutlet: _srv.isOwner, note: 'Memuat riwayat…')));
+    _srv.api('GET', '/orders/${Uri.encodeComponent(o.id)}/history').then((j) {
+      if (!mounted || !_sheets.any((s) => s.id == 'histsrv')) return;
+      _open(_Sheet('histsrv', historySheetItems(o.id, j['events'] as List? ?? const [], showOutlet: _srv.isOwner)));
+    }).catchError((Object e) {
+      if (!mounted || !_sheets.any((s) => s.id == 'histsrv')) return;
+      _close('histsrv');
+      toast(e is ServerFailure && !e.offline ? e.message : 'Riwayat server belum bisa dimuat · menampilkan riwayat di HP ini');
+      _open(_Sheet('hist115', const [], mirror: orderHistoryMirror(o)));
+    });
+  }
 
   String _phoneOf(Order o) => o.phone.isNotEmpty ? o.phone : (_b!.customerByName(o.name)?.phone ?? '');
 
@@ -2400,7 +2417,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       }
       return _close(scope);
     }
-    if (scope == 'hist115') return _close(scope);
+    if (scope == 'hist115' || scope == 'histsrv') return _close(scope);
     if (scope == 'gy154-transfer') return _transferEvent(kind, index);
     if (scope == 'rc106') {
       _strukEvent(kind, index);
@@ -2447,7 +2464,7 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       if (kind == 'button') {
         final emp = (_settings!.raw['employees'] as List? ?? const []).whereType<Map>().where((e) => e['pin'] == _pin).firstOrNull;
         // PIN Admin (Ralat → Ganti PIN Admin) = pemilik: akses penuh, izin kasir tidak membatasi.
-        final owner = emp == null && _pin == '${_settings!.raw['adminPin'] ?? '1234'}';
+        final owner = emp == null && (_pages['ralat139'] as RalatPage).pinOk(_pin);
         if (emp == null && !owner) return toast('PIN salah');
         setState(() {
           _kasir = owner ? 'Pemilik' : '${emp!['name']}';

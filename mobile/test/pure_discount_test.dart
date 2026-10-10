@@ -981,8 +981,27 @@ void templateTests() {
     expect(rows.length, 3, reason: 'baris login + 2 log');
     expect(rows[1]['t'], 'Ralat pengeluaran');
 
-    // Kasir butuh PIN Admin Utama.
+    // Tidak ada lagi PIN bawaan 1234: admin membuat PIN sendiri (yang mudah ditebak ditolak), disimpan sebagai sidik.
+    s.fmButton(900);
+    await _settle(tester);
+    s.fmScoped('gs107', 'input', 0, '1234');
+    s.fmScoped('gs107', 'button', 0);
+    expect(s.debugToast, 'PIN terlalu mudah ditebak · pilih angka lain');
+    s.fmScoped('gs107', 'input', 0, '2580');
+    s.fmScoped('gs107', 'button', 0);
+    await _settle(tester);
+    expect(s.debugToast, 'PIN Admin dibuat · berlaku di semua HP usaha');
+    final stored = s.settings.raw['adminPinHash'] as Map;
+    expect([stored['n'], '${stored['h']}'.contains('2580'), s.settings.raw.containsKey('adminPin')], [4, false, false]);
+
+    // Kasir butuh PIN Admin Utama; kembali ke Admin Utama juga butuh PIN (dulu cukup diketuk).
     s.fmButton(1);
+    s.fmButton(0);
+    await _settle(tester);
+    expect(find.text('Persetujuan Admin Utama'), findsOneWidget);
+    s.fmScoped('pin139', 'button', 9); // Batal
+    await _settle(tester);
+    expect(s.debugItems().first['t'], 'Login: Kasir (Kasir)');
     s.fmButton(2);
     s.fmButton(5);
     await _settle(tester);
@@ -995,10 +1014,10 @@ void templateTests() {
       s.fmScoped('pin139', 'button', 10);
     }
     expect(s.debugToast, 'PIN salah');
-    s.fmScoped('pin139', 'button', 0);
-    s.fmScoped('pin139', 'button', 4);
+    s.fmScoped('pin139', 'button', 1);
+    s.fmScoped('pin139', 'button', 2);
     s.fmScoped('pin139', 'button', 11);
-    for (final k in [1, 2, 3]) {
+    for (final k in [4, 7, 10]) {
       s.fmScoped('pin139', 'button', k);
     }
     await _settle(tester);

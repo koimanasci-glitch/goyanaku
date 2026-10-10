@@ -49,7 +49,7 @@ const _settingKeys = [_transportKey, Keys.qrisText, Keys.qrisImage, Keys.qrisOpt
 /// (printer, kunci PIN, PIN admin, catatan audit) dan tidak pernah dikirim.
 const pureSettingsKey = 'goyana-pure-settings';
 const sharedSettingsRecord = 'goyana-pure-shared';
-const _sharedSettingParts = ['discounts', 'discCfg', 'expenseCats', 'tpl', 'bank', 'account', 'holder', 'auto133', 'vouchers', 'qrisDynamic', 'notaTpl'];
+const _sharedSettingParts = ['discounts', 'discCfg', 'expenseCats', 'tpl', 'bank', 'account', 'holder', 'auto133', 'vouchers', 'qrisDynamic', 'notaTpl', 'adminPinHash'];
 
 /// Hak tulis tiap koleksi, sama dengan sync.collections di backend/config/goyana.php.
 /// Data yang tidak boleh ditulis akun ini tidak dikirim, supaya HP pegawai tidak terus-menerus ditolak server.

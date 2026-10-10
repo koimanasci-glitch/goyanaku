@@ -22,6 +22,9 @@ Route::middleware(['auth:sanctum', 'active', 'throttle:api'])->group(function ()
     Route::get('/monitoring', [ApiMonitoringController::class, 'report']);
     Route::get('/monitoring/alerts', [ApiMonitoringController::class, 'alerts']);
     Route::get('/me/summary', [ApiMonitoringController::class, 'own']);
+    // Riwayat Transaksi per nota dan laporan Koreksi Transaksi (10 Okt 2026).
+    Route::get('/orders/{key}/history', [\App\Http\Controllers\ApiOrderHistoryController::class, 'history'])->where('key', '[A-Za-z0-9._:-]{1,160}');
+    Route::get('/corrections', [\App\Http\Controllers\ApiOrderHistoryController::class, 'corrections']);
     // Tunai kurir: dipegang kurir sampai disetor ke kasir outletnya.
     Route::get('/courier/cash', [ApiMonitoringController::class, 'courierOwn']);
     Route::get('/courier-cash', [ApiMonitoringController::class, 'courierCash']);

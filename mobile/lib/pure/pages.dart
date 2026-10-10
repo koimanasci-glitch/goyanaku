@@ -3123,7 +3123,11 @@ class AuditPage extends PurePage {
       final show = _q.isNotEmpty ? text.toLowerCase().contains(_q.toLowerCase()) : (_re[_chip]?.hasMatch(text) ?? true);
       if (show) rows.add({'type': 'entry', 't': '${e['t']}', 'lines': [sub], 'badge': '', 'avatar': '${e['ic']}', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]});
     }
+    final srv = host.server;
     return [
+      // Koreksi Transaksi dari server (10 Okt 2026): untuk pemilik dan kepala cabang yang masuk ke akun GOYANA.
+      if (srv.loggedIn && (srv.isOwner || srv.can('reports.view')))
+        {'type': 'button', 't': 'Koreksi Transaksi (semua HP)', 'primary': true, 'file': '', 'after': false, 'i': 900},
       {'type': 'title', 't': '⌕'},
       {'type': 'input', 'v': _q, 'ph': 'Cari pegawai / Order ID...', 'multiline': false, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': 0},
       {'type': 'button', 't': '≡', 'primary': false, 'file': '', 'after': false, 'i': 0},
@@ -3143,6 +3147,7 @@ class AuditPage extends PurePage {
 
   @override
   void button(int i) {
+    if (i == 900) return host.go('koreksi');
     if (i >= 1) {
       _chip = (i - 1).clamp(0, 3);
       _q = '';

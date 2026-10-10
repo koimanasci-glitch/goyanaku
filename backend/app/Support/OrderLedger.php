@@ -49,10 +49,13 @@ final class OrderLedger {
         $from = $oldOrder ? OrderData::status($oldOrder) : (string) $index->status;
         if ($from !== $status && !$this->readyPair($from, $status)) {
             [$kind, $details] = $this->classify($new, $from, $status);
+            // Batal setelah ada pembayaran: dicatat nominalnya supaya muncul di laporan Koreksi Transaksi.
+            if ($kind === 'batal' && $oldOrder && OrderData::paid($oldOrder) > 0) $details = ['paid' => OrderData::paid($oldOrder)];
             $event($kind, ['from_status' => $from, 'to_status' => $status, 'details' => $details ? json_encode($details, JSON_UNESCAPED_UNICODE) : null]);
             if ($status === 'siap') $row['ready_at'] = $now;
         }
         if ($oldOrder) $this->itemEvents($oldOrder, $new, $event);
+        if ($oldOrder) $this->changeEvents($oldOrder, $new, $from, $event);
 
         // Kurir menimbang di lokasi → kasir memastikan timbangan saat memproses.
         if ($oldOrder && $mode === 'courier' && $from === 'jemput' && $this->quantities($oldOrder) !== $this->quantities($new)) {
@@ -130,6 +133,33 @@ final class OrderLedger {
         $skipped = array_values(array_intersect(array_slice($path, $a + 1, $b - $a - 1), $stages));
         if ($skipped) return ['lompat', ['skipped' => $skipped]];
         return ['maju', $auto ? ['auto' => true] : null];
+    }
+
+    /**
+     * Riwayat Transaksi (keputusan Paduka 10 Oktober 2026, pengganti jatah koreksi): setiap perubahan isi atau nilai pesanan
+     * yang sudah tersimpan dicatat sebelum → sesudah. "flag" = diubah setelah diproses atau setelah ada pembayaran.
+     * Timbangan pertama penjemputan yang masih kosong bukan perubahan (dicatat sebagai pengisian).
+     */
+    private function changeEvents(array $old, array $new, string $from, \Closure $event): void {
+        $a = $this->lines($old); $b = $this->lines($new);
+        $ta = OrderData::total($old); $tb = OrderData::total($new);
+        if ($a !== $b || $ta !== $tb) {
+            $paidBefore = OrderData::paid($old);
+            $first = $a === [] && $from === 'jemput';
+            $event($first ? 'isi' : 'ubah', ['details' => json_encode([
+                'before' => ['items' => $a, 'total' => $ta], 'after' => ['items' => $b, 'total' => $tb],
+                'paid_before' => $paidBefore, 'stage' => $from,
+                'flag' => !$first && ($paidBefore > 0 || !in_array($from, ['antrian', 'jemput'], true)),
+            ], JSON_UNESCAPED_UNICODE)]);
+        }
+        $refund = OrderData::paid($old) - OrderData::paid($new);
+        if ($refund > 0) $event('kembali', ['details' => json_encode(['amount' => $refund], JSON_UNESCAPED_UNICODE)]);
+    }
+
+    /** Isi pesanan untuk dibandingkan: nama, jumlah, harga satuan. */
+    private function lines(array $order): array {
+        return array_map(fn ($i) => ['n' => (string) ($i['n'] ?? $i['name'] ?? ''), 'q' => (float) ($i['qty'] ?? 0), 'p' => (int) round((float) ($i['price'] ?? $i['p'] ?? 0))],
+            OrderData::items($order));
     }
 
     /** Tahap per barang: catat setiap barang yang tahapnya berubah. */
