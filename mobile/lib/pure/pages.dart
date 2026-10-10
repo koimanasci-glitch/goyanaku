@@ -992,6 +992,8 @@ class StockPage extends PurePage {
       return host.refresh();
     }
     if (i >= 7 && i <= 9) {
+      // Hutang supplier, supplier, dan belanja bahan mulai paket Silver (pembagian fitur per paket).
+      if (i == 8 && !planAccess.has('suppliers', host.now)) return host.toast(planAccess.lockedText('suppliers'));
       tab = const ['stock', 'debt', 'hist'][i - 7];
       histItem = '';
       return host.refresh();
@@ -1017,6 +1019,7 @@ class StockPage extends PurePage {
       return host.refresh();
     }
     if (const {0, 2, 3, 4, 5, 6}.contains(i) && !_manage) return host.toast(_manageOnly);
+    if ((i == 4 || i == 5) && !planAccess.has('suppliers', host.now)) return host.toast(planAccess.lockedText('suppliers'));
     if (i == 6) return _open('recipe');
     if (i == 0) return _open('add');
     if (b.items.isEmpty) return host.toast('Tambahkan bahan dulu');

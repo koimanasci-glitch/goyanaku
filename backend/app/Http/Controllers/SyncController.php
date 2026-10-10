@@ -124,6 +124,7 @@ class SyncController {
 
     public function push(Request $request) {
         $user = $this->user($request);
+        $this->allows = [];
         $max = (int) config('goyana.sync.max_changes');
         $data = $request->validate([
             'device_id' => 'required|string|min:8|max:64',
@@ -176,6 +177,10 @@ class SyncController {
             if (Outlet::whereKey($outletId)->whereNotNull('deactivated_at')->exists()) return $this->reject('Cabang ini sudah dinonaktifkan owner.');
         }
         $deleted = (bool) ($change['deleted'] ?? false);
+        // Fitur per paket: data baru untuk fitur yang belum termasuk paket ditolak (menghapus tetap boleh).
+        if (!$deleted && ($feature = self::planFeature($change['collection'], (string) $change['key'])) && !($this->allows[$business->id][$feature] ??= $business->allows($feature))) {
+            return $this->reject(self::FEATURE_TEXT[$feature]);
+        }
         $json = $deleted ? null : json_encode($change['data'] ?? null, JSON_UNESCAPED_UNICODE);
         if (!$deleted && ($json === false || $json === 'null')) return $this->reject('Data kosong.');
         if ($json !== null && strlen($json) > (int) config('goyana.sync.max_record_bytes')) return $this->reject('Data terlalu besar.');
@@ -278,6 +283,18 @@ class SyncController {
             return ['status' => 'conflict', 'record' => $this->presentFor($user, $stored), 'message' => $verdict['message']];
         }
         return ['status' => 'applied', 'rev' => $rev];
+    }
+
+    private array $allows = [];
+    private const FEATURE_TEXT = [
+        'suppliers' => 'Supplier & belanja bahan membutuhkan paket Silver.',
+        'loyalty' => 'Poin & voucher pelanggan membutuhkan paket Gold.',
+    ];
+
+    private static function planFeature(string $collection, string $key): ?string {
+        if (in_array($collection, ['stock_suppliers', 'stock_purchases'], true)) return 'suppliers';
+        if ($collection === 'crm' && (str_starts_with($key, 'voucher:') || str_starts_with($key, 'redeemed:'))) return 'loyalty';
+        return null;
     }
 
     private function reject(string $message): array { return ['status' => 'rejected', 'message' => $message]; }

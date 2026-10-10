@@ -833,11 +833,15 @@ void templateTests() {
     s.fmScoped('rpoutlet', 'button', 0);
     await _settle(tester);
     expect(find.text('Semua Cabang'), findsWidgets);
+    // Trial/Basic: laba-rugi mulai Silver; Silver: gabungan semua cabang hanya Platinum.
+    s.rpKpi(1);
+    expect(s.debugToast, 'Laporan laba-rugi membutuhkan paket Silver');
+    addTearDown(() => planAccess.testPlan = null);
+    planAccess.testPlan = 'SILVER';
     s.rpKpi(1);
     expect(s.debugToast, 'Laba-rugi gabungan semua cabang membutuhkan paket Platinum');
     expect(s.debugState().split('|').first, 'reports');
     planAccess.testPlan = 'PLATINUM';
-    addTearDown(() => planAccess.testPlan = null);
     s.rpKpi(1);
     await _settle(tester);
     expect(s.debugState().split('|').first, 'rp');

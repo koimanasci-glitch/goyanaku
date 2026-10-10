@@ -208,6 +208,7 @@ class OrderRulesTest extends TestCase {
     }
 
     public function test_kasir_discount_is_limited_to_what_the_owner_allows(): void {
+        $this->owner->business->grants()->create(['package' => 'Gold', 'reason' => 'Uji voucher', 'starts_at' => now()->subMinute(), 'ends_at' => now()->addWeek(), 'granted_by' => $this->owner->id]);
         $kasir = $this->token($this->staff('kasir'));
         $withDisc = fn (string $id, string $key) => $this->order($id, [$this->baju(10)], 'antrian', [], ['discKey' => $key]); // subtotal 70.000
         // Usaha yang belum menyinkronkan setelan diskon tidak dibatasi.

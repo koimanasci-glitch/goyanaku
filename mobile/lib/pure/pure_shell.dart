@@ -314,6 +314,12 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
 
   /// Izin kasir untuk laporan: mutasi kas (Arus Kas), statistik harian (keuangan) dan statistik layanan.
   bool _denyReport(String id) {
+    // Pembagian fitur per paket (Tahap 2 fitur 8): laporan lengkap, laba, HPP, export Silver; kinerja & poin Gold.
+    final need = reportFeature(id);
+    if (need != null && !planAccess.has(need, now)) {
+      toast(planAccess.lockedText(need));
+      return true;
+    }
     // Keputusan paket 10 Okt 2026: laba-rugi gabungan semua cabang hanya Platinum.
     if (_rpOutlet == '*' && const {'laba', 'labaop182'}.contains(id) && planAccess.rank(now) < 4) {
       toast('Laba-rugi gabungan semua cabang membutuhkan paket Platinum');
@@ -3590,7 +3596,10 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
       case 'addorder':
         page = NativeAddOrder(model: AddOrderModel.fromJson(_addOrderJson()), actions: this);
       case 'reports':
-        page = NativeReports(model: reportsHubA8(_rpCtx(), periodKey: _rpKey, from: _rpFrom, to: _rpTo, cat: _rpCat, query: _rpQuery, outlet: _rpOutletLabel(), lockProfit: _rpOutlet == '*' && planAccess.rank(now) < 4), actions: this);
+        page = NativeReports(model: reportsHubA8(_rpCtx(), periodKey: _rpKey, from: _rpFrom, to: _rpTo, cat: _rpCat, query: _rpQuery, outlet: _rpOutletLabel(), lockProfit: _rpOutlet == '*' && planAccess.rank(now) < 4, locked: (id) {
+          final f = reportFeature(id);
+          return f == null || planAccess.has(f, now) ? '' : '🔒 ${planNameFor(f)}';
+        }), actions: this);
       case 'rp':
         page = _rpDetail();
       case 'services':

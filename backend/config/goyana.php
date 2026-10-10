@@ -21,6 +21,18 @@ return [
     ],
     'managers_per_outlet' => 1,
 
+    // Pembagian fitur per paket (keputusan Paduka 10 Okt 2026): rank paket minimal. Fitur yang tidak disebut terbuka di semua paket.
+    // Aplikasi memakai tabel yang sama (mobile/lib/pure/access.dart); server menolak data fitur yang terkunci.
+    'plan_features' => [
+        'suppliers' => 2,   // supplier, belanja bahan, hutang supplier
+        'reports_full' => 2, 'export' => 2, 'profit' => 2, 'hpp' => 2,
+        'wa' => 2, 'quick' => 2,
+        'loyalty' => 3,     // poin, voucher, level pelanggan
+        'staff_perf' => 3,  // kinerja & komisi pegawai/kurir
+        'ai' => 3, 'messages' => 3,
+        'blast' => 4, 'profit_all' => 4,
+    ],
+
     // Perangkat kasir per outlet (termasuk pusat) mengikuti paket (keputusan pengguna 8 Oktober 2026:
     // Trial/Basic 2, Silver 3, Gold 4, Platinum 5). Angka di bawah dipakai bila paket tidak menyebutnya.
     'cashier_devices_per_outlet' => 2,

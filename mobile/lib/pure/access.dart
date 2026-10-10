@@ -15,14 +15,46 @@ const planCatalog = [
 ];
 
 // Keputusan Paduka 10 Okt: stok, opname, transfer semua paket; Hubungkan WhatsApp mulai Silver.
-const _need = {'export': 2, 'opname': 1, 'quick': 2, 'ai': 3, 'messages': 3, 'blast': 4, 'stock': 1, 'crm': 3, 'transfer': 1, 'employees': 1, 'wa': 2};
+// Pembagian fitur per paket (keputusan Paduka 10 Okt 2026; sama dengan plan_features di backend/config/goyana.php):
+// Silver: laporan lengkap, export, laba-rugi per cabang, HPP & laba operasional, supplier/belanja/hutang supplier.
+// Gold: loyalitas (poin, voucher, level), kinerja & komisi pegawai. Platinum: blast, laba-rugi gabungan semua cabang.
+const _need = {
+  'export': 2, 'opname': 1, 'quick': 2, 'ai': 3, 'messages': 3, 'blast': 4, 'stock': 1, 'crm': 3, 'transfer': 1, 'employees': 1, 'wa': 2,
+  'suppliers': 2, 'reports_full': 2, 'profit': 2, 'hpp': 2, 'staff_perf': 3, 'profit_all': 4,
+};
 const _labels = {
   'export': 'Ekspor Data', 'opname': 'Stok Opname', 'quick': 'Balasan Cepat', 'ai': 'Chatbot AI', 'messages': 'Pesan otomatis',
   'blast': 'WhatsApp Blast', 'stock': 'Stok bahan', 'crm': 'Loyalitas pelanggan', 'transfer': 'Transfer stok', 'employees': 'Pegawai', 'wa': 'Hubungkan WhatsApp',
+  'suppliers': 'Supplier & belanja bahan', 'reports_full': 'Laporan lengkap', 'profit': 'Laporan laba-rugi', 'hpp': 'Laporan HPP & laba operasional',
+  'staff_perf': 'Kinerja & komisi pegawai', 'profit_all': 'Laba-rugi gabungan semua cabang',
 };
 
+/// Fitur paket yang dibutuhkan satu laporan (null = semua paket). Laporan dasar Keuangan & Transaksi, Stok Bahan,
+/// dan Tutup Kasir terbuka di semua paket; laporan Pelanggan/Pegawai/Stok/Operasional lainnya = laporan lengkap.
+String? reportFeature(String id) {
+  if (id.startsWith('x-')) return 'export';
+  switch (id) {
+    case 'laba':
+      return 'profit';
+    case 'labaop182' || 'hpp182':
+      return 'hpp';
+    case 'beli':
+      return 'suppliers';
+    case 'poin':
+      return 'crm';
+    case 'kinerja' || 'komisi' || 'kurir':
+      return 'staff_perf';
+    case 'tumbuh' || 'toppl' || 'lamabaru' || 'pasif' || 'kasbon' || 'presensi' || 'pakai' || 'nilai' || 'jam' || 'hari' || 'waktu' || 'kapasitas':
+      return 'reports_full';
+  }
+  return null;
+}
+
+/// Nama paket minimal untuk satu fitur ("Silver").
+String planNameFor(String feature) => const ['Basic', 'Basic', 'Silver', 'Gold', 'Platinum'][(_need[feature] ?? 1).clamp(0, 4)];
+
 /// Halaman Mode Murni yang dikunci paket (sama dengan `gates` di HTML).
-const pageGates = {'quickreply': 'quick', 'stock': 'stock', 'inventory': 'stock', 'crm': 'crm', 'employees': 'employees'};
+const pageGates = {'quickreply': 'quick', 'stock': 'stock', 'inventory': 'stock', 'crm': 'crm', 'employees': 'employees', 'rank138': 'crm'};
 
 class PlanAccess {
   DateTime? trialUntil;
@@ -59,8 +91,7 @@ class PlanAccess {
   bool has(String feature, DateTime now) => rank(now) >= (_need[feature] ?? 99);
 
   /// Pesan saat fitur terkunci, sama dengan HTML.
-  String lockedText(String feature) =>
-      '${_labels[feature] ?? 'Fitur'} membutuhkan paket ${const ['ai', 'messages', 'crm'].contains(feature) ? 'Gold' : (feature == 'blast' ? 'Platinum' : (_need[feature] == 1 ? 'Basic' : 'Silver'))}';
+  String lockedText(String feature) => '${_labels[feature] ?? 'Fitur'} membutuhkan paket ${planNameFor(feature)}';
 
   /// 1 pusat + cabang sesuai paket.
   int outletLimit(DateTime now) {

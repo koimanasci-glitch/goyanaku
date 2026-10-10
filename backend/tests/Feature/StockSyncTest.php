@@ -142,6 +142,18 @@ class StockSyncTest extends TestCase {
         $this->push($kepala, [['collection' => 'stock_transfers', 'key' => 'tr-2', 'data' => $t2]])->assertJsonPath('results.0.status', 'applied');
     }
 
+    public function test_suppliers_and_purchases_need_silver(): void {
+        $owner = $this->token($this->owner);
+        $sup = ['collection' => 'stock_suppliers', 'key' => 's1', 'data' => ['id' => 's1', 'name' => 'Toko A']];
+        $this->push($owner, [$sup, ['collection' => 'stock_purchases', 'key' => 'p1', 'data' => ['id' => 'p1']]])
+            ->assertJsonPath('results.0.message', 'Supplier & belanja bahan membutuhkan paket Silver.')
+            ->assertJsonPath('results.1.message', 'Supplier & belanja bahan membutuhkan paket Silver.');
+        $this->owner->business->grants()->create(['package' => 'Silver', 'reason' => 'Uji', 'starts_at' => now()->subMinute(), 'ends_at' => now()->addWeek(), 'granted_by' => $this->owner->id]);
+        $this->push($owner, [$sup])->assertJsonPath('results.0.status', 'applied');
+        $this->assertTrue($this->owner->business->fresh()->allows('suppliers'));
+        $this->assertFalse($this->owner->business->fresh()->allows('loyalty'));
+    }
+
     public function test_old_business_wide_ledger_rows_are_moved_to_their_outlet(): void {
         $b = $this->owner->business;
         $ids = $b->outlets()->orderBy('id')->pluck('id');

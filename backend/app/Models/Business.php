@@ -70,6 +70,13 @@ class Business extends Model {
             'cashier_device_limit' => (int) ($package ? config("goyana.packages.$package.cashier_devices") : null) ?: (int) config('goyana.cashier_devices_per_outlet'),
             // Akun kasir / pegawai / kurir per outlet (masing-masing); kepala cabang 1 per outlet.
             'staff_limit' => (int) ($package ? config("goyana.packages.$package.staff") : null) ?: 2,
+            'rank' => $readOnly || !$package ? 0 : (int) config("goyana.packages.$package.rank", 0),
         ];
+    }
+
+    /** Fitur paket (config goyana.plan_features) terbuka untuk usaha ini sekarang. */
+    public function allows(string $feature): bool {
+        $need = (int) (config("goyana.plan_features.$feature") ?? 0);
+        return $need === 0 || (int) ($this->currentAccess()['rank'] ?? 0) >= $need;
     }
 }

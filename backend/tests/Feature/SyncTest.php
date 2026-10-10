@@ -196,6 +196,9 @@ class SyncTest extends TestCase {
 
     public function test_crm_data_syncs_and_kasir_only_marks_vouchers_used_and_adds_redeemed_points(): void {
         $owner = $this->owner(); $o = $this->token($owner);
+        // Poin & voucher pelanggan mulai paket Gold.
+        $this->assertSame('Poin & voucher pelanggan membutuhkan paket Gold.', $this->push($o, [['collection' => 'crm', 'key' => 'voucher:X', 'data' => ['code' => 'X']]])->json('results.0.message'));
+        $owner->business->grants()->create(['package' => 'Gold', 'reason' => 'Uji', 'starts_at' => now()->subMinute(), 'ends_at' => now()->addWeek(), 'granted_by' => $owner->id]);
         $voucher = ['code' => 'HEMAT10', 'name' => 'Hemat', 'type' => 'p', 'val' => 10, 'min' => 0, 'until' => '', 'who' => 'Semua', 'used' => false, 'batch' => ''];
         $r = $this->push($o, [
             ['collection' => 'crm', 'key' => 'rules', 'data' => ['rem' => ['on' => true], 'pt' => ['on' => true, 'per' => 10000]]],
