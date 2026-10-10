@@ -1251,8 +1251,15 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
     });
     for (final g in groups.whereType<Map>()) {
       if (g['i'] == 4) (g['items'] as List).removeWhere((it) => it is Map && (it['j'] as num) >= 2);
-      // Menu tersendiri untuk kurir dan akun masuknya (permintaan Koiman 9 Okt).
-      if (g['i'] == 3) (g['items'] as List).add({'j': 4, 'icon': '🛵', 't': 'Pengaturan Kurir', 'badge': '', 's': 'Akun kurir, PIN dan outlet tugas'});
+      // Satu menu Kurir saja (10 Okt): "Pengaturan Kurir" terpisah dobel dengan tab di halaman Kurir.
+      if (g['i'] == 3) {
+        for (final it in (g['items'] as List).whereType<Map>()) {
+          if (it['j'] == 3) {
+            it['t'] = 'Kurir';
+            it['s'] = 'Tugas antar-jemput, akun & PIN kurir';
+          }
+        }
+      }
       // "Stock Opname & Supplier" membuka halaman yang sama dengan "Stok & Bahan" → cukup satu menu.
       if (g['i'] == 9) (g['items'] as List).removeWhere((it) => it is Map && it['j'] == 7);
     }

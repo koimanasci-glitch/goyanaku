@@ -182,3 +182,8 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Halaman **WhatsApp & Chatbot** memakai **tab pil** (seperti filter Laporan): **Perangkat · Otomatis · Chatbot AI · Balas Cepat · Promo**.
 - Tab **Chatbot AI** punya **Pengetahuan dari laundry**: tanya-jawab yang ditulis pemilik (aturan, promo, area antar, cara bayar). AI memakainya **selain data aplikasi**. Bisa tambah, edit, hapus.
 - Sakelar lama tetap di tempat penyimpanan yang sama (tidak ada pengaturan yang hilang).
+
+## 10 Oktober 2026, 11.17 WIB — menu kurir dobel
+
+- Di Pengaturan → Pegawai ada **Management Kurir** dan **Pengaturan Kurir** yang membuka halaman yang sama (tab Pengaturan Kurir ada di halaman Kurir). Menu **Pengaturan Kurir** terpisah dihapus; yang tersisa satu menu **Kurir** (Tugas antar-jemput, akun & PIN kurir).
+- Menu tetap terpisah: **Pegawai**, **Kasir**, **Kurir** — masing-masing dengan hak aksesnya.
