@@ -224,3 +224,4 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - Cara kerja Paduka: diskusi pembagian paket satu per satu di chat, dirangkum, **baru di akhir dokumen rancangan diedit sekali** (hemat kuota).
 - 13.37 — Paket butir 2 (Pelanggan) disetujui: data/riwayat/peta & deposit semua paket; loyalitas (poin, voucher, level) dan rating WA mulai Gold.
 - 13.39 — Paket butir 3: Tim/kontrol/antar-jemput semua paket; kinerja & bonus mulai Gold. Keputusan Paduka: **akun staf dibatasi per paket** — Basic 2 kasir · 2 kurir · 2 pegawai; tiap naik paket +1 masing-masing (Silver 3/3/3, Gold 4/4/4, Platinum 5/5/5). (Per outlet atau per usaha: menunggu jawaban.)
+- 13.43 — Keputusan Paduka: batas akun staf **per outlet**; **Kepala Cabang 1 per outlet** (tidak memakan kuota kasir); **bisa beli tambahan akun** satuan (add-on). Permintaan baru: **pembelian saldo** di sistem untuk upgrade paket (Saldo GOYANA) — rancangan didiskusikan, belum dikerjakan.
