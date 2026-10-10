@@ -2,7 +2,7 @@
 # Dibangun dari folder repo:  docker compose -f deploy/docker/docker-compose.yml up -d --build
 FROM dunglas/frankenphp:1-php8.3
 
-RUN install-php-extensions pdo_mysql mbstring intl zip bcmath pcntl opcache @composer \
+RUN install-php-extensions pdo_mysql mbstring intl zip bcmath pcntl opcache gd @composer \
  && apt-get update && apt-get install -y --no-install-recommends python3 curl default-mysql-client \
  && rm -rf /var/lib/apt/lists/*
 

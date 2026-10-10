@@ -26,7 +26,7 @@ class AiBilling {
         if ($type === 'topup' && $amount < (int) Settings::get('ai_min_topup')) {
             throw ValidationException::withMessages(['amount' => 'Minimal top-up Rp'.number_format(Settings::get('ai_min_topup'), 0, ',', '.').'.']);
         }
-        return DB::transaction(function () use ($business, $amount, $reference, $actorId, $type) {
+        $balance = DB::transaction(function () use ($business, $amount, $reference, $actorId, $type) {
             $locked = Business::whereKey($business->id)->lockForUpdate()->firstOrFail();
             if (DB::table('ai_ledger')->where(['business_id' => $locked->id, 'type' => $type, 'reference' => $reference])->exists()) {
                 throw ValidationException::withMessages(['reference' => 'Referensi ini sudah dicatat.']);
@@ -39,6 +39,28 @@ class AiBilling {
             DB::table('audit_events')->insert(['actor_id' => $actorId ?? $locked->users()->value('id'), 'business_id' => $locked->id, 'action' => 'ai.'.$type,
                 'details' => json_encode(['amount' => $amount, 'reference' => $reference, 'balance' => $balance]), 'created_at' => now()]);
             return $balance;
+        });
+        // Chatbot AI WhatsApp berjalan di CHATKU (keputusan Paduka 10 Okt 2026): isi saldo diteruskan supaya saldo AI di CHATKU ikut terisi.
+        if ($type === 'topup' && $amount > 0) \App\WhatsApp\Jobs\ForwardAiTopup::dispatchIfConnected($business->id, $amount, $reference);
+        return $balance;
+    }
+
+    /**
+     * Potong saldo dengan rupiah yang sudah dihitung pihak lain (AI WhatsApp lewat CHATKU: biaya asli × kurs (+2%) + untung 25%).
+     * Sekali per referensi; saldo tidak pernah minus (bila kurang, dipotong sampai nol).
+     */
+    public static function debitRupiah(Business $business, int $rp, string $model, string $reference): int {
+        if ($rp <= 0) return 0;
+        return DB::transaction(function () use ($business, $rp, $model, $reference) {
+            $locked = Business::whereKey($business->id)->lockForUpdate()->firstOrFail();
+            $done = DB::table('ai_ledger')->where(['business_id' => $locked->id, 'type' => 'usage', 'reference' => $reference])->value('amount');
+            if ($done !== null) return -$done;
+            $take = min($rp, max(0, (int) $locked->ai_balance));
+            $balance = (int) $locked->ai_balance - $take;
+            $locked->forceFill(['ai_balance' => $balance])->save();
+            DB::table('ai_ledger')->insert(['business_id' => $locked->id, 'type' => 'usage', 'amount' => -$take, 'balance_after' => $balance, 'reference' => $reference,
+                'model' => mb_substr($model, 0, 100), 'created_at' => now()]);
+            return $take;
         });
     }
 

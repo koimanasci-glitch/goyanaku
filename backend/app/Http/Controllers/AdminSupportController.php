@@ -44,7 +44,7 @@ class AdminSupportController {
     public function saveSettings(Request $request) {
         $data = $request->validate([
             'ai_margin_percent' => 'required|integer|min:0|max:300',
-            'ai_min_topup' => 'required|integer|min:10000|max:10000000',
+            'ai_min_topup' => 'required|integer|min:50000|max:10000000', // = minimal isi saldo AI mitra di CHATKU
             'fx_cushion_percent' => 'required|numeric|min:0|max:20',
             'ai_daily_budget_usd' => 'required|numeric|min:0|max:1000',
             'bot_pause_minutes' => 'required|integer|min:1|max:1440',
