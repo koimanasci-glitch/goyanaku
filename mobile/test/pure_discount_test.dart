@@ -174,7 +174,7 @@ void servicesTests() {
 }
 
 // ---- Halaman berpola tetap (butir = tangkapan HTML) ----
-const _redesigned = {'automation', 'datacenter', 'cashier', 'barcode', 'reminder'};
+const _redesigned = {'automation', 'datacenter', 'cashier', 'barcode', 'reminder', 'whatsappbot'};
 void templateTests() {
   testWidgets('Halaman pola tetap: butir sama persis dengan HTML dan bisa digambar', (tester) async {
     planAccess.testPlan = 'PLATINUM';
