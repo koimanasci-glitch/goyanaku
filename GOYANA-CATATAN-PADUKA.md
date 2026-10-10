@@ -228,3 +228,4 @@ Masalah: menu Antar Jemput terlalu banyak tombol, dan penjemputan yang ditugaska
 - 13.44 — Keputusan Paduka: kalau GOYANA belum berbadan usaha (syarat user choice billing Google Play), **fitur isi saldo ditiadakan**; paket & add-on dibayar lewat Google Play saja.
 - 13.47 — Paket butir 4 (Uang & Stok): kas/tutup omset/QRIS/pengeluaran/ralat, stok/opname/transfer, dan **pemakaian bahan otomatis per layanan (resep) semua paket**. Silver ke atas: laporan HPP & laba per layanan, supplier/pembelian/hutang supplier, umur piutang + penagihan.
 - 13.48 — Paket butir 5 (Cabang) disetujui: Monitor/Kelola/zona waktu semua paket; target omset mulai Gold; bandingkan & peringkat cabang + harga per cabang hanya Platinum.
+- 13.49 — Paket butir 6 (Laporan) disetujui: laporan dasar (Keuangan, Transaksi) semua paket; laporan lengkap, Export, laba-rugi per cabang mulai Silver (Basic tidak); ringkasan WA malam mulai Gold; laba-rugi gabungan Platinum.
