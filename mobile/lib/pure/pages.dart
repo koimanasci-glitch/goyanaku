@@ -3340,11 +3340,34 @@ Future<Map<String, dynamic>?> _fetchMonitoring(PureHost host, String? outletId) 
   if (!srv.loggedIn || !srv.can('reports.view')) return null;
   final n = outletId == null ? null : ServerSync.outletNumber(outletId);
   if (outletId != null && n == null) return null;
+  final (from, to) = MonitorPeriod.range(host.now);
   try {
-    return await srv.api('GET', n == null ? '/monitoring' : '/monitoring?outlet_id=$n');
+    return await srv.api('GET', '/monitoring?from=$from&to=$to${n == null ? '' : '&outlet_id=$n'}');
   } on ServerFailure catch (_) {
     return null;
   }
+}
+
+/// Pilihan waktu Monitor Cabang (Tahap 2, 10 Okt 2026): Hari ini, Kemarin, 7 hari, Bulan ini. Dipakai bersama
+/// halaman Semua Cabang dan Satu Cabang; "hari ini" dihitung server dengan zona waktu cabangnya.
+class MonitorPeriod {
+  static int index = 0;
+  static const labels = ['Hari ini', 'Kemarin', '7 hari', 'Bulan ini'];
+  static String _d(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  static (String, String) range(DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    return switch (index) {
+      1 => (_d(today.subtract(const Duration(days: 1))), _d(today.subtract(const Duration(days: 1)))),
+      2 => (_d(today.subtract(const Duration(days: 6))), _d(today)),
+      3 => (_d(DateTime(now.year, now.month, 1)), _d(today)),
+      _ => (_d(today), _d(today)),
+    };
+  }
+
+  static Map<String, dynamic> chips() => {
+        'type': 'buttons',
+        'options': [for (var k = 0; k < labels.length; k++) {'t': labels[k], 'svg': '', 'file': '', 'after': false, 'on': k == index, 'i': 900 + k}],
+      };
 }
 
 /// Butir tambahan Monitoring dari server: peringatan, tahap cucian, kerja kasir/pegawai/kurir, tunai di kurir, HP kasir.
@@ -3438,16 +3461,54 @@ bool _sameDay(DateTime? a, DateTime b) => a != null && a.year == b.year && a.mon
 class ManageBranchesPage extends PurePage {
   ManageBranchesPage(super.host);
   Map<String, dynamic>? _report;
+  StockBook? _stock;
   @override
   String get title => 'MANAJEMEN CABANG';
   @override
   void opened() {
     _report = null;
+    StockBook.load(host.kv).then((s) {
+      _stock = s;
+      host.refresh();
+    });
+    _load();
+  }
+
+  void _load() {
     _fetchMonitoring(host, null).then((r) {
       if (r == null) return;
       _report = r;
       host.refresh();
     });
+  }
+
+  /// Kartu per cabang (data server): omzet, pesanan, proses/terlambat, belum lunas, tutup omset, stok menipis.
+  List<Map<String, dynamic>> _branchCards(Map<String, dynamic> r) {
+    final rows = [...(r['outlets'] as List? ?? const []).whereType<Map>()];
+    final closes = [...((r['money'] is Map ? (r['money'] as Map)['cash_closes'] : null) as List? ?? const []).whereType<Map>()];
+    final held = [...((r['money'] is Map ? (r['money'] as Map)['courier_cash'] : null) as List? ?? const []).whereType<Map>()];
+    final s = _stock, outs = host.business.outlets;
+    final out = <Map<String, dynamic>>[{'type': 'title', 't': 'Cabang · ${MonitorPeriod.labels[MonitorPeriod.index]}'}];
+    for (final o in rows) {
+      final key = 'srv-${o['id']}';
+      final k = outs.indexWhere((x) => x.id == key);
+      final mine = closes.where((c) => c['outlet_id'] == o['id']).toList();
+      final diff = mine.fold<int>(0, (a, c) => a + _num(c['difference']));
+      final close = mine.isEmpty ? 'belum tutup omset' : (diff == 0 ? 'tutup omset ${mine.length}× sesuai' : 'tutup omset selisih ${diff < 0 ? '-' : '+'}${rp(diff.abs())}');
+      final low = s == null ? 0 : s.items.where((e) => s.balance('${e['id']}', key) <= ((e['min'] as num?) ?? 0)).length;
+      final kurir = held.where((h) => h['outlet_id'] == o['id']).fold<int>(0, (a, h) => a + _num(h['held']));
+      out.add({
+        'type': 'entry', 't': '${o['name']}${o['active'] == false ? ' · nonaktif' : ''}',
+        'lines': [
+          '${_num(o['orders'])} pesanan · proses ${_num(o['in_process'])} · siap ${_num(o['ready_uncollected'])} · terlambat ${_num(o['late'])}',
+          'Belum lunas ${_num(o['unpaid'])} · $close${kurir > 0 ? ' · kurir pegang ${rp(kurir)}' : ''}',
+          if (low > 0) 'Stok menipis $low bahan',
+        ],
+        'badge': _num(o['late']) > 0 || diff != 0 ? '⚠' : '', 'avatar': '🏪', 'svg': '', 'color': '', 'amount': rp(_num(o['revenue'])),
+        'btns': [if (k >= 0) {'t': 'Monitor', 'on': false, 'i': 1 + k}],
+      });
+    }
+    return out;
   }
 
   @override
@@ -3458,12 +3519,14 @@ class ManageBranchesPage extends PurePage {
     final all = [for (final o in outs) ..._outletOrders(host, o.id)];
     final omzet = all.where((o) => _sameDay(o.created, n)).fold<int>(0, (a, o) => a + o.total);
     Map<String, dynamic> mon(int k) => {'t': 'Monitor ${outs[k].name}', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1 + k};
+    final server = host.server.loggedIn && host.server.can('reports.view');
     return [
       {'type': 'entry', 't': cur?.name ?? 'Belum ada outlet', 'lines': ['OUTLET OPERASIONAL', 'Akun ini selalu bekerja di outlet ini. Cabang lain hanya bisa dimonitor, tidak bisa dipindah.'], 'badge': '', 'avatar': '🔒', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
+      if (server) MonitorPeriod.chips(),
       {'type': 'hero', 't': 'Outlet tersimpan', 'v': '${outs.length}', 's': 'Tambahkan dan kelola outlet usaha'},
       {'type': 'button', 't': '＋ Tambah Cabang', 'primary': false, 'file': '', 'after': false, 'i': 0},
       {'type': 'stats', 'cells': [
-        {'v': rp(totals == null ? omzet : _num(totals['revenue'])), 't': 'Total Omzet Hari Ini', 'n': '', 'tone': ''},
+        {'v': rp(totals == null ? omzet : _num(totals['revenue'])), 't': totals == null || MonitorPeriod.index == 0 ? 'Total Omzet Hari Ini' : 'Total Omzet ${MonitorPeriod.labels[MonitorPeriod.index]}', 'n': '', 'tone': ''},
         {'v': '${totals == null ? all.where((o) => !const ['selesai', 'diambil'].contains(_monSt(o, n))).length : _num(totals['in_process']) + _num(totals['ready_uncollected'])}', 't': 'Order Aktif', 'n': '', 'tone': ''},
         {'v': '${totals == null ? all.where((o) => o.isLate(n)).length : _num(totals['late'])}', 't': 'Terlambat', 'n': '', 'tone': ''},
       ]},
@@ -3472,6 +3535,7 @@ class ManageBranchesPage extends PurePage {
       if (outs.isEmpty) {'type': 'hint', 't': 'Tambahkan outlet untuk mulai monitoring.'},
       if (outs.length == 1) {'type': 'button', 't': 'Monitor ${outs[0].name}', 'primary': true, 'file': '', 'after': false, 'i': 1},
       if (outs.length > 1) {'type': 'buttons', 'options': [for (var k = 0; k < outs.length; k++) mon(k)]},
+      if (_report != null) ..._branchCards(_report!),
       if (_report != null) ..._monitoringExtras(_report!, people: false),
       if (_report != null) {'type': 'hint', 't': 'Angka dari server GOYANA: gabungan semua HP di semua cabang.'},
     ];
@@ -3479,6 +3543,12 @@ class ManageBranchesPage extends PurePage {
 
   @override
   void button(int i) {
+    if (i >= 900 && i < 900 + MonitorPeriod.labels.length) {
+      MonitorPeriod.index = i - 900;
+      _report = null;
+      host.refresh();
+      return _load();
+    }
     if (i == 0) {
       OutletEditPage.editId = null;
       return host.go('outletedit');
@@ -3499,9 +3569,23 @@ class BranchMonitorPage extends PurePage {
   String get title => 'MONITOR CABANG';
   @override
   String get back => 'superbilling';
+  /// Tab satu cabang (data server): 0 Ringkasan, 1 Pesanan, 2 Kas, 3 Stok, 4 Tim, 5 Riwayat.
+  int tab = 0;
+  static const tabs = ['Ringkasan', 'Pesanan', 'Kas', 'Stok', 'Tim', 'Riwayat'];
+  StockBook? _stock;
+
   @override
   void opened() {
     _report = null;
+    tab = 0;
+    StockBook.load(host.kv).then((s) {
+      _stock = s;
+      host.refresh();
+    });
+    _load();
+  }
+
+  void _load() {
     final o = host.business.outlets.where((x) => x.id == outletId).firstOrNull ?? host.business.outlets.firstOrNull;
     if (o == null) return;
     _fetchMonitoring(host, o.id).then((r) {
@@ -3511,27 +3595,137 @@ class BranchMonitorPage extends PurePage {
     });
   }
 
+  @override
+  void button(int i) {
+    if (i >= 900 && i < 900 + MonitorPeriod.labels.length) {
+      MonitorPeriod.index = i - 900;
+      _report = null;
+      host.refresh();
+      return _load();
+    }
+    if (i >= 950 && i < 950 + tabs.length) {
+      tab = i - 950;
+      return host.refresh();
+    }
+    if (i >= 3000) {
+      final o = host.business.outlets.where((x) => x.id == outletId).firstOrNull ?? host.business.outlets.firstOrNull;
+      final list = o == null ? <Order>[] : _outletOrders(host, o.id);
+      if (i - 3000 < list.length) host.openOrder(list[i - 3000].id);
+    }
+  }
+
   List<Map<String, dynamic>> _serverItems(Map<String, dynamic> r, Outlet? o, List<Order> list, DateTime n) {
     final rows = [...(r['outlets'] as List? ?? const []).whereType<Map>()];
     final s = rows.isEmpty ? const {} : rows.first;
+    final money = r['money'] is Map ? r['money'] as Map : const {};
     Map<String, dynamic> cell(String v, String t) => {'v': v, 't': t, 'n': '', 'tone': ''};
-    return [
+    Map<String, dynamic> entry(String t, List<String> lines, {String avatar = '', String amount = '', List<dynamic> btns = const []}) =>
+        {'type': 'entry', 't': t, 'lines': lines, 'badge': '', 'avatar': avatar, 'svg': '', 'color': '', 'amount': amount, 'btns': btns};
+    final period = MonitorPeriod.labels[MonitorPeriod.index];
+    final head = <Map<String, dynamic>>[
       {'type': 'entry', 't': 'Mode Monitoring', 'lines': ['Anda sedang melihat data cabang. Transaksi outlet aktif tidak berpindah.'], 'badge': '', 'avatar': '👁', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
-      {'type': 'hero', 't': 'Omzet Hari Ini', 'v': rp(_num(s['revenue'])), 's': o?.name ?? ''},
-      {'type': 'stats', 'cells': [
-        cell('${_num(s['in_process'])}', 'Diproses'),
-        cell('${_num(s['ready_uncollected'])}', 'Siap Diambil'),
-        cell('${_num(s['late'])}', 'Terlambat'),
-        cell(rp(_num(s['cash_in'])), 'Pembayaran diterima'),
-        cell('${_num(s['unpaid'])}', 'Belum Lunas'),
-      ]},
-      ..._monitoringExtras(r),
-      {'type': 'title', 't': 'Pesanan Cabang', 's': ''},
-      if (list.isEmpty) {'type': 'hint', 't': 'Belum ada pesanan cabang ini yang tersimpan di HP ini.'},
-      for (var k = 0; k < list.length; k++)
-        {'type': 'entry', 't': list[k].name, 'lines': ['${list[k].id} · ${_monSt(list[k], n)}'], 'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
-      {'type': 'hint', 't': 'Angka dari server GOYANA: gabungan semua HP di cabang ini.'},
+      MonitorPeriod.chips(),
+      {'type': 'hero', 't': 'Omzet $period', 'v': rp(_num(s['revenue'])), 's': o?.name ?? ''},
+      {'type': 'buttons', 'options': [for (var k = 0; k < tabs.length; k++) {'t': tabs[k], 'svg': '', 'file': '', 'after': false, 'on': k == tab, 'i': 950 + k}]},
     ];
+    final body = <Map<String, dynamic>>[];
+    switch (tab) {
+      case 1: // Pesanan
+        final pickups = [...(r['pickups'] as List? ?? const []).whereType<Map>()];
+        if (pickups.isNotEmpty) {
+          body.add({'type': 'title', 't': 'Penjemputan berjalan'});
+          for (final p in pickups) {
+            body.add(entry('${p['customer'] ?? ''}', ['${p['order'] ?? ''}${'${p['address'] ?? ''}'.isEmpty ? '' : ' · ${p['address']}'}${'${p['when'] ?? ''}'.isEmpty ? '' : ' · ${p['when']}'}${'${p['courier'] ?? ''}'.isEmpty ? '' : ' · ${p['courier']}'}'], avatar: '🛵'));
+          }
+        }
+        body.add({'type': 'title', 't': 'Pesanan cabang'});
+        if (list.isEmpty) body.add({'type': 'hint', 't': 'Belum ada pesanan cabang ini yang tersimpan di HP ini.'});
+        for (var k = 0; k < list.length && k < 100; k++) {
+          body.add(entry(list[k].name, ['${list[k].id} · ${_monSt(list[k], n)}${list[k].remaining > 0 ? ' · sisa ${rp(list[k].remaining)}' : ''}'],
+              amount: rp(list[k].total), btns: [{'t': 'Buka', 'on': false, 'i': 3000 + k}]));
+        }
+      case 2: // Kas
+        final byMethod = money['cash_in_by_method'] is Map ? money['cash_in_by_method'] as Map : const {};
+        body.add({'type': 'title', 't': 'Uang diterima · $period'});
+        if (byMethod.isEmpty) body.add({'type': 'hint', 't': 'Belum ada pembayaran pada periode ini.'});
+        for (final e in byMethod.entries) {
+          body.add(entry('${e.key}', const [], amount: rp(_num(e.value))));
+        }
+        final closes = [...(money['cash_closes'] as List? ?? const []).whereType<Map>()];
+        body.add({'type': 'title', 't': 'Tutup omset'});
+        if (closes.isEmpty) body.add({'type': 'hint', 't': 'Belum ada tutup omset pada periode ini.'});
+        for (final c in closes) {
+          final diff = _num(c['difference']);
+          final at = DateTime.tryParse('${c['at'] ?? ''}')?.toLocal();
+          String two(int v) => v.toString().padLeft(2, '0');
+          body.add(entry('${c['cashier'] ?? 'Kasir'}', [
+            '${at == null ? '' : '${two(at.day)}/${two(at.month)} ${two(at.hour)}.${two(at.minute)} · '}${diff == 0 ? 'sesuai' : 'selisih ${diff < 0 ? '-' : '+'}${rp(diff.abs())}'}',
+            if ('${c['note'] ?? ''}'.isNotEmpty) '${c['note']}',
+          ], avatar: diff == 0 ? '✅' : '⚠', amount: c['deposited'] == null ? '' : rp(_num(c['deposited']))));
+        }
+        final held = [...(money['courier_cash'] as List? ?? const []).whereType<Map>()];
+        if (held.isNotEmpty) {
+          body.add({'type': 'title', 't': 'Tunai dipegang kurir'});
+          for (final c in held) {
+            body.add(entry('${c['courier'] ?? ''}', ['${_num(c['notes'])} nota · belum disetor ke kasir'], amount: rp(_num(c['held']))));
+          }
+        }
+        final deps = [...(money['deposits'] as List? ?? const []).whereType<Map>()];
+        if (deps.isNotEmpty) {
+          body.add({'type': 'title', 't': 'Setoran kurir'});
+          for (final d in deps) {
+            final diff = _num(d['difference']);
+            body.add(entry('${d['courier'] ?? ''}', ['Diterima ${d['confirmed_by'] ?? ''}${diff == 0 ? '' : ' · selisih ${diff < 0 ? '-' : '+'}${rp(diff.abs())}'}'], amount: rp(_num(d['received']))));
+          }
+        }
+      case 3: // Stok
+        final st = _stock, key = o?.id ?? '';
+        final its = st?.items ?? const <Map<String, dynamic>>[];
+        if (its.isEmpty) body.add({'type': 'hint', 't': 'Belum ada bahan.'});
+        for (final e in its) {
+          final bal = st!.balance('${e['id']}', key);
+          final low = bal <= ((e['min'] as num?) ?? 0);
+          body.add(entry('${e['name']}', ['Sisa ${qtyText(bal)} ${e['unit']} · batas ${qtyText(((e['min'] as num?) ?? 0).toDouble())} ${e['unit']}'], avatar: low ? '⚠' : '🧴'));
+        }
+        final moving = [for (final t in ((st?.raw['transfers'] as List?) ?? const []).whereType<Map>()) if (t['status'] == 'sent' && (t['from'] == key || t['to'] == key)) t];
+        if (moving.isNotEmpty) {
+          body.add({'type': 'title', 't': 'Kiriman dalam perjalanan'});
+          for (final t in moving) {
+            final it = its.where((e) => e['id'] == t['itemId']).firstOrNull;
+            body.add(entry('${it?['name'] ?? 'Bahan'} · ${qtyText((t['qty'] as num?)?.toDouble() ?? 0)} ${it?['unit'] ?? ''}', [t['to'] == key ? 'Masuk ke cabang ini' : 'Keluar dari cabang ini'], avatar: '⇄'));
+          }
+        }
+      case 4: // Tim
+        final extras = _monitoringExtras(r);
+        final at = extras.indexWhere((e) => e['type'] == 'title' && const {'Kasir Hari Ini', 'Pegawai Hari Ini', 'Kurir Hari Ini', 'HP Kasir'}.contains(e['t']));
+        if (at < 0) body.add({'type': 'hint', 't': 'Belum ada pekerjaan tercatat pada periode ini.'});
+        if (at >= 0) {
+          for (final e in extras.skip(at)) {
+            if (e['type'] == 'title' && const {'Tunai Dipegang Kurir', 'Setoran Kurir Hari Ini'}.contains(e['t'])) break;
+            body.add(e);
+          }
+        }
+      case 5: // Riwayat
+        final key = o?.id ?? '';
+        final audit = [for (final e in (host.settings.raw['audit'] as List? ?? const []).whereType<Map>()) if ('${e['o'] ?? ''}' == key) e];
+        if (audit.isEmpty) body.add({'type': 'hint', 't': 'Belum ada riwayat aktivitas cabang ini di HP ini.'});
+        for (final e in audit.take(80)) {
+          final at = DateTime.tryParse('${e['at']}')?.toLocal();
+          String two(int v) => v.toString().padLeft(2, '0');
+          body.add(entry('${e['t']}', ['${e['s']}${'${e['by'] ?? ''}'.isEmpty ? '' : ' · ${e['by']}'}', if (at != null) '${two(at.day)}/${two(at.month)} ${two(at.hour)}.${two(at.minute)}'], avatar: '${e['ic'] ?? ''}'));
+        }
+      default: // Ringkasan
+        body.add({'type': 'stats', 'cells': [
+          cell('${_num(s['in_process'])}', 'Diproses'),
+          cell('${_num(s['ready_uncollected'])}', 'Siap Diambil'),
+          cell('${_num(s['late'])}', 'Terlambat'),
+          cell(rp(_num(s['cash_in'])), 'Pembayaran diterima'),
+          cell('${_num(s['unpaid'])}', 'Belum Lunas'),
+        ]});
+        final extras = _monitoringExtras(r, people: false);
+        body.addAll(extras);
+    }
+    return [...head, ...body, {'type': 'hint', 't': 'Angka dari server GOYANA: gabungan semua HP di cabang ini.'}];
   }
 
   @override

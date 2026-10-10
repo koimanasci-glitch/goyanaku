@@ -12,6 +12,7 @@ import 'package:goyana_flutter/pure/team_page.dart';
 
 class _Server {
   final posted = <Map<String, dynamic>>[];
+  final queries = <String>[];
   final team = <Map<String, dynamic>>[
     {'id': 1, 'name': 'Rina', 'role': 'kasir', 'outlet_id': 5, 'phone': '6281', 'active': true},
     {'id': 2, 'name': 'Sari', 'role': 'kasir', 'outlet_id': 5, 'phone': '6282', 'active': true},
@@ -54,6 +55,27 @@ class _Server {
     if (path.startsWith('/api/devices/cashier/') && method == 'DELETE') {
       devices.removeWhere((d) => '${d['id']}' == path.split('/').last);
       return const ServerReply(204, '');
+    }
+    if (path == '/api/monitoring') {
+      queries.add(url.query);
+      final one = url.queryParameters['outlet_id'];
+      final rows = [
+        {'id': 5, 'name': 'Pusat', 'active': true, 'orders': 4, 'revenue': 120000, 'cash_in': 90000, 'unpaid': 1, 'debt': 30000, 'stages': {'cuci': 2}, 'in_process': 2, 'ready_uncollected': 1, 'late': 1, 'pending_weigh': 0},
+        {'id': 6, 'name': 'Bekasi', 'active': true, 'orders': 1, 'revenue': 20000, 'cash_in': 20000, 'unpaid': 0, 'debt': 0, 'stages': <String, dynamic>{}, 'in_process': 0, 'ready_uncollected': 0, 'late': 0, 'pending_weigh': 0},
+      ].where((o) => one == null || '${o['id']}' == one).toList();
+      return _json(200, {
+        'totals': {'revenue': 140000, 'in_process': 2, 'ready_uncollected': 1, 'late': 1},
+        'outlets': rows,
+        'money': {
+          'cash_in_by_method': {'Tunai': 70000, 'QRIS': 20000},
+          'courier_cash': [{'courier': 'Budi', 'outlet_id': 5, 'held': 25000, 'notes': 1}],
+          'deposits': <dynamic>[],
+          'cash_closes': [{'outlet_id': 5, 'cashier': 'Rina', 'at': '2026-10-10T03:00:00Z', 'deposited': 65000, 'difference': -5000, 'note': 'kurang'}],
+        },
+        'cashiers': [{'name': 'Rina', 'created': 3, 'marked_ready': 1, 'cancelled': 0, 'skipped': 0, 'moved_back': 0, 'received': 70000}],
+        'production': <dynamic>[], 'couriers': <dynamic>[], 'alerts': <dynamic>[], 'devices': <dynamic>[],
+        'pickups': [{'outlet_id': 5, 'order': 'GY-9', 'customer': 'Tono', 'courier': 'Budi', 'when': 'Secepatnya', 'address': 'Jl. Mawar'}],
+      });
     }
     if (path == '/api/outlets') {
       return _json(200, {'outlets': [{'id': 5, 'name': 'Pusat', 'active': true}, {'id': 6, 'name': 'Bekasi', 'active': true}]});
@@ -184,5 +206,65 @@ void main() {
     expect(server.devices, isEmpty);
     // Kelola tim cabang ini: Tim terbuka dengan saringan cabang tersebut.
     expect(TeamPage.presetOutlet, '');
+  });
+
+  test('monitor cabang: kartu per cabang, pilihan waktu, dan tab satu cabang dari server', () async {
+    final server = _Server();
+    final kv = MemoryKvStore({
+      Keys.business: jsonEncode({'orders': <dynamic>[], 'details': <String, dynamic>{}, 'customers': <dynamic>[]}),
+      Keys.outlets: jsonEncode([{'id': 'out-1', 'name': 'Pusat', 'address': 'A', 'phone': '0811'}]),
+      Keys.activeOutlet: jsonEncode('out-1'),
+    });
+    final sync = ServerSync(kv, send: server.send);
+    await sync.load();
+    expect(await sync.setUrl('https://app.goyana.test/'), isNull);
+    await sync.login('owner@laundry.test', 'PasswordAman123');
+    final host = _Host(kv, await Business.load(kv), await AppSettings.load(kv), sync);
+    MonitorPeriod.index = 0;
+
+    // Semua cabang: kartu per cabang dengan tutup omset dan tunai kurir.
+    final all = ManageBranchesPage(host)..opened();
+    await _settle();
+    expect(server.queries.last, 'from=2026-10-10&to=2026-10-10');
+    var items = all.items();
+    final pusat = items.firstWhere((e) => e['type'] == 'entry' && e['t'] == 'Pusat' && e['avatar'] == '🏪');
+    expect(pusat['lines'], contains('Belum lunas 1 · tutup omset selisih -Rp5.000 · kurir pegang Rp25.000'));
+    expect(pusat['badge'], '⚠');
+    expect((pusat['btns'] as List).single['t'], 'Monitor');
+    final bekasi = items.firstWhere((e) => e['type'] == 'entry' && e['t'] == 'Bekasi' && e['avatar'] == '🏪');
+    expect(bekasi['lines'], contains('Belum lunas 0 · belum tutup omset'));
+
+    // Ganti waktu: 7 hari.
+    all.button(902);
+    await _settle();
+    expect(server.queries.last, 'from=2026-10-04&to=2026-10-10');
+    items = all.items();
+    expect(items.any((e) => e['t'] == 'Cabang · 7 hari'), isTrue);
+    MonitorPeriod.index = 0;
+
+    // Satu cabang: tab Ringkasan, Pesanan, Kas, Stok, Tim, Riwayat.
+    BranchMonitorPage.outletId = 'srv-5';
+    final one = BranchMonitorPage(host)..opened();
+    await _settle();
+    expect(server.queries.last, 'from=2026-10-10&to=2026-10-10&outlet_id=5');
+    items = one.items();
+    expect(items.firstWhere((e) => e['type'] == 'hero')['v'], 'Rp120.000');
+    expect(items.any((e) => e['t'] == 'Tahap Cucian'), isTrue);
+    one.button(951);
+    items = one.items();
+    expect(items.firstWhere((e) => e['t'] == 'Tono')['lines'], ['GY-9 · Jl. Mawar · Secepatnya · Budi']);
+    one.button(952);
+    items = one.items();
+    expect(items.firstWhere((e) => e['t'] == 'Tunai')['amount'], 'Rp70.000');
+    expect(items.firstWhere((e) => e['t'] == 'Rina')['avatar'], '⚠');
+    expect(items.any((e) => e['t'] == 'Tunai dipegang kurir'), isTrue);
+    one.button(953);
+    expect(one.items().any((e) => e['t'] == 'Belum ada bahan.'), isTrue);
+    one.button(954);
+    items = one.items();
+    expect(items.any((e) => e['t'] == 'Kasir Hari Ini'), isTrue);
+    expect(items.any((e) => e['t'] == 'Tunai Dipegang Kurir'), isFalse, reason: 'tunai kurir ada di tab Kas');
+    one.button(955);
+    expect(one.items().any((e) => e['t'] == 'Belum ada riwayat aktivitas cabang ini di HP ini.'), isTrue);
   });
 }
