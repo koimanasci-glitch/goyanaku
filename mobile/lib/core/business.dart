@@ -85,7 +85,7 @@ class Business {
   }
 
   /// Tambah/ubah outlet (v180). Outlet pertama otomatis menjadi outlet aktif. Mengembalikan id, null bila gagal simpan.
-  Future<String?> upsertOutlet({String? id, required String name, required String address, required String phone, String logo = ''}) async {
+  Future<String?> upsertOutlet({String? id, required String name, required String address, required String phone, String logo = '', String? tz}) async {
     var o = id == null ? null : outlets.where((x) => x.id == id).firstOrNull;
     if (o == null) {
       o = Outlet({'id': id ?? 'outlet180-${DateTime.now().microsecondsSinceEpoch}'});
@@ -96,6 +96,8 @@ class Business {
       ..['address'] = address
       ..['phone'] = phone
       ..['logo'] = logo;
+    // Zona waktu cabang: WIB / WITA / WIT (ikut ke server lewat profil outlet).
+    if (tz != null) o.raw['tz'] = tz;
     if (!await store.set(Keys.outlets, jsonEncode(outlets.map((e) => e.raw).toList()))) return null;
     if (activeOutlet.isEmpty) await setActiveOutlet(o.id);
     return o.id;

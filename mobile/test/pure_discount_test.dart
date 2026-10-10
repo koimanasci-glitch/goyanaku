@@ -19,7 +19,7 @@ import 'package:goyana_flutter/native/cashclose_page.dart';
 import 'package:goyana_flutter/pure/access.dart';
 import 'package:goyana_flutter/pure/import_csv.dart';
 import 'package:goyana_flutter/pure/label_page.dart';
-import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, HelpCenterPage, addAudit, restoreBackup;
+import 'package:goyana_flutter/pure/pages.dart' show DataCenterPage, HelpCenterPage, OutletEditPage, addAudit, restoreBackup;
 import 'package:goyana_flutter/pure/reminders.dart';
 import 'package:goyana_flutter/pure/receipt_image.dart';
 import 'package:goyana_flutter/pure/cash_pages.dart';
@@ -740,6 +740,23 @@ void templateTests() {
     // Data tersimpan tetap memakai jenis catatan lama (dipakai laporan HPP).
     final led = (jsonDecode(kv.data['goyana-stock181']!) as Map)['ledger'] as List;
     expect([for (final x in led) (x as Map)['type']], ['Stok Awal', 'Pemakaian', 'Stock Opname', 'Pembelian']);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Zona waktu cabang: dipilih di Edit Outlet dan tersimpan (WIB/WITA/WIT)', (tester) async {
+    final kv = _store();
+    final s = await _pump(tester, kv);
+    OutletEditPage.editId = 'outlet180-5b424413-a465-4529-8c7b-ba442ad71afa';
+    s.nav('outletedit');
+    await _settle(tester);
+    final sel = s.debugItems().firstWhere((e) => e['type'] == 'select');
+    expect((sel['options'] as List).length, 3);
+    s.fmInput(4, 1);
+    s.fmButton(2);
+    await _settle(tester);
+    expect(s.debugToast, 'Outlet tersimpan');
+    final saved = (jsonDecode(kv.data[Keys.outlets]!) as List).cast<Map>().single;
+    expect(saved['tz'], 'WITA');
     expect(tester.takeException(), isNull);
   });
 

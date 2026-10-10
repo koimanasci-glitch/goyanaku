@@ -28,9 +28,11 @@ class ApiMonitoringController {
         $data = $request->validate(['outlet_id' => 'nullable|integer', 'from' => 'nullable|date_format:Y-m-d', 'to' => 'nullable|date_format:Y-m-d|after_or_equal:from']);
         $outletId = $user->role === 'owner' ? ($data['outlet_id'] ?? null) : $user->outlet_id; // admin outlet selalu outletnya sendiri
         if ($outletId !== null) abort_unless($user->business->outlets()->whereKey($outletId)->exists(), 404);
-        $today = CarbonImmutable::now(Monitoring::TZ);
-        $from = CarbonImmutable::parse($data['from'] ?? $today->toDateString(), Monitoring::TZ)->startOfDay();
-        $to = CarbonImmutable::parse($data['to'] ?? ($data['from'] ?? $today->toDateString()), Monitoring::TZ)->endOfDay();
+        // Zona waktu cabang yang dilihat (tanpa cabang = zona outlet pusat).
+        $tz = \App\Models\Outlet::zoneOf($outletId !== null ? (int) $outletId : null, (int) $user->business_id);
+        $today = CarbonImmutable::now($tz);
+        $from = CarbonImmutable::parse($data['from'] ?? $today->toDateString(), $tz)->startOfDay();
+        $to = CarbonImmutable::parse($data['to'] ?? ($data['from'] ?? $today->toDateString()), $tz)->endOfDay();
         if ($from->diffInDays($to) > 366) throw ValidationException::withMessages(['to' => 'Rentang tanggal paling lama satu tahun.']);
         return response()->json((new Monitoring($user->business))->report($outletId === null ? null : (int) $outletId, $from, $to));
     }

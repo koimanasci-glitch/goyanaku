@@ -471,7 +471,16 @@ Future<bool> mapServerOutlets(KvStore kv, List<dynamic> serverOutlets, String ro
     if (s is! Map) continue;
     final id = 'srv-${_text(s['id'])}';
     allowed.add(id);
-    if (local.any((o) => o is Map && _text(o['id']) == id)) continue;
+    // Zona waktu cabang dari server (WIB/WITA/WIT) dipakai bila HP belum punya isinya.
+    final tz = _text(s['tz']);
+    final known = local.where((o) => o is Map && _text(o['id']) == id).firstOrNull;
+    if (known is Map) {
+      if (tz.isNotEmpty && _text(known['tz']).isEmpty) {
+        known['tz'] = tz;
+        changed = true;
+      }
+      continue;
+    }
     final legacy = local.where((o) => o is Map && !RegExp(r'^srv-\d+$').hasMatch(_text(o['id']))).firstOrNull;
     if (legacy is Map) {
       await _renameOutlet(kv, _text(legacy['id']), id);
@@ -480,7 +489,7 @@ Future<bool> mapServerOutlets(KvStore kv, List<dynamic> serverOutlets, String ro
         if (o is Map && _text(o['id']) == id && _text(o['name']).isEmpty) o['name'] = _text(s['name']);
       }
     } else {
-      local.add({'id': id, 'name': _text(s['name']), 'address': _text(s['address']), 'phone': _text(s['phone']), 'logo': ''});
+      local.add({'id': id, 'name': _text(s['name']), 'address': _text(s['address']), 'phone': _text(s['phone']), 'logo': '', if (tz.isNotEmpty) 'tz': tz});
     }
     changed = true;
   }

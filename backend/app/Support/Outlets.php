@@ -18,6 +18,7 @@ final class Outlets {
             'code' => ['nullable', 'string', 'regex:/^[A-Za-z]{2,4}$/'],
             'address' => ['nullable', 'string', 'max:300'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'timezone' => ['nullable', Rule::in(array_keys(Outlet::ZONES))],
             // null = dikerjakan di outlet ini; terisi = cucian dikirim ke outlet tersebut.
             'process_outlet_id' => ['nullable', 'integer', Rule::exists('outlets', 'id')->where('business_id', $owner->business_id)->whereNull('deactivated_at')],
         ];
@@ -87,6 +88,7 @@ final class Outlets {
     private static function fill(Business $business, Outlet $outlet, array $data): void {
         if (array_key_exists('address', $data)) $outlet->address = $data['address'] ?: null;
         if (array_key_exists('phone', $data)) $outlet->phone = $data['phone'] ? User::normalizePhone($data['phone']) : null;
+        if (!empty($data['timezone'])) $outlet->timezone = $data['timezone'];
         if (!empty($data['code'])) {
             $code = strtoupper($data['code']);
             if ($business->outlets()->where('code', $code)->when($outlet->exists, fn ($q) => $q->where('id', '!=', $outlet->id))->exists()) {
@@ -123,6 +125,9 @@ final class Outlets {
             $phone = User::normalizePhone((string) $data['phone']);
             $outlet->phone = $phone !== '' && strlen($phone) <= 20 ? $phone : $outlet->phone;
         }
+        // Zona waktu dari aplikasi: "tz" = WIB / WITA / WIT.
+        $tz = array_search((string) ($data['tz'] ?? ''), Outlet::ZONES, true);
+        if ($tz !== false) $outlet->timezone = $tz;
         if ($outlet->isDirty()) $outlet->save();
     }
 
@@ -142,6 +147,6 @@ final class Outlets {
     public static function present(Outlet $outlet): array {
         return ['id' => $outlet->id, 'key' => $outlet->syncKey(), 'name' => $outlet->name, 'code' => self::ensureCode($outlet),
             'address' => $outlet->address, 'phone' => $outlet->phone, 'active' => $outlet->isActive(),
-            'process_outlet_id' => $outlet->process_outlet_id];
+            'process_outlet_id' => $outlet->process_outlet_id, 'timezone' => $outlet->tz(), 'tz' => $outlet->tzLabel()];
     }
 }

@@ -1615,6 +1615,10 @@ class OutletEditPage extends PurePage {
   OutletEditPage(super.host);
   static String? editId;
   String _name = '', _address = '', _phone = '', _logo = '';
+  /// Zona waktu cabang (10 Okt 2026): 0 WIB, 1 WITA, 2 WIT. Cabang baru mengikuti jam HP.
+  int _tz = 0;
+  static const zones = ['WIB', 'WITA', 'WIT'];
+  static const zoneNames = ['WIB · Jawa, Sumatra, Kalbar, Kalteng', 'WITA · Bali, NTB, NTT, Kalsel, Kaltim, Kaltara, Sulawesi', 'WIT · Maluku, Papua'];
   @override
   String get title => 'EDIT OUTLET';
   @override
@@ -1627,6 +1631,9 @@ class OutletEditPage extends PurePage {
     _address = o?.address ?? '';
     _phone = o?.phone ?? '';
     _logo = '${o?.raw['logo'] ?? ''}';
+    final saved = zones.indexOf('${o?.raw['tz'] ?? ''}');
+    final h = host.now.timeZoneOffset.inHours;
+    _tz = saved >= 0 ? saved : (h >= 9 ? 2 : (h == 8 ? 1 : 0));
   }
 
   Map<String, dynamic> get _use => (host.settings.raw.putIfAbsent('logoUse', () => <String, dynamic>{}) as Map).cast<String, dynamic>();
@@ -1654,6 +1661,9 @@ class OutletEditPage extends PurePage {
       inp(_address, 2, multi: true),
       {'type': 'label', 't': 'No. WhatsApp Outlet'},
       inp(_phone, 3, numeric: true, ph: 'Masukkan nomor WhatsApp'),
+      {'type': 'label', 't': 'Zona Waktu'},
+      {'type': 'select', 'options': zoneNames, 'index': _tz, 'i': 4},
+      {'type': 'hint', 't': 'Dipakai untuk jam perkiraan selesai di WhatsApp pelanggan, "hari ini" di laporan, dan tutup omset cabang ini.'},
       {'type': 'title', 't': 'Penggunaan Logo'},
       for (var k = 0; k < uses.length; k++) {'type': 'toggle', 't': uses[k], 's': '', 'on': _use['$k'] != false, 'i': k},
       {'type': 'button', 't': 'Simpan Perubahan', 'primary': true, 'file': '', 'after': false, 'i': 2},
@@ -1686,6 +1696,10 @@ class OutletEditPage extends PurePage {
     if (i == 1) _name = '$value';
     if (i == 2) _address = '$value';
     if (i == 3) _phone = '$value';
+    if (i == 4) {
+      _tz = (value is int ? value : int.tryParse('$value') ?? 0).clamp(0, zones.length - 1);
+      host.refresh();
+    }
   }
 
   @override
@@ -1736,7 +1750,7 @@ class OutletEditPage extends PurePage {
       return host.toast('Outlet dengan nama dan alamat ini sudah ada. Gunakan Edit.');
     }
     if (editId == null && b.outlets.length >= planAccess.outletLimit(host.now)) return host.toast(planAccess.outletLimitText(host.now));
-    final id = await b.upsertOutlet(id: editId, name: name, address: address, phone: phone, logo: _logo);
+    final id = await b.upsertOutlet(id: editId, name: name, address: address, phone: phone, logo: _logo, tz: zones[_tz]);
     if (id == null) return host.toast('Penyimpanan perangkat penuh');
     editId = id;
     host.toast('Outlet tersimpan');

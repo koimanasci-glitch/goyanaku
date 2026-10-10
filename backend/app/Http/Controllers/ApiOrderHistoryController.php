@@ -50,9 +50,11 @@ class ApiOrderHistoryController {
         $data = $request->validate(['outlet_id' => 'nullable|integer', 'from' => 'nullable|date_format:Y-m-d', 'to' => 'nullable|date_format:Y-m-d|after_or_equal:from']);
         $outletId = $user->role === 'owner' ? ($data['outlet_id'] ?? null) : $user->outlet_id;
         if ($outletId !== null) abort_unless($user->business->outlets()->whereKey($outletId)->exists(), 404);
-        $today = CarbonImmutable::now(Monitoring::TZ);
-        $from = CarbonImmutable::parse($data['from'] ?? $today->startOfMonth()->toDateString(), Monitoring::TZ)->startOfDay();
-        $to = CarbonImmutable::parse($data['to'] ?? $today->toDateString(), Monitoring::TZ)->endOfDay();
+        // Zona waktu cabang yang dilihat (tanpa cabang = zona outlet pusat).
+        $tz = \App\Models\Outlet::zoneOf($outletId !== null ? (int) $outletId : null, (int) $user->business_id);
+        $today = CarbonImmutable::now($tz);
+        $from = CarbonImmutable::parse($data['from'] ?? $today->startOfMonth()->toDateString(), $tz)->startOfDay();
+        $to = CarbonImmutable::parse($data['to'] ?? $today->toDateString(), $tz)->endOfDay();
         if ($from->diffInDays($to) > 366) throw ValidationException::withMessages(['to' => 'Rentang tanggal paling lama satu tahun.']);
         $events = DB::table('order_events')->where('business_id', $user->business_id)
             ->when($outletId !== null, fn ($q) => $q->where('outlet_id', $outletId))

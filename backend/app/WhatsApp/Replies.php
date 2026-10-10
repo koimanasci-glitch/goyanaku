@@ -22,7 +22,8 @@ final class Replies {
         if ($orders->isEmpty()) return $this->render('not_found');
         if ($orders->count() > 1) return $this->render('choose', ['daftar_pesanan'=>$orders->take(5)->map(fn($o)=>'• '.$o->record_key)->implode("\n")]);
         $o = $orders->first(); $due = 'belum tersedia';
-        if ($o->due_at) { try { $due = \Carbon\CarbonImmutable::parse($o->due_at)->timezone('Asia/Jakarta')->format('d/m/Y H:i').' WIB (perkiraan)'; } catch (\Throwable) {} }
+        $tz = \App\Models\Outlet::zoneOf((int) $device->outlet_id);
+        if ($o->due_at) { try { $due = \Carbon\CarbonImmutable::parse($o->due_at)->timezone($tz)->format('d/m/Y H:i').' '.\App\Models\Outlet::labelOf($tz).' (perkiraan)'; } catch (\Throwable) {} }
         return $this->render('status', ['kode_pesanan'=>$o->record_key, 'status'=>self::LABELS[$o->status] ?? 'Status belum dikenali; konfirmasi ke admin', 'estimasi'=>$due,
             'nama_outlet'=>DB::table('outlets')->where(['id'=>$device->outlet_id, 'business_id'=>$device->business_id])->value('name') ?? 'outlet']);
     }

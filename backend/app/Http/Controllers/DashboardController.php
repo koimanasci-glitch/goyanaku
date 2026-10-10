@@ -21,7 +21,7 @@ class DashboardController {
 
     /** Omzet & order counts from orders synced by the phones (Asia/Jakarta days). */
     private function summary($business): array {
-        $tz = 'Asia/Jakarta'; $today = now($tz)->startOfDay(); $month = now($tz)->startOfMonth();
+        $tz = \App\Models\Outlet::zoneOf(null, (int) $business->id); $today = now($tz)->startOfDay(); $month = now($tz)->startOfMonth();
         $outlets = $business->outlets()->pluck('name', 'id');
         $rows = \Illuminate\Support\Facades\DB::table('sync_records')->where('business_id', $business->id)
             ->where('collection', 'orders')->where('deleted', false)->get(['outlet_id', 'data', 'updated_at']);

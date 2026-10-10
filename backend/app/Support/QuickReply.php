@@ -55,7 +55,7 @@ class QuickReply {
         })->sortByDesc(fn ($o) => $o['card']['dataset']['created177'] ?? '')->take(5)->values() : collect();
         $hello = $name ? "Halo, $name 👋\n" : "Halo 👋\n";
         $reply = match ($intent) {
-            'status' => $name ? ($orders->isEmpty() ? $hello.'Saat ini tidak ada cucian aktif atas nama Anda.' : $hello.self::statusLines($orders)) : null,
+            'status' => $name ? ($orders->isEmpty() ? $hello.'Saat ini tidak ada cucian aktif atas nama Anda.' : $hello.self::statusLines($orders, \App\Models\Outlet::zoneOf(null, $b->id))) : null,
             'bill' => $name ? ($orders->isEmpty() ? $hello.'Tidak ada tagihan berjalan.' : $hello.self::billLines($orders)) : null,
             'receipt' => $name && $orders->isNotEmpty() ? $hello.'Nota pesanan Anda: '.$orders->map(fn ($o) => self::orderId($o))->implode(', ').".\nNota digital dikirim kasir saat pesanan dibuat. Balas \"kirim nota\" bila ingin dikirim ulang." : null,
             'hours' => self::outletLines($b),
@@ -72,11 +72,12 @@ class QuickReply {
 
     private static function orderId(array $o): string { return (string) ($o['detail']['id'] ?? ($o['card']['fields'][1][0] ?? 'pesanan')); }
 
-    private static function statusLines($orders): string {
-        return $orders->map(function ($o) {
+    private static function statusLines($orders, string $tz = 'Asia/Jakarta'): string {
+        $label = \App\Models\Outlet::labelOf($tz);
+        return $orders->map(function ($o) use ($tz, $label) {
             $st = $o['card']['dataset']['st'];
             $items = collect($o['detail']['items'] ?? [])->map(fn ($i) => ($i['n'] ?? '').' '.rtrim(rtrim(number_format((float) ($i['qty'] ?? 0), 2, ',', ''), '0'), ',').' '.($i['unit'] ?? ''))->implode(', ');
-            $due = isset($o['detail']['due']) ? \Carbon\Carbon::parse($o['detail']['due'])->timezone('Asia/Jakarta')->format('d/m H:i') : null;
+            $due = isset($o['detail']['due']) ? \Carbon\Carbon::parse($o['detail']['due'])->timezone($tz)->format('d/m H:i').' '.$label : null;
             return '• '.self::orderId($o).($items ? " ($items)" : '').': *'.self::LABELS[$st].'*'.($due && !in_array($st, ['siap', 'diantar'], true) ? " · perkiraan selesai $due" : '');
         })->implode("\n");
     }

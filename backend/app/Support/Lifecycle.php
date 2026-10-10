@@ -55,7 +55,9 @@ class Lifecycle {
     }
     private static function reminder(Business $b, array $a, $end): array {
         $what = $a['source'] === 'trial' ? 'Trial' : 'Paket '.$a['package'];
-        return [$what.' berakhir '.$end->timezone('Asia/Jakarta')->format('d M'), "$what {$b->name} berakhir ".$end->timezone('Asia/Jakarta')->format('d M Y H:i')." WIB.\n"
+        // Jam berakhir ditulis dalam zona waktu outlet pusat (WIB / WITA / WIT).
+        $tz = \App\Models\Outlet::zoneOf(null, (int) $b->id);
+        return [$what.' berakhir '.$end->timezone($tz)->format('d M'), "$what {$b->name} berakhir ".$end->timezone($tz)->format('d M Y H:i').' '.\App\Models\Outlet::labelOf($tz).".\n"
             ."Setelah itu data tetap aman dan bisa dilihat, tetapi transaksi baru terkunci sampai paket aktif lagi.\nPilih paket dari aplikasi: Pengaturan > Paket."];
     }
     private static function expired(Business $b): array {

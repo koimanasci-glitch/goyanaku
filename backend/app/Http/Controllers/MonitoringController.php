@@ -18,9 +18,11 @@ class MonitoringController {
         $outlets = $business->outlets()->orderBy('id')->get();
         $outletId = $user->role === 'owner' ? ($data['outlet_id'] ?? null) : $user->outlet_id;
         if ($outletId !== null) abort_unless($outlets->contains('id', (int) $outletId), 404);
-        $today = CarbonImmutable::now(Monitoring::TZ);
-        $from = CarbonImmutable::parse($data['from'] ?? $today->toDateString(), Monitoring::TZ)->startOfDay();
-        $to = CarbonImmutable::parse($data['to'] ?? ($data['from'] ?? $today->toDateString()), Monitoring::TZ)->endOfDay();
+        // Zona waktu cabang yang dilihat (tanpa cabang = zona outlet pusat).
+        $tz = \App\Models\Outlet::zoneOf($outletId !== null ? (int) $outletId : null, (int) $user->business_id);
+        $today = CarbonImmutable::now($tz);
+        $from = CarbonImmutable::parse($data['from'] ?? $today->toDateString(), $tz)->startOfDay();
+        $to = CarbonImmutable::parse($data['to'] ?? ($data['from'] ?? $today->toDateString()), $tz)->endOfDay();
         if ($from->diffInDays($to) > 366) $to = $from->addDays(366)->endOfDay();
         return view('monitoring', [
             'business' => $business, 'outlets' => $outlets, 'owner' => $user->role === 'owner', 'outletId' => $outletId === null ? null : (int) $outletId,

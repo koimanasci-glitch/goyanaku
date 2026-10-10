@@ -110,7 +110,7 @@ final class Monitoring {
         $pickups = $this->pickups(clone $index, $users);
 
         return [
-            'range' => ['from' => $from->toIso8601String(), 'to' => $to->toIso8601String(), 'timezone' => self::TZ],
+            'range' => ['from' => $from->toIso8601String(), 'to' => $to->toIso8601String(), 'timezone' => $from->getTimezone()->getName()],
             'scope' => $outletId ? 'outlet' : 'all',
             'totals' => ['orders' => $sum('orders'), 'revenue' => $sum('revenue'), 'cash_in' => $sum('cash_in'), 'unpaid' => $sum('unpaid'), 'debt' => $sum('debt'),
                 'in_process' => $sum('in_process'), 'ready_uncollected' => $sum('ready_uncollected'), 'late' => $sum('late'), 'pending_weigh' => $sum('pending_weigh')],
@@ -249,9 +249,10 @@ final class Monitoring {
 
     /** Ringkasan milik sendiri untuk kasir, pegawai, dan kurir (hari ini, WIB). Tanpa omzet outlet dan data orang lain. */
     public function own(User $user): array {
-        $from = CarbonImmutable::now(self::TZ)->startOfDay()->utc(); $to = CarbonImmutable::now('UTC');
+        $tz = \App\Models\Outlet::zoneOf($user->outlet_id ? (int) $user->outlet_id : null, $this->business->id);
+        $from = CarbonImmutable::now($tz)->startOfDay()->utc(); $to = CarbonImmutable::now('UTC');
         $events = DB::table('order_events')->where('business_id', $this->business->id)->where('user_id', $user->id)->whereBetween('created_at', [$from, $to])->get(['kind', 'from_status', 'to_status', 'details']);
-        $out = ['date' => CarbonImmutable::now(self::TZ)->toDateString(), 'role' => $user->role];
+        $out = ['date' => CarbonImmutable::now($tz)->toDateString(), 'role' => $user->role];
         $received = []; $created = 0; $stages = [];
         foreach ($events as $e) {
             $d = json_decode((string) $e->details, true) ?: [];
