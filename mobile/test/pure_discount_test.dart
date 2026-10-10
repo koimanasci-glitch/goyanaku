@@ -400,13 +400,17 @@ void templateTests() {
     s.nav('outlets');
     await _settle(tester);
     expect(jsonEncode(s.debugItems()), jsonEncode(fx['list']));
+    // Pilihan Zona Waktu (10 Okt 2026) adalah tambahan Mode Murni; selebihnya sama dengan HTML.
+    List<Map<String, dynamic>> noZone() => s.debugItems()
+        .where((e) => !(e['t'] == 'Zona Waktu' || (e['type'] == 'select' && e['i'] == 4) || '${e['t']}'.startsWith('Dipakai untuk jam perkiraan')))
+        .toList();
     s.fmButton(3); // Edit
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['edit']));
+    expect(jsonEncode(noZone()), jsonEncode(fx['edit']));
     s.nav('outlets');
     s.fmButton(1); // Tambah
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['new']));
+    expect(jsonEncode(noZone()), jsonEncode(fx['new']));
     s.fmInput(1, 'uji');
     s.fmInput(2, 'jakarta');
     s.fmInput(3, '081234567890');
