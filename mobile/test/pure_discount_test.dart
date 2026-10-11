@@ -399,7 +399,16 @@ void templateTests() {
     final s = await _pump(tester, kv);
     s.nav('outlets');
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx['list']));
+    // Tombol Kelola (halaman cabang, 11 Okt 2026) adalah tambahan Mode Murni; selebihnya sama dengan HTML.
+    final listed = s.debugItems();
+    for (final e in listed) {
+      if (e['type'] == 'entry') {
+        final btns = (e['btns'] as List);
+        expect(btns.last['t'], 'Kelola');
+        e['btns'] = btns.sublist(0, btns.length - 1);
+      }
+    }
+    expect(jsonEncode(listed), jsonEncode(fx['list']));
     // Pilihan Zona Waktu (10 Okt 2026) adalah tambahan Mode Murni; selebihnya sama dengan HTML.
     List<Map<String, dynamic>> noZone() => s.debugItems()
         .where((e) => !(e['t'] == 'Zona Waktu' || (e['type'] == 'select' && e['i'] == 4) || '${e['t']}'.startsWith('Dipakai untuk jam perkiraan')))
