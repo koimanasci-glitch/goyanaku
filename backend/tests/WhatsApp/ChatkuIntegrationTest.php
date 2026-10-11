@@ -233,6 +233,12 @@ class ChatkuIntegrationTest extends TestCase {
         $this->actingAs($u)->post('/api/whatsapp/chatbot/'.$outlet->id.'/media', ['name' => 'Exe', 'file' => UploadedFile::fake()->createWithContent('x.pdf', 'MZ'.str_repeat('a', 50))], ['Accept' => 'application/json'])->assertStatus(422);
         for ($i = 0; $i < 8; $i++) Media::store($u->business_id, $outlet->id, UploadedFile::fake()->image("b$i.jpg", 50, 50), "F$i");
         $this->actingAs($u)->post('/api/whatsapp/chatbot/'.$outlet->id.'/media', ['name' => 'Ke-11', 'file' => UploadedFile::fake()->image('c.jpg', 50, 50)], ['Accept' => 'application/json'])->assertStatus(422);
+        // dari aplikasi: JSON base64
+        $before = DB::table('wa_media')->count();
+        DB::table('wa_media')->where('outlet_id', $outlet->id)->where('id', '!=', $m->id)->limit(1)->get()->each(fn ($x) => Media::delete($u->business_id, $x->id));
+        $im = imagecreatetruecolor(40, 40); ob_start(); imagepng($im); $png = base64_encode((string) ob_get_clean());
+        $this->actingAs($u)->postJson('/api/whatsapp/chatbot/'.$outlet->id.'/media', ['name' => 'Dari HP', 'data' => 'data:image/png;base64,'.$png])->assertCreated()->assertJsonPath('mime', 'image/jpeg');
+        $this->assertSame($before, DB::table('wa_media')->count());
         $copy = $this->actingAs($u)->postJson('/api/whatsapp/media/'.$m->id.'/copy', ['outlet_id' => $other->id])->assertCreated()->json();
         $this->assertSame($other->id, $copy['outlet_id']);
         $this->actingAs($u)->deleteJson('/api/whatsapp/media/'.$m->id)->assertNoContent();

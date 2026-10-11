@@ -96,6 +96,17 @@ final class ChatbotController {
     public function upload(Request $r, int $outlet) {
         [$b, $o] = $this->outlet($r, $outlet);
         abort_unless(Chatbot::allows($b, 'quick'), 403, 'Media balasan membutuhkan paket Silver.');
+        // Aplikasi mengirim JSON base64 (lapisan sinkron HP hanya JSON); multipart tetap diterima.
+        if (!$r->hasFile('file') && $r->filled('data')) {
+            $v = $r->validate(['name' => 'required|string|max:80', 'data' => 'required|string|max:'.(int) ceil(config('whatsapp.media.image_max_upload_kb', 8192) * 1024 * 4 / 3) + 8]);
+            $raw = base64_decode(preg_replace('/^data:[^,]*,/', '', $v['data']), true);
+            abort_if($raw === false || $raw === '', 422, 'Berkas tidak terbaca.');
+            $tmp = tempnam(sys_get_temp_dir(), 'wam');
+            file_put_contents($tmp, $raw);
+            try {
+                return response()->json(Media::present(Media::store($b->id, $o->id, new \Illuminate\Http\UploadedFile($tmp, 'media', null, null, true), $v['name'])), 201);
+            } finally { @unlink($tmp); }
+        }
         $v = $r->validate(['file' => 'required|file|max:'.(int) config('whatsapp.media.image_max_upload_kb', 8192), 'name' => 'required|string|max:80']);
         return response()->json(Media::present(Media::store($b->id, $o->id, $v['file'], $v['name'])), 201);
     }
