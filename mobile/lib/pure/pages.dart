@@ -31,6 +31,7 @@ import 'mirror_pages.dart';
 import 'page_templates.dart';
 import 'plan_page.dart';
 import 'qr_decode.dart';
+import 'qris_lock.dart';
 import 'reminders.dart';
 import 'server_sync.dart' show ServerFailure, ServerSync, branchTasksKey;
 import 'views.dart' show mapsLink;
@@ -310,9 +311,27 @@ class PrinterPage extends PurePage {
 
 /// Pengaturan → Pembayaran (qris/v185/gy154): QRIS outlet, QRIS dinamis, metode pembayaran, rekening transfer.
 /// Kunci sama dengan Hibrida: goyana-qris-text, goyana-qris-image, goyana-qris-options185, gy154-bank/account/holder.
+/// Nama merchant & NMID di bawah gambar QRIS, supaya pemilik/kasir bisa memastikan QRIS milik usaha sendiri.
+List<Map<String, dynamic>> qrisMerchantItems(String text, {required bool hasImage}) {
+  if (qrisValid(text)) {
+    final m = qrisMerchant(text), nmid = qrisNmid(text);
+    return [
+      {
+        'type': 'entry', 't': m.name.isEmpty ? 'Nama merchant tidak tercantum' : m.name,
+        'lines': [if (nmid.isNotEmpty) 'NMID $nmid', if (m.city.isNotEmpty) m.city, 'Pastikan nama ini milik usaha Anda.'],
+        'badge': 'Merchant', 'avatar': '🏪', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[],
+      },
+    ];
+  }
+  return [if (hasImage) {'type': 'hint', 't': 'Nama merchant belum terbaca dari gambar. Tempel teks QRIS di bawah supaya nama & NMID tampil.'}];
+}
+
 class QrisPage extends PurePage {
-  QrisPage(super.host);
+  QrisPage(super.host) : _lock = QrisUnlock(host);
   static const optionsKey = 'goyana-qris-options185';
+  /// Ganti/hapus QRIS: pemilik + konfirmasi password/kode bila HP masuk akun server (qris_lock.dart).
+  final QrisUnlock _lock;
+  static const _delSheet = 'qris-del';
   String _paste = '', _image = '';
   List<String> _bank = ['', '', ''];
   @override
@@ -364,7 +383,9 @@ class QrisPage extends PurePage {
     return [
       {'type': 'entry', 't': 'Outlet $name', 'lines': ['QRIS statis untuk pembayaran outlet'], 'badge': '', 'avatar': name.isEmpty ? '' : name[0].toUpperCase(), 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[]},
       {'type': 'image', 'src': _image, 'svg': '', 'mark': _image.isEmpty ? '▦' : '', 't': 'QRIS Outlet', 's': 'Upload QRIS untuk menerima pembayaran'},
+      ...qrisMerchantItems(host.settings.qrisText, hasImage: _image.isNotEmpty),
       {'type': 'button', 't': 'Upload / Ganti QRIS', 'primary': true, 'file': 'qris-file', 'after': false, 'i': 0},
+      if (_image.isNotEmpty || host.settings.qrisText.isNotEmpty) {'type': 'button', 't': 'Hapus QRIS', 'primary': false, 'file': '', 'after': false, 'i': 5},
       {'type': 'title', 't': 'QRIS Nominal Otomatis'},
       {'type': 'hint', 't': 'Pelanggan scan, nominal langsung terisi sesuai total. Uang tetap masuk ke QRIS outlet.'},
       {'type': 'title', 't': _status},
@@ -412,9 +433,55 @@ class QrisPage extends PurePage {
   }
 
   @override
+  List<Map<String, dynamic>>? sheetItems(String id) => id == QrisUnlock.sheet
+      ? _lock.items()
+      : id == _delSheet
+          ? [
+              {'type': 'title', 't': 'Hapus QRIS?', 's': ''},
+              {'type': 'hint', 't': 'Gambar dan kode QRIS outlet dihapus dari HP ini dan server. Pembayaran QRIS tidak tampil sampai QRIS baru diunggah.'},
+              {'type': 'button', 't': 'Hapus', 'primary': true, 'i': 0},
+              {'type': 'button', 't': 'Batal', 'primary': false, 'i': 1},
+            ]
+          : null;
+
+  @override
+  void sheetEvent(String id, String kind, int index, Object? value) {
+    if (id == QrisUnlock.sheet) {
+      _lock.event(kind, index, value);
+      return;
+    }
+    if (id != _delSheet || kind != 'button') return;
+    host.closePageSheet(_delSheet);
+    if (index == 0 && _lock.request(_delete)) _delete();
+  }
+
+  Future<void> _delete() async {
+    await Future.wait([host.kv.remove(Keys.qrisImage), host.kv.remove(Keys.qrisText)]);
+    _image = '';
+    _paste = '';
+    host.settings.qrisText = '';
+    await host.saveAll();
+    host.toast('QRIS dihapus');
+    host.refresh();
+  }
+
+  /// Peringatan bila QRIS baru milik merchant lain (nama / NMID berbeda).
+  void _warnChange(String before, String after) {
+    if (!qrisValid(before) || !qrisValid(after)) return;
+    final a = qrisMerchant(before).name, b = qrisMerchant(after).name, na = qrisNmid(before), nb = qrisNmid(after);
+    if (a != b || na != nb) host.toast('Perhatian: merchant QRIS berubah dari $a ke $b');
+  }
+
+  @override
   void file(String inputId, String name, String mime, String data) async {
     if (!RegExp(r'^image/(png|jpeg|webp)$').hasMatch(mime)) return host.toast('Pilih gambar PNG, JPG, atau WebP');
     if (data.length * 3 ~/ 4 > 3 * 1024 * 1024) return host.toast('Gambar QRIS maksimal 3 MB');
+    if (!_lock.request(() => _saveImage(mime, data))) return;
+    await _saveImage(mime, data);
+  }
+
+  Future<void> _saveImage(String mime, String data) async {
+    final before = host.settings.qrisText;
     final url = 'data:$mime;base64,$data';
     if (!await host.kv.set(Keys.qrisImage, url)) return host.toast('Penyimpanan penuh. Gunakan gambar QRIS lebih kecil.');
     _image = url;
@@ -429,6 +496,7 @@ class QrisPage extends PurePage {
       host.settings.qrisText = text;
       _paste = text;
       await host.saveAll();
+      _warnChange(before, text);
       host.refresh();
     }
   }
@@ -436,9 +504,13 @@ class QrisPage extends PurePage {
   @override
   void button(int i) async {
     if (i == 0) return; // pemilih file (fmFile)
+    if (i == 5) return host.openPageSheet(_delSheet);
     if (i == 1) {
       final text = _paste.replaceAll(RegExp(r'[\r\n\t]'), '').trim();
       if (!qrisValid(text)) return host.toast('Teks QRIS tidak valid. Periksa kode yang ditempel.');
+      if (text == host.settings.qrisText) return host.toast('QRIS ini sudah dipakai');
+      if (!_lock.request(() => button(1))) return;
+      _warnChange(host.settings.qrisText, text);
       host.settings.qrisText = text;
       _paste = text;
       await host.saveAll();

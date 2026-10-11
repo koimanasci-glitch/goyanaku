@@ -1,13 +1,20 @@
 <?php
 namespace App\WhatsApp;
 final class Template {
-    public const VARIABLES = ['nama_outlet', 'kode_pesanan', 'status', 'estimasi', 'daftar_pesanan', 'daftar_layanan'];
+    public const VARIABLES = ['nama_outlet', 'kode_pesanan', 'status', 'estimasi', 'daftar_pesanan', 'daftar_layanan', 'nama_pelanggan', 'tagihan', 'pengambilan', 'link_nota'];
+    // Bahasa ramah "Kak" (keputusan Paduka 10 Okt 2026). {{nama_pelanggan}} berisi " Nama" atau kosong.
     public const DEFAULTS = [
-        'status' => 'Pesanan {{kode_pesanan}}: {{status}}. Estimasi selesai: {{estimasi}}. Data dari {{nama_outlet}}.',
-        'choose' => "Ada beberapa pesanan pada nomor Anda:\n{{daftar_pesanan}}\nBalas dengan kode pesanan yang ingin diperiksa.",
-        'not_found' => 'Pesanan untuk nomor ini belum ditemukan pada outlet ini. Silakan hubungi admin laundry untuk pemeriksaan.',
+        'status' => "Halo Kak{{nama_pelanggan}} 👋\nPesanan *{{kode_pesanan}}* di {{nama_outlet}}:\n*{{status}}*\nPerkiraan selesai: {{estimasi}}\n{{tagihan}}{{pengambilan}}",
+        'choose' => "Halo Kak 👋 Ada beberapa pesanan di nomor ini:\n{{daftar_pesanan}}\nBalas dengan kode pesanan yang ingin dicek ya.",
+        'bills' => "Halo Kak 👋 Tagihan pesanan Kakak di {{nama_outlet}}:\n{{daftar_pesanan}}",
+        'not_found' => "Maaf Kak, pesanan untuk nomor ini belum ditemukan di {{nama_outlet}} 🙏\nBila pesanan memakai nomor lain, kirim kode nota + 4 angka terakhir nomor HP pemesan (contoh: BKS-261008-1-0133 7890).",
         'services' => "Layanan aktif di {{nama_outlet}}:\n{{daftar_layanan}}",
-        'unknown_service' => 'Informasi layanan tersebut belum tersedia di data kami. Silakan konfirmasi ke admin laundry.',
+        'unknown_service' => 'Maaf Kak, info layanan itu belum ada di data kami. Admin laundry akan bantu konfirmasi ya 🙏',
+        'receipt' => "Nota pesanan *{{kode_pesanan}}* di {{nama_outlet}}:\n{{link_nota}}",
+        'nota' => "Halo Kak{{nama_pelanggan}} 👋\nTerima kasih sudah laundry di {{nama_outlet}}. Nota pesanan *{{kode_pesanan}}*:\n{{link_nota}}\nPerkiraan selesai: {{estimasi}}",
+        'ready' => "Halo Kak{{nama_pelanggan}} 👋\nCucian *{{kode_pesanan}}* sudah *siap* di {{nama_outlet}} ✅\n{{pengambilan}}{{tagihan}}Terima kasih 🙏",
+        'late' => "Halo Kak{{nama_pelanggan}} 👋\nCucian *{{kode_pesanan}}* sudah siap sejak {{estimasi}} dan belum diambil. Kami tunggu di {{nama_outlet}} ya 🙏\n{{tagihan}}",
+        'handover' => 'Baik Kak, pertanyaannya kami teruskan ke admin ya 🙏 Mohon ditunggu sebentar.',
     ];
     public static function validate(string $body): void {
         if (trim($body) === '' || strlen($body) > 4000) throw new \InvalidArgumentException('Isi template wajib diisi, maksimal 4000 byte.');

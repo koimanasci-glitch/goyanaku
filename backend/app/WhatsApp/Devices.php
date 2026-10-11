@@ -99,7 +99,8 @@ final class Devices {
             Business::whereKey($this->owner($user)->id)->lockForUpdate()->firstOrFail();
             $d = $this->find($user, $id);
             // Failure keeps reservation; never release a slot while remote session may remain active.
-            if ($d->remote_id) $this->gateway->disconnect($d->remote_id);
+            // Hapus di CHATKU juga (berhenti ditagih), bukan hanya putus.
+            if ($d->remote_id) $this->gateway instanceof Contracts\ChatkuExtras ? $this->gateway->remove($d->remote_id) : $this->gateway->disconnect($d->remote_id);
             DB::table('wa_outbox')->where('device_id', $id)->where('state', '!=', 'sent')->update(['state' => 'cancelled', 'body' => '', 'recipient' => '']);
             DB::table('wa_devices')->where('id', $id)->delete();
         });

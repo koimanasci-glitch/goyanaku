@@ -2693,7 +2693,8 @@ class PureShellState extends State<PureShell> implements OrderDetailActions, Hom
   @override
   Future<void> fmFile(String inputId) async {
     try {
-      final uris = await _device.invokeListMethod<String>('Files.pick', {'accept': ['image/png', 'image/jpeg', 'image/webp'], 'multiple': false, 'capture': false});
+      // Media Chatbot (wa_chatbot.dart) juga menerima PDF.
+      final uris = await _device.invokeListMethod<String>('Files.pick', {'accept': ['image/png', 'image/jpeg', 'image/webp', if (inputId == 'wa-media') 'application/pdf'], 'multiple': false, 'capture': false});
       if (uris == null || uris.isEmpty) return;
       final f = await _device.invokeMapMethod<String, dynamic>('Files.read', {'uri': uris.first});
       if (f == null) return;

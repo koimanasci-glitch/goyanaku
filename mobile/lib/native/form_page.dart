@@ -671,6 +671,10 @@ class NativeForm extends StatelessWidget {
           try {
             pic = Image.memory(base64Decode(src.substring(comma + 1)), fit: BoxFit.contain, gaplessPlayback: true);
           } catch (_) {}
+        } else if (src.startsWith('https://') || src.startsWith('http://')) {
+          // Pratinjau media dari server GOYANA (link bertanda tangan sementara).
+          pic = Image.network(src, fit: BoxFit.contain, gaplessPlayback: true,
+              errorBuilder: (_, _, _) => Center(child: Text('Pratinjau belum bisa dimuat', textAlign: TextAlign.center, style: gText(11, c: const Color(0xff8a8fa3)))));
         }
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),

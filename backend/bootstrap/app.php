@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified.required' => VerifiedWhenRequired::class,
         ]);
         $middleware->redirectGuestsTo('/login');
+        // Di belakang Nginx (VPS bersama CHATKU, pasang-goyana.sh mengisi TRUSTED_PROXIES=*): https & IP pengunjung asli.
+        // Kosong (bawaan, Caddy langsung di internet) = tidak percaya header X-Forwarded-* dari luar.
+        if ($proxies = env('TRUSTED_PROXIES')) $middleware->trustProxies(at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
     })
     ->withExceptions(function (Exceptions $exceptions): void {})
     ->create();

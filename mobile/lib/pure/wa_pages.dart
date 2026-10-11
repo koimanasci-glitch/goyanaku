@@ -1,10 +1,13 @@
 // WhatsApp & Chatbot (v191/v195): pengaturan tersimpan per outlet di `goyana-chat191:<idOutlet>` (sama dengan Hibrida).
-// Pengiriman WhatsApp dan AI sungguhan menunggu server — sama seperti di HTML.
+// Sejak 11 Okt 2026: bila pemilik masuk akun dan cabang terdaftar di server, Balasan Cepat, pengaturan Chatbot, pengetahuan AI,
+// pesan otomatis, Media, dan Promo disimpan di server (wa_chatbot.dart) dan dipakai bot WhatsApp sungguhan.
 import 'dart:convert';
 
 import '../core/money.dart';
+import '../whatsapp/device_store.dart' show WaFailure;
 import 'access.dart';
 import 'pages.dart';
+import 'wa_chatbot.dart';
 import 'wa_devices_page.dart';
 import 'wa_link.dart';
 
@@ -37,7 +40,10 @@ bool _gate(PureHost host, String feature) {
 
 /// Balasan Cepat & Trigger (triggers191): daftar aturan + formulir di halaman.
 class TriggersPage extends PurePage {
-  TriggersPage(super.host);
+  TriggersPage(super.host, [this.cb]);
+  final ChatbotServer? cb;
+  bool get _server => cb?.available ?? false;
+  int mediaIndex = 0;
   Map<String, dynamic> st = {'rules': <dynamic>[]};
   bool form = false;
   String? editing;
@@ -48,11 +54,13 @@ class TriggersPage extends PurePage {
   String get title => 'BALASAN CEPAT & TRIGGER';
   @override
   String get back => 'whatsappbot';
-  List<Map<String, dynamic>> get rules => (st['rules'] as List).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+  List<Map<String, dynamic>> get rules =>
+      _server ? cb!.replies : (st['rules'] as List).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
 
   @override
   void opened() {
     form = false;
+    if (_server) cb!.load(force: true);
     loadChat(host).then((v) {
       st = v;
       host.refresh();
@@ -64,8 +72,11 @@ class TriggersPage extends PurePage {
     Map<String, dynamic> inp(String v, int i, {bool multi = false}) =>
         {'type': 'input', 'v': v, 'ph': '', 'multiline': multi, 'numeric': false, 'decimal': false, 'ro': false, 'secret': false, 'email': false, 'i': i};
     final r = rules, base = form ? 3 : 1;
+    final server = _server, media = server ? cb!.media : const <Map<String, dynamic>>[];
+    final local = (st['rules'] as List).whereType<Map>().length;
     return [
-      {'type': 'hint', 't': _serverNote},
+      {'type': 'hint', 't': server ? 'Tersimpan di server untuk ${cb!.outletName} · langsung dipakai bot WhatsApp.' : _serverNote},
+      if (server && cb!.note.isNotEmpty) {'type': 'hint', 't': cb!.note},
       {'type': 'button', 't': '＋ Tambah Balasan', 'primary': true, 'file': '', 'after': false, 'i': 0},
       if (form) ...[
         {'type': 'label', 't': 'Nama balasan'},
@@ -76,9 +87,15 @@ class TriggersPage extends PurePage {
         {'type': 'select', 'options': const ['Mengandung kata/frasa', 'Pesan sama persis'], 'index': mode, 'i': 2},
         {'type': 'label', 't': 'Isi balasan'},
         inp(reply, 3, multi: true),
-        {'type': 'label', 't': 'Gambar balasan / promo'},
-        {'type': 'button', 't': 'Pilih Gambar', 'primary': false, 'file': 'rule-image191', 'i': -1},
-        if (image.isNotEmpty) pickedImageItem(image),
+        if (server) ...[
+          {'type': 'label', 't': 'Lampiran dari Media (foto / PDF)'},
+          {'type': 'select', 'options': ['Tanpa lampiran', for (final m in media) '${m['name']}'], 'index': mediaIndex.clamp(0, media.length), 'i': 4},
+          if (media.isEmpty) {'type': 'hint', 't': 'Belum ada media. Tambahkan di WhatsApp & Chatbot › Media.'},
+        ] else ...[
+          {'type': 'label', 't': 'Gambar balasan / promo'},
+          {'type': 'button', 't': 'Pilih Gambar', 'primary': false, 'file': 'rule-image191', 'i': -1},
+          if (image.isNotEmpty) pickedImageItem(image),
+        ],
         {'type': 'toggle', 't': 'Aktif', 's': '', 'on': enabled, 'i': 0},
         {'type': 'buttons', 'options': [
           {'t': 'Simpan', 'svg': '', 'file': '', 'after': false, 'on': false, 'i': 1},
@@ -86,9 +103,16 @@ class TriggersPage extends PurePage {
         ]},
       ],
       if (r.isEmpty) {'type': 'hint', 't': 'Belum ada balasan. Tambahkan kata pemicu dan jawabannya.'},
+      if (server && r.isEmpty && local > 0) {'type': 'button', 't': 'Pindahkan $local balasan dari HP ke server', 'primary': false, 'file': '', 'after': false, 'i': 999},
       for (var k = 0; k < r.length; k++)
         {
-          'type': 'entry', 't': '${r[k]['name']}', 'lines': ['${r[k]['keys']} · ${r[k]['mode'] == 'exact' ? 'Pesan sama persis' : 'Mengandung kata/frasa'}', '${r[k]['reply']}'],
+          'type': 'entry', 't': '${r[k]['name']}',
+          'lines': [
+            '${r[k]['keys']} · ${r[k]['mode'] == 'exact' ? 'Pesan sama persis' : 'Mengandung kata/frasa'}',
+            '${r[k]['reply']}',
+            if (server)
+              if (cb!.mediaById(r[k]['media_id']) case final m?) '📎 ${m['name']}',
+          ],
           'badge': '', 'avatar': '', 'svg': '', 'color': '', 'amount': '',
           'btns': [
             {'t': 'Edit', 'on': false, 'i': base + 3 * k},
@@ -108,6 +132,9 @@ class TriggersPage extends PurePage {
     image = '${r?['image'] ?? ''}';
     mode = r?['mode'] == 'exact' ? 1 : 0;
     enabled = r?['enabled'] != false;
+    final media = _server ? cb!.media : const <Map<String, dynamic>>[];
+    final at = media.indexWhere((m) => m['id'] == r?['media_id']);
+    mediaIndex = at < 0 ? 0 : at + 1;
     host.refresh();
   }
 
@@ -115,6 +142,10 @@ class TriggersPage extends PurePage {
   void input(int i, Object value) {
     if (i == 2) {
       mode = value is int ? value : 0;
+      return host.refresh();
+    }
+    if (i == 4) {
+      mediaIndex = value is int ? value : int.tryParse('$value') ?? 0;
       return host.refresh();
     }
     if (i == 0) name = '$value';
@@ -140,6 +171,7 @@ class TriggersPage extends PurePage {
   @override
   void button(int i) async {
     if (i == 0) return _form(null);
+    if (_server) return _triggersServer(this, i);
     final list = st['rules'] as List;
     if (form && i == 2) {
       form = false;
@@ -173,10 +205,57 @@ class TriggersPage extends PurePage {
   }
 }
 
+/// Balasan Cepat di server: simpan / aktif-nonaktif / hapus langsung ke server cabang aktif.
+void _triggersServer(TriggersPage p, int i) {
+  final host = p.host;
+  final c = p.cb!;
+  if (i == 999) {
+    if (!_gate(host, 'quick')) return;
+    final list = (p.st['rules'] as List).whereType<Map>().toList();
+    c.run(() async {
+      for (final x in list) {
+        await c.saveReply({'id': newReplyId(), 'name': '${x['name']}', 'keys': '${x['keys']}', 'mode': x['mode'] == 'exact' ? 'exact' : 'contains',
+          'reply': '${x['reply']}', 'enabled': x['enabled'] != false});
+      }
+    }, ok: 'Balasan dipindahkan ke server. Gambar dari HP tidak ikut — pilih ulang dari Media.');
+    return;
+  }
+  if (p.form && i == 2) {
+    p.form = false;
+    return host.refresh();
+  }
+  if (p.form && i == 1) {
+    if (!_gate(host, 'quick')) return;
+    final ks = p.keys.split(',').map((x) => x.trim().toLowerCase()).where((x) => x.isNotEmpty).toList();
+    final media = p.mediaIndex > 0 && p.mediaIndex <= c.media.length ? '${c.media[p.mediaIndex - 1]['id']}' : null;
+    if (p.name.trim().isEmpty || ks.isEmpty || (p.reply.trim().isEmpty && media == null)) return host.toast('Isi nama, pemicu, dan teks atau lampiran.');
+    c.run(() => c.saveReply({'id': p.editing ?? newReplyId(), 'name': p.name.trim(), 'keys': ks.join(', '), 'mode': p.mode == 1 ? 'exact' : 'contains',
+          'reply': p.reply.trim(), 'media_id': media, 'enabled': p.enabled}), ok: 'Balasan tersimpan').then((done) {
+      if (!done) return;
+      p.form = false;
+      host.refresh();
+    });
+    return;
+  }
+  final base = p.form ? 3 : 1, k = (i - base) ~/ 3, r = p.rules;
+  if (i < base || k >= r.length) return;
+  final x = r[k];
+  switch ((i - base) % 3) {
+    case 0:
+      return p._form(x);
+    case 1:
+      if (!_gate(host, 'quick')) return;
+      c.run(() => c.saveReply({...x, 'enabled': x['enabled'] == false}));
+    default:
+      c.run(() => c.deleteReply('${x['id']}'), ok: 'Balasan dihapus');
+  }
+}
+
 /// Pengaturan Chatbot AI (ai191): tersimpan di state chat outlet; jawaban AI sungguhan menunggu server.
 class AiPage extends TemplatePage {
   // ignore: use_super_parameters
-  AiPage(PureHost host) : super(host, 'ai191', backTo: 'whatsappbot');
+  AiPage(PureHost host, [this.cb]) : super(host, 'ai191', backTo: 'whatsappbot');
+  final ChatbotServer? cb;
   Map<String, dynamic> st = {};
   Map<String, dynamic> get ai => ((st['ai'] ??= <String, dynamic>{}) as Map).cast<String, dynamic>();
   static const _in = ['name', 'instructions', 'knowledge'];
@@ -184,8 +263,22 @@ class AiPage extends TemplatePage {
 
   @override
   void opened() {
-    loadChat(host).then((v) {
+    loadChat(host).then((v) async {
       st = v;
+      final c = cb;
+      if (c != null && c.available) {
+        // Mode server: isian diambil dari pengaturan Chatbot cabang aktif di server.
+        await c.load(force: true);
+        if (c.ready) {
+          ai
+            ..['enabled'] = c.flag('ai_enabled')
+            ..['prices'] = c.flag('ai_prices')
+            ..['status'] = c.flag('ai_status')
+            ..['name'] = '${c.settings['ai_name'] ?? ''}'
+            ..['instructions'] = '${c.settings['ai_instructions'] ?? ''}'
+            ..['knowledge'] = '${c.settings['knowledge'] ?? ''}';
+        }
+      }
       host.refresh();
     });
   }
@@ -263,10 +356,34 @@ class AiPage extends TemplatePage {
   @override
   void button(int i) async {
     if (i == 2) {
+      final c = cb;
+      if (c != null && c.ready) {
+        if (!_gate(host, 'ai')) return;
+        final q = (_test[5] ?? '').trim();
+        if (q.isEmpty) return host.toast('Tulis pertanyaan pelanggan untuk diuji.');
+        _answer = 'Menunggu jawaban AI…';
+        host.refresh();
+        try {
+          _answer = await c.aiTest(q, _test[4] ?? '');
+        } on WaFailure catch (e) {
+          _answer = e.message;
+        } catch (_) {
+          _answer = 'AI belum bisa dihubungi. Coba lagi sebentar.';
+        }
+        return host.refresh();
+      }
       _answer = answer(_test[5] ?? '', _test[4] ?? '');
       return host.refresh();
     }
     if (!_gate(host, 'ai')) return;
+    final c = cb;
+    if (c != null && c.ready) {
+      c.run(() => c.save({
+            'ai_enabled': toggleValue(0), 'ai_prices': toggleValue(1), 'ai_status': toggleValue(2),
+            'ai_name': '${ai['name'] ?? ''}'.trim(), 'ai_instructions': '${ai['instructions'] ?? ''}'.trim(), 'knowledge': '${ai['knowledge'] ?? ''}'.trim(),
+          }), ok: 'Pengaturan AI tersimpan di server');
+      return;
+    }
     if (!await saveChat(host, st)) return host.toast('Penyimpanan penuh. Kurangi ukuran gambar.');
     host.toast('Pengaturan AI tersimpan');
     host.refresh();
@@ -278,11 +395,34 @@ class AiPage extends TemplatePage {
 /// Tab Chatbot AI punya "Pengetahuan dari laundry": tanya-jawab yang ditulis pemilik untuk bahan balasan AI.
 class WaHubPage extends TemplatePage {
   // ignore: use_super_parameters
-  WaHubPage(PureHost host, this.wa) : super(host, 'whatsappbot');
+  WaHubPage(PureHost host, this.wa, this.cb) : super(host, 'whatsappbot');
   final WaLink wa;
+  final ChatbotServer cb;
   int tab = 0;
   Map<String, dynamic> st = {};
-  static const _tabs = [['📱', 'Perangkat'], ['⚡', 'Otomatis'], ['🤖', 'Chatbot AI'], ['💬', 'Balas Cepat'], ['📣', 'Promo']];
+  static const _tabs = [['📱', 'Perangkat'], ['⚡', 'Otomatis'], ['🤖', 'Chatbot AI'], ['💬', 'Balas Cepat'], ['🖼', 'Media'], ['📣', 'Promo']];
+
+  /// Sakelar yang disimpan di server bila mode server: nomor sakelar → kunci pengaturan server & fitur paket.
+  static const _serverToggles = {
+    0: ('auto_nota', 'messages'), 1: ('auto_ready', 'messages'), 2: ('auto_late', 'messages'),
+    3: ('ai_enabled', 'ai'), 4: ('quick_enabled', 'quick'), 5: ('ai_status', 'ai'), 7: ('ai_prices', 'ai'),
+  };
+
+  @override
+  bool toggleValue(int i) {
+    final key = _serverToggles[i];
+    if (cb.ready && key != null) return cb.flag(key.$1);
+    return super.toggleValue(i);
+  }
+
+  @override
+  void toggle(int i) {
+    final key = _serverToggles[i];
+    if (!cb.ready || key == null) return super.toggle(i);
+    final on = !cb.flag(key.$1);
+    if (on && !_gate(host, key.$2)) return;
+    cb.run(() => cb.save({key.$1: on}));
+  }
   static const _kbSheet = 'wa-kb';
   int? _kbEdit;
   String _kbQ = '', _kbA = '';
@@ -294,10 +434,11 @@ class WaHubPage extends TemplatePage {
       host.refresh();
     });
     wa.sync();
+    cb.load(force: true);
   }
 
   Map<String, dynamic> get _ai => ((st['ai'] ??= <String, dynamic>{}) as Map).cast<String, dynamic>();
-  List<Map<String, dynamic>> get kb => [for (final e in (_ai['kb'] as List? ?? const []).whereType<Map>()) e.cast<String, dynamic>()];
+  List<Map<String, dynamic>> get kb => cb.ready ? cb.knowledge : [for (final e in (_ai['kb'] as List? ?? const []).whereType<Map>()) e.cast<String, dynamic>()];
 
   Map<String, dynamic> _tg(int i, String t, String s) => {'type': 'toggle', 't': t, 's': s, 'on': toggleValue(i), 'i': i};
   Map<String, dynamic> _btn(String t, int i, {bool primary = false, String file = ''}) =>
@@ -308,6 +449,8 @@ class WaHubPage extends TemplatePage {
     final out = <Map<String, dynamic>>[
       {'type': 'chips', 'options': [for (var k = 0; k < _tabs.length; k++) {'t': _tabs[k][1], 'ic': _tabs[k][0], 'on': tab == k, 'i': 900 + k}]},
     ];
+    final server = cb.ready;
+    if (cb.available && cb.note.isNotEmpty) out.add({'type': 'hint', 't': cb.note});
     switch (tab) {
       case 0:
         final devs = wa.store.devices;
@@ -328,18 +471,36 @@ class WaHubPage extends TemplatePage {
           ..add({'type': 'hint', 't': 'Dikirim dari nomor outlet. Hanya pesan penting, tidak ada pesan harian.'})
           ..add(_tg(0, 'Pesanan diterima', 'Konfirmasi + nota elektronik saat transaksi dibuat'))
           ..add(_tg(1, 'Siap ambil', 'Pelanggan dikabari begitu cucian Siap Ambil'))
-          ..add(_tg(2, 'Pengingat telat ambil', 'Sekali, saat cucian 7 hari belum diambil'));
+          ..add(_tg(2, 'Pengingat telat ambil', 'Sekali, saat cucian ${server ? cb.settings['late_days'] ?? 3 : 7} hari belum diambil'));
+        if (server) {
+          out.add({'type': 'hint', 't': 'Tersimpan di server untuk ${cb.outletName}. Tidak dikirim pukul ${cb.settings['quiet_from'] ?? '21:00'}–${cb.settings['quiet_until'] ?? '07:00'}; '
+              'pesanan diterima berisi link nota digital. Mulai paket Gold.'});
+        }
       case 2:
         out
           ..add(_tg(3, 'Chatbot AI 24 jam', 'Membalas pertanyaan pelanggan dari nomor outlet'))
           ..add({'type': 'title', 't': 'Yang boleh dijawab dari data aplikasi'})
           ..add({'type': 'hint', 't': 'Bot hanya membaca data, tidak bisa mengubah transaksi.'})
-          ..add(_tg(5, 'Status cucian', 'Sesuai nomor WhatsApp pelanggan'))
-          ..add(_tg(6, 'Total tagihan', ''))
-          ..add(_tg(7, 'Harga & layanan', 'Mengikuti daftar harga aktif'))
-          ..add(_tg(8, 'Jam buka & alamat outlet', ''))
-          ..add(_tg(9, 'Permintaan antar-jemput', ''))
-          ..add(_tg(10, 'Teruskan ke admin (CS manusia)', 'Bila bot tidak yakin atau pelanggan minta bicara dengan orang'))
+          ..add(_tg(5, server ? 'Status cucian & tagihan' : 'Status cucian', 'Sesuai nomor WhatsApp pelanggan'));
+        if (!server) {
+          out
+            ..add(_tg(6, 'Total tagihan', ''))
+            ..add(_tg(7, 'Harga & layanan', 'Mengikuti daftar harga aktif'))
+            ..add(_tg(8, 'Jam buka & alamat outlet', ''))
+            ..add(_tg(9, 'Permintaan antar-jemput', ''))
+            ..add(_tg(10, 'Teruskan ke admin (CS manusia)', 'Bila bot tidak yakin atau pelanggan minta bicara dengan orang'));
+        } else {
+          out
+            ..add(_tg(7, 'Harga & layanan', 'Hanya dari daftar harga aktif; AI tidak mengarang harga'))
+            ..add({'type': 'hint', 't': 'Jam buka, alamat, antar-jemput, dan teruskan ke admin selalu aktif. Saldo AI: ${waRp(cb.aiBalance)}.'});
+          if (cb.paused > 0) {
+            out.add({
+              'type': 'entry', 't': '${cb.paused} chat sedang ditangani admin', 'lines': ['Bot diam setelah Anda membalas dari HP (atau #stop). Ketik #bot di chat untuk melanjutkan.'],
+              'badge': '', 'avatar': '🙋', 'svg': '', 'color': '', 'amount': '', 'btns': [{'t': 'Lanjutkan bot', 'on': false, 'i': 21}],
+            });
+          }
+        }
+        out
           ..add({'type': 'title', 't': 'Pengetahuan dari laundry', 's': '${kb.length} catatan'})
           ..add({'type': 'hint', 't': 'Tulis info yang sering ditanyakan pelanggan (aturan, promo, area antar, cara bayar). AI memakai ini selain data aplikasi.'});
         final list = kb;
@@ -356,12 +517,32 @@ class WaHubPage extends TemplatePage {
       case 3:
         out
           ..add(_tg(4, 'Balas cepat & trigger', 'Jawaban template berdasarkan kata kunci, tanpa AI'))
-          ..add(_btn('Atur Balas Cepat & Trigger ›', 4, primary: true))
-          ..add({'type': 'label', 't': 'Gambar default balasan / promo'})
-          ..add(_btn('Pilih Gambar', -1, file: 'chat-image191'))
-          ..add({'type': 'hint', 't': 'Dipakai untuk balasan cepat tanpa gambar khusus. Maksimal 1 MB.'});
-        final src = (((host.settings.raw['tpl'] as Map?)?['whatsappbot'] as Map?)?['img'] as Map?)?['chat-image191'];
-        if (src is String && src.isNotEmpty) out.add(pickedImageItem(src));
+          ..add(_btn('Atur Balas Cepat & Trigger ›', 4, primary: true));
+        if (server) {
+          out
+            ..add({'type': 'hint', 't': '${cb.replies.length} balasan tersimpan di server. Foto/PDF balasan dipilih dari Media.'})
+            ..add(_btn('Kelola Media (${cb.media.length}/${cb.mediaLimit}) ›', 22));
+        } else {
+          out
+            ..add({'type': 'label', 't': 'Gambar default balasan / promo'})
+            ..add(_btn('Pilih Gambar', -1, file: 'chat-image191'))
+            ..add({'type': 'hint', 't': 'Dipakai untuk balasan cepat tanpa gambar khusus. Maksimal 1 MB.'});
+          final src = (((host.settings.raw['tpl'] as Map?)?['whatsappbot'] as Map?)?['img'] as Map?)?['chat-image191'];
+          if (src is String && src.isNotEmpty) out.add(pickedImageItem(src));
+        }
+      case 4:
+        out
+          ..add({'type': 'title', 't': 'Media balasan', 's': server ? '${cb.media.length}/${cb.mediaLimit}' : ''})
+          ..add({'type': 'hint', 't': 'Foto atau PDF (daftar harga, brosur, promo) per cabang, dipakai Balasan Cepat, Promo, dan Chatbot AI. Maksimal 10 per cabang.'});
+        if (server) {
+          for (final m in cb.media.take(5)) {
+            out.add({'type': 'entry', 't': '${m['name']}', 'lines': ['${m['kind'] == 'pdf' ? 'PDF' : 'Foto'} · ${waSize((m['bytes'] as num?)?.toInt() ?? 0)}'],
+              'badge': '', 'avatar': m['kind'] == 'pdf' ? '📄' : '🖼', 'svg': '', 'color': '', 'amount': '', 'btns': <dynamic>[], 'compact': true});
+          }
+        } else {
+          out.add({'type': 'hint', 't': 'Media disimpan di server. Masuk dengan akun pemilik dan pastikan cabang ini sudah terdaftar di server.'});
+        }
+        out.add(_btn('Kelola Media ›', 22, primary: true));
       default:
         out
           ..add({'type': 'title', 't': 'WhatsApp Blast'})
@@ -392,11 +573,20 @@ class WaHubPage extends TemplatePage {
       final k = (i - 1000) ~/ 10, list = kb;
       if (k >= list.length) return;
       list.removeAt(k);
+      if (cb.ready) {
+        cb.run(() => cb.saveKnowledge(list), ok: 'Pengetahuan dihapus');
+        return;
+      }
       _ai['kb'] = list;
       saveChat(host, st);
       host.toast('Pengetahuan dihapus');
       return host.refresh();
     }
+    if (i == 21) {
+      cb.run(cb.resume, ok: 'Bot dilanjutkan untuk semua chat');
+      return;
+    }
+    if (i == 22) return host.go('wamedia');
     const go = ['triggers191', 'ai191', 'blast191', 'wadevices195', 'quickreply'];
     const need = ['quick', 'ai', 'blast', 'wa', 'quick'];
     if (i < 0 || i >= go.length) return;
@@ -438,6 +628,12 @@ class WaHubPage extends TemplatePage {
     } else {
       list.add({'q': q, 'a': a});
     }
+    if (cb.ready) {
+      cb.run(() => cb.saveKnowledge(list), ok: 'Pengetahuan tersimpan').then((ok) {
+        if (ok) host.closePageSheet(_kbSheet);
+      });
+      return;
+    }
     _ai['kb'] = list;
     saveChat(host, st).then((ok) {
       if (!ok) return host.toast('Penyimpanan penuh');
@@ -452,15 +648,14 @@ class WaHubPage extends TemplatePage {
 Map<String, PurePage> whatsappPages(PureHost host) {
   // Satu sumber data perangkat WhatsApp untuk halaman perangkat dan sakelar Balas Status di Otomasi.
   final wa = WaLink(host);
+  // Satu sumber data Chatbot di server (cabang aktif) untuk hub, Balasan Cepat, Media, dan Promo.
+  final cb = ChatbotServer(host);
   return {
-      'whatsappbot': WaHubPage(host, wa),
-      'triggers191': TriggersPage(host),
-      'ai191': AiPage(host),
-      'blast191': TemplatePage(host, 'blast191', backTo: 'whatsappbot', onButton: (p, i) {
-        if (i < 0) return;
-        if (!_gate(host, 'blast')) return;
-        host.toast('Isi promo, pilih penerima dan konfirmasi persetujuan.');
-      }),
+      'whatsappbot': WaHubPage(host, wa, cb),
+      'triggers191': TriggersPage(host, cb),
+      'ai191': AiPage(host, cb),
+      'blast191': BlastPage(host, cb, wa),
+      'wamedia': WaMediaPage(host, cb),
       'quickreply': TemplatePage(host, 'quickreply', backTo: 'whatsappbot', onButton: (p, i) {
         if (_gate(host, 'quick')) host.go('triggers191');
       }),

@@ -56,3 +56,15 @@ String qrisDynamic(String s, num amount) {
   final body = '${p.map((x) => tlv(x[0], x[1])).join()}6304';
   return body + crc16(body);
 }
+
+/// NMID (Nomor Merchant Indonesia) dari QRIS: nilai berawalan "ID" + angka di template merchant (tag 26–51).
+String qrisNmid(String s) {
+  for (final x in parseTlv(s) ?? const <List<String>>[]) {
+    final tag = int.tryParse(x[0]) ?? 0;
+    if (tag < 26 || tag > 51) continue;
+    for (final y in parseTlv(x[1]) ?? const <List<String>>[]) {
+      if (RegExp(r'^ID\d{10,}$').hasMatch(y[1])) return y[1];
+    }
+  }
+  return '';
+}
