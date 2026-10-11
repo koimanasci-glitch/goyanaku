@@ -1,5 +1,7 @@
 # GOYANA — Instruksi Lanjutan untuk GPT/Codex
 
+> **TERBARU 11 Oktober 2026:** baca dulu **`GOYANA-HANDOFF-TAHAP3.md`** (posisi kode, aturan Paduka, sisa pekerjaan Tahap 3). Isi di bawah ini catatan lama.
+
 Ditulis Claude, 2 Oktober 2026. Baca file ini **sampai habis** sebelum mengubah apa pun.
 Dokumen produk: `GOYANA-ROADMAP.md`, `GOYANA-SISTEM-PUSAT.md` (§38–§40 terbaru), `GOYANA-PROGRESS.md`.
 
