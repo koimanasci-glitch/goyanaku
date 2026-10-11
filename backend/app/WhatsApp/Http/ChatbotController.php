@@ -3,6 +3,7 @@ namespace App\WhatsApp\Http;
 
 use App\Models\{Business, Outlet};
 use App\WhatsApp\{Blasts, Chatbot, Devices, Media, Nota};
+use App\WhatsApp\Contracts\{ChatkuExtras, ChatkuGateway};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB, Storage};
 use Illuminate\Support\Str;
@@ -141,6 +142,35 @@ final class ChatbotController {
         $n = Nota::view((int) $r->query('b'), (string) $r->query('k'));
         abort_unless($n, 404, 'Nota tidak ditemukan.');
         return response()->view('whatsapp::nota', ['n' => $n])->header('X-Robots-Tag', 'noindex')->header('Cache-Control', 'private, no-store');
+    }
+
+    /**
+     * Uji jawaban Chatbot AI dari aplikasi (keputusan Paduka 10 Okt: popup AI dipotong dari saldo AI laundry).
+     * Memakai bahan yang sama dengan bot sungguhan; harga di luar data tidak ditampilkan sebagai jawaban.
+     */
+    public function aiTest(Request $r, int $outlet, ChatkuGateway $gateway) {
+        [$b, $o] = $this->outlet($r, $outlet);
+        abort_unless(Chatbot::allows($b, 'ai'), 403, 'Chatbot AI membutuhkan paket Gold.');
+        abort_unless($gateway instanceof ChatkuExtras, 503, 'Layanan AI belum tersambung ke server GOYANA.');
+        $v = $r->validate(['question' => 'required|string|max:1000', 'phone' => 'nullable|string|max:40']);
+        abort_if((int) $b->fresh()->ai_balance <= 0, 402, 'Saldo AI habis. Isi saldo minimal Rp50.000.');
+        $from = null;
+        if (!empty($v['phone'])) { try { $from = \App\WhatsApp\Phone::normalize($v['phone']); } catch (\InvalidArgumentException) {} }
+        $d = (object) ['id' => 'test', 'business_id' => $b->id, 'outlet_id' => $o->id];
+        $payload = \App\WhatsApp\Jobs\AiReply::payload($d, $b, Chatbot::settings($b->id, $o->id), $v['question'], [], $from, app(\App\WhatsApp\Replies::class));
+        try {
+            $res = $gateway->ai($b->id, $payload);
+        } catch (\App\WhatsApp\Chatku\ChatkuException $e) {
+            abort($e->codeName === 'saldo_habis' ? 402 : 503, $e->codeName === 'saldo_habis' ? 'Saldo AI habis. Isi saldo minimal Rp50.000.' : 'AI sedang sibuk, coba lagi sebentar.');
+        }
+        $cost = \App\Support\AiBilling::debitRupiah($b, (int) ($res['cost'] ?? 0), (string) ($res['model'] ?? 'chatku'), 'chatku-ai-test:'.Str::uuid());
+        $unverified = array_values((array) ($res['unverified_prices'] ?? []));
+        return response()->json([
+            'answer' => $unverified ? 'Untuk harga pastinya, admin kami cek dulu ya Kak 🙏' : (string) ($res['answer'] ?? ''),
+            'raw_answer' => (string) ($res['answer'] ?? ''), 'unverified_prices' => $unverified, 'handover' => (bool) ($res['handover'] ?? false),
+            'media' => ($m = DB::table('wa_media')->where(['id' => $res['media_id'] ?? '', 'business_id' => $b->id])->first()) ? $m->name : null,
+            'cost' => $cost, 'ai_balance' => (int) $b->fresh()->ai_balance,
+        ]);
     }
 
     /** Lanjutkan bot untuk semua kontak yang sedang diambil alih di cabang ini. */

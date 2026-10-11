@@ -41,16 +41,7 @@ final class AiReply implements ShouldQueue {
         $media = DB::table('wa_media')->where(['business_id' => $d->business_id, 'outlet_id' => $d->outlet_id])->orderBy('created_at')->get();
         $history = Chatbot::history($d, $contact, 9);
         if ($history && end($history)['from'] === 'customer' && end($history)['text'] === $text) array_pop($history);
-        $payload = array_filter([
-            'question' => $text, 'purpose' => 'reply', 'business_name' => mb_substr($business->name, 0, 120),
-            'instructions' => mb_substr(trim($s['ai_instructions'])."\nNama kamu: {$s['ai_name']}. Kamu admin chat laundry {$replies->outletName($d)}. Jawab singkat dalam bahasa Indonesia yang ramah.", 0, 3000),
-            'prices' => $s['ai_prices'] ? mb_substr($this->prices($d), 0, 8000) : null,
-            'knowledge' => mb_substr(trim($s['knowledge']."\n".$this->faq($d)."\n".$replies->hours($d)), 0, 20000) ?: null,
-            'data' => $s['ai_status'] ? mb_substr($this->orders($d, $from, $replies), 0, 6000) : null,
-            'history' => array_slice($history, -8),
-            'media' => $media->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'description' => $m->kind === 'pdf' ? 'dokumen PDF' : 'foto'])->all(),
-            'max_tokens' => 400,
-        ], fn ($v) => $v !== null && $v !== []);
+        $payload = self::payload($d, $business, $s, $text, $history, $from, $replies);
 
         // Jawaban AI disimpan sebentar: bila langkah sesudahnya gagal dan job diulang, AI tidak dipanggil (dan dibayar) dua kali.
         $cacheKey = 'wa-ai-result:'.$this->eventId;
@@ -80,16 +71,37 @@ final class AiReply implements ShouldQueue {
         });
     }
 
+    /** Bahan untuk AI (dipakai juga uji jawaban di aplikasi): harga resmi, pengetahuan, data pesanan pengirim, media cabang. */
+    public static function payload(object $d, Business $business, array $s, string $text, array $history, ?string $from, Replies $replies): array {
+        $media = DB::table('wa_media')->where(['business_id' => $d->business_id, 'outlet_id' => $d->outlet_id])->orderBy('created_at')->get();
+        return array_filter([
+            'question' => $text, 'purpose' => 'reply', 'business_name' => mb_substr($business->name, 0, 120),
+            'instructions' => mb_substr(trim($s['ai_instructions'])."\nNama kamu: {$s['ai_name']}. Kamu admin chat laundry {$replies->outletName($d)}. Jawab singkat dalam bahasa Indonesia yang ramah.", 0, 3000),
+            'prices' => $s['ai_prices'] ? mb_substr(self::prices($d), 0, 8000) : null,
+            'knowledge' => mb_substr(trim($s['knowledge']."\n".self::faq($d)."\n".$replies->hours($d)), 0, 20000) ?: null,
+            'data' => $s['ai_status'] && $from ? mb_substr(self::orders($d, $from, $replies), 0, 6000) : null,
+            'history' => array_slice($history, -8),
+            'media' => $media->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'description' => $m->kind === 'pdf' ? 'dokumen PDF' : 'foto'])->all(),
+            'max_tokens' => 400,
+        ], fn ($v) => $v !== null && $v !== []);
+    }
+
     /** Teruskan ke admin manusia: kirim kalimat penghubung sekali per 3 jam per kontak; bot diam sebentar supaya admin bisa menjawab. */
     private function handover(object $d, string $from, string $contact, Replies $replies, string $why, string $answer = ''): void {
         $this->mark('handover:'.$why);
         if (!Cache::add('wa-handover:'.$d->id.':'.$contact, 1, now()->addHours(3))) return;
         $body = $answer !== '' && $why === 'ai' ? $answer : $replies->render('handover');
         if ($body === '') return;
-        DB::transaction(function () use ($d, $from, $contact, $body) {
+        DB::transaction(function () use ($d, $from, $contact, $body, $why) {
             if (DB::table('wa_outbox')->where('event_id', $this->eventId)->lockForUpdate()->exists()) return;
             Chatbot::log($d, $contact, 'me', $body);
             Inbound::queue($this->eventId, $d, 'handover', $from, $body);
+            // Kabari pemilik lewat chat ke nomor WhatsApp outlet sendiri ("Pesan ke diri sendiri").
+            $reason = ['saldo' => 'saldo AI habis', 'error' => 'AI sedang bermasalah', 'ai' => 'AI tidak yakin'][$why] ?? 'perlu admin';
+            $question = mb_substr(trim(Crypt::decryptString($this->text)), 0, 300);
+            $note = '🔔 Pelanggan '.Chatbot::masked($from)." perlu dibalas admin ($reason).\n\"$question\"\nBot diam untuk chat ini. Ketik #bot di chat pelanggan untuk melanjutkan.";
+            $notify = DB::table('wa_events')->insertGetId(['device_id' => $d->id, 'provider_id' => mb_substr('notify:'.$this->eventId, 0, 160), 'state' => 'notify', 'created_at' => now(), 'updated_at' => now()]);
+            Inbound::queue($notify, $d, 'handover', $d->phone, $note);
         });
         Chatbot::pause($d, $contact, max(10, Chatbot::settings((int) $d->business_id, (int) $d->outlet_id)['takeover_minutes']));
     }
@@ -99,7 +111,7 @@ final class AiReply implements ShouldQueue {
     }
 
     /** Daftar harga resmi dari katalog yang tersinkron (satu-satunya sumber harga untuk AI). */
-    private function prices(object $d): string {
+    private static function prices(object $d): string {
         $out = [];
         $rows = DB::table('sync_records')->where(['business_id' => $d->business_id, 'collection' => 'services', 'deleted' => false])
             ->where(fn ($q) => $q->whereNull('outlet_id')->orWhere('outlet_id', $d->outlet_id))->limit(150)->get();
@@ -114,13 +126,13 @@ final class AiReply implements ShouldQueue {
     }
 
     /** Balasan cepat pemilik sebagai tanya-jawab (AI boleh memakai isinya). */
-    private function faq(object $d): string {
+    private static function faq(object $d): string {
         return DB::table('wa_quick_replies')->where(['business_id' => $d->business_id, 'outlet_id' => $d->outlet_id, 'enabled' => true])->orderBy('position')->limit(40)->get()
             ->filter(fn ($q) => trim((string) $q->reply) !== '')->map(fn ($q) => 'T: '.$q->keys."\nJ: ".$q->reply)->implode("\n");
     }
 
     /** Hanya pesanan milik nomor pengirim di cabang ini. */
-    private function orders(object $d, string $from, Replies $replies): string {
+    private static function orders(object $d, string $from, Replies $replies): string {
         $orders = DB::table('order_index')->where(['business_id' => $d->business_id, 'outlet_id' => $d->outlet_id, 'customer_key' => 'phone:'.Phone::normalize($from), 'deleted' => false])
             ->orderByDesc('ordered_at')->limit(5)->get();
         if ($orders->isEmpty()) return 'Nomor ini belum punya pesanan di cabang ini.';

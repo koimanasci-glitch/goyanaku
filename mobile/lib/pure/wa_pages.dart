@@ -4,6 +4,7 @@
 import 'dart:convert';
 
 import '../core/money.dart';
+import '../whatsapp/device_store.dart' show WaFailure;
 import 'access.dart';
 import 'pages.dart';
 import 'wa_chatbot.dart';
@@ -355,6 +356,22 @@ class AiPage extends TemplatePage {
   @override
   void button(int i) async {
     if (i == 2) {
+      final c = cb;
+      if (c != null && c.ready) {
+        if (!_gate(host, 'ai')) return;
+        final q = (_test[5] ?? '').trim();
+        if (q.isEmpty) return host.toast('Tulis pertanyaan pelanggan untuk diuji.');
+        _answer = 'Menunggu jawaban AI…';
+        host.refresh();
+        try {
+          _answer = await c.aiTest(q, _test[4] ?? '');
+        } on WaFailure catch (e) {
+          _answer = e.message;
+        } catch (_) {
+          _answer = 'AI belum bisa dihubungi. Coba lagi sebentar.';
+        }
+        return host.refresh();
+      }
       _answer = answer(_test[5] ?? '', _test[4] ?? '');
       return host.refresh();
     }

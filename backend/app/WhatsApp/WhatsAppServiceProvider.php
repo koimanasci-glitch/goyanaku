@@ -55,6 +55,7 @@ final class WhatsAppServiceProvider extends ServiceProvider {
             Route::post('chatbot/{outlet}/replies',[ChatbotController::class,'saveReply'])->whereNumber('outlet');
             Route::delete('chatbot/replies/{id}',[ChatbotController::class,'deleteReply']);
             Route::post('chatbot/{outlet}/resume',[ChatbotController::class,'resume'])->whereNumber('outlet');
+            Route::post('chatbot/{outlet}/ai-test',[ChatbotController::class,'aiTest'])->whereNumber('outlet')->middleware('throttle:10,1');
             Route::get('chatbot/{outlet}/media',[ChatbotController::class,'media'])->whereNumber('outlet');
             Route::post('chatbot/{outlet}/media',[ChatbotController::class,'upload'])->whereNumber('outlet')->middleware('throttle:20,1');
             Route::put('media/{id}',[ChatbotController::class,'renameMedia']);

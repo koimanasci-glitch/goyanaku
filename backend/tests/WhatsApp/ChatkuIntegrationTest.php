@@ -329,7 +329,30 @@ class ChatkuIntegrationTest extends TestCase {
         [, , $job] = $this->aiSetup(0);
         $job->handle(app(Devices::class), app(Replies::class), $this->gw);
         $this->assertCount(0, $this->gw->called('ai'));
-        $this->assertStringContainsString('teruskan ke admin', $this->lastBody());
+        $this->assertStringContainsString('teruskan ke admin', Crypt::decryptString(DB::table('wa_outbox')->orderBy('id')->value('body')));
+    }
+
+    public function test_ai_test_from_app_charges_laundry_and_hides_invented_price(): void {
+        $u = $this->owner(); $outlet = $u->business->outlets()->first();
+        Business::whereKey($u->business_id)->update(['ai_balance' => 1000]);
+        $this->actingAs($u)->postJson('/api/whatsapp/chatbot/'.$outlet->id.'/ai-test', ['question' => 'bisa cuci karpet?'])->assertOk()
+            ->assertJsonPath('answer', 'Halo Kak, bisa.')->assertJsonPath('ai_balance', 880);
+        $this->gw->aiAnswer = ['answer' => 'Rp99.000 kak', 'cost' => 50, 'unverified_prices' => ['Rp99.000']];
+        $this->actingAs($u)->postJson('/api/whatsapp/chatbot/'.$outlet->id.'/ai-test', ['question' => 'harga karpet?'])->assertOk()
+            ->assertJsonPath('answer', 'Untuk harga pastinya, admin kami cek dulu ya Kak 🙏');
+        Business::whereKey($u->business_id)->update(['ai_balance' => 0]);
+        $this->actingAs($u)->postJson('/api/whatsapp/chatbot/'.$outlet->id.'/ai-test', ['question' => 'x'])->assertStatus(402);
+        $s = $this->owner('Silver');
+        $this->actingAs($s)->postJson('/api/whatsapp/chatbot/'.$s->business->outlets()->first()->id.'/ai-test', ['question' => 'x'])->assertForbidden();
+    }
+
+    public function test_handover_notifies_owner_on_own_number(): void {
+        [, $d, $job] = $this->aiSetup(0);
+        $job->handle(app(Devices::class), app(Replies::class), $this->gw);
+        $to = DB::table('wa_outbox')->orderBy('id')->get()->map(fn ($o) => Crypt::decryptString($o->recipient))->all();
+        $this->assertSame(['6281234567890', '6281200000001'], $to);
+        $this->assertStringContainsString('perlu dibalas admin (saldo AI habis)', $this->lastBody());
+        $this->assertStringContainsString('karpet', $this->lastBody());
     }
 
     public function test_ai_topup_is_forwarded_to_chatku(): void {

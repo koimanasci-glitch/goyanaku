@@ -178,6 +178,19 @@ class ChatbotServer {
 
   Future<void> copyMedia(String id, int toOutlet) => _api('POST', '/media/$id/copy', {'outlet_id': toOutlet});
 
+  /// Uji jawaban AI dengan bahan yang sama dengan bot sungguhan; biaya dipotong dari saldo AI laundry.
+  Future<String> aiTest(String question, String phone) async {
+    final j = await _api('POST', '/chatbot/$outletId/ai-test', {'question': question, if (phone.trim().isNotEmpty) 'phone': phone.trim()});
+    aiBalance = _int(j['ai_balance'], aiBalance);
+    final media = '${j['media'] ?? ''}';
+    return [
+      '${j['answer'] ?? ''}',
+      if (media.isNotEmpty) '📎 Lampiran: $media',
+      if (j['handover'] == true) '(Bot akan meneruskan ke admin)',
+      'Biaya ${waRp(_int(j['cost']))} · saldo AI ${waRp(aiBalance)}',
+    ].join('\n');
+  }
+
   Future<void> resume() async {
     await _api('POST', '/chatbot/$outletId/resume');
     paused = 0;
