@@ -173,6 +173,12 @@ void servicesTests() {
   });
 }
 
+/// Tambahan pengaman QRIS (10 Okt 2026, di luar HTML): nama merchant/NMID, keterangan, dan tombol Hapus QRIS.
+List<Map<String, dynamic>> _withoutQrisLock(List<Map<String, dynamic>> items) => [
+      for (final it in items)
+        if (it['badge'] != 'Merchant' && it['t'] != 'Hapus QRIS' && !'${it['t']}'.startsWith('Nama merchant belum terbaca')) it,
+    ];
+
 // ---- Halaman berpola tetap (butir = tangkapan HTML) ----
 const _redesigned = {'automation', 'datacenter', 'cashier', 'barcode', 'reminder', 'whatsappbot'};
 void templateTests() {
@@ -603,17 +609,17 @@ void templateTests() {
     final s = await _pump(tester, kv);
     s.nav('qris');
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx[0]['items']));
+    expect(jsonEncode(_withoutQrisLock(s.debugItems())), jsonEncode(fx[0]['items']));
     s.fmButton(1);
     expect(s.debugToast, 'Teks QRIS tidak valid. Periksa kode yang ditempel.');
     s.fmInput(1, q);
     s.fmButton(1);
     await _settle(tester);
     expect(s.debugToast, fx[1]['toast']);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx[1]['items']));
+    expect(jsonEncode(_withoutQrisLock(s.debugItems())), jsonEncode(fx[1]['items']));
     s.fmToggle(0);
     await _settle(tester);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx[2]['items']));
+    expect(jsonEncode(_withoutQrisLock(s.debugItems())), jsonEncode(fx[2]['items']));
     expect(jsonDecode(kv.data['goyana-qris-options185']!), {'dynamic': false});
     s.fmInput(2, 'BCA');
     s.fmButton(2);
@@ -623,7 +629,7 @@ void templateTests() {
     s.fmButton(2);
     await _settle(tester);
     expect(s.debugToast, fx[4]['toast']);
-    expect(jsonEncode(s.debugItems()), jsonEncode(fx[4]['items']));
+    expect(jsonEncode(_withoutQrisLock(s.debugItems())), jsonEncode(fx[4]['items']));
     expect([kv.data['gy154-bank'], kv.data['gy154-account'], kv.data['gy154-holder']], ['BCA', '1234567', 'Koiman']);
     expect(tester.takeException(), isNull);
   });

@@ -32,6 +32,11 @@ final class WhatsAppServiceProvider extends ServiceProvider {
         // Link bertanda tangan & kedaluwarsa: nota digital pelanggan dan berkas media untuk CHATKU / pratinjau aplikasi.
         Route::middleware(['web','signed','throttle:60,1'])->get('wa/nota',[ChatbotController::class,'nota'])->name('wa.nota');
         Route::middleware(['signed','throttle:120,1'])->get('wa/media/{id}',[ChatbotController::class,'file'])->name('wa.media');
+        // Kunci ganti QRIS (selalu aktif, terlepas dari modul WhatsApp).
+        Route::middleware(['api','auth:sanctum','active'])->prefix('api/qris')->group(function(){
+            Route::post('unlock',[Http\QrisController::class,'unlock'])->middleware('throttle:5,1');
+            Route::post('code',[Http\QrisController::class,'code'])->middleware('throttle:3,10');
+        });
         // Template pusat selalu tersedia bagi administrator (divisi CS/Bantuan dan pemilik); isinya baru dipakai saat balasan aktif.
         Route::middleware(['web','auth','active','platform.admin','admin.area:support'])->prefix('admin/whatsapp')->group(function(){
             Route::get('templates',[TemplateController::class,'index'])->name('admin.wa.templates');
@@ -39,6 +44,12 @@ final class WhatsAppServiceProvider extends ServiceProvider {
             Route::post('templates/preview',[TemplateController::class,'preview'])->name('admin.wa.templates.preview');
             Route::get('templates/{id}/revisions',[TemplateController::class,'revisions'])->whereNumber('id')->name('admin.wa.templates.revisions');
             Route::post('templates/propose',[TemplateController::class,'propose'])->middleware('throttle:2,60')->name('admin.wa.templates.propose');
+        });
+        // Slot nomor WhatsApp tambahan (Rp30.000/nomor/bulan) dicatat administrator selama Google Play belum tersambung.
+        Route::middleware(['web','auth','active','platform.admin','admin.area:grants'])->prefix('admin/whatsapp')->group(function(){
+            Route::get('slots',[Http\SlotController::class,'index'])->name('admin.wa.slots');
+            Route::post('slots',[Http\SlotController::class,'store'])->name('admin.wa.slots.store');
+            Route::post('slots/{id}/revoke',[Http\SlotController::class,'revoke'])->whereNumber('id')->name('admin.wa.slots.revoke');
         });
         if(!config('whatsapp.enabled'))return;
         Route::middleware(['api','auth:sanctum','active','throttle:30,1'])->prefix('api/whatsapp')->group(function(){

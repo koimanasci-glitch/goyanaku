@@ -208,6 +208,9 @@ class SyncController {
             return ['status' => 'conflict', 'record' => $this->presentFor($user, $existing)];
         }
         if (!$existing && $deleted) return ['status' => 'applied', 'rev' => 0];
+        // QRIS: hanya pemilik yang baru konfirmasi password/kode (App\Support\QrisGuard). Isi yang sama tidak dianggap perubahan.
+        if (!($existing && $existing->data === $json && (bool) $existing->deleted === $deleted)
+            && ($problem = \App\Support\QrisGuard::problem($user, (string) $change['collection'], (string) $change['key']))) return $this->reject($problem);
 
         if ($change['collection'] === 'crm') {
             $before = $existing && !$existing->deleted ? json_decode((string) $existing->data, true) : null;
